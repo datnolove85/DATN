@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { RouterLink } from 'vue-router'
 import {
   Search,
   ShoppingBag,
@@ -45,9 +46,13 @@ onMounted(() => {
   els.forEach((el) => io.observe(el))
 })
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
-
-const nav = ['Home', 'Shop', 'New Arrivals', 'Collections', 'About']
-
+const nav = [
+  { name: 'Home', path: '/home' },
+  { name: 'Shop', path: '/shop' },
+  { name: 'New Arrivals', path: '/new-arrivals' },
+  { name: 'Collections', path: '/collections' },
+  { name: 'About', path: '/about' },
+]
 const categories = [
   {
     name: 'T-Shirts',
@@ -199,14 +204,15 @@ const subscribe = () => {
           Vel<span class="text-amber-500">o</span>ra
         </a>
         <nav class="hidden lg:flex items-center gap-9">
-          <a
-            v-for="n in nav"
-            :key="n"
-            href="#"
+          <!-- DESKTOP MENU -->
+          <RouterLink
+            v-for="item in nav"
+            :key="item.name"
+            :to="item.path"
             class="relative text-sm font-medium text-neutral-700 hover:text-neutral-900 transition after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-amber-500 after:transition-all hover:after:w-full"
           >
-            {{ n }}
-          </a>
+            {{ item.name }}
+          </RouterLink>
         </nav>
         <div class="flex items-center gap-2 sm:gap-3">
           <button class="p-2 rounded-full hover:bg-neutral-100 transition">
@@ -233,13 +239,16 @@ const subscribe = () => {
       <transition name="fade">
         <div v-if="mobileOpen" class="lg:hidden bg-white border-t border-neutral-200">
           <div class="px-6 py-4 flex flex-col gap-3">
-            <a
-              v-for="n in nav"
-              :key="n"
-              href="#"
-              class="py-2 text-neutral-700 font-medium hover:text-amber-500"
-              >{{ n }}</a
+            <!-- MOBILE MENU -->
+            <RouterLink
+              v-for="item in nav"
+              :key="item.name"
+              :to="item.path"
+              @click="mobileOpen = false"
+              class="py-2 text-neutral-700 font-medium hover:text-amber-500 transition"
             >
+              {{ item.name }}
+            </RouterLink>
           </div>
         </div>
       </transition>
@@ -257,7 +266,7 @@ const subscribe = () => {
       ></div>
 
       <div
-        class="relative max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-2 gap-12 items-center py-16 lg:py-24"
+        class="relative max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-2 gap-16 xl:gap-24 items-center py-16 lg:py-24"
       >
         <div class="reveal">
           <span
@@ -559,9 +568,10 @@ const subscribe = () => {
     <footer class="bg-neutral-950 text-neutral-400 pt-20 pb-8">
       <div class="max-w-7xl mx-auto px-5 lg:px-8 grid md:grid-cols-2 lg:grid-cols-4 gap-10">
         <div>
-          <div class="text-2xl font-extrabold text-white">
+          <!-- LOGO -->
+          <RouterLink to="/home" class="text-2xl font-extrabold tracking-tight">
             Vel<span class="text-amber-500">o</span>ra
-          </div>
+          </RouterLink>
           <p class="mt-4 text-sm leading-relaxed">
             Premium men's fashion designed for the modern, confident gentleman.
           </p>
@@ -599,10 +609,10 @@ const subscribe = () => {
           <h4 class="text-white font-semibold mb-4">Contact</h4>
           <ul class="space-y-3 text-sm">
             <li class="flex items-center gap-2">
-              <MapPin class="w-4 h-4 text-amber-500" /> 221 Madison Ave, NYC
+              <MapPin class="w-4 h-4 text-amber-500" /> Hà Nội,Việt Nam
             </li>
             <li class="flex items-center gap-2">
-              <Phone class="w-4 h-4 text-amber-500" /> +1 (555) 010-2026
+              <Phone class="w-4 h-4 text-amber-500" /> +84 0377280805
             </li>
             <li class="flex items-center gap-2">
               <Mail class="w-4 h-4 text-amber-500" /> hello@velora.com
@@ -623,8 +633,45 @@ const subscribe = () => {
     </footer>
   </div>
 </template>
-
 <style scoped>
+/* ===== GLOBAL FIX ===== */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* ===== CONTAINER AUTO BALANCE ===== */
+section,
+header,
+footer {
+  width: 100%;
+}
+
+.max-w-7xl {
+  width: 100%;
+  max-width: 1400px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== HERO FIX ===== */
+.grid {
+  align-items: center;
+}
+
+/* ===== IMAGE BALANCE ===== */
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ===== CARD BALANCE ===== */
 .reveal {
   opacity: 0;
   transform: translateY(24px);
@@ -632,16 +679,46 @@ const subscribe = () => {
     opacity 0.8s ease,
     transform 0.8s ease;
 }
+
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ===== MOBILE MENU ===== */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.25s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* ===== RESPONSIVE FIX ===== */
+@media (max-width: 1280px) {
+  .max-w-7xl {
+    max-width: 1200px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .max-w-7xl {
+    max-width: 100% !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .max-w-7xl {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  h1 {
+    line-height: 1.1 !important;
+  }
 }
 </style>
