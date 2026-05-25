@@ -91,14 +91,6 @@
                 <!-- HEADER -->
                 <div class="flex items-center justify-between mb-8">
                   <h2 class="text-2xl font-bold text-white tracking-wide">Chào mừng trở lại</h2>
-
-                  <div
-                    class="bg-white/10 text-[#d6b690] text-xs px-3 py-1.5 rounded-xl border border-white/10 font-medium flex items-center space-x-1 cursor-pointer hover:bg-white/15 transition-colors"
-                  >
-                    <span>QR</span>
-
-                    <QrCodeIcon :size="14" />
-                  </div>
                 </div>
 
                 <!-- FORM -->
@@ -109,7 +101,7 @@
                       type="text"
                       v-model="form.identity"
                       placeholder="Email hoặc tên đăng nhập"
-                      class="w-full px-5 py-4 bg-white/6 border border-white/10 rounded-2xl text-sm outline-none transition-all duration-300 focus:border-[#c6a77d] focus:ring-4 focus:ring-[#c6a77d]/10 placeholder:text-white/35 text-white hover:border-white/20"
+                      class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-black text-sm placeholder:text-gray-400 text-left outline-none focus:border-[#c6a77d] focus:ring-2 focus:ring-[#c6a77d]/20"
                       required
                     />
                   </div>
@@ -120,32 +112,29 @@
                       :type="showPassword ? 'text' : 'password'"
                       v-model="form.password"
                       placeholder="Mật khẩu"
-                      class="w-full px-5 py-4 bg-white/6 border border-white/10 rounded-2xl text-sm outline-none transition-all duration-300 focus:border-[#c6a77d] focus:ring-4 focus:ring-[#c6a77d]/10 placeholder:text-white/35 text-white hover:border-white/20"
+                      class="w-full px-4 pr-12 py-3 bg-white border border-gray-300 rounded-xl text-black text-sm placeholder:text-gray-400 outline-none"
                       required
                     />
 
                     <button
                       type="button"
                       @click="showPassword = !showPassword"
-                      class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-black z-10"
                     >
-                      <EyeIcon v-if="!showPassword" :size="18" />
-
-                      <EyeOffIcon v-else :size="18" />
+                      <EyeIcon v-if="!showPassword" :size="20" />
+                      <EyeOffIcon v-else :size="20" />
                     </button>
                   </div>
-
                   <!-- LOGIN BUTTON -->
                   <button
                     type="submit"
                     :disabled="isLoading"
-                    class="w-full bg-gradient-to-r from-[#c6a77d] to-[#b89368] text-[#111] py-4 rounded-2xl font-semibold text-sm tracking-[2px] shadow-[0_10px_30px_rgba(198,167,125,0.35)] hover:brightness-110 active:scale-[0.99] transition-all duration-300 flex items-center justify-center disabled:opacity-70"
+                    class="w-full bg-gradient-to-r from-[#c6a77d] to-[#b89368] text-black py-3 rounded-xl font-semibold"
                   >
-                    <span v-if="!isLoading"> ĐĂNG NHẬP </span>
-
+                    <span v-if="!isLoading">ĐĂNG NHẬP</span>
                     <span
                       v-else
-                      class="w-5 h-5 border-2 border-[#111] border-t-transparent rounded-full animate-spin"
+                      class="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin inline-block"
                     ></span>
                   </button>
                 </form>
@@ -155,8 +144,6 @@
                   class="flex items-center justify-between text-xs text-[#d6b690] mt-5 px-1 font-medium"
                 >
                   <a href="#" class="hover:text-white transition-colors"> Quên mật khẩu </a>
-
-                  <a href="#" class="hover:text-white transition-colors"> Đăng nhập bằng SMS </a>
                 </div>
 
                 <!-- SEPARATOR -->
