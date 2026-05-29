@@ -87,6 +87,11 @@ const router = createRouter({
       name: 'caLamViec',
       component: () => import('../views/Admin/CaLamViecView.vue'),
     },
+    {
+      path: '/san-pham',
+      name: 'sanPham',
+      component: () => import('../views/Users/sanpham.vue'),
+    },
 
     // ================= 404 =================
     {
