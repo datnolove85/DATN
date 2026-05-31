@@ -1,16 +1,17 @@
-package com.example.backend;
+package com.example.backend.Entity;
 
-import com.example.backend.Entity.SanPhamChiTiet;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Entity
-@Table(name = "gio_hang_chi_tiet")
-public class GioHangChiTiet {
+@Table(name = "hoa_don_chi_tiet")
+public class HoaDonChiTiet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -18,8 +19,8 @@ public class GioHangChiTiet {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_gio_hang", nullable = false)
-    private GioHang idGioHang;
+    @JoinColumn(name = "id_hoa_don", nullable = false)
+    private HoaDon idHoaDon;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -29,5 +30,13 @@ public class GioHangChiTiet {
     @NotNull
     @Column(name = "so_luong", nullable = false)
     private Integer soLuong;
+
+    @NotNull
+    @Column(name = "don_gia", nullable = false, precision = 18, scale = 2)
+    private BigDecimal donGia;
+
+    @NotNull
+    @Column(name = "thanh_tien", nullable = false, precision = 18, scale = 2)
+    private BigDecimal thanhTien;
 
 }

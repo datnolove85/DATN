@@ -1,7 +1,5 @@
-package com.example.backend;
+package com.example.backend.Entity;
 
-import com.example.backend.Entity.KhachHang;
-import com.example.backend.Entity.NhanVien;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,10 +24,6 @@ public class HoaDon {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_khach_hang")
     private KhachHang idKhachHang;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_nhan_vien")
-    private NhanVien idNhanVien;
 
     @Size(max = 30)
     @NotNull

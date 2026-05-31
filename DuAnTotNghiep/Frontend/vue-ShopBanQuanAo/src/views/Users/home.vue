@@ -48,7 +48,7 @@ onMounted(() => {
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
 const nav = [
   { name: 'Home', path: '/home' },
-  { name: 'Shop', path: '/shop' },
+  { name: 'Shop', path: '/san-pham' },
   { name: 'New Arrivals', path: '/new-arrivals' },
   { name: 'Collections', path: '/collections' },
   { name: 'About', path: '/about' },

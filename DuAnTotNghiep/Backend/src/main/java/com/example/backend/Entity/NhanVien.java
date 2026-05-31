@@ -1,6 +1,5 @@
-package com.example.backend;
+package com.example.backend.Entity;
 
-import com.example.backend.Entity.TaiKhoan;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

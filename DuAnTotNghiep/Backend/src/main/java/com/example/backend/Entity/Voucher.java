@@ -1,4 +1,4 @@
-package com.example.backend;
+package com.example.backend.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -14,8 +14,8 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "dot_giam_gia")
-public class DotGiamGia {
+@Table(name = "voucher")
+public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -23,14 +23,14 @@ public class DotGiamGia {
 
     @Size(max = 30)
     @NotNull
-    @Column(name = "ma_dot_giam_gia", nullable = false, length = 30)
-    private String maDotGiamGia;
+    @Column(name = "ma_voucher", nullable = false, length = 30)
+    private String maVoucher;
 
     @Size(max = 200)
     @NotNull
     @Nationalized
-    @Column(name = "ten_dot_giam_gia", nullable = false, length = 200)
-    private String tenDotGiamGia;
+    @Column(name = "ten_voucher", nullable = false, length = 200)
+    private String tenVoucher;
 
     @Size(max = 20)
     @NotNull
@@ -41,15 +41,25 @@ public class DotGiamGia {
     @Column(name = "gia_tri_giam", nullable = false, precision = 18, scale = 2)
     private BigDecimal giaTriGiam;
 
+    @ColumnDefault("0")
+    @Column(name = "gia_tri_don_hang_toi_thieu", precision = 18, scale = 2)
+    private BigDecimal giaTriDonHangToiThieu;
+
     @Column(name = "gia_tri_giam_toi_da", precision = 18, scale = 2)
     private BigDecimal giaTriGiamToiDa;
 
-    @NotNull
-    @Column(name = "ngay_bat_dau", nullable = false)
+    @ColumnDefault("0")
+    @Column(name = "so_luong")
+    private Integer soLuong;
+
+    @ColumnDefault("0")
+    @Column(name = "so_luong_da_dung")
+    private Integer soLuongDaDung;
+
+    @Column(name = "ngay_bat_dau")
     private Instant ngayBatDau;
 
-    @NotNull
-    @Column(name = "ngay_ket_thuc", nullable = false)
+    @Column(name = "ngay_ket_thuc")
     private Instant ngayKetThuc;
 
     @Nationalized

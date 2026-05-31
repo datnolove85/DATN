@@ -21,6 +21,21 @@ public class SanPhamChiTiet {
     @Column(name = "id", nullable = false)
     private Integer id;
 
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_san_pham", nullable = false)
+    private SanPham idSanPham;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_mau_sac", nullable = false)
+    private MauSac idMauSac;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_kich_thuoc", nullable = false)
+    private KichThuoc idKichThuoc;
+
     @Size(max = 30)
     @NotNull
     @Column(name = "ma_san_pham_chi_tiet", nullable = false, length = 30)

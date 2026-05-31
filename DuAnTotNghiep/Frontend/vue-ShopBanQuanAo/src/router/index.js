@@ -92,6 +92,17 @@ const router = createRouter({
       name: 'sanPham',
       component: () => import('../views/Users/sanpham.vue'),
     },
+    {
+      path: '/confirm',
+      name: 'confirm',
+      component: () => import('../views/Users/confirmbuy.vue'),
+    },
+
+    {
+      path: '/product/:id',
+      name: 'product-detail',
+      component: () => import('../views/Users/confirmbuy.vue'),
+    },
 
     // ================= 404 =================
     {
