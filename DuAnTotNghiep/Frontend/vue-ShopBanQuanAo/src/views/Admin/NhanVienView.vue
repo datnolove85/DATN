@@ -19,9 +19,10 @@
         <button @click="handleExportExecl" class="btn-export" title="Xuất file Excel">
           <i class="fas fa-file-excel"></i> Xuất Excel
         </button>
-        <button class="btn-add" @click="$router.push('/nhan-vien/add')">
+
+        <router-link to="/admin/nhan-vien/add" class="btn-add">
           <i class="fas fa-plus"></i> Thêm nhân viên
-        </button>
+        </router-link>
       </div>
     </div>
 
@@ -226,7 +227,9 @@ const handleExportExecl = async () => {
 
 // Detail
 const detailNhanVien = (id) => {
-  router.push(`/nhan-vien/edit/${id}`)
+  router.push({
+    path: `/admin/nhan-vien/edit/${id}`,
+  })
 }
 
 onMounted(phanTrangNhanVien)

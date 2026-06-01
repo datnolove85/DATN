@@ -29,7 +29,7 @@
 
         <!-- [MỚI] Quản lý Nhân viên -->
         <router-link
-          to="/admin/employees"
+          to="/admin/nhan-vien"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
           active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
         >
@@ -131,28 +131,28 @@
 
           <div v-show="isOpenAttribute" class="pl-4 space-y-1">
             <router-link
-              to="/admin/attributes/colors"
+              to="/admin/mausac"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs">🔴</span> Màu sắc
             </router-link>
             <router-link
-              to="/admin/attributes/sizes"
+              to="/admin/sizes"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs">📏</span> Kích cỡ
             </router-link>
             <router-link
-              to="/admin/attributes/materials"
+              to="/admin/materials"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs">🧶</span> Chất liệu
             </router-link>
             <router-link
-              to="/admin/attributes/brands"
+              to="/admin/brands"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >

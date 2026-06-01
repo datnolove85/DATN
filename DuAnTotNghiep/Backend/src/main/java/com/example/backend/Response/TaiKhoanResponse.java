@@ -1,8 +1,5 @@
 package com.example.backend.Response;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.Instant;
 @AllArgsConstructor

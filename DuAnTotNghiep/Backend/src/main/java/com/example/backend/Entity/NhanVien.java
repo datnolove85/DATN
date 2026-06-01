@@ -26,29 +26,31 @@ public class NhanVien {
     @JoinColumn(name = "id_tai_khoan", nullable = false)
     private TaiKhoan idTaiKhoan;
 
-    @Size(max = 20)
-    @NotNull
-    @Column(name = "ma_nhan_vien", nullable = false, length = 20)
-    private String maNhanVien;
-
-    @Size(max = 100)
+    @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "ho_ten", nullable = false, length = 100)
-    private String hoTen;
+    @Column(name = "ma_nhan_vien", nullable = false, length = 50)
+    private String maNhanVien;
 
-    @Column(name = "ngay_sinh")
-    private LocalDate ngaySinh;
+    @Size(max = 150)
+    @NotNull
+    @Nationalized
+    @Column(name = "ten_nhan_vien", nullable = false, length = 150)
+    private String tenNhanVien;
 
     @Size(max = 255)
     @Nationalized
     @Column(name = "dia_chi")
     private String diaChi;
 
+    @Column(name = "ngay_sinh")
+    private LocalDate ngaySinh;
+
     @Column(name = "gioi_tinh")
     private Boolean gioiTinh;
 
     @Size(max = 20)
+    @Nationalized
     @Column(name = "can_cuoc_cong_dan", length = 20)
     private String canCuocCongDan;
 
@@ -61,12 +63,20 @@ public class NhanVien {
     @Column(name = "ngay_tao")
     private Instant ngayTao;
 
-    @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
     private Instant ngayCapNhat;
 
-    @ColumnDefault("1")
+    @Size(max = 100)
+    @Nationalized
+    @Column(name = "nguoi_tao", length = 100)
+    private String nguoiTao;
+
+    @Size(max = 100)
+    @Nationalized
+    @Column(name = "nguoi_cap_nhat", length = 100)
+    private String nguoiCapNhat;
+
     @Column(name = "trang_thai")
-    private Boolean trangThai;
+    private Integer trangThai;
 
 }

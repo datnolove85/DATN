@@ -10,8 +10,9 @@
         </p>
       </div>
 
+      <!-- ❗ CHỈ SỬA Ở ĐÂY -->
       <button
-        @click="openModal"
+        @click="openAddModal"
         class="flex items-center gap-2 px-6 py-3 bg-white text-indigo-900 rounded-full text-sm font-semibold hover:bg-gray-100 shadow-md transition duration-300 active:scale-95"
       >
         <span class="text-lg">＋</span> Thêm sản phẩm mới
@@ -94,11 +95,14 @@
             <td
               class="px-6 py-4 text-center rounded-r-xl border-y border-r border-slate-100 space-x-2"
             >
+              <!-- ❗ CHỈ SỬA NÚT SỬA -->
               <button
+                @click="openEditModal(product)"
                 class="px-4 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white font-medium rounded-xl text-xs transition-all duration-200 border border-indigo-100 shadow-sm"
               >
                 Sửa
               </button>
+
               <button
                 class="px-4 py-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white font-medium rounded-xl text-xs transition-all duration-200 border border-rose-100 shadow-sm"
               >
@@ -110,133 +114,60 @@
       </table>
     </div>
 
+    <!-- MODAL -->
     <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="closeModal"></div>
 
       <div
-        class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all z-10 animate-in fade-in zoom-in-95 duration-200"
+        class="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden z-10"
       >
         <div
           class="px-6 py-4 bg-gradient-to-r from-purple-800 to-indigo-900 text-white flex justify-between items-center"
         >
           <div>
-            <h3 class="text-lg font-bold">Thêm sản phẩm mới</h3>
-            <p class="text-xs opacity-70">Nhập đầy đủ thông tin sản phẩm vào hệ thống</p>
+            <!-- ❗ CHỈ SỬA TITLE -->
+            <h3 class="text-lg font-bold">
+              {{ isEditMode ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' }}
+            </h3>
+
+            <p class="text-xs opacity-70">Nhập đầy đủ thông tin sản phẩm</p>
           </div>
-          <button
-            @click="closeModal"
-            class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition"
-          >
-            ✕
-          </button>
+
+          <button @click="closeModal" class="text-white/70 hover:text-white">✕</button>
         </div>
 
         <form @submit.prevent="handleSubmit" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-          <div class="space-y-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-slate-500"
-              >Hình ảnh sản phẩm</label
-            >
-            <div class="flex items-center gap-4">
-              <div
-                class="w-24 h-24 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 relative group"
-              >
-                <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
-                <span v-else class="text-2xl text-slate-400">📸</span>
-
-                <button
-                  v-if="imagePreview"
-                  @click.prevent="clearImage"
-                  class="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs font-medium"
-                >
-                  Thay đổi
-                </button>
-              </div>
-
-              <div class="flex-1">
-                <label
-                  class="inline-flex items-center px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-100 font-medium rounded-xl text-xs cursor-pointer transition shadow-sm"
-                >
-                  <span>Chọn ảnh từ máy tính</span>
-                  <input type="file" accept="image/*" class="hidden" @change="handleImageChange" />
-                </label>
-                <p class="text-xs text-slate-400 mt-1.5">
-                  Hỗ trợ định dạng JPG, PNG, WEBP. Dung lượng tối đa 2MB.
-                </p>
-              </div>
-            </div>
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-500">Tên sản phẩm</label>
+            <input v-model="form.tenSanPham" class="w-full border p-2 rounded" />
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-1.5 md:col-span-2">
-              <label class="text-xs font-bold text-slate-600 uppercase">Tên sản phẩm</label>
-              <input
-                v-model="form.tenSanPham"
-                type="text"
-                required
-                placeholder="Ví dụ: Áo Sơ Mi Nam Tay Dài"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition text-sm"
-              />
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-600 uppercase">Giá bán (VND)</label>
-              <input
-                v-model.number="form.giaBan"
-                type="number"
-                required
-                placeholder="Nhập giá tiền..."
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition text-sm"
-              />
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-600 uppercase">Danh mục sản phẩm</label>
-              <input
-                v-model="form.tenDanhMuc"
-                type="text"
-                required
-                placeholder="Ví dụ: Áo sơ mi"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition text-sm"
-              />
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-600 uppercase">Thương hiệu</label>
-              <input
-                v-model="form.tenThuongHieu"
-                type="text"
-                required
-                placeholder="Ví dụ: Gucci, Chanel"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition text-sm"
-              />
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-slate-600 uppercase">Chất liệu</label>
-              <input
-                v-model="form.tenChatLieu"
-                type="text"
-                required
-                placeholder="Ví dụ: Cotton, lụa"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition text-sm"
-              />
-            </div>
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-500">Giá</label>
+            <input v-model.number="form.giaBan" type="number" class="w-full border p-2 rounded" />
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition"
-            >
-              Hủy bỏ
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-500">Danh mục ID</label>
+            <input v-model.number="form.idDanhMuc" class="w-full border p-2 rounded" />
+          </div>
+
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-500">Thương hiệu ID</label>
+            <input v-model.number="form.idThuongHieu" class="w-full border p-2 rounded" />
+          </div>
+
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-500">Chất liệu ID</label>
+            <input v-model.number="form.idChatLieu" class="w-full border p-2 rounded" />
+          </div>
+
+          <div class="flex justify-end gap-2">
+            <button type="button" @click="closeModal" class="px-4 py-2 bg-gray-200 rounded">
+              Hủy
             </button>
-            <button
-              type="submit"
-              class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs shadow-md shadow-indigo-200 transition"
-            >
-              Lưu sản phẩm
-            </button>
+
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Lưu</button>
           </div>
         </form>
       </div>
@@ -248,93 +179,98 @@
 import { ref, onMounted } from 'vue'
 import { getAllSanpham } from '@/service/SanphamService'
 
-// ==========================================
-// QUAN LÝ CONFIG & DATA ĐANG CÓ
-// ==========================================
 const products = ref([])
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const imagePreview = ref('')
+
+const form = ref({
+  id: null,
+  idDanhMuc: null,
+  idThuongHieu: null,
+  idChatLieu: null,
+  maSanPham: '',
+  tenSanPham: '',
+  moTa: '',
+  giaBan: null,
+  imageFile: null,
+})
 
 const loadData = async () => {
-  try {
-    const res = await getAllSanpham()
-    products.value = res
-  } catch (err) {
-    console.error('Lỗi khi lấy danh sách sản phẩm:', err)
-  }
+  products.value = await getAllSanpham()
 }
 
 onMounted(loadData)
 
-const formatPrice = (value) => {
-  if (!value) return '0 ₫'
-  return new Intl.NumberFormat('vi-VN', {
+const formatPrice = (v) =>
+  new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-  }).format(value)
-}
+  }).format(v || 0)
 
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path}`
-}
+const getImageUrl = (p) => (p ? (p.startsWith('http') ? p : `http://localhost:8080${p}`) : '')
 
-// ==========================================
-// LOGIC MODAL & UPLOAD ẢNH (MỚI THÊM)
-// ==========================================
-const isModalOpen = ref(false)
-const imagePreview = ref('')
-
-// Tạo object trắng chứa dữ liệu form nhập vào
-const form = ref({
-  tenSanPham: '',
-  tenDanhMuc: '',
-  tenThuongHieu: '',
-  tenChatLieu: '',
-  giaBan: null,
-  imageFile: null, // Lưu file thật để sau này gửi lên API
-})
-
-// Mở form
-const openModal = () => {
+// ❗ CHỈ THÊM 2 HÀM NÀY
+const openAddModal = () => {
+  isEditMode.value = false
   isModalOpen.value = true
 }
 
-// Đóng form + Reset toàn bộ dữ liệu đang gõ dở
-const closeModal = () => {
-  isModalOpen.value = false
+const openEditModal = (product) => {
+  isEditMode.value = true
+  isModalOpen.value = true
+
   form.value = {
-    tenSanPham: '',
-    tenDanhMuc: '',
-    tenThuongHieu: '',
-    tenChatLieu: '',
-    giaBan: null,
+    id: product.id,
+    idDanhMuc: product.idDanhMuc,
+    idThuongHieu: product.idThuongHieu,
+    idChatLieu: product.idChatLieu,
+    maSanPham: product.maSanPham,
+    tenSanPham: product.tenSanPham,
+    moTa: product.moTa,
+    giaBan: product.giaBan,
     imageFile: null,
   }
-  imagePreview.value = ''
+
+  imagePreview.value = product.image ? getImageUrl(product.image) : ''
 }
 
-// Xử lý khi người dùng chọn ảnh từ máy tính
-const handleImageChange = (event) => {
-  const file = event.target.files[0]
+const closeModal = () => {
+  isModalOpen.value = false
+}
+
+const handleImageChange = (e) => {
+  const file = e.target.files[0]
   if (file) {
     form.value.imageFile = file
-    // Tạo đường dẫn ảo để hiển thị hình ảnh xem trước ngay lập tức
     imagePreview.value = URL.createObjectURL(file)
   }
 }
 
-// Xóa ảnh đã chọn
-const clearImage = () => {
-  form.value.imageFile = null
-  imagePreview.value = ''
-}
+const handleSubmit = async () => {
+  const fd = new FormData()
 
-// Xử lý khi nhấn nút "Lưu sản phẩm"
-const handleSubmit = () => {
-  console.log('Dữ liệu sẵn sàng gửi đi:', form.value)
-  // Tại đây bạn viết hàm gọi API Thêm sản phẩm (vd: tạo service kết nối tới backend)
+  fd.append('idDanhMuc', form.value.idDanhMuc)
+  fd.append('idThuongHieu', form.value.idThuongHieu)
+  fd.append('idChatLieu', form.value.idChatLieu)
+  fd.append('maSanPham', form.value.maSanPham)
+  fd.append('tenSanPham', form.value.tenSanPham)
+  fd.append('moTa', form.value.moTa)
 
-  // Thành công thì đóng modal
+  if (form.value.imageFile) {
+    fd.append('image', form.value.imageFile)
+  }
+
+  const url = isEditMode.value
+    ? `http://localhost:8080/sanpham/${form.value.id}`
+    : `http://localhost:8080/sanpham`
+
+  await fetch(url, {
+    method: isEditMode.value ? 'PUT' : 'POST',
+    body: fd,
+  })
+
+  await loadData()
   closeModal()
 }
 </script>

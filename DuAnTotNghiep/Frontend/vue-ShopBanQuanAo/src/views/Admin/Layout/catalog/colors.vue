@@ -1,0 +1,322 @@
+<template>
+  <div
+    class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
+  >
+    <div
+      class="relative p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-300 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 overflow-hidden group transition-all duration-300 hover:shadow-[0_8px_30px_rgba(99,102,241,0.05)]"
+    >
+      <div
+        class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,0.06),transparent_50%)] transition-opacity duration-500 group-hover:opacity-100"
+      ></div>
+      <div class="relative z-10">
+        <h1
+          class="text-2xl font-black tracking-wider bg-gradient-to-r from-slate-950 via-indigo-900 to-indigo-950 bg-clip-text text-transparent uppercase group-hover:tracking-widest transition-all duration-500 easy-in-out"
+        >
+          Quản lý màu sắc
+        </h1>
+        <p class="text-xs text-indigo-600/90 mt-1 flex items-center gap-2 font-semibold">
+          <span class="relative flex h-2 w-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+            ></span>
+            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          Hệ thống cơ sở dữ liệu thời gian thực
+        </p>
+      </div>
+
+      <button
+        @click="openAddModal"
+        class="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold shadow-[0_4px_12px_rgba(99,102,241,0.2)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.4)] transition-all duration-300 active:scale-95 active:duration-75 group/btn overflow-hidden"
+      >
+        <span
+          class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-shimmer"
+        ></span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="3"
+          stroke="currentColor"
+          class="w-3.5 h-3.5 transition-transform group-hover/btn:rotate-90 duration-300"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        THÊM MÀU SẮC MỚI
+      </button>
+    </div>
+
+    <div class="space-y-3 overflow-hidden">
+      <div
+        class="hidden md:grid grid-cols-12 gap-0 px-6 py-3 bg-white border border-b-2 border-slate-300 rounded-t-xl text-[11px] uppercase text-indigo-950 font-black tracking-widest select-none shadow-sm"
+      >
+        <div class="col-span-1 text-center border-r border-slate-200">ID</div>
+        <div class="col-span-2 px-4 border-r border-slate-200">Mã màu</div>
+        <div class="col-span-3 px-4 border-r border-slate-200">Tên màu</div>
+        <div class="col-span-2 text-center border-r border-slate-200">Trạng thái</div>
+        <div class="col-span-3 px-4 border-r border-slate-200">Thời gian</div>
+        <div class="col-span-1 text-center">Tùy chọn</div>
+      </div>
+
+      <div class="space-y-2">
+        <div
+          v-for="(color, index) in colors"
+          :key="color.id ?? index"
+          class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 px-6 py-4 md:py-3 items-center bg-white border border-slate-300 hover:border-indigo-500 hover:bg-slate-50/80 rounded-xl md:rounded-lg transition-all duration-300 ease-in-out shadow-[0_2px_4px_rgba(0,0,0,0.01)] hover:shadow-[0_10px_25px_-5px_rgba(99,102,241,0.12)] group"
+        >
+          <div
+            class="col-span-1 flex md:justify-center items-center gap-2 md:gap-0 md:border-r md:border-slate-200 h-full"
+          >
+            <span class="md:hidden text-[10px] uppercase font-bold text-slate-400">ID:</span>
+            <span
+              class="px-2 py-0.5 bg-slate-100 border border-slate-300 text-indigo-700 font-mono text-xs rounded font-bold group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all"
+              >#{{ color.id }}</span
+            >
+          </div>
+
+          <div class="col-span-2 md:px-4 md:border-r md:border-slate-200 h-full flex items-center">
+            <span
+              class="inline-block px-2.5 py-1 bg-slate-50 text-indigo-800 font-black rounded border border-slate-300 text-xs font-mono tracking-wider group-hover:bg-white group-hover:border-indigo-400 transition-all"
+              >{{ color.maMauSac }}</span
+            >
+          </div>
+
+          <div
+            class="col-span-3 text-sm font-bold text-slate-800 capitalize truncate md:px-4 md:border-r md:border-slate-200 h-full flex items-center group-hover:translate-x-1.5 transition-transform"
+          >
+            {{ color.tenMauSac }}
+          </div>
+
+          <div
+            class="col-span-2 flex md:justify-center items-center gap-2 md:gap-0 md:border-r md:border-slate-200 h-full"
+          >
+            <span
+              :class="[
+                'inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full border transition-all duration-300 group-hover:scale-105',
+                color.trangThai
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 group-hover:bg-emerald-500 group-hover:text-white'
+                  : 'bg-rose-50 text-rose-700 border-rose-300 group-hover:bg-rose-500 group-hover:text-white',
+              ]"
+            >
+              <span
+                :class="[
+                  'w-1.5 h-1.5 rounded-full',
+                  color.trangThai
+                    ? 'bg-emerald-500 group-hover:bg-white animate-pulse'
+                    : 'bg-rose-500 group-hover:bg-white',
+                ]"
+              ></span>
+              {{ color.trangThai ? 'Active' : 'Muted' }}
+            </span>
+          </div>
+
+          <div
+            class="col-span-3 text-[10px] text-slate-500 flex flex-col gap-0.5 md:px-4 md:border-r md:border-slate-200 h-full justify-center font-mono"
+          >
+            <div>Tạo: {{ formatDate(color.ngayTao) }}</div>
+            <div>Sửa: {{ formatDate(color.ngayCapNhat) }}</div>
+          </div>
+
+          <div class="col-span-1 flex justify-end md:justify-center items-center pt-3 md:pt-0">
+            <div
+              class="inline-flex items-center bg-slate-50 border border-slate-300 rounded-lg p-0.5 shadow-inner group-hover:bg-white transition-colors"
+            >
+              <button
+                @click="openEditModal(color)"
+                class="p-1.5 text-slate-500 hover:text-indigo-600 rounded-md transition duration-150"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2.5"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </button>
+              <div class="w-px h-3 bg-slate-300 mx-0.5"></div>
+              <button
+                @click="deleteColor(color.id)"
+                class="p-1.5 text-slate-500 hover:text-rose-600 rounded-md transition duration-150"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2.5"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="colors.length === 0"
+          class="text-center py-16 border-2 border-dashed border-slate-300 rounded-2xl bg-white shadow-sm"
+        >
+          <p class="text-slate-700 font-bold text-sm">Kho lưu trữ màu trống rỗng</p>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[4px]" @click="closeModal"></div>
+      <div
+        class="bg-white border border-slate-300 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.12)] w-full max-w-md z-10 p-6 animate-scale-up"
+      >
+        <h3 class="text-xs font-black uppercase tracking-widest text-indigo-600 mb-6">
+          {{ isEditMode ? '⚡ CẬP NHẬT MÀU SẮC' : '✨ KHỞI TẠO MÀU SẮC' }}
+        </h3>
+        <form @submit.prevent="handleSubmit" class="space-y-4">
+          <input
+            v-model="form.maMauSac"
+            placeholder="Mã màu (VD: RED)"
+            class="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+            required
+          />
+          <input
+            v-model="form.tenMauSac"
+            placeholder="Tên màu"
+            class="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+            required
+          />
+          <div class="flex gap-3">
+            <button
+              type="button"
+              @click="form.trangThai = true"
+              :class="[
+                'flex-1 py-2 text-xs font-bold rounded-xl border',
+                form.trangThai
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                  : 'bg-slate-50',
+              ]"
+            >
+              HOẠT ĐỘNG
+            </button>
+            <button
+              type="button"
+              @click="form.trangThai = false"
+              :class="[
+                'flex-1 py-2 text-xs font-bold rounded-xl border',
+                !form.trangThai ? 'bg-rose-50 border-rose-500 text-rose-700' : 'bg-slate-50',
+              ]"
+            >
+              TẠM NGỪNG
+            </button>
+          </div>
+          <div class="flex justify-end gap-2 pt-4">
+            <button
+              type="button"
+              @click="closeModal"
+              class="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold"
+            >
+              HỦY
+            </button>
+            <button
+              type="submit"
+              class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold"
+            >
+              LƯU DỮ LIỆU
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getAllMauSac, createMauSac, updateMauSac, deleteMauSac } from '@/service/MauSacService'
+
+const colors = ref([])
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const form = ref({ id: null, maMauSac: '', tenMauSac: '', trangThai: true })
+
+const loadData = async () => {
+  colors.value = await getAllMauSac()
+}
+onMounted(loadData)
+
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  const d = new Date(date)
+  return `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+}
+
+const openAddModal = () => {
+  isEditMode.value = false
+  isModalOpen.value = true
+  form.value = { id: null, maMauSac: '', tenMauSac: '', trangThai: true }
+}
+const openEditModal = (color) => {
+  isEditMode.value = true
+  isModalOpen.value = true
+  form.value = { ...color }
+}
+const closeModal = () => {
+  isModalOpen.value = false
+}
+
+const handleSubmit = async () => {
+  try {
+    if (isEditMode.value) await updateMauSac(form.value.id, form.value)
+    else await createMauSac(form.value)
+    await loadData()
+    closeModal()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const deleteColor = async (id) => {
+  if (confirm('Bạn có chắc muốn xóa màu sắc này?')) {
+    try {
+      await deleteMauSac(id)
+      await loadData()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+}
+</script>
+
+<style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+.animate-scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+</style>

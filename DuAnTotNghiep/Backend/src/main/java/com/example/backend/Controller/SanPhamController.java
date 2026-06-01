@@ -16,12 +16,12 @@ import java.util.List;
 public class SanPhamController {
 
     @Autowired
-    SanPhamChiTietService sanPhamChiTietService;
-
-    @Autowired
     SanPhamService sanPhamService;
 
-    @GetMapping()
+    @Autowired
+    SanPhamChiTietService sanPhamChiTietService;
+
+    @GetMapping
     public List<SanPhamResponse> getAllSanPham() {
         return sanPhamChiTietService.getAllSanPham();
     }
@@ -33,20 +33,21 @@ public class SanPhamController {
     }
 
     // ================= UPDATE =================
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")   // 🔥 FIX
     public SanPham update(@PathVariable Integer id,
                           @RequestBody SanPhamRequest req) {
         return sanPhamService.update(id, req);
     }
 
     // ================= DELETE =================
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")  // 🔥 FIX
     public String delete(@PathVariable Integer id) {
         sanPhamService.delete(id);
         return "Xóa sản phẩm thành công";
     }
+
     // ================= GET BY ID =================
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")  // 🔥 FIX
     public SanPham getById(@PathVariable Integer id) {
         return sanPhamService.getById(id);
     }

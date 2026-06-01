@@ -53,6 +53,29 @@ const router = createRouter({
           component: () => import('../views/Admin/Layout/product/lstsp.vue'),
         },
 
+        // ✨ QUẢN LÝ MÀU SẮC (ĐÃ THÊM VÀO ĐÂY) ✨
+        {
+          path: 'mausac', // Đường dẫn thực tế sẽ là: /admin/mausac
+          name: 'AdminMauSac',
+          component: () => import('../views/Admin/Layout/catalog/colors.vue'),
+          // ⚠️ LƯU Ý: Nếu bạn lưu file colors.vue ở chỗ khác (ví dụ: views/Admin/MauSacView.vue),
+          // thì bạn hãy sửa lại đường dẫn import bên trên cho chính xác nhé!
+        },
+        {
+          path: 'sizes',
+          name: 'AdminSize',
+          component: () => import('../views/Admin/Layout/catalog/sizes.vue'),
+        },
+        {
+          path: 'brands',
+          name: 'AdminBrand',
+          component: () => import('../views/Admin/Layout/catalog/brands.vue'),
+        },
+        {
+          path: 'materials',
+          name: 'AdminMaterial',
+          component: () => import('../views/Admin/Layout/catalog/materials.vue'),
+        },
         // Quản lý Nhân viên
         {
           path: 'nhan-vien', // Đường dẫn thực tế: /admin/nhan-vien

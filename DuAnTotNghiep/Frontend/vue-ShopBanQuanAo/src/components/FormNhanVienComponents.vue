@@ -419,7 +419,7 @@ const handleSave = async () => {
       await addNhanVienService(newNhanVien.value, fileSelected.value)
       toast.success('Thêm mới thành công!')
     }
-    router.push('/nhan-vien')
+    router.push('/admin/nhan-vien')
   } catch (e) {
     toast.error(e.response?.data?.message || 'Có lỗi xảy ra!')
   }
