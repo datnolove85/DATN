@@ -4,6 +4,7 @@ import com.example.backend.Entity.SanPhamChiTiet;
 import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Service.SanPhamChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +23,9 @@ public class SanPhamChiTietController {
     }
 
     @GetMapping("/{id}")
-    public SanPhamChiTietResponse getSanPhamChiTiet(@PathVariable Integer id) {
-        return sanPhamChiTietService.getDetail(id);
+    public ResponseEntity<?> detail(@PathVariable Integer id){
+        return ResponseEntity.ok(
+                sanPhamChiTietService.getDetail(id)
+        );
     }
 }

@@ -9,83 +9,15 @@ const router = createRouter({
       path: '/',
       redirect: '/home',
     },
-
     {
       path: '/home',
       name: 'home',
       component: () => import('../views/Users/home.vue'),
     },
-
     {
       path: '/login',
       name: 'login',
       component: () => import('../views/Users/login.vue'),
-    },
-    {
-      path: '/shop',
-      name: 'shop',
-      // component: () => import('../views/Users/ShopView.vue'),
-    },
-
-    {
-      path: '/new-arrivals',
-      name: 'newArrivals',
-      // component: () => import('../views/Users/NewArrivalsView.vue'),
-    },
-
-    {
-      path: '/collections',
-      name: 'collections',
-      // component: () => import('../views/Users/CollectionsView.vue'),
-    },
-
-    {
-      path: '/about',
-      name: 'about',
-      // component: () => import('../views/Users/AboutView.vue'),
-    },
-
-    // ================= ADMIN =================
-    {
-      path: '/nhan-vien',
-      name: 'nhanVien',
-      component: () => import('../views/Admin/NhanVienView.vue'),
-    },
-
-    {
-      path: '/nhan-vien/add',
-      name: 'addNhanVien',
-      component: () => import('../components/FormNhanVienComponents.vue'),
-    },
-
-    {
-      path: '/nhan-vien/edit/:id',
-      name: 'editNhanVien',
-      component: () => import('../components/FormNhanVienComponents.vue'),
-    },
-
-    {
-      path: '/khach-hang',
-      name: 'khachHang',
-      component: () => import('../views/Admin/KhachHangView.vue'),
-    },
-
-    {
-      path: '/khach-hang/add',
-      name: 'addKhachHang',
-      component: () => import('../components/FormKhachHangComponents.vue'),
-    },
-
-    {
-      path: '/khach-hang/edit/:id',
-      name: 'editKhachHang',
-      component: () => import('../components/FormKhachHangComponents.vue'),
-    },
-
-    {
-      path: '/ca-lam-viec',
-      name: 'caLamViec',
-      component: () => import('../views/Admin/CaLamViecView.vue'),
     },
     {
       path: '/san-pham',
@@ -97,11 +29,71 @@ const router = createRouter({
       name: 'confirm',
       component: () => import('../views/Users/confirmbuy.vue'),
     },
-
     {
       path: '/product/:id',
       name: 'product-detail',
       component: () => import('../views/Users/confirmbuy.vue'),
+    },
+    {
+      path: '/buy/:id',
+      name: 'buy',
+      component: () => import('../views/Users/buy.vue'),
+    },
+
+    // ================= QUẢN TRỊ ADMIN (GOM VÀO LAYOUT) =================
+    {
+      path: '/admin',
+      component: () => import('../views/Admin/Layout/Layout.vue'), // File Layout tổng chứa Sidebar + Navbar
+      redirect: '/admin/sanpham', // Nếu vào /admin thì tự động nhảy vào trang sản phẩm
+      children: [
+        // Quản lý Sản phẩm
+        {
+          path: 'sanpham', // Đường dẫn thực tế: /admin/sanpham
+          name: 'AdminSanPham',
+          component: () => import('../views/Admin/Layout/product/lstsp.vue'),
+        },
+
+        // Quản lý Nhân viên
+        {
+          path: 'nhan-vien', // Đường dẫn thực tế: /admin/nhan-vien
+          name: 'nhanVien',
+          component: () => import('../views/Admin/NhanVienView.vue'),
+        },
+        {
+          path: 'nhan-vien/add',
+          name: 'addNhanVien',
+          component: () => import('../components/FormNhanVienComponents.vue'),
+        },
+        {
+          path: 'nhan-vien/edit/:id',
+          name: 'editNhanVien',
+          component: () => import('../components/FormNhanVienComponents.vue'),
+        },
+
+        // Quản lý Khách hàng
+        {
+          path: 'khach-hang', // Đường dẫn thực tế: /admin/khach-hang
+          name: 'khachHang',
+          component: () => import('../views/Admin/KhachHangView.vue'),
+        },
+        {
+          path: 'khach-hang/add',
+          name: 'addKhachHang',
+          component: () => import('../components/FormKhachHangComponents.vue'),
+        },
+        {
+          path: 'khach-hang/edit/:id',
+          name: 'editKhachHang',
+          component: () => import('../components/FormKhachHangComponents.vue'),
+        },
+
+        // Ca làm việc
+        {
+          path: 'ca-lam-viec', // Đường dẫn thực tế: /admin/ca-lam-viec
+          name: 'caLamViec',
+          component: () => import('../views/Admin/CaLamViecView.vue'),
+        },
+      ],
     },
 
     // ================= 404 =================

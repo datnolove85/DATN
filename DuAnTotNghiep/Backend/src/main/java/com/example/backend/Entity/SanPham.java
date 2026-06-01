@@ -9,6 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -19,6 +20,21 @@ public class SanPham {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_danh_muc", nullable = false)
+    private DanhMuc idDanhMuc;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_thuong_hieu", nullable = false)
+    private ThuongHieu idThuongHieu;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_chat_lieu", nullable = false)
+    private ChatLieu idChatLieu;
 
     @Size(max = 20)
     @NotNull
@@ -38,11 +54,11 @@ public class SanPham {
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
-    private Instant ngayTao;
+    private Date ngayTao;
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
+    private Date ngayCapNhat;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_nhan_vien_tao")
