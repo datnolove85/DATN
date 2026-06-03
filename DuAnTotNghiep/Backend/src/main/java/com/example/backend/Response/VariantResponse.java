@@ -13,5 +13,4 @@ public class VariantResponse {
 
     private String tenKichThuoc;
 
-    private Integer soLuongTon;
 }

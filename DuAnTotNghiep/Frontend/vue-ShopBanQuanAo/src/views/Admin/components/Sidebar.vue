@@ -1,79 +1,126 @@
 <template>
   <aside
-    class="w-64 bg-slate-900 text-white flex-col justify-between hidden md:flex shrink-0 shadow-xl border-r border-slate-800"
+    class="w-64 bg-slate-900 text-white flex-col hidden md:flex shrink-0 shadow-xl border-r border-slate-800 h-screen overflow-y-auto custom-scrollbar"
   >
-    <div>
-      <!-- LOGO -->
+    <div class="flex-1">
       <div
-        class="h-16 flex items-center justify-center border-b border-slate-800 text-lg font-bold tracking-wider text-indigo-400 gap-2"
+        class="h-16 flex items-center justify-center border-b border-slate-800 text-lg font-bold tracking-wider text-indigo-400 gap-2 shrink-0"
       >
         <a href="#" class="text-2xl font-extrabold tracking-tight">
           Vel<span class="text-amber-500">o</span>ra
         </a>
       </div>
 
-      <nav class="mt-6 px-3 space-y-1">
-        <!-- ================= HỆ THỐNG ================= -->
+      <nav class="mt-6 px-3 space-y-1 pb-6">
         <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Hệ thống
         </p>
 
-        <!-- Bảng điều khiển -->
         <router-link
           to="/admin/dashboard"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
           active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
         >
-          <span class="mr-3 text-base">📊</span> Bảng điều khiển
+          <span class="mr-3 text-base w-5 text-center">📊</span> Bảng điều khiển
         </router-link>
 
-        <!-- [MỚI] Quản lý Nhân viên -->
         <router-link
           to="/admin/nhan-vien"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
           active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
         >
-          <span class="mr-3 text-base">👥</span> Quản lý Nhân viên
+          <span class="mr-3 text-base w-5 text-center">👥</span> Quản lý Nhân viên
         </router-link>
 
-        <!-- ================= KINH DOANH ================= -->
         <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider pt-4 mb-2">
           Kinh doanh
         </p>
 
-        <!-- Đơn hàng & Bán hàng -->
         <router-link
-          to="/admin/orders"
+          to="/admin/banhang"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
           active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
         >
-          <span class="mr-3 text-base">🛒</span> Đơn hàng & Bán hàng
+          <span class="mr-3 text-base w-5 text-center">🛒</span> Bán hàng
         </router-link>
 
-        <!-- [MỚI] Quản lý Khách hàng -->
+        <router-link
+          to="/admin/invoices"
+          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
+        >
+          <span class="mr-3 text-base w-5 text-center">🧾</span> Quản lý Hóa đơn
+        </router-link>
+
         <router-link
           to="/admin/customers"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
           active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
         >
-          <span class="mr-3 text-base">👤</span> Quản lý Khách hàng
+          <span class="mr-3 text-base w-5 text-center">👤</span> Quản lý Khách hàng
         </router-link>
 
-        <!-- [MỚI] Quản lý Giảm giá -->
-        <router-link
-          to="/admin/discounts"
-          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
-          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
-        >
-          <span class="mr-3 text-base">🏷️</span> Chương trình Giảm giá
-        </router-link>
+        <div class="space-y-1">
+          <button
+            @click="isOpenDiscount = !isOpenDiscount"
+            class="w-full flex items-center justify-between px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+            :class="{ 'bg-slate-800/50 text-white': isOpenDiscount }"
+          >
+            <div class="flex items-center">
+              <span class="mr-3 text-base w-5 text-center">🏷️</span>
+              <span>Sales</span>
+            </div>
+            <span
+              class="text-[10px] transition-transform duration-200 text-slate-500"
+              :class="{ 'rotate-180 text-slate-300': isOpenDiscount }"
+            >
+              ▼
+            </span>
+          </button>
 
-        <!-- ================= SẢN PHẨM & KHO ================= -->
+          <div v-show="isOpenDiscount" class="pl-4 space-y-1">
+            <router-link
+              to="/admin/sales"
+              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
+              active-class="text-indigo-400 font-medium bg-slate-800/60"
+            >
+              <span class="mr-3 text-xs w-5 text-center">🎟️</span> Đợt giảm giá
+            </router-link>
+          </div>
+        </div>
+
         <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider pt-4 mb-2">
           Sản phẩm & Kho
         </p>
 
-        <!-- Dropdown Quản lý Sản phẩm -->
+        <div class="space-y-1">
+          <button
+            @click="isOpenCategory = !isOpenCategory"
+            class="w-full flex items-center justify-between px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+            :class="{ 'bg-slate-800/50 text-white': isOpenCategory }"
+          >
+            <div class="flex items-center">
+              <span class="mr-3 text-base w-5 text-center">📂</span>
+              <span>Quản lý danh mục</span>
+            </div>
+            <span
+              class="text-[10px] transition-transform duration-200 text-slate-500"
+              :class="{ 'rotate-180 text-slate-300': isOpenCategory }"
+            >
+              ▼
+            </span>
+          </button>
+          <div v-show="isOpenCategory" class="pl-4 space-y-1">
+            <router-link
+              to="/admin/categories"
+              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
+              active-class="text-indigo-400 font-medium bg-slate-800/60"
+            >
+              <span class="mr-3 text-xs w-5 text-center">📋</span> Danh mục
+            </router-link>
+          </div>
+        </div>
+
         <div class="space-y-1">
           <button
             @click="isOpenProduct = !isOpenProduct"
@@ -81,7 +128,7 @@
             :class="{ 'bg-slate-800/50 text-white': isOpenProduct }"
           >
             <div class="flex items-center">
-              <span class="mr-3 text-base">🛍️</span>
+              <span class="mr-3 text-base w-5 text-center">🛍️</span>
               <span>Quản lý Sản phẩm</span>
             </div>
             <span
@@ -91,26 +138,24 @@
               ▼
             </span>
           </button>
-
           <div v-show="isOpenProduct" class="pl-4 space-y-1">
             <router-link
               to="/admin/sanpham"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
-              <span class="mr-3 text-xs">📄</span> Danh sách sản phẩm
+              <span class="mr-3 text-xs w-5 text-center">📄</span> Danh sách sản phẩm
             </router-link>
             <router-link
-              to="/admin/product-variants"
+              to="/admin/spct"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
-              <span class="mr-3 text-xs">📑</span> Biến thể sản phẩm
+              <span class="mr-3 text-xs w-5 text-center">📑</span> Biến thể sản phẩm
             </router-link>
           </div>
         </div>
 
-        <!-- Dropdown Quản lý Thuộc tính -->
         <div class="space-y-1">
           <button
             @click="isOpenAttribute = !isOpenAttribute"
@@ -118,7 +163,7 @@
             :class="{ 'bg-slate-800/50 text-white': isOpenAttribute }"
           >
             <div class="flex items-center">
-              <span class="mr-3 text-base">🎨</span>
+              <span class="mr-3 text-base w-5 text-center">🎨</span>
               <span>Quản lý thuộc tính</span>
             </div>
             <span
@@ -128,67 +173,64 @@
               ▼
             </span>
           </button>
-
           <div v-show="isOpenAttribute" class="pl-4 space-y-1">
             <router-link
               to="/admin/mausac"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
-              <span class="mr-3 text-xs">🔴</span> Màu sắc
+              <span class="mr-3 text-xs w-5 text-center">🔴</span> Màu sắc
             </router-link>
             <router-link
               to="/admin/sizes"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
-              <span class="mr-3 text-xs">📏</span> Kích cỡ
+              <span class="mr-3 text-xs w-5 text-center">📏</span> Kích cỡ
             </router-link>
             <router-link
               to="/admin/materials"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
-              <span class="mr-3 text-xs">🧶</span> Chất liệu
+              <span class="mr-3 text-xs w-5 text-center">🧶</span> Chất liệu
             </router-link>
             <router-link
               to="/admin/brands"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
-              <span class="mr-3 text-xs">🏬</span> Thương hiệu
+              <span class="mr-3 text-xs w-5 text-center">🏬</span> Thương hiệu
             </router-link>
           </div>
         </div>
       </nav>
     </div>
-
-    <!-- USER PROFILE FOOTER -->
-    <div class="p-4 border-t border-slate-800 flex items-center justify-between bg-slate-950/40">
-      <div class="flex items-center space-x-3">
-        <div
-          class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-semibold text-sm shadow"
-        >
-          NV
-        </div>
-        <div class="truncate w-32">
-          <p class="text-sm font-medium text-slate-200 truncate">Nguyễn Nhân Viên</p>
-          <p class="text-xs text-slate-400 truncate">Mã NV: NV001</p>
-        </div>
-      </div>
-      <button
-        class="text-slate-400 hover:text-rose-400 p-1.5 hover:bg-slate-800 rounded-lg transition-colors"
-        title="Đăng xuất"
-      >
-        🔌
-      </button>
-    </div>
   </aside>
 </template>
+
+<style scoped>
+/* Tùy chỉnh thanh cuộn tinh tế */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #475569;
+}
+</style>
 
 <script setup>
 import { ref } from 'vue'
 
+const isOpenCategory = ref(false)
 const isOpenProduct = ref(false)
 const isOpenAttribute = ref(false)
+const isOpenDiscount = ref(false)
 </script>

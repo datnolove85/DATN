@@ -15,7 +15,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "dot_giam_gia")
-public class DotGiamGia {
+public class DotGiamGia extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -56,17 +56,5 @@ public class DotGiamGia {
     @Lob
     @Column(name = "mo_ta")
     private String moTa;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "ngay_tao")
-    private Instant ngayTao;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
-
-    @ColumnDefault("1")
-    @Column(name = "trang_thai")
-    private Boolean trangThai;
 
 }

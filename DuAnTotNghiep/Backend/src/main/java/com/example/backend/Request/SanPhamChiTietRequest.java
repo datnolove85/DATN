@@ -1,31 +1,22 @@
-package com.example.backend.Response;
+package com.example.backend.Request;
 
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.List;
+
+@Getter
+@Setter
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SanPhamChiTietResponse {
-
-    private Integer id;
+@Builder
+public class SanPhamChiTietRequest {
 
     private Integer idSanPham;
 
-    private String tenSanPham;
-
-    private String tenDanhMuc;
-
-    private String tenThuongHieu;
-
-    private String tenChatLieu;
-
     private Integer idMauSac;
-    private String tenMauSac;
 
     private Integer idKichThuoc;
-    private String tenKichThuoc;
 
     private String maSanPhamChiTiet;
 
@@ -40,6 +31,4 @@ public class SanPhamChiTietResponse {
     private Integer soLuongTon;
 
     private Boolean trangThai;
-
-    private List<String> images;
 }

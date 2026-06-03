@@ -52,6 +52,11 @@ const router = createRouter({
           name: 'AdminSanPham',
           component: () => import('../views/Admin/Layout/product/lstsp.vue'),
         },
+        {
+          path: 'spct', // Đường dẫn thực tế: /admin/spct
+          name: 'spct',
+          component: () => import('../views/Admin/Layout/product/spct.vue'),
+        },
 
         // ✨ QUẢN LÝ MÀU SẮC (ĐÃ THÊM VÀO ĐÂY) ✨
         {
@@ -115,6 +120,26 @@ const router = createRouter({
           path: 'ca-lam-viec', // Đường dẫn thực tế: /admin/ca-lam-viec
           name: 'caLamViec',
           component: () => import('../views/Admin/CaLamViecView.vue'),
+        },
+        {
+          path: 'categories', // Đường dẫn thực tế: /admin/categories
+          name: 'categories',
+          component: () => import('../views/Admin/Layout/categories/categories.vue'),
+        },
+        {
+          path: 'sales', // Đường dẫn thực tế: /admin/sales
+          name: 'sales',
+          component: () => import('../views/Admin/Layout/sales/dotgiamgia.vue'),
+        },
+        {
+          path: 'banhang', // Đường dẫn thực tế: /admin/sales
+          name: 'banghang',
+          component: () => import('../views/Admin/banhang/banhang.vue'),
+        },
+        {
+          path: 'hoadon', // Đường dẫn thực tế: /admin/sales
+          name: 'hoadon',
+          component: () => import('../views/Admin/banhang/hoadon.vue'),
         },
       ],
     },

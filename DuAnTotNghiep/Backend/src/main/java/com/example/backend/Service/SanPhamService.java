@@ -9,6 +9,7 @@ import com.example.backend.Repository.DanhMucRepository;
 import com.example.backend.Repository.SanPhamRepository;
 import com.example.backend.Repository.ThuongHieuRepository;
 import com.example.backend.Request.SanPhamRequest;
+import com.example.backend.Response.SanPhamResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,9 @@ public class SanPhamService {
 
     @Autowired
     private ChatLieuRepository chatLieuRepository;
+
+    @Autowired
+    private SanPhamChiTietService sanPhamChiTietService;
 
     // ================= CREATE =================
     public SanPham create(SanPhamRequest req) {
@@ -83,12 +87,17 @@ public class SanPhamService {
 
     // ================= DELETE =================
     public void delete(Integer id) {
-        sanPhamRepository.deleteById(id);
+        SanPham sp = sanPhamRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        sp.setTrangThai(false);
+
+        sanPhamRepository.save(sp);
     }
 
     // ================= GET =================
-    public List<SanPham> getAll() {
-        return sanPhamRepository.findAll();
+    public List<SanPhamResponse> getAll() {
+        return sanPhamChiTietService.getAllSanPham();
     }
 
     public SanPham getById(Integer id) {

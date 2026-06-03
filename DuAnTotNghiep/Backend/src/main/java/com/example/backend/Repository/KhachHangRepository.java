@@ -15,14 +15,25 @@
 //@Repository
 //public interface KhachHangRepository extends JpaRepository<KhachHang, Integer>, JpaSpecificationExecutor<KhachHang> {
 //    @Query("""
-//                SELECT NEW com.example.backend.Response.KhachHangResponse(kh.id,kh.maKhachHang,kh.hoTen,tk.id,tk.email,tk.tenTaiKhoan,tk.soDienThoai,kh.ngaySinh,kh.anh,dc.thanhPho,dc.quan,dc.phuong,dc.diaChiCuThe,kh.diaChi,kh.gioiTinh,kh.trangThai)
-//                FROM KhachHang kh
-//                LEFT JOIN kh.idTaiKhoan tk
-//                LEFT JOIN DiaChiKhachHang dc
-//                ON dc.idKhachHang.id = kh.id
-//            """)
+//    SELECT NEW com.example.backend.Response.KhachHangResponse(
+//        kh.id,
+//        kh.maKhachHang,
+//        kh.hoTen,
+//        tk.id,
+//        tk.email,
+//        tk.tenTaiKhoan,
+//        tk.soDienThoai,
+//        kh.ngaySinh,
+//        kh.anh,
+//        kh.diaChi,
+//        kh.gioiTinh,
+//        kh.trangThaiXoa
+//    )
+//    FROM KhachHang kh
+//    LEFT JOIN kh.taiKhoan tk
+//""")
 //    Page<KhachHangResponse> phanTrang(Pageable pageable);
-////    @Query("""
+//  @Query("""
 //                SELECT NEW com.example.backend.Response.KhachHangResponse(kh.id,kh.maKhachHang,kh.hoTen,tk.id,tk.email,tk.tenTaiKhoan,tk.soDienThoai,kh.ngaySinh,kh.anh,dc.thanhPho,dc.quan,dc.phuong,dc.diaChiCuThe,kh.diaChi,kh.gioiTinh,kh.trangThai)
 //                FROM KhachHang kh
 //                LEFT JOIN kh.idTaiKhoan tk

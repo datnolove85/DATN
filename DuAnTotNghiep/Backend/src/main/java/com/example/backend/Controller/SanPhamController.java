@@ -23,7 +23,7 @@ public class SanPhamController {
 
     @GetMapping
     public List<SanPhamResponse> getAllSanPham() {
-        return sanPhamChiTietService.getAllSanPham();
+        return sanPhamService.getAll();
     }
 
     // ================= CREATE =================

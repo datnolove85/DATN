@@ -1,9 +1,14 @@
     package com.example.backend.Service;
 
+    import com.example.backend.Entity.KichThuoc;
+    import com.example.backend.Entity.MauSac;
     import com.example.backend.Entity.SanPham;
     import com.example.backend.Entity.SanPhamChiTiet;
+    import com.example.backend.Repository.KichThuocRepository;
+    import com.example.backend.Repository.MauSacRepository;
     import com.example.backend.Repository.SanPhamChiTietRepository;
     import com.example.backend.Repository.SanPhamRepository;
+    import com.example.backend.Request.SanPhamChiTietRequest;
     import com.example.backend.Response.SanPhamChiTietResponse;
     import com.example.backend.Response.SanPhamResponse;
     import com.example.backend.Response.VariantResponse;
@@ -21,62 +26,86 @@
         private SanPhamChiTietRepository sanPhamChiTietRepository;
 
         @Autowired
-        SanPhamRepository sanPhamRepository;
+        private SanPhamRepository sanPhamRepository;
 
+        @Autowired
+        private MauSacRepository mauSacRepository;
+
+        @Autowired
+        private KichThuocRepository kichThuocRepository;
+
+        // ================= GET ALL PRODUCT =================
         public List<SanPhamResponse> getAllSanPham() {
 
+            // 1. list product
             List<SanPham> sanPhams = sanPhamRepository.findAll();
 
+            // 2. SPCT đại diện (theo repo mới)
+            List<SanPhamChiTiet> representativeSpct =
+                    sanPhamChiTietRepository.findRepresentativeSpct();
+
+            Map<Integer, SanPhamChiTiet> spctMap = new HashMap<>();
+
+            for (SanPhamChiTiet spct : representativeSpct) {
+                spctMap.put(
+                        spct.getIdSanPham().getId(),
+                        spct
+                );
+            }
+
+            // 3. thumbnail images (theo repo mới)
+            List<Object[]> thumbs =
+                    sanPhamChiTietRepository.getThumbnailImages();
+
+            Map<Integer, String> imageMap = new HashMap<>();
+
+            for (Object[] obj : thumbs) {
+                Integer spctId = (Integer) obj[0];
+                String link = (String) obj[1];
+
+                imageMap.put(spctId, link);
+            }
+
+            // 4. build response
             return sanPhams.stream().map(sp -> {
 
-                // Lấy 1 SPCT đầu tiên của sản phẩm
-                SanPhamChiTiet spct =
-                        sanPhamChiTietRepository.findFirstByIdSanPham_Id(sp.getId());
+                SanPhamChiTiet spct = spctMap.get(sp.getId());
 
                 String image = null;
-                BigDecimal giaBan = BigDecimal.ZERO;
 
                 if (spct != null) {
-
-                    giaBan = spct.getGiaBan();
-
-                    List<String> images =
-                            sanPhamChiTietRepository.getAllImages(spct.getId());
-
-                    if (!images.isEmpty()) {
-                        image = images.get(0);
-                    }
+                    image = imageMap.get(spct.getId());
                 }
 
                 return new SanPhamResponse(
                         sp.getId(),
+                        sp.getIdDanhMuc(),
+                        sp.getIdThuongHieu(),
+                        sp.getIdChatLieu(),
+                        sp.getMaSanPham(),
                         sp.getTenSanPham(),
-
-                        sp.getIdDanhMuc().getId(),
-                        sp.getIdDanhMuc().getTenDanhMuc(),
-
-                        sp.getIdThuongHieu().getTenThuongHieu(),
-                        sp.getIdChatLieu().getTenChatLieu(),
-
-                        giaBan,
+                        sp.getMoTa(),
+                        sp.getNgayTao(),
+                        sp.getNgayCapNhat(),
+                        sp.getTrangThai(),
                         image
                 );
 
-            }).collect(Collectors.toList());
+            }).toList();
         }
-        // ================= GET LIST =================
-        public List<SanPhamChiTietResponse> getAllClient() {
 
-            List<SanPhamChiTiet> products =
-                    sanPhamChiTietRepository.getAllClient();
 
-            List<Object[]> images =
-                    sanPhamChiTietRepository.getAllImages();
+        public List<SanPhamChiTietResponse> getAllSpct() {
+
+            List<SanPhamChiTiet> spcts =
+                    sanPhamChiTietRepository.findAll();
+
+            List<String> imagesFlat =
+                    sanPhamChiTietRepository.getAllImagesFlat();
 
             Map<Integer, List<String>> imageMap = new HashMap<>();
 
-            for (Object[] obj : images) {
-
+            for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
                 Integer id = (Integer) obj[0];
                 String link = (String) obj[1];
 
@@ -84,87 +113,231 @@
                         .add(link);
             }
 
-            return products.stream()
-                    .map(p -> {
+            return spcts.stream().map(spct -> {
 
-                        SanPhamChiTietResponse response =
-                                new SanPhamChiTietResponse(
-                                        p.getId(),
-                                        p.getMaSanPhamChiTiet(),
-                                        p.getIdSanPham().getTenSanPham(),
+                SanPhamChiTietResponse res = new SanPhamChiTietResponse();
 
-                                        p.getIdSanPham().getIdDanhMuc().getId(),
-                                        p.getIdSanPham().getIdDanhMuc().getTenDanhMuc(),
+                res.setId(spct.getId());
 
-                                        p.getIdMauSac().getTenMauSac(),
-                                        p.getIdKichThuoc().getTenKichThuoc(),
+                // sản phẩm
+                res.setIdSanPham(spct.getIdSanPham().getId());
+                res.setTenSanPham(
+                        spct.getIdSanPham().getTenSanPham()
+                );
 
-                                        p.getIdSanPham().getIdChatLieu().getTenChatLieu(),
-                                        p.getIdSanPham().getIdThuongHieu().getTenThuongHieu(),
+                // danh mục
+                res.setTenDanhMuc(
+                        spct.getIdSanPham()
+                                .getIdDanhMuc()
+                                .getTenDanhMuc()
+                );
 
-                                        p.getGiaBan(),
-                                        p.getSoLuongTon(),
+                // thương hiệu
+                res.setTenThuongHieu(
+                        spct.getIdSanPham()
+                                .getIdThuongHieu()
+                                .getTenThuongHieu()
+                );
 
-                                        imageMap.getOrDefault(p.getId(), new ArrayList<>()),
+                // chất liệu
+                res.setTenChatLieu(
+                        spct.getIdSanPham()
+                                .getIdChatLieu()
+                                .getTenChatLieu()
+                );
 
-                                        new ArrayList<>()
-                        );
+                // màu sắc
+                res.setIdMauSac(spct.getIdMauSac().getId());
+                res.setTenMauSac(
+                        spct.getIdMauSac().getTenMauSac()
+                );
 
-                        response.setVariants(new ArrayList<>());
+                // kích thước
+                res.setIdKichThuoc(spct.getIdKichThuoc().getId());
+                res.setTenKichThuoc(
+                        spct.getIdKichThuoc().getTenKichThuoc()
+                );
 
-                        return response;
-                    })
-                    .collect(Collectors.toList());
+                // thông tin SPCT
+                res.setMaSanPhamChiTiet(
+                        spct.getMaSanPhamChiTiet()
+                );
+
+                res.setTenSanPhamChiTiet(
+                        spct.getTenSanPhamChiTiet()
+                );
+
+                res.setGiaNhap(spct.getGiaNhap());
+                res.setGiaGoc(spct.getGiaGoc());
+                res.setGiaBan(spct.getGiaBan());
+
+                res.setSoLuongTon(
+                        spct.getSoLuongTon()
+                );
+
+                res.setTrangThai(
+                        spct.getTrangThai()
+                );
+
+                // ảnh
+                res.setImages(
+                        imageMap.getOrDefault(
+                                spct.getId(),
+                                new ArrayList<>()
+                        )
+                );
+
+                return res;
+
+            }).toList();
+     }
+        public SanPhamChiTietResponse add(SanPhamChiTietRequest request) {
+
+            SanPham sanPham = sanPhamRepository.findById(request.getIdSanPham())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+            MauSac mauSac = mauSacRepository.findById(request.getIdMauSac())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc"));
+
+            KichThuoc kichThuoc = kichThuocRepository.findById(request.getIdKichThuoc())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kích thước"));
+
+            SanPhamChiTiet spct = new SanPhamChiTiet();
+
+            spct.setIdSanPham(sanPham);
+            spct.setIdMauSac(mauSac);
+            spct.setIdKichThuoc(kichThuoc);
+
+            spct.setMaSanPhamChiTiet(request.getMaSanPhamChiTiet());
+            spct.setTenSanPhamChiTiet(request.getTenSanPhamChiTiet());
+
+            spct.setGiaNhap(request.getGiaNhap());
+            spct.setGiaGoc(request.getGiaGoc());
+            spct.setGiaBan(request.getGiaBan());
+
+            spct.setSoLuongTon(request.getSoLuongTon());
+            spct.setTrangThai(request.getTrangThai());
+
+            SanPhamChiTiet saved =
+                    sanPhamChiTietRepository.save(spct);
+
+            return mapToResponse(saved);
         }
 
-        // ================= GET DETAIL =================
-        public SanPhamChiTietResponse getDetail(Integer idSanPham) {
+        public SanPhamChiTietResponse update(
+                Integer id,
+                SanPhamChiTietRequest request) {
 
-            // 1. Lấy tất cả SPCT theo ID sản phẩm (QUAN TRỌNG NHẤT)
-            List<SanPhamChiTiet> variants =
-                    sanPhamChiTietRepository.findVariantsByProduct(idSanPham);
+            SanPhamChiTiet spct =
+                    sanPhamChiTietRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
 
-            // ❌ không có sản phẩm
-            if (variants == null) variants = new ArrayList<>();
+            SanPham sanPham = sanPhamRepository.findById(request.getIdSanPham())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-            // 2. Lấy 1 biến thể đại diện
-            SanPhamChiTiet spct = variants.get(0);
+            MauSac mauSac = mauSacRepository.findById(request.getIdMauSac())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc"));
 
-            // 3. Ảnh
-            List<String> images =
-                    sanPhamChiTietRepository.getAllImages(spct.getId());
+            KichThuoc kichThuoc = kichThuocRepository.findById(request.getIdKichThuoc())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kích thước"));
 
-            // 4. biến thể
-            List<VariantResponse> variantResponses =
-                    variants.stream()
-                            .map(v -> new VariantResponse(
-                                    v.getId(),
-                                    v.getIdMauSac().getTenMauSac(),
-                                    v.getIdKichThuoc().getTenKichThuoc(),
-                                    v.getSoLuongTon()
-                            ))
-                            .collect(Collectors.toList());
+            spct.setIdSanPham(sanPham);
+            spct.setIdMauSac(mauSac);
+            spct.setIdKichThuoc(kichThuoc);
 
-            // 5. return response
-            return new SanPhamChiTietResponse(
-                    spct.getId(),
-                    spct.getMaSanPhamChiTiet(),
-                    spct.getIdSanPham().getTenSanPham(),
+            spct.setMaSanPhamChiTiet(request.getMaSanPhamChiTiet());
+            spct.setTenSanPhamChiTiet(request.getTenSanPhamChiTiet());
 
-                    spct.getIdSanPham().getIdDanhMuc().getId(),
-                    spct.getIdSanPham().getIdDanhMuc().getTenDanhMuc(),
+            spct.setGiaNhap(request.getGiaNhap());
+            spct.setGiaGoc(request.getGiaGoc());
+            spct.setGiaBan(request.getGiaBan());
 
-                    spct.getIdMauSac().getTenMauSac(),
-                    spct.getIdKichThuoc().getTenKichThuoc(),
+            spct.setSoLuongTon(request.getSoLuongTon());
+            spct.setTrangThai(request.getTrangThai());
 
-                    spct.getIdSanPham().getIdChatLieu().getTenChatLieu(),
-                    spct.getIdSanPham().getIdThuongHieu().getTenThuongHieu(),
+            SanPhamChiTiet updated =
+                    sanPhamChiTietRepository.save(spct);
 
-                    spct.getGiaBan(),
-                    spct.getSoLuongTon(),
+            return mapToResponse(updated);
+        }
 
-                    images,
-                    variantResponses
+        public SanPhamChiTietResponse getById(Integer id) {
+
+            SanPhamChiTiet spct =
+                    sanPhamChiTietRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
+
+            return mapToResponse(spct);
+        }
+
+        public void delete(Integer id) {
+
+            SanPhamChiTiet spct =
+                    sanPhamChiTietRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
+
+            sanPhamChiTietRepository.delete(spct);
+
+            // hoặc soft delete
+            // spct.setTrangThai(false);
+            // sanPhamChiTietRepository.save(spct);
+        }
+
+        private SanPhamChiTietResponse mapToResponse(SanPhamChiTiet spct) {
+
+            SanPhamChiTietResponse res =
+                    new SanPhamChiTietResponse();
+
+            res.setId(spct.getId());
+
+            res.setIdSanPham(spct.getIdSanPham().getId());
+            res.setTenSanPham(
+                    spct.getIdSanPham().getTenSanPham()
             );
+
+            res.setTenDanhMuc(
+                    spct.getIdSanPham()
+                            .getIdDanhMuc()
+                            .getTenDanhMuc()
+            );
+
+            res.setTenThuongHieu(
+                    spct.getIdSanPham()
+                            .getIdThuongHieu()
+                            .getTenThuongHieu()
+            );
+
+            res.setTenChatLieu(
+                    spct.getIdSanPham()
+                            .getIdChatLieu()
+                            .getTenChatLieu()
+            );
+
+            res.setIdMauSac(spct.getIdMauSac().getId());
+            res.setTenMauSac(
+                    spct.getIdMauSac().getTenMauSac()
+            );
+
+            res.setIdKichThuoc(spct.getIdKichThuoc().getId());
+            res.setTenKichThuoc(
+                    spct.getIdKichThuoc().getTenKichThuoc()
+            );
+
+            res.setMaSanPhamChiTiet(
+                    spct.getMaSanPhamChiTiet()
+            );
+
+            res.setTenSanPhamChiTiet(
+                    spct.getTenSanPhamChiTiet()
+            );
+
+            res.setGiaNhap(spct.getGiaNhap());
+            res.setGiaGoc(spct.getGiaGoc());
+            res.setGiaBan(spct.getGiaBan());
+
+            res.setSoLuongTon(spct.getSoLuongTon());
+            res.setTrangThai(spct.getTrangThai());
+
+            return res;
         }
     }

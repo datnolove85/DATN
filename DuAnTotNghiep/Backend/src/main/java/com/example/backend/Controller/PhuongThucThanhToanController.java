@@ -1,9 +1,8 @@
 package com.example.backend.Controller;
 
-import com.example.backend.Response.HoaDonResponse;
-import com.example.backend.Service.HoaDonService;
+import com.example.backend.Entity.PhuongThucThanhToan;
+import com.example.backend.Service.PhuongThucThanhToanService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,16 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/hoa-don")
 @CrossOrigin("*")
-public class HoaDonController {
+@RequestMapping("/pttt")
+public class PhuongThucThanhToanController {
 
     @Autowired
-    private HoaDonService hoaDonService;
+    PhuongThucThanhToanService phuongThucThanhToanService;
 
     @GetMapping
-    public ResponseEntity<List<HoaDonResponse>> getAllHoaDon() {
-        List<HoaDonResponse> list = hoaDonService.getAllHoaDon();
-        return ResponseEntity.ok(list);
+    public List<PhuongThucThanhToan> getPhuongThucThanhToan() {
+        return phuongThucThanhToanService.getAllPhuongThucThanhToan();
     }
 }

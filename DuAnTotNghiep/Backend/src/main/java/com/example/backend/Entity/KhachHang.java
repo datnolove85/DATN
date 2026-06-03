@@ -1,6 +1,7 @@
 package com.example.backend.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -22,26 +23,38 @@ public class KhachHang {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tai_khoan")
-    private TaiKhoan idTaiKhoan;
+    private TaiKhoan taiKhoan;
 
+    @Size(max = 50)
+    @NotNull
     @Nationalized
     @Column(name = "ma_khach_hang", nullable = false, length = 50)
     private String maKhachHang;
 
+    @Size(max = 150)
+    @NotNull
     @Nationalized
     @Column(name = "ho_ten", nullable = false, length = 150)
     private String hoTen;
 
+    @Size(max = 20)
+    @NotNull
     @Nationalized
     @Column(name = "so_dien_thoai", nullable = false, length = 20)
     private String soDienThoai;
 
     @Column(name = "ngay_sinh")
-    private Date ngaySinh;
+    private LocalDate ngaySinh;
 
+    @Size(max = 50)
     @Nationalized
     @Column(name = "hang_thanh_vien", length = 50)
     private String hangThanhVien;
+
+    @Size(max = 255)
+    @Nationalized
+    @Column(name = "dia_chi")
+    private String diaChi;
 
     @ColumnDefault("0")
     @Column(name = "so_lan_mua")
@@ -49,25 +62,6 @@ public class KhachHang {
 
     @Column(name = "ngay_mua_cuoi")
     private Instant ngayMuaCuoi;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "ngay_tao")
-    private Instant ngayTao;
-
-    @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
-
-    @Nationalized
-    @Column(name = "nguoi_tao", length = 100)
-    private String nguoiTao;
-
-    @Nationalized
-    @Column(name = "nguoi_cap_nhat", length = 100)
-    private String nguoiCapNhat;
-
-
-    @Column(name = "trang_thai_xoa")
-    private Integer trangThai;
 
     @Size(max = 255)
     @Nationalized
@@ -77,9 +71,25 @@ public class KhachHang {
     @Column(name = "gioi_tinh")
     private Boolean gioiTinh;
 
-    @Size(max = 255)
+    @ColumnDefault("getdate()")
+    @Column(name = "ngay_tao")
+    private Instant ngayTao;
+
+    @Column(name = "ngay_cap_nhat")
+    private Instant ngayCapNhat;
+
+    @Size(max = 100)
     @Nationalized
-    @Column(name = "dia_chi")
-    private String diaChi;
+    @Column(name = "nguoi_tao", length = 100)
+    private String nguoiTao;
+
+    @Size(max = 100)
+    @Nationalized
+    @Column(name = "nguoi_cap_nhat", length = 100)
+    private String nguoiCapNhat;
+
+    @ColumnDefault("0")
+    @Column(name = "trang_thai_xoa")
+    private Boolean trangThaiXoa;
 
 }

@@ -3,23 +3,25 @@
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
     <div
-      class="relative p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-300 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 overflow-hidden group transition-all duration-300 hover:shadow-[0_8px_30px_rgba(99,102,241,0.05)]"
+      class="relative p-6 bg-gradient-to-r from-sky-600 via-blue-700 to-indigo-800 rounded-2xl border border-blue-500 shadow-[0_8px_30px_rgba(0,0,0,0.15)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 overflow-hidden group transition-all duration-300 hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)]"
     >
       <div
-        class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,0.06),transparent_50%)] transition-opacity duration-500 group-hover:opacity-100"
+        class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_50%)] transition-opacity duration-500 group-hover:opacity-100"
       ></div>
+
       <div class="relative z-10">
         <h1
-          class="text-2xl font-black tracking-wider bg-gradient-to-r from-slate-950 via-indigo-900 to-indigo-950 bg-clip-text text-transparent uppercase group-hover:tracking-widest transition-all duration-500 easy-in-out"
+          class="text-2xl font-black tracking-wider text-white uppercase group-hover:tracking-widest transition-all duration-500 ease-in-out"
         >
           Quản lý màu sắc
         </h1>
-        <p class="text-xs text-indigo-600/90 mt-1 flex items-center gap-2 font-semibold">
+
+        <p class="text-xs text-blue-100 mt-1 flex items-center gap-2 font-semibold">
           <span class="relative flex h-2 w-2">
             <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"
             ></span>
-            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-500"></span>
+            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-400"></span>
           </span>
           Hệ thống cơ sở dữ liệu thời gian thực
         </p>
@@ -27,11 +29,12 @@
 
       <button
         @click="openAddModal"
-        class="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold shadow-[0_4px_12px_rgba(99,102,241,0.2)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.4)] transition-all duration-300 active:scale-95 active:duration-75 group/btn overflow-hidden"
+        class="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-md hover:bg-white/25 text-white rounded-xl text-xs font-bold border border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(255,255,255,0.15)] transition-all duration-300 active:scale-95 active:duration-75 group/btn overflow-hidden"
       >
         <span
           class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-shimmer"
         ></span>
+
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -42,6 +45,7 @@
         >
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
+
         THÊM MÀU SẮC MỚI
       </button>
     </div>
@@ -119,32 +123,48 @@
 
           <div class="col-span-1 flex justify-end md:justify-center items-center pt-3 md:pt-0">
             <div
-              class="inline-flex items-center bg-slate-50 border border-slate-300 rounded-lg p-0.5 shadow-inner group-hover:bg-white transition-colors"
+              class="inline-flex items-center bg-white border border-slate-300 rounded-xl p-1.5 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all duration-300"
             >
               <button
                 @click="openEditModal(color)"
-                class="p-1.5 text-slate-500 hover:text-indigo-600 rounded-md transition duration-150"
+                class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200"
+                title="Chỉnh sửa"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2.5"
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
-              <div class="w-px h-3 bg-slate-300 mx-0.5"></div>
+
+              <div class="w-px h-5 bg-slate-300 mx-1"></div>
+
               <button
                 @click="deleteColor(color.id)"
-                class="p-1.5 text-slate-500 hover:text-rose-600 rounded-md transition duration-150"
+                class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-all duration-200"
+                title="Xóa"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6" />
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2.5"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                   />
                 </svg>
               </button>

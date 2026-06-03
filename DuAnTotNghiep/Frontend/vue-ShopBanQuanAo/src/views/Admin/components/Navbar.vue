@@ -1,35 +1,64 @@
 <template>
   <header
-    class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-10 shrink-0"
+    class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 shadow-sm"
   >
-    <div class="flex items-center space-x-4">
-      <div class="relative hidden sm:block">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-sm"
-          >🔍</span
-        >
-        <input
-          type="text"
-          placeholder="Tìm nhanh hóa đơn, sản phẩm..."
-          class="w-72 pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-        />
+    <div class="h-16 px-6 flex items-center justify-between">
+      <!-- LEFT -->
+      <div class="flex items-center gap-4">
+        <!-- Breadcrumb -->
       </div>
-    </div>
 
-    <div class="flex items-center space-x-4">
-      <button class="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
-        <span>🔔</span>
-        <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
-      </button>
+      <!-- CENTER -->
+      <div class="hidden lg:block w-[400px]">
+        <div class="relative"></div>
+      </div>
 
-      <div class="h-6 w-[1px] bg-slate-200"></div>
+      <!-- RIGHT -->
+      <div class="flex items-center gap-3">
+        <!-- Online -->
+        <div
+          class="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
 
-      <div
-        class="flex items-center space-x-2 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full"
-      >
-        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+          <span class="text-xs font-semibold text-emerald-700"> Hệ thống hoạt động </span>
+        </div>
+
+        <!-- Notification -->
+        <button class="relative w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 transition">
+          🔔
+
+          <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+
+        <!-- Message -->
+        <button class="relative w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 transition">
+          ✉️
+
+          <span
+            class="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] bg-indigo-600 text-white rounded-full"
+          >
+            5
+          </span>
+        </button>
+
+        <!-- User -->
+        <div
+          class="flex items-center gap-3 px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+        >
+          <div>
+            <p class="text-sm font-semibold text-slate-800">Nguyễn Đạt</p>
+
+            <p class="text-[11px] text-slate-500">Super Admin</p>
+          </div>
+
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold"
+          >
+            ND
+          </div>
+        </div>
       </div>
     </div>
   </header>
 </template>
-
-<script setup></script>

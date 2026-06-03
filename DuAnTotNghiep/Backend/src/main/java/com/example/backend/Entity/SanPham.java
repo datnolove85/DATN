@@ -72,4 +72,20 @@ public class SanPham {
     @Column(name = "trang_thai")
     private Boolean trangThai;
 
+    @PrePersist
+    public void prePersist() {
+        Date now = new Date();
+        ngayTao = now;
+        ngayCapNhat = now;
+
+        if (trangThai == null) {
+            trangThai = true;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        ngayCapNhat = new Date();
+    }
+
 }

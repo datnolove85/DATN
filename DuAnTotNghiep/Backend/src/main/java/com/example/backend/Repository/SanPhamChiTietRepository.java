@@ -7,52 +7,57 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-
 public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet,Integer> {
-    @Query("""
-select spct
-from SanPhamChiTiet spct
-where spct.trangThai = true
-""")
-    List<SanPhamChiTiet> getAllClient();
 
+    // LIST PRODUCT - 1 SPCT đại diện
     @Query("""
-select spct
-from SanPhamChiTiet spct
-where spct.idSanPham.id = :idSanPham
-and spct.trangThai = true
-""")
+    select spct
+    from SanPhamChiTiet spct
+    where spct.trangThai = true
+    and spct.id in (
+        select min(s.id)
+        from SanPhamChiTiet s
+        group by s.idSanPham.id
+    )
+    """)
+    List<SanPhamChiTiet> findRepresentativeSpct();
+
+    // THUMBNAIL
+    @Query("""
+    select ha.idSanPhamChiTiet.id, ha.link
+    from HinhAnh ha
+    where ha.laAnhChinh = true
+    """)
+    List<Object[]> getThumbnailImages();
+
+    // DETAIL VARIANTS
+    @Query("""
+    select spct
+    from SanPhamChiTiet spct
+    where spct.idSanPham.id = :idSanPham
+    and spct.trangThai = true
+    """)
     List<SanPhamChiTiet> findVariantsByProduct(@Param("idSanPham") Integer idSanPham);
 
+    // DETAIL IMAGES
     @Query("""
-select spct
-from SanPhamChiTiet spct
-where spct.idSanPham.id = :idSanPham
-""")
-    List<SanPhamChiTiet> findBySanPham(Integer idSanPham);
+    select ha.link
+    from HinhAnh ha
+    where ha.idSanPhamChiTiet.idSanPham.id = :idSanPham
+    order by ha.id asc
+    """)
+    List<String> getImagesByProduct(@Param("idSanPham") Integer idSanPham);
 
     @Query("""
 select ha.idSanPhamChiTiet.id, ha.link
 from HinhAnh ha
-where ha.laAnhChinh = true
 """)
     List<Object[]> getAllImages();
 
     @Query("""
-select spct
-from SanPhamChiTiet spct
-where spct.id = :id
-""")
-    SanPhamChiTiet getDetailEntity(@Param("id") Integer id);
-
-    @Query("""
 select ha.link
 from HinhAnh ha
-where ha.idSanPhamChiTiet.id = :id
-order by ha.id asc
 """)
-    List<String> getAllImages(@Param("id") Integer id);
-
-    SanPhamChiTiet findFirstByIdSanPham_Id(Integer idSanPham);
+    List<String> getAllImagesFlat();
 
 }

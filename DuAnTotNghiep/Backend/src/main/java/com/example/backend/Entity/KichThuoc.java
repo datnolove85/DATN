@@ -43,4 +43,16 @@ public class KichThuoc {
     @Column(name = "trang_thai")
     private Boolean trangThai;
 
+    @PrePersist
+    public void prePersist() {
+        Instant now = Instant.now();
+        ngayTao = now;
+        ngayCapNhat = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        ngayCapNhat = Instant.now();
+    }
+
 }

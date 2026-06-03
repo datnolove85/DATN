@@ -1,7 +1,8 @@
 package com.example.backend.Controller;
 
-import com.example.backend.Entity.SanPhamChiTiet;
+import com.example.backend.Request.SanPhamChiTietRequest;
 import com.example.backend.Response.SanPhamChiTietResponse;
+import com.example.backend.Response.SanPhamResponse;
 import com.example.backend.Service.SanPhamChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,17 +16,46 @@ import java.util.List;
 public class SanPhamChiTietController {
 
     @Autowired
-    SanPhamChiTietService sanPhamChiTietService;
+    private SanPhamChiTietService sanPhamChiTietService;
 
-    @GetMapping
-    public List<SanPhamChiTietResponse> getAllSanPhamChiTiet() {
-        return sanPhamChiTietService.getAllClient();
+    // ================= SPCT LIST (VARIANT MANAGE) =================
+    @GetMapping()
+    public ResponseEntity<List<SanPhamChiTietResponse>> getAllSpct() {
+        return ResponseEntity.ok(
+                sanPhamChiTietService.getAllSpct()
+        );
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> detail(@PathVariable Integer id){
-        return ResponseEntity.ok(
-                sanPhamChiTietService.getDetail(id)
-        );
+    @PostMapping
+    public SanPhamChiTietResponse create(
+            @RequestBody SanPhamChiTietRequest req) {
+
+        return sanPhamChiTietService.add(req);
+    }
+
+    // ================= UPDATE =================
+    @PutMapping("/update/{id}")
+    public SanPhamChiTietResponse update(
+            @PathVariable Integer id,
+            @RequestBody SanPhamChiTietRequest req) {
+
+        return sanPhamChiTietService.update(id, req);
+    }
+
+    // ================= DELETE =================
+    @DeleteMapping("/delete/{id}")
+    public String delete(@PathVariable Integer id) {
+
+        sanPhamChiTietService.delete(id);
+
+        return "Xóa sản phẩm chi tiết thành công";
+    }
+
+    // ================= GET BY ID =================
+    @GetMapping("/detail/{id}")
+    public SanPhamChiTietResponse getById(
+            @PathVariable Integer id) {
+
+        return sanPhamChiTietService.getById(id);
     }
 }

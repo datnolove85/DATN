@@ -13,7 +13,7 @@
         <h1
           class="text-2xl font-black tracking-wider text-white uppercase group-hover:tracking-widest transition-all duration-500 ease-in-out"
         >
-          Quản lý thương hiệu
+          Quản lý Danh mục
         </h1>
 
         <p class="text-xs text-blue-100 mt-1 flex items-center gap-2 font-semibold">
@@ -23,7 +23,7 @@
             ></span>
             <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-400"></span>
           </span>
-          Hệ thống cơ sở dữ liệu thời gian thực
+          Hệ thống cấu trúc dữ liệu phân tầng
         </p>
       </div>
 
@@ -46,7 +46,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
 
-        TẠO THƯƠNG HIỆU MỚI
+        TẠO DANH MỤC MỚI
       </button>
     </div>
 
@@ -55,17 +55,16 @@
         class="hidden md:grid grid-cols-12 gap-0 px-6 py-3 bg-white border border-b-2 border-slate-300 rounded-t-xl text-[11px] uppercase text-indigo-950 font-black tracking-widest select-none shadow-sm"
       >
         <div class="col-span-1 text-center border-r border-slate-200">ID</div>
-        <div class="col-span-2 px-4 border-r border-slate-200">Mã định danh</div>
-        <div class="col-span-3 px-4 border-r border-slate-200">Tên thương hiệu</div>
+        <div class="col-span-4 px-4 border-r border-slate-200">Tên danh mục</div>
+        <div class="col-span-3 px-4 border-r border-slate-200">Mã danh mục</div>
         <div class="col-span-2 text-center border-r border-slate-200">Trạng thái</div>
-        <div class="col-span-3 px-4 border-r border-slate-200">Thời gian</div>
-        <div class="col-span-1 text-center">Tùy chọn</div>
+        <div class="col-span-2 text-center">Tùy chọn</div>
       </div>
 
       <div class="space-y-2">
         <div
-          v-for="(brand, index) in brands"
-          :key="brand.id ?? index"
+          v-for="cat in categories"
+          :key="cat.id"
           class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 px-6 py-4 md:py-3 items-center bg-white border border-slate-300 hover:border-indigo-500 hover:bg-slate-50/80 rounded-xl md:rounded-lg transition-all duration-300 ease-in-out shadow-[0_2px_4px_rgba(0,0,0,0.01)] hover:shadow-[0_10px_25px_-5px_rgba(99,102,241,0.12)] group"
         >
           <div
@@ -74,21 +73,23 @@
             <span class="md:hidden text-[10px] uppercase font-bold text-slate-400">ID:</span>
             <span
               class="px-2 py-0.5 bg-slate-100 border border-slate-300 text-indigo-700 font-mono text-xs rounded font-bold group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all"
-              >#{{ brand.id }}</span
             >
-          </div>
-
-          <div class="col-span-2 md:px-4 md:border-r md:border-slate-200 h-full flex items-center">
-            <span
-              class="inline-block px-2.5 py-1 bg-slate-50 text-indigo-800 font-black rounded border border-slate-300 text-xs font-mono tracking-wider group-hover:bg-white group-hover:border-indigo-400 transition-all"
-              >{{ brand.maThuongHieu }}</span
-            >
+              #{{ cat.id }}
+            </span>
           </div>
 
           <div
-            class="col-span-3 text-sm font-bold text-slate-800 capitalize truncate md:px-4 md:border-r md:border-slate-200 h-full flex items-center group-hover:translate-x-1.5 transition-transform"
+            class="col-span-4 text-sm font-bold text-slate-800 capitalize truncate md:px-4 md:border-r md:border-slate-200 h-full flex items-center group-hover:translate-x-1.5 transition-transform"
           >
-            {{ brand.tenThuongHieu }}
+            {{ cat.tenDanhMuc }}
+          </div>
+
+          <div class="col-span-3 md:px-4 md:border-r md:border-slate-200 h-full flex items-center">
+            <span
+              class="inline-block px-2.5 py-1 bg-slate-50 text-indigo-800 font-black rounded border border-slate-300 text-xs font-mono tracking-wider group-hover:bg-white group-hover:border-indigo-400 transition-all"
+            >
+              {{ cat.maDanhMuc }}
+            </span>
           </div>
 
           <div
@@ -97,7 +98,7 @@
             <span
               :class="[
                 'inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full border transition-all duration-300 group-hover:scale-105',
-                brand.trangThai
+                cat.trangThai
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-300 group-hover:bg-emerald-500 group-hover:text-white'
                   : 'bg-rose-50 text-rose-700 border-rose-300 group-hover:bg-rose-500 group-hover:text-white',
               ]"
@@ -105,28 +106,21 @@
               <span
                 :class="[
                   'w-1.5 h-1.5 rounded-full',
-                  brand.trangThai
+                  cat.trangThai
                     ? 'bg-emerald-500 group-hover:bg-white animate-pulse'
                     : 'bg-rose-500 group-hover:bg-white',
                 ]"
               ></span>
-              {{ brand.trangThai ? 'Active' : 'Muted' }}
+              {{ cat.trangThai ? 'Hoạt động' : 'Ngừng' }}
             </span>
           </div>
 
-          <div
-            class="col-span-3 text-[10px] text-slate-500 flex flex-col gap-0.5 md:px-4 md:border-r md:border-slate-200 h-full justify-center font-mono"
-          >
-            <div>Tạo: {{ formatDate(brand.ngayTao) }}</div>
-            <div>Sửa: {{ formatDate(brand.ngayCapNhat) }}</div>
-          </div>
-
-          <div class="col-span-1 flex justify-end md:justify-center items-center pt-3 md:pt-0">
+          <div class="col-span-2 flex justify-end md:justify-center items-center pt-3 md:pt-0">
             <div
               class="inline-flex items-center bg-white border border-slate-300 rounded-xl p-1.5 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all duration-300"
             >
               <button
-                @click="openEditModal(brand)"
+                @click="editCategory(cat)"
                 class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200"
                 title="Chỉnh sửa"
               >
@@ -144,9 +138,11 @@
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
+
               <div class="w-px h-5 bg-slate-300 mx-1"></div>
+
               <button
-                @click="deleteBrand(brand.id)"
+                @click="removeCategory(cat.id)"
                 class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-all duration-200"
                 title="Xóa"
               >
@@ -171,10 +167,10 @@
         </div>
 
         <div
-          v-if="brands.length === 0"
+          v-if="categories.length === 0"
           class="text-center py-16 border-2 border-dashed border-slate-300 rounded-2xl bg-white shadow-sm"
         >
-          <p class="text-slate-700 font-bold text-sm">Kho lưu trữ thương hiệu trống rỗng</p>
+          <p class="text-slate-700 font-bold text-sm">Chưa có danh mục nào</p>
         </div>
       </div>
     </div>
@@ -185,18 +181,18 @@
         class="bg-white border border-slate-300 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.12)] w-full max-w-md z-10 p-6 animate-scale-up"
       >
         <h3 class="text-xs font-black uppercase tracking-widest text-indigo-600 mb-6">
-          {{ isEditMode ? '⚡ CẬP NHẬT THƯƠNG HIỆU' : '✨ KHỞI TẠO THƯƠNG HIỆU' }}
+          {{ isEditMode ? '⚡ CẬP NHẬT DANH MỤC' : '✨ KHỞI TẠO DANH MỤC' }}
         </h3>
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <input
-            v-model="form.maThuongHieu"
-            placeholder="Mã thương hiệu (VD: NIKE)"
+            v-model="form.maDanhMuc"
+            placeholder="Mã danh mục (VD: CAT01)"
             class="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
             required
           />
           <input
-            v-model="form.tenThuongHieu"
-            placeholder="Tên thương hiệu"
+            v-model="form.tenDanhMuc"
+            placeholder="Tên danh mục"
             class="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
             required
           />
@@ -208,7 +204,7 @@
                 'flex-1 py-2 text-xs font-bold rounded-xl border',
                 form.trangThai
                   ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                  : 'bg-slate-50',
+                  : 'bg-slate-50 border-slate-200 text-slate-400',
               ]"
             >
               HOẠT ĐỘNG
@@ -218,7 +214,9 @@
               @click="form.trangThai = false"
               :class="[
                 'flex-1 py-2 text-xs font-bold rounded-xl border',
-                !form.trangThai ? 'bg-rose-50 border-rose-500 text-rose-700' : 'bg-slate-50',
+                !form.trangThai
+                  ? 'bg-rose-50 border-rose-500 text-rose-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-400',
               ]"
             >
               TẠM NGỪNG
@@ -228,7 +226,7 @@
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold"
+              class="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold text-slate-600"
             >
               HỦY
             </button>
@@ -248,58 +246,39 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import {
-  getAllThuongHieu,
-  createThuongHieu,
-  updateThuongHieu,
-  deleteThuongHieu,
-} from '@/service/ThuongHieuService'
+  getAllDanhMuc,
+  createDanhMuc,
+  updateDanhMuc,
+  deleteDanhMuc,
+} from '@/service/DanhMucService'
 
-interface Brand {
-  id: number | null
-  maThuongHieu: string
-  tenThuongHieu: string
-  trangThai: boolean
-  ngayTao?: string | Date
-  ngayCapNhat?: string | Date
+const categories = ref<any[]>([])
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const form = ref({ id: null, maDanhMuc: '', tenDanhMuc: '', trangThai: true })
+
+const loadData = async () => {
+  categories.value = await getAllDanhMuc()
 }
 
-const brands = ref<Brand[]>([])
-const isModalOpen = ref<boolean>(false)
-const isEditMode = ref<boolean>(false)
-const form = ref<Brand>({ id: null, maThuongHieu: '', tenThuongHieu: '', trangThai: true })
-
-const loadData = async (): Promise<void> => {
-  brands.value = await getAllThuongHieu()
-}
-
-onMounted(loadData)
-
-const formatDate = (date: string | Date | undefined): string => {
-  if (!date) return 'N/A'
-  const d = new Date(date)
-  return `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
-}
-
-const openAddModal = (): void => {
+const openAddModal = () => {
   isEditMode.value = false
+  form.value = { id: null, maDanhMuc: '', tenDanhMuc: '', trangThai: true }
   isModalOpen.value = true
-  form.value = { id: null, maThuongHieu: '', tenThuongHieu: '', trangThai: true }
 }
 
-const openEditModal = (brand: Brand): void => {
+const editCategory = (cat: any) => {
   isEditMode.value = true
+  form.value = { ...cat }
   isModalOpen.value = true
-  form.value = { ...brand }
 }
 
-const closeModal = (): void => {
-  isModalOpen.value = false
-}
+const closeModal = () => (isModalOpen.value = false)
 
-const handleSubmit = async (): Promise<void> => {
+const handleSubmit = async () => {
   try {
-    if (isEditMode.value) await updateThuongHieu(form.value.id!, form.value)
-    else await createThuongHieu(form.value)
+    if (isEditMode.value) await updateDanhMuc(form.value.id, form.value)
+    else await createDanhMuc(form.value)
     await loadData()
     closeModal()
   } catch (err) {
@@ -307,16 +286,13 @@ const handleSubmit = async (): Promise<void> => {
   }
 }
 
-const deleteBrand = async (id: number | null): Promise<void> => {
-  if (confirm('Bạn có chắc muốn xóa thương hiệu này?')) {
-    try {
-      await deleteThuongHieu(id!)
-      await loadData()
-    } catch (err) {
-      console.error(err)
-    }
-  }
+const removeCategory = async (id: number) => {
+  if (!confirm('Xóa danh mục này?')) return
+  await deleteDanhMuc(id)
+  await loadData()
 }
+
+onMounted(loadData)
 </script>
 
 <style scoped>

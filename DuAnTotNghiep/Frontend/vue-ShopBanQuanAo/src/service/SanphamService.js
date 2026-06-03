@@ -5,7 +5,7 @@ const handleResponse = async (response) => {
   const data = await response.json().catch(() => null)
 
   if (!response.ok) {
-    const message = data?.message || 'Có lỗi xảy ra'
+    const message = data?.message || `HTTP Error: ${response.status}`
     throw new Error(message)
   }
 
@@ -26,7 +26,7 @@ export const getAllSanpham = async () => {
 // ================= GET BY ID =================
 export const getSanphamById = async (id) => {
   try {
-    const response = await fetch(`${API}/${id}`)
+    const response = await fetch(`${API}/detail/${id}`)
     return await handleResponse(response)
   } catch (error) {
     console.error('getSanphamById error:', error)
@@ -39,7 +39,9 @@ export const createSanpham = async (data) => {
   try {
     const response = await fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
     })
 
@@ -53,9 +55,11 @@ export const createSanpham = async (data) => {
 // ================= UPDATE =================
 export const updateSanpham = async (id, data) => {
   try {
-    const response = await fetch(`${API}/${id}`, {
+    const response = await fetch(`${API}/update/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
     })
 
@@ -69,9 +73,13 @@ export const updateSanpham = async (id, data) => {
 // ================= DELETE =================
 export const deleteSanpham = async (id) => {
   try {
-    const response = await fetch(`${API}/${id}`, {
+    const response = await fetch(`${API}/delete/${id}`, {
       method: 'DELETE',
     })
+
+    if (!response.ok) {
+      throw new Error(await response.text())
+    }
 
     return await response.text()
   } catch (error) {

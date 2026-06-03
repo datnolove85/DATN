@@ -14,7 +14,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "mau_sac")
-public class MauSac {
+public class MauSac extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -30,17 +30,5 @@ public class MauSac {
     @Nationalized
     @Column(name = "ten_mau_sac", nullable = false, length = 100)
     private String tenMauSac;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "ngay_tao")
-    private Instant ngayTao;
-
-    @ColumnDefault("getdate()")
-    @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
-
-    @ColumnDefault("1")
-    @Column(name = "trang_thai")
-    private Boolean trangThai;
 
 }
