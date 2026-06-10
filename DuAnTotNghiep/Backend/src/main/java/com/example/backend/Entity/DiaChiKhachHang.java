@@ -45,7 +45,6 @@ public class DiaChiKhachHang {
     private String phuong;
 
     @Nationalized
-    @Lob
     @Column(name = "dia_chi_cu_the")
     private String diaChiCuThe;
 

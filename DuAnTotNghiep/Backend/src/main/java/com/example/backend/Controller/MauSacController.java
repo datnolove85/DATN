@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Entity.MauSac;
+import com.example.backend.Repository.MauSacRepository;
 import com.example.backend.Request.MauSacRequest;
 import com.example.backend.Service.MauSacService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class MauSacController {
 
     @Autowired
     private MauSacService mauSacService;
+
+    @Autowired
+    private MauSacRepository mauSacRepository;
 
     // ================= GET ALL =================
     @GetMapping
@@ -44,6 +48,8 @@ public class MauSacController {
     // ================= DELETE =================
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
-        mauSacService.delete(id);
+         MauSac mauSac = mauSacService.getById(id);
+         mauSac.setTrangThai(false);
+         mauSacRepository.save(mauSac);
     }
 }

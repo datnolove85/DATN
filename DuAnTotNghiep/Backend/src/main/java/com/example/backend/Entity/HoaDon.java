@@ -3,8 +3,7 @@ package com.example.backend.Entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
@@ -14,6 +13,10 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder
 @Table(name = "hoa_don")
 public class HoaDon {
     @Id
@@ -73,12 +76,22 @@ public class HoaDon {
     @Column(name = "ghi_chu")
     private String ghiChu;
 
-    @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
     private Instant ngayTao;
 
-    @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
     private Instant ngayCapNhat;
+
+    @PrePersist
+    public void prePersist() {
+        Instant now = Instant.now();
+        this.ngayTao = now;
+        this.ngayCapNhat = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.ngayCapNhat = Instant.now();
+    }
 
 }

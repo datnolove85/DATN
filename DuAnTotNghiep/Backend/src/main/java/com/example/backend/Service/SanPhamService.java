@@ -1,14 +1,9 @@
 package com.example.backend.Service;
 
-import com.example.backend.Entity.ChatLieu;
-import com.example.backend.Entity.DanhMuc;
-import com.example.backend.Entity.SanPham;
-import com.example.backend.Entity.ThuongHieu;
-import com.example.backend.Repository.ChatLieuRepository;
-import com.example.backend.Repository.DanhMucRepository;
-import com.example.backend.Repository.SanPhamRepository;
-import com.example.backend.Repository.ThuongHieuRepository;
+import com.example.backend.Entity.*;
+import com.example.backend.Repository.*;
 import com.example.backend.Request.SanPhamRequest;
+import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Response.SanPhamResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +14,9 @@ public class SanPhamService {
 
     @Autowired
     private SanPhamRepository sanPhamRepository;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @Autowired
     private DanhMucRepository danhMucRepository;
@@ -104,4 +102,6 @@ public class SanPhamService {
         return sanPhamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
     }
+
+
 }

@@ -33,8 +33,6 @@ public class SanPhamChiTietResponse {
 
     private BigDecimal giaNhap;
 
-    private BigDecimal giaGoc;
-
     private BigDecimal giaBan;
 
     private Integer soLuongTon;

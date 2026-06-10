@@ -1,27 +1,43 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Request.HoaDonRequest;
+import com.example.backend.Request.TaoHoaDonRequest;
 import com.example.backend.Response.HoaDonResponse;
 import com.example.backend.Service.HoaDonService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/hoa-don")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
+@RequestMapping("/hoadon")
+@RequiredArgsConstructor
 public class HoaDonController {
 
-    @Autowired
-    private HoaDonService hoaDonService;
+    private final HoaDonService service;
 
+    // ================= GET ALL =================
     @GetMapping
-    public ResponseEntity<List<HoaDonResponse>> getAllHoaDon() {
-        List<HoaDonResponse> list = hoaDonService.getAllHoaDon();
-        return ResponseEntity.ok(list);
+    public List<HoaDonResponse> getAll() {
+        return service.getAll();
     }
+
+    @PostMapping("/ban-hang")
+    public ResponseEntity<?> banHang(@RequestBody TaoHoaDonRequest req) {
+        return ResponseEntity.ok(service.banHang(req));
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> detail(
+            @PathVariable Integer id
+    ) {
+        return ResponseEntity.ok(
+                service.getDetail(id)
+        );
+    }
+
+
 }

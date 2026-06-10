@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Entity.KichThuoc;
+import com.example.backend.Repository.KichThuocRepository;
 import com.example.backend.Request.KichThuocRequest;
 import com.example.backend.Service.KichThuocService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class KichThuocController {
 
     @Autowired
     private KichThuocService kichThuocService;
+
+    @Autowired
+    private KichThuocRepository kichThuocRepository;
 
     // ================= GET ALL =================
     @GetMapping
@@ -44,6 +48,8 @@ public class KichThuocController {
     // ================= DELETE =================
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
-        kichThuocService.delete(id);
+        KichThuoc kichThuoc = kichThuocService.getById(id);
+        kichThuoc.setTrangThai(false);
+        kichThuocRepository.save(kichThuoc);
     }
 }

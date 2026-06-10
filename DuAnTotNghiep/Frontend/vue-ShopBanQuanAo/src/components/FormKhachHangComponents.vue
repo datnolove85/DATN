@@ -9,7 +9,6 @@
       </div>
 
       <div class="card-body">
-        <!-- SIDEBAR (ẢNH & THÔNG TIN CƠ BẢN) -->
         <div class="form-sidebar">
           <div class="avatar-section">
             <div class="avatar-wrapper" @click="$refs.fileInputRef.click()">
@@ -67,7 +66,6 @@
           </div>
         </div>
 
-        <!-- MAIN FORM -->
         <div class="form-main">
           <div class="form-section">
             <h4 class="section-title">LIÊN HỆ & TÀI KHOẢN</h4>
@@ -116,15 +114,15 @@
                 <div class="status-toggle">
                   <button
                     type="button"
-                    :class="['btn-status', { active: newKhachHang.trangThai === 1 }]"
-                    @click="newKhachHang.trangThai = 1"
+                    :class="['btn-status', { active: newKhachHang.trangThai === true }]"
+                    @click="newKhachHang.trangThai = true"
                   >
                     <span class="dot"></span> Hoạt động
                   </button>
                   <button
                     type="button"
-                    :class="['btn-status', { active: newKhachHang.trangThai === 0 }]"
-                    @click="newKhachHang.trangThai = 0"
+                    :class="['btn-status', { active: newKhachHang.trangThai === false }]"
+                    @click="newKhachHang.trangThai = false"
                   >
                     <span class="dot"></span> Khóa
                   </button>
@@ -202,7 +200,7 @@
           Các trường có dấu <span class="required">*</span> là bắt buộc
         </span>
         <div class="button-group">
-          <button type="button" class="btn-cancel" @click="goBack">Hủy</button>
+          <button type="button" class="btn-cancel" @click="$router.back()">Hủy</button>
           <button type="button" class="btn-submit" @click="handleSave">
             {{ isEdit ? 'Lưu cập nhật' : 'Thêm khách hàng' }}
           </button>
@@ -246,7 +244,7 @@ const newKhachHang = ref({
   gioiTinh: true,
   soDienThoai: '',
   email: '',
-  trangThai: 1,
+  trangThai: true, // Mặc định true (Hoạt động) kiểu boolean
   thanhPho: '',
   quan: '',
   phuong: '',
@@ -329,7 +327,14 @@ watch(
   () => newKhachHang.value,
   () => {
     Object.keys(errors.value).forEach((key) => {
-      if (newKhachHang.value[key]) errors.value[key] = ''
+      if (
+        errors.value[key] &&
+        newKhachHang.value[key] !== '' &&
+        newKhachHang.value[key] !== null &&
+        newKhachHang.value[key] !== undefined
+      ) {
+        errors.value[key] = ''
+      }
     })
   },
   { deep: true },
@@ -391,8 +396,8 @@ const reloadFullAddress = async () => {
   await onDistrictChange(false)
 }
 
-const goBack = () => router.push('/khach-hang')
-
+// Code mới
+const goBack = () => router.push('/admin/khach-hang')
 // --- LƯU DỮ LIỆU ---
 const handleSave = async () => {
   if (!validateForm()) {

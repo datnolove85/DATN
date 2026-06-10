@@ -13,10 +13,26 @@ import java.util.Optional;
 @Repository
 public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, Integer> {
     @Query("""
-                SELECT NEW com.example.backend.Response.TaiKhoanResponse(tk.id,tk.idVaiTro.id,tk.idVaiTro.tenVaiTro,tk.email,tk.soDienThoai,tk.matKhau,tk.ngayTao,tk.ngayCapNhat,tk.nguoiTao,tk.nguoiCapNhat,tk.trangThai)
-                FROM TaiKhoan tk JOIN VaiTro vt on tk.idVaiTro.id=vt.id
-            """)
+        SELECT NEW com.example.backend.Response.TaiKhoanResponse(
+            tk.id,
+            tk.idVaiTro.id,
+            tk.idVaiTro.tenVaiTro,
+            tk.email,
+            tk.soDienThoai,
+            tk.matKhau,
+            tk.ngayTao,
+            tk.ngayCapNhat,
+            null,
+            null,
+            tk.trangThai
+        )
+        FROM TaiKhoan tk
+    """)
     Page<TaiKhoanResponse> phanTrang(Pageable pageable);
 
     Optional<TaiKhoan> findByEmail(String email);
+
+    Optional<TaiKhoan> findBySoDienThoai(String soDienThoai);
+
+    Optional<TaiKhoan> findByTenTaiKhoan(String tenTaiKhoan);
 }

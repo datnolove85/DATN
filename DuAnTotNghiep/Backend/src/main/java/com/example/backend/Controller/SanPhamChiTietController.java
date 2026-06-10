@@ -18,6 +18,8 @@ public class SanPhamChiTietController {
     @Autowired
     private SanPhamChiTietService sanPhamChiTietService;
 
+
+
     // ================= SPCT LIST (VARIANT MANAGE) =================
     @GetMapping()
     public ResponseEntity<List<SanPhamChiTietResponse>> getAllSpct() {
@@ -26,19 +28,17 @@ public class SanPhamChiTietController {
         );
     }
 
-    @PostMapping
-    public SanPhamChiTietResponse create(
-            @RequestBody SanPhamChiTietRequest req) {
+    // Trong SanPhamChiTietController.java
 
+    @PostMapping
+    public SanPhamChiTietResponse create(@ModelAttribute SanPhamChiTietRequest req) {
         return sanPhamChiTietService.add(req);
     }
 
-    // ================= UPDATE =================
     @PutMapping("/update/{id}")
     public SanPhamChiTietResponse update(
             @PathVariable Integer id,
-            @RequestBody SanPhamChiTietRequest req) {
-
+            @ModelAttribute SanPhamChiTietRequest req) {
         return sanPhamChiTietService.update(id, req);
     }
 
@@ -58,4 +58,9 @@ public class SanPhamChiTietController {
 
         return sanPhamChiTietService.getById(id);
     }
-}
+
+    @GetMapping("/sp/{id}")
+    public List<SanPhamChiTietResponse> getBySpct(@PathVariable Integer id) {
+        return  sanPhamChiTietService.getByIdSP(id);}
+
+    }

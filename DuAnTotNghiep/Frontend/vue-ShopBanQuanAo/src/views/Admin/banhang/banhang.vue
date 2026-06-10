@@ -268,7 +268,7 @@
                 </p>
               </div>
               <div v-else>
-                <p class="text-sm font-semibold text-slate-400">Khách vãng lai lẻ tại quầy</p>
+                <p class="text-sm font-semibold text-slate-400">Khách lẻ</p>
               </div>
               <button
                 v-if="selectedCustomer"
@@ -393,28 +393,72 @@
                     @focus="showVoucherDropdown = true"
                     @blur="setTimeout(() => (showVoucherDropdown = false), 200)"
                     placeholder="Tìm hoặc nhập mã..."
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
-                  <span class="absolute right-3 top-2.5 text-slate-400">🎟️</span>
+                  <span
+                    @click.stop="showVoucherDropdown = !showVoucherDropdown"
+                    class="absolute right-3 top-2.5 cursor-pointer select-none text-sm hover:scale-110 transition-transform"
+                  >
+                    🎟️
+                  </span>
                 </div>
 
                 <div
                   v-if="showVoucherDropdown && filteredVouchers.length > 0"
-                  class="absolute z-[100] w-full bg-white border border-slate-200 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto custom-scrollbar"
+                  class="absolute z-[100] w-full bg-white border border-slate-200 rounded-xl shadow-xl mt-1 max-h-56 overflow-y-auto custom-scrollbar"
                 >
                   <div
                     v-for="vc in filteredVouchers"
                     :key="vc.id"
-                    @mousedown.prevent="selectVoucher(vc)"
-                    class="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-50"
+                    @mousedown.prevent="vc.trangThai !== 0 ? selectVoucher(vc) : null"
+                    :class="[
+                      'px-4 py-3 border-b border-slate-50 last:border-none flex flex-col gap-1 transition-colors',
+                      vc.trangThai === 0
+                        ? 'opacity-40 bg-slate-50 cursor-not-allowed'
+                        : 'hover:bg-indigo-50 cursor-pointer',
+                    ]"
                   >
-                    <div class="flex justify-between items-center">
-                      <span class="text-xs font-bold text-slate-800">{{ vc.maVoucher }}</span>
-                      <span
-                        class="text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 rounded-full"
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="font-bold text-slate-500"
+                        >ID: <span class="text-slate-800">{{ vc.id }}</span></span
                       >
-                        -{{ vc.phanTramGiam }}%
+                      <span
+                        class="font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded uppercase"
+                      >
+                        {{ vc.loaiGiamGia }}
                       </span>
+                    </div>
+                    <div
+                      class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-slate-600 font-medium pt-1"
+                    >
+                      <div>
+                        Đơn tối thiểu:
+                        <span class="font-semibold text-slate-800">{{
+                          formatPrice(vc.giaTriDonHangToiThieu)
+                        }}</span>
+                      </div>
+                      <div>
+                        Giá trị giảm:
+                        <span class="font-semibold text-rose-600">
+                          {{
+                            vc.loaiGiamGia === 'tien_mat'
+                              ? formatPrice(vc.giaTriGiam)
+                              : vc.giaTriGiam + '%'
+                          }}
+                        </span>
+                      </div>
+                      <div class="col-span-2">
+                        Giảm tối đa:
+                        <span class="font-semibold text-slate-800">{{
+                          vc.giaTriGiamToiDa ? formatPrice(vc.giaTriGiamToiDa) : 'Không giới hạn'
+                        }}</span>
+                      </div>
+                    </div>
+                    <div
+                      v-if="vc.trangThai === 0"
+                      class="text-[9px] text-rose-500 font-bold text-right italic mt-0.5"
+                    >
+                      🔒 Không thể sử dụng
                     </div>
                   </div>
                 </div>
@@ -432,7 +476,7 @@
               v-if="appliedVoucher"
               class="bg-indigo-50 text-indigo-700 text-[11px] font-bold p-2 rounded-xl flex justify-between items-center"
             >
-              <span>🎟️ Đã áp dụng: {{ appliedVoucher.tenVoucher }}</span>
+              <span>🎟️ Đã áp dụng Voucher ID: {{ appliedVoucher.id }}</span>
               <button @click="removeVoucher" class="text-rose-500 hover:underline font-black">
                 Xóa
               </button>
@@ -474,7 +518,7 @@
                   v-model="phuongThucThanhToan"
                   class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:outline-none"
                 >
-                  <option value="" disabled>Chọn phương thức</option>
+                  <option value="" disabled>---Chọn phương thức thanh toán---</option>
 
                   <option v-for="pt in ptttList" :key="pt.id" :value="pt.id">
                     {{ pt.tenPhuongThuc }}
@@ -529,11 +573,14 @@
         </div>
       </div>
     </div>
+    <InvoiceModal v-if="showInvoiceModal" :hoaDon="hoaDonPrint" @close="showInvoiceModal = false" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useToast } from 'vue-toastification'
+import InvoiceModal from './InvoiceModal.vue'
 
 // --- 1. IMPORT CÁC SERVICE API ---
 import { getAllDanhMuc } from '@/service/DanhMucService'
@@ -541,136 +588,138 @@ import { getAllKichThuoc } from '@/service/KichThuocService'
 import { getAllMauSac } from '@/service/MauSacService'
 import { getAllThuongHieu } from '@/service/ThuongHieuService'
 import { getAllSanPhamChiTiet } from '@/service/SanPhamChiTiet'
-import { getAllPTTT } from '@/service/PhuongThucThanhToanService' // Đường dẫn tới file chứa api của bạn
+import { getAllPTTT } from '@/service/PhuongThucThanhToanService'
+import { getALLKhachHang } from '@/service/KhachHangService'
+import { getAllVoucher } from '@/service/VoucherService'
+import { getHoadonById } from '@/service/HoaDonService'
+const toast = useToast()
 
-const voucherQuery = ref('')
-const showVoucherDropdown = ref(false)
-const allVouchers = ref([]) // Danh sách lấy từ API của bạn
-
-// Bộ lọc khi gõ
-const filteredVouchers = computed(() => {
-  return allVouchers.value.filter((v) =>
-    v.maVoucher.toLowerCase().includes(voucherQuery.value.toLowerCase()),
-  )
-})
-
-// Hàm chọn voucher
-const selectVoucher = (vc) => {
-  voucherQuery.value = vc.maVoucher
-  appliedVoucher.value = vc // Lưu vào biến bạn đang có sẵn
-  showVoucherDropdown.value = false
-}
-
-// Đóng dropdown khi click ra ngoài (Tùy chọn)
-// Bạn có thể dùng directive v-click-outside để chuyên nghiệp hơn
-// Biến lưu danh sách PTTT
-const ptttList = ref([])
-
-// Hàm lấy dữ liệu
-const fetchPTTT = async () => {
-  try {
-    const data = await getAllPTTT()
-    ptttList.value = data
-  } catch (error) {
-    console.error('Lỗi khi tải PTTT:', error)
-  }
-}
-
-onMounted(() => {
-  fetchPTTT()
-})
-
-// --- BASE API URL HỆ THỐNG ---
+// --- BASE API URL ---
 const API_KHACH_HANG = 'http://localhost:8080/khachhang'
-const API_HOA_DON = 'http://localhost:8080/hoadon'
+const API_BAN_HANG = 'http://localhost:8080/hoadon/ban-hang'
 const DEFAULT_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400'
 
-// --- TRẠNG THÁI DANH SÁCH (DỮ LIỆU ĐỔ TỪ API) ---
+// --- TRẠNG THÁI DANH SÁCH ---
 const danhMucList = ref([])
 const thuongHieuList = ref([])
 const mauSacList = ref([])
 const kichThuocList = ref([])
 const products = ref([])
 const customers = ref([])
-
+const vouchers = ref([])
+const ptttList = ref([])
 const isLoading = ref(true)
 
-// --- TRẠNG THÁI FORM CHỨC NĂNG & GIỎ HÀNG (STATE) ---
+const hoaDonPrint = ref(null)
+const showInvoiceModal = ref(false)
+
+// --- TRẠNG THÁI FORM & GIỎ HÀNG ---
 const searchQuery = ref('')
 const filterCategory = ref('')
 const filterBrand = ref('')
 const filterColor = ref('')
 const filterSize = ref('')
-
 const cart = ref([])
 const voucherCode = ref('')
 const appliedVoucher = ref(null)
 const loaiHoaDon = ref('tai_quay')
 const phuongThucThanhToan = ref('tien_mat')
-
 const showCustomerModal = ref(false)
 const searchCustomerQuery = ref('')
 const selectedCustomer = ref(null)
 
-// --- 2. HÀM TẢI DỮ LIỆU ĐỒNG THỜI TỪ BACKEND ---
+// --- HÀM TẢI DỮ LIỆU ---
 const loadAllDataFromAPI = async () => {
   try {
     isLoading.value = true
-
-    const [resDM, resKT, resMS, resTH, resSPCT] = await Promise.all([
+    const [resDM, resKT, resMS, resTH, resSPCT, resKH, resVoucher] = await Promise.all([
       getAllDanhMuc(),
       getAllKichThuoc(),
       getAllMauSac(),
       getAllThuongHieu(),
       getAllSanPhamChiTiet(),
+      getALLKhachHang(),
+      getAllVoucher(),
     ])
-
     danhMucList.value = resDM
     kichThuocList.value = resKT
     mauSacList.value = resMS
     thuongHieuList.value = resTH
     products.value = resSPCT
-
-    customers.value = [
-      { id: 1, hoTen: 'Nguyễn Văn A', soDienThoai: '0987654321', hangThanhVien: 'Vàng (Gold)' },
-      { id: 2, hoTen: 'Trần Thị B', soDienThoai: '0123456789', hangThanhVien: 'Bạc (Silver)' },
-      { id: 3, hoTen: 'Lê Hoàng C', soDienThoai: '0909090909', hangThanhVien: 'Kim Cương' },
-    ]
+    customers.value = resKH
+    vouchers.value = resVoucher
   } catch (error) {
-    console.error('Lỗi khi kết nối hệ thống API Server:', error)
-    alert(
-      'Không thể tải dữ liệu. Hãy chắc chắn Server Spring Boot Localhost 8080 đang chạy ổn định!',
-    )
+    console.error(error)
+    toast.error('Không thể tải dữ liệu. Hãy kiểm tra lại Server!')
   } finally {
     isLoading.value = false
   }
 }
 
+const loadPTTT = async () => {
+  const data = await getAllPTTT()
+  ptttList.value = data
+  if (data.length > 0) phuongThucThanhToan.value = data[0].id
+}
+
 onMounted(() => {
   loadAllDataFromAPI()
+  loadPTTT()
 })
 
-// --- HÀM XỬ LÝ ẢNH SẢN PHẨM CHUYÊN NGHIỆP ---
-// Thay thế hàm cũ bằng hàm này
-const getProductImage = (sp) => {
-  // 2. Ép kiểu về mảng nếu cần
-  const images = sp.images
+onMounted(async () => {
+  try {
+    const response = await getAllVoucher()
+    vouchers.value = response
+    console.log(vouchers.value)
+  } catch (error) {
+    console.error(error)
+  }
+})
 
-  if (images && images.length > 0) {
-    const rawPath = images[0]
+const voucherQuery = ref('')
 
-    // Nếu đường dẫn đã bắt đầu bằng http thì trả về luôn
-    if (rawPath.startsWith('http')) return rawPath
+// Lọc và chỉ lấy tối đa 4 voucher đầu tiên dựa trên tìm kiếm mã
+const filteredVouchers = computed(() => {
+  let list = vouchers.value
 
-    // Nếu đường dẫn có dấu / ở đầu (như /sanpham/anh1.jpg)
-    // thì chỉ cần thêm domain, không cần thêm / ở giữa
-    const cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath
-
-    const finalUrl = `http://localhost:8080/${cleanPath}`
-
-    return finalUrl
+  if (voucherQuery.value) {
+    list = list.filter(
+      (v) => v.maVoucher && v.maVoucher.toLowerCase().includes(voucherQuery.value.toLowerCase()),
+    )
   }
 
+  return list.slice(0, 4)
+})
+
+const selectedVoucher = ref(null)
+const showVoucherDropdown = ref(false)
+
+// Cập nhật hàm chọn Voucher: Kiểm tra trạng thái === 0 thì chặn không cho chọn
+const selectVoucher = (voucher) => {
+  if (voucher.trangThai === 0) {
+    toast.warning('Voucher này hiện đang bị khóa không thể sử dụng!')
+    return
+  }
+
+  selectedVoucher.value = voucher
+  voucherQuery.value = voucher.maVoucher
+  voucherCode.value = voucher.maVoucher // Đồng bộ thêm biến voucherCode phục vụ cho hàm applyVoucher nhập tay nếu cần
+  appliedVoucher.value = voucher
+  showVoucherDropdown.value = false
+
+  console.log('Voucher đã chọn:', voucher)
+}
+
+// --- HÀM XỬ LÝ ẢNH ---
+const getProductImage = (sp) => {
+  const images = sp.images
+  if (images && images.length > 0) {
+    const rawPath = images[0]
+    if (rawPath.startsWith('http')) return rawPath
+    const cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath
+    return `http://localhost:8080/${cleanPath}`
+  }
   return 'https://via.placeholder.com/150'
 }
 
@@ -678,27 +727,19 @@ const setDefaultImage = (event) => {
   event.target.src = DEFAULT_PRODUCT_IMAGE
 }
 
-// --- 3. BỘ LỌC TÌM KIẾM THÔNG MINH (COMPUTED) ---
+// --- BỘ LỌC & COMPUTED ---
 const filteredProducts = computed(() => {
   return products.value.filter((sp) => {
-    // 1. Logic tìm kiếm (Tên hoặc Mã)
     const nameStr = (sp.tenSanPhamChiTiet || sp.tenSanPham || '').toLowerCase()
     const codeStr = (sp.maSanPhamChiTiet || '').toLowerCase()
     const searchStr = searchQuery.value.toLowerCase()
     const matchSearch = nameStr.includes(searchStr) || codeStr.includes(searchStr)
-
-    // 2. Logic bộ lọc (Sử dụng ép kiểu Number để so sánh chính xác id)
-    // Nếu filter rỗng hoặc giá trị bằng nhau thì coi như khớp (true)
     const selectedDM = danhMucList.value.find((dm) => dm.id == filterCategory.value)
-
     const selectedTH = thuongHieuList.value.find((th) => th.id == filterBrand.value)
-
     const matchCategory = !filterCategory.value || sp.tenDanhMuc === selectedDM?.tenDanhMuc
-
     const matchBrand = !filterBrand.value || sp.tenThuongHieu === selectedTH?.tenThuongHieu
     const matchColor = !filterColor.value || Number(sp.idMauSac) === Number(filterColor.value)
     const matchSize = !filterSize.value || Number(sp.idKichThuoc) === Number(filterSize.value)
-
     return matchSearch && matchCategory && matchBrand && matchColor && matchSize
   })
 })
@@ -719,19 +760,28 @@ const filteredCustomers = computed(() => {
   )
 })
 
-const totalCartPrice = computed(() => {
-  return cart.value.reduce((sum, item) => {
-    return sum + item.product.giaBan * item.soLuong
-  }, 0)
-})
+const totalCartPrice = computed(() =>
+  cart.value.reduce((sum, item) => sum + item.product.giaBan * item.soLuong, 0),
+)
 
 const voucherDiscount = computed(() => {
   if (!appliedVoucher.value) return 0
-  if (appliedVoucher.value.loai === 'tien_mat') return appliedVoucher.value.giatri
-  if (appliedVoucher.value.loai === 'phan_tram') {
-    return (totalCartPrice.value * appliedVoucher.value.giatri) / 100
+
+  if (totalCartPrice.value < appliedVoucher.value.giaTriDonHangToiThieu) {
+    return 0
   }
-  return 0
+
+  let discount = 0
+  if (appliedVoucher.value.loaiGiamGia === 'tien_mat') {
+    discount = appliedVoucher.value.giaTriGiam
+  } else if (appliedVoucher.value.loaiGiamGia === 'phan_tram') {
+    discount = (totalCartPrice.value * appliedVoucher.value.giaTriGiam) / 100
+    if (appliedVoucher.value.giaTriGiamToiDa && discount > appliedVoucher.value.giaTriGiamToiDa) {
+      discount = appliedVoucher.value.giaTriGiamToiDa
+    }
+  }
+
+  return discount
 })
 
 const finalPaymentPrice = computed(() => {
@@ -739,22 +789,22 @@ const finalPaymentPrice = computed(() => {
   return result > 0 ? result : 0
 })
 
-// --- 4. HÀM XỬ LÝ HÀNH VI CỦA HỆ THỐNG TRÊN GIỎ HÀNG ---
+// --- HÀM XỬ LÝ GIỎ HÀNG ---
 const addToCart = (product) => {
   if (product.soLuongTon <= 0) {
-    alert('Sản phẩm đã hết hàng, không thể thêm vào đơn!')
+    toast.warning('Sản phẩm đã hết hàng!')
     return
   }
-
   const existingItem = cart.value.find((item) => item.product.id === product.id)
   if (existingItem) {
     if (existingItem.soLuong < product.soLuongTon) {
       existingItem.soLuong++
     } else {
-      alert('Số lượng chọn mua đã đạt mức giới hạn tồn kho của mặt hàng này!')
+      toast.warning('Đã đạt giới hạn tồn kho!')
     }
   } else {
     cart.value.push({ product, soLuong: 1 })
+    toast.success('Đã thêm sản phẩm vào giỏ!')
   }
 }
 
@@ -762,7 +812,7 @@ const increaseQty = (index) => {
   if (cart.value[index].soLuong < cart.value[index].product.soLuongTon) {
     cart.value[index].soLuong++
   } else {
-    alert('Không thể tăng thêm, kho đã đạt số lượng tối đa hiện có!')
+    toast.warning('Đã đạt số lượng tối đa!')
   }
 }
 
@@ -778,20 +828,36 @@ const removeFromCart = (index) => {
   cart.value.splice(index, 1)
 }
 
+// Hàm nhập mã tay đồng bộ chuẩn hóa theo voucherQuery
 const applyVoucher = () => {
-  const code = voucherCode.value.toUpperCase().trim()
-  if (code === 'VIP10') {
-    appliedVoucher.value = { tenVoucher: 'Mã VIP10 (Giảm 10%)', loai: 'phan_tram', giatri: 10 }
-  } else if (code === 'VIP50K') {
-    appliedVoucher.value = { tenVoucher: 'Mã VIP50K (Giảm 50k)', loai: 'tien_mat', giatri: 50000 }
+  const code = (voucherQuery.value || voucherCode.value).toUpperCase().trim()
+  const foundVoucher = vouchers.value.find((v) => v.maVoucher && v.maVoucher.toUpperCase() === code)
+
+  if (foundVoucher) {
+    if (foundVoucher.trangThai === 0) {
+      toast.error('Mã giảm giá này hiện đang bị khóa!')
+      return
+    }
+    if (totalCartPrice.value < foundVoucher.giaTriDonHangToiThieu) {
+      toast.warning(
+        `Đơn hàng chưa đạt giá trị tối thiểu ${formatPrice(foundVoucher.giaTriDonHangToiThieu)}`,
+      )
+      return
+    }
+    appliedVoucher.value = foundVoucher
+    selectedVoucher.value = foundVoucher
+    voucherQuery.value = foundVoucher.maVoucher
+    toast.success('Áp dụng mã thành công!')
   } else {
-    alert('Mã giảm giá vừa nhập không tồn tại hoặc không đáp ứng điều kiện!')
+    toast.error('Mã giảm giá không hợp lệ!')
   }
 }
 
 const removeVoucher = () => {
   appliedVoucher.value = null
+  selectedVoucher.value = null
   voucherCode.value = ''
+  voucherQuery.value = ''
 }
 
 const openCustomerModal = () => {
@@ -802,13 +868,12 @@ const selectCustomer = (kh) => {
   showCustomerModal.value = false
 }
 
-// --- 5. ĐẨY DỮ LIỆU THANH TOÁN LÊN DATABASE BACKEND ---
+// --- THANH TOÁN ---
 const submitCheckout = async () => {
   if (cart.value.length === 0) {
-    alert('Vui lòng chọn ít nhất một sản phẩm vào đơn hàng trước khi thực hiện thanh toán!')
+    toast.error('Giỏ hàng trống!')
     return
   }
-
   const payloadHoaDon = {
     idKhachHang: selectedCustomer.value ? selectedCustomer.value.id : null,
     tongTienHang: totalCartPrice.value,
@@ -821,35 +886,34 @@ const submitCheckout = async () => {
       soLuong: item.soLuong,
       donGia: item.product.giaBan,
     })),
+    idVoucher: appliedVoucher.value ? appliedVoucher.value.id : null,
   }
-
   try {
-    const res = await fetch(API_HOA_DON, {
+    const res = await fetch(API_BAN_HANG, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payloadHoaDon),
     })
+    const data = await res.json()
 
-    if (!res.ok) throw new Error('Có lỗi xảy ra từ phía dịch vụ máy chủ hệ thống.')
+    const hoaDonDetail = await getHoadonById(data.id)
 
-    alert(
-      `🎉 Tạo hóa đơn và thanh toán thành công!\nSố tiền nhận: ${formatPrice(finalPaymentPrice.value)}`,
-    )
+    hoaDonPrint.value = hoaDonDetail
+    showInvoiceModal.value = true
 
+    if (!res.ok) throw new Error('Lỗi server')
+    toast.success(`🎉 Thanh toán thành công!`)
     cart.value = []
     removeVoucher()
     selectedCustomer.value = null
-
     await loadAllDataFromAPI()
   } catch (error) {
-    console.error('Lỗi submitCheckout:', error)
-    alert('Quá trình lưu hóa đơn thất bại. Vui lòng kiểm tra lại log kết nối máy chủ!')
+    toast.error('Quá trình lưu hóa đơn thất bại!')
   }
 }
 
-const formatPrice = (value) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
-}
+const formatPrice = (value) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 </script>
 
 <style scoped>

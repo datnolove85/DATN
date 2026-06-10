@@ -11,6 +11,16 @@ export const getAllSanPhamChiTiet = async () => {
   return await res.json()
 }
 
+export const getSanPhamChiTietByProductId = async (productId) => {
+  const res = await fetch(`${API}/sp/${productId}`)
+
+  if (!res.ok) {
+    throw new Error('Lỗi lấy danh sách SPCT theo sản phẩm')
+  }
+
+  return await res.json()
+}
+
 // ================= GET BY ID =================
 export const getSanPhamChiTietById = async (id) => {
   const res = await fetch(`${API}/detail/${id}`)
@@ -21,15 +31,14 @@ export const getSanPhamChiTietById = async (id) => {
 
   return await res.json()
 }
-
 // ================= CREATE =================
-export const createSanPhamChiTiet = async (data) => {
+export const createSanPhamChiTiet = async (formData) => {
   const res = await fetch(API, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    // KHÔNG ĐỂ 'Content-Type': 'application/json' ở đây.
+    // Trình duyệt sẽ tự động thêm Content-Type: multipart/form-data
+    // kèm theo boundary khi thấy bạn gửi FormData.
+    body: formData,
   })
 
   if (!res.ok) {
@@ -40,13 +49,10 @@ export const createSanPhamChiTiet = async (data) => {
 }
 
 // ================= UPDATE =================
-export const updateSanPhamChiTiet = async (id, data) => {
+export const updateSanPhamChiTiet = async (id, formData) => {
   const res = await fetch(`${API}/update/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    method: 'PUT', // Hoặc POST tùy vào controller của bạn
+    body: formData,
   })
 
   if (!res.ok) {
@@ -55,7 +61,6 @@ export const updateSanPhamChiTiet = async (id, data) => {
 
   return await res.json()
 }
-
 // ================= DELETE =================
 export const deleteSanPhamChiTiet = async (id) => {
   const res = await fetch(`${API}/delete/${id}`, {

@@ -44,7 +44,7 @@ const router = createRouter({
     {
       path: '/admin',
       component: () => import('../views/Admin/Layout/Layout.vue'), // File Layout tổng chứa Sidebar + Navbar
-      redirect: '/admin/sanpham', // Nếu vào /admin thì tự động nhảy vào trang sản phẩm
+      redirect: '/admin/banhang', // Nếu vào /admin thì tự động nhảy vào trang sản phẩm
       children: [
         // Quản lý Sản phẩm
         {
@@ -100,15 +100,15 @@ const router = createRouter({
 
         // Quản lý Khách hàng
         {
-          path: 'khach-hang', // Đường dẫn thực tế: /admin/khach-hang
+          path: 'khachhang', // Đường dẫn thực tế: /admin/khach-hang
           name: 'khachHang',
           component: () => import('../views/Admin/KhachHangView.vue'),
         },
-        {
-          path: 'khach-hang/add',
-          name: 'addKhachHang',
-          component: () => import('../components/FormKhachHangComponents.vue'),
-        },
+        // {
+        //   path: 'khach-hang/add',
+        //   name: 'addKhachHang',
+        //   component: () => import('../components/FormKhachHangComponents.vue'),
+        // },
         {
           path: 'khach-hang/edit/:id',
           name: 'editKhachHang',
@@ -140,6 +140,31 @@ const router = createRouter({
           path: 'hoadon', // Đường dẫn thực tế: /admin/sales
           name: 'hoadon',
           component: () => import('../views/Admin/banhang/hoadon.vue'),
+        },
+        {
+          path: 'hdct', // Đường dẫn thực tế: /admin/sales
+          name: 'hdct',
+          component: () => import('../views/Admin/banhang/hdct.vue'),
+        },
+        {
+          path: 'hdct/:id', // Đường dẫn thực tế: /admin/sales
+          name: 'HoaDonChiTiet',
+          component: () => import('../views/Admin/banhang/hdct.vue'),
+        },
+        {
+          path: '/hoadonview/:id',
+          name: 'HoaDonView',
+          component: () => import('@/views/Admin/banhang/InvoiceModal.vue'),
+        },
+        {
+          path: 'voucher',
+          name: 'Voucher',
+          component: () => import('../views/Admin/VoucherView.vue'),
+        },
+        {
+          path: '/sp/:id',
+          name: 'SanPham',
+          component: () => import('@/views/Admin/Layout/product/spct.vue'),
         },
       ],
     },

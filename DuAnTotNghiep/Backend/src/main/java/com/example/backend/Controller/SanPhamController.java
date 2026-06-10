@@ -51,4 +51,6 @@ public class SanPhamController {
     public SanPham getById(@PathVariable Integer id) {
         return sanPhamService.getById(id);
     }
+
+
 }
