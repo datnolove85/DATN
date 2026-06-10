@@ -1,127 +1,364 @@
 <template>
-  <div class="employee-container">
-    <div class="search-bar">
-      <div class="search-wrapper">
-        <i class="fas fa-search search-icon"></i>
-        <input
-          type="text"
-          v-model="keyword"
-          placeholder="Tìm kiếm mã hoặc tên nhân viên..."
-          @keyup.enter="searchNhanVien"
-        />
-        <button @click="searchNhanVien" class="btn-search-submit">Tìm kiếm</button>
+  <div
+    class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
+  >
+    <div
+      class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm overflow-hidden"
+    >
+      <div class="relative z-10">
+        <span class="text-[10px] tracking-widest uppercase font-bold text-indigo-400"
+          >Hệ thống quản trị nhân sự</span
+        >
+        <h1 class="text-2xl font-bold tracking-tight mt-1 text-white">Phân Hệ Nhân Viên</h1>
+        <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
+          <span class="relative flex h-2 w-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
+            ></span>
+            <span class="relative inline-block rounded-full h-2 w-2 bg-indigo-500"></span>
+          </span>
+          Điều hành phân quyền, trạng thái và hồ sơ nhân sự thời gian thực.
+        </p>
       </div>
-      <div class="action-group">
-        <button @click="resetSearch" class="btn-reset" title="Làm mới dữ liệu">
-          <i class="fas fa-sync-alt"></i> Làm mới
-        </button>
 
-        <button @click="handleExportExecl" class="btn-export" title="Xuất file Excel">
-          <i class="fas fa-file-excel"></i> Xuất Excel
-        </button>
+      <div
+        class="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3 relative z-10"
+      >
+        <div
+          class="relative flex items-center bg-white/5 border border-white/10 hover:border-indigo-500 rounded-2xl px-4 py-2 w-full sm:w-80 focus-within:bg-white/10 focus-within:border-indigo-500 transition-all group"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-4 h-4 text-slate-400 mr-2 group-focus-within:text-indigo-400"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.602Z"
+            />
+          </svg>
+          <input
+            type="text"
+            v-model="keyword"
+            placeholder="Mã hoặc tên nhân viên..."
+            class="bg-transparent text-white placeholder-slate-500 text-xs outline-none w-full font-semibold"
+            @keyup.enter="searchNhanVien"
+          />
+          <button
+            @click="searchNhanVien"
+            class="ml-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-bold transition-colors shadow-sm"
+          >
+            TÌM
+          </button>
+        </div>
 
-        <router-link to="/admin/nhan-vien/add" class="btn-add">
-          <i class="fas fa-plus"></i> Thêm nhân viên
+        <router-link
+          to="/admin/nhan-vien/add"
+          class="flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-4 h-4"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          THÊM NHÂN VIÊN
         </router-link>
       </div>
     </div>
 
-    <div class="table-card">
-      <div class="table-header-title">
-        <h2>Danh Sách Nhân Viên</h2>
+    <div
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"
+    >
+      <div class="flex items-center gap-2">
+        <button
+          @click="resetSearch"
+          class="flex items-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95"
+          title="Làm mới dữ liệu"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-3.5 h-3.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+            />
+          </svg>
+          Làm mới
+        </button>
+
+        <button
+          @click="handleExportExecl"
+          class="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold transition-all active:scale-95"
+          title="Xuất file Excel"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-3.5 h-3.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+            />
+          </svg>
+          Xuất dữ liệu Excel
+        </button>
       </div>
 
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Ảnh</th>
-              <!-- <th>Mã NV</th> -->
-              <th>Tên nhân viên</th>
-              <th>Vai trò</th>
-              <th>Địa chỉ</th>
-              <th>Ngày Sinh</th>
-              <th>Giới tính</th>
-              <th>Trạng thái</th>
-              <th class="text-center">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in listNhanVien" :key="item.id">
-              <td>{{ pageNo * pageSize + index + 1 }}</td>
-              <td>
-                <div class="avatar-wrapper" v-if="item.anh">
+      <span
+        class="px-3 py-1 bg-indigo-50 text-indigo-600 font-extrabold rounded-xl text-[11px] border border-indigo-100"
+      >
+        Khối dữ liệu: {{ listNhanVien.length }} mục / trang
+      </span>
+    </div>
+
+    <div class="overflow-x-auto bg-white border border-slate-100 rounded-2xl shadow-sm">
+      <table class="w-full border-collapse text-left min-w-[1100px] table-auto">
+        <thead>
+          <tr
+            class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider select-none"
+          >
+            <th class="py-4 px-4 text-center w-14">#</th>
+            <th class="py-4 px-4 w-24 text-center">Hồ sơ ảnh</th>
+            <th class="py-4 px-4">Tên nhân viên</th>
+            <th class="py-4 px-4 w-36">Vai trò</th>
+            <th class="py-4 px-4 max-w-xs">Địa chỉ thường trú</th>
+            <th class="py-4 px-4 w-32">Ngày Sinh</th>
+            <th class="py-4 px-4 text-center w-28">Giới tính</th>
+            <th class="py-4 px-4 text-center w-36">Trạng thái</th>
+            <th class="py-4 px-4 text-center w-28">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-xs">
+          <tr
+            v-for="(item, index) in listNhanVien"
+            :key="item.id"
+            class="hover:bg-slate-50/60 transition-colors group"
+          >
+            <td class="py-4 px-4 text-center font-bold font-mono text-slate-400">
+              {{ pageNo * pageSize + index + 1 }}
+            </td>
+
+            <td class="py-4 px-4 text-center">
+              <div class="inline-flex items-center justify-center">
+                <div
+                  class="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:border-indigo-400"
+                  v-if="item.anh"
+                >
                   <img
                     :src="`http://localhost:8080/api/shop-ban-quan-ao/nhan-vien/uploads/${item.anh}`"
-                    class="avatar-img"
+                    class="w-full h-full object-cover"
                   />
                 </div>
-                <span v-else class="no-avatar">Chưa có ảnh</span>
-              </td>
-              <!-- <td class="font-bold text-nowrap">{{ item.maNhanVien }}</td> -->
-              <td class="font-medium text-nowrap">{{ item.tenNhanVien }}</td>
-              <td class="text-nowrap">
-                <span class="role-badge">{{ item.tenVaiTro }}</span>
-              </td>
-              <td class="address-cell">{{ item.diaChi }}</td>
-              <td class="text-nowrap">{{ item.ngaySinh }}</td>
-              <td class="text-nowrap">
-                <span :class="['gender-tag', item.gioiTinh ? 'male' : 'female']">
-                  {{ item.gioiTinh ? 'Nam' : 'Nữ' }}
-                </span>
-              </td>
-              <td class="text-nowrap">
-                <span :class="['status-badge', item.trangThai ? 'active' : 'inactive']">
-                  {{ item.trangThai ? 'Đang làm' : 'Nghỉ việc' }}
-                </span>
-              </td>
-              <td class="text-nowrap">
-                <div class="action-buttons">
-                  <button class="btn-icon edit" @click="detailNhanVien(item.id)" title="Sửa">
-                    <i class="fas fa-edit"></i> Sửa
-                  </button>
-                  <button class="btn-icon delete" @click="deleteNhanVien(item)" title="Xoá">
-                    <i class="fas fa-trash"></i> Xoá
-                  </button>
+                <div
+                  v-else
+                  class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-400 text-center px-1 uppercase tracking-tight select-none"
+                >
+                  Empty
                 </div>
-              </td>
-            </tr>
-            <tr v-if="listNhanVien.length === 0">
-              <td colspan="10" class="text-center no-data">Không có dữ liệu nhân viên</td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </td>
+
+            <td
+              class="py-4 px-4 font-bold text-slate-800 capitalize text-nowrap group-hover:translate-x-1 transition-transform duration-300"
+            >
+              {{ item.tenNhanVien }}
+            </td>
+
+            <td class="py-4 px-4">
+              <span
+                class="inline-block px-2.5 py-1 bg-slate-50/80 text-slate-600 font-bold rounded-xl border border-slate-100 text-[10px] uppercase tracking-wide group-hover:bg-white group-hover:border-indigo-400 transition-all"
+              >
+                {{ item.tenVaiTro }}
+              </span>
+            </td>
+
+            <td
+              class="py-4 px-4 text-slate-500 max-w-[220px] whitespace-normal line-line-1.4"
+              :title="item.diaChi"
+            >
+              {{ item.diaChi }}
+            </td>
+
+            <td class="py-4 px-4 text-slate-600 font-medium font-mono text-nowrap">
+              {{ item.ngaySinh }}
+            </td>
+
+            <td class="py-4 px-4 text-center">
+              <span
+                :class="[
+                  'inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-xl border min-w-[60px]',
+                  item.gioiTinh
+                    ? 'bg-blue-50 text-blue-600 border-blue-100'
+                    : 'bg-rose-50 text-rose-600 border-rose-100',
+                ]"
+              >
+                {{ item.gioiTinh ? 'Nam' : 'Nữ' }}
+              </span>
+            </td>
+
+            <td class="py-4 px-4 text-center">
+              <span
+                :class="[
+                  'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-xl border transition-all duration-300',
+                  item.trangThai
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : 'bg-rose-50 text-rose-600 border-rose-100',
+                ]"
+              >
+                <span
+                  :class="[
+                    'w-1 h-1 rounded-full',
+                    item.trangThai ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500',
+                  ]"
+                ></span>
+                {{ item.trangThai ? 'Đang làm' : 'Nghỉ việc' }}
+              </span>
+            </td>
+
+            <td class="py-4 px-4">
+              <div class="flex items-center justify-center gap-1">
+                <button
+                  @click="detailNhanVien(item.id)"
+                  class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                  title="Sửa hồ sơ"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </button>
+                <button
+                  @click="deleteNhanVien(item)"
+                  class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                  title="Xóa nhân viên"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr v-if="listNhanVien.length === 0">
+            <td colspan="9" class="py-20 text-center">
+              <div class="flex flex-col items-center justify-center gap-2 text-slate-400">
+                <div
+                  class="w-12 h-12 rounded-2xl bg-slate-50 text-indigo-600 border border-slate-100 flex items-center justify-center text-base font-black"
+                >
+                  👥
+                </div>
+                <strong class="text-sm font-bold text-slate-800 mt-1"
+                  >Không tìm thấy nhân viên</strong
+                >
+                <span class="text-xs"
+                  >Không có hồ sơ nhân sự khớp với từ khóa tìm kiếm trong hệ thống.</span
+                >
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div
+      class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"
+    >
+      <div class="text-xs font-semibold text-slate-500 flex items-center gap-2">
+        <span>Hiển thị</span>
+        <select
+          v-model="pageSize"
+          @change="handleSizeChange"
+          class="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg outline-none font-bold text-slate-700 text-xs focus:border-indigo-500 cursor-pointer"
+        >
+          <option :value="5">5</option>
+          <option :value="10">10</option>
+          <option :value="20">20</option>
+        </select>
+        <span>nhân viên trên mỗi trang</span>
       </div>
 
-      <div class="pagination">
-        <div class="pagination-info">
-          Hiển thị
-          <select v-model="pageSize" @change="handleSizeChange" class="select-page">
-            <option :value="5">5</option>
-            <option :value="10">10</option>
-            <option :value="20">20</option>
-          </select>
-          nhân viên / trang
-        </div>
-
-        <div class="pagination-controls">
-          <button class="btn-page" :disabled="pageNo === 0" @click="changePage(-1)">
-            <i class="fas fa-chevron-left"></i> Trước
-          </button>
-
-          <div class="page-indicator">
-            Trang <span>{{ pageNo + 1 }}</span>
-          </div>
-
-          <button
-            class="btn-page"
-            :disabled="listNhanVien.length < pageSize"
-            @click="changePage(1)"
+      <div class="flex items-center gap-4 text-xs font-bold">
+        <button
+          class="flex items-center gap-1 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl disabled:opacity-40 disabled:hover:bg-slate-50 disabled:cursor-not-allowed transition-colors active:scale-95"
+          :disabled="pageNo === 0"
+          @click="changePage(-1)"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-3.5 h-3.5"
           >
-            Sau <i class="fas fa-chevron-right"></i>
-          </button>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          Trước
+        </button>
+
+        <div class="text-slate-400 font-medium">
+          Trang
+          <span
+            class="text-indigo-600 font-extrabold font-mono text-sm bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100"
+            >{{ pageNo + 1 }}</span
+          >
         </div>
+
+        <button
+          class="flex items-center gap-1 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl disabled:opacity-40 disabled:hover:bg-slate-50 disabled:cursor-not-allowed transition-colors active:scale-95"
+          :disabled="listNhanVien.length < pageSize"
+          @click="changePage(1)"
+        >
+          Sau
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-3.5 h-3.5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -138,6 +375,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import Swal from 'sweetalert2'
 import router from '@/router'
+
 // Phân trang
 const pageNo = ref(0)
 const pageSize = ref(5)
@@ -236,385 +474,17 @@ onMounted(phanTrangNhanVien)
 </script>
 
 <style scoped>
-/* Reset font & container */
-.employee-container {
-  padding: 24px;
-  background-color: #f8fafc;
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
-/* FIX LỖI NHẢY DÒNG */
-.text-nowrap {
-  white-space: nowrap !important;
-}
-
-/* Địa chỉ cho phép ngắt dòng để không đẩy bảng quá rộng */
-.address-cell {
-  min-width: 250px;
-  white-space: normal;
-  line-height: 1.4;
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
-/* Search Bar */
-.search-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
-.search-wrapper {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 50px;
-  padding: 6px 6px 6px 18px;
-  flex: 1;
-  max-width: 500px;
-}
-
-.search-wrapper input {
-  border: none;
-  outline: none;
-  flex: 1;
-  font-size: 0.95rem;
-  background: transparent;
-}
-
-.btn-search-submit {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 22px;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.action-group {
-  display: flex;
-  gap: 12px;
-}
-
-.btn-reset,
-.btn-export,
-.btn-add {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  font-size: 0.85rem;
-}
-
-.btn-reset {
-  background: white;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-}
-.btn-export {
-  background: #107c10;
-  color: white;
-}
-.btn-add {
-  background: #1e293b;
-  color: white;
-  text-transform: capitalize;
-}
-
-/* Table Card */
-.table-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
-  overflow: hidden;
-}
-
-.table-header-title {
-  padding: 20px 24px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.table-header-title h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: #1e293b;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th {
-  background: #f8fafc;
-  padding: 14px 20px;
-  text-align: left;
-  font-size: 0.75rem;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-td {
-  padding: 14px 20px;
-  border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle;
-  font-size: 0.9rem;
-}
-
-.font-bold {
-  font-weight: 700;
-  color: #1e293b;
-}
-.font-medium {
-  font-weight: 500;
-  color: #334155;
-}
-
-/* Avatar */
-.avatar-wrapper {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Tags & Badges */
-.role-badge {
-  background: #f1f5f9;
-  color: #475569;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-}
-
-.gender-tag,
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.gender-tag.male {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-.gender-tag.female {
-  background: #fce7f3;
-  color: #be185d;
-}
-.status-badge.active {
-  background: #dcfce7;
-  color: #15803d;
-}
-.status-badge.inactive {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-/* Actions */
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-icon {
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.btn-icon.edit {
-  background-color: #f0f7ff;
-  color: #2563eb;
-}
-.btn-icon.edit:hover {
-  background-color: #2563eb;
-  color: #ffffff;
-}
-
-.btn-icon.delete {
-  background-color: #fff1f2;
-  color: #ef4444;
-}
-.btn-icon.delete:hover {
-  background-color: #ef4444;
-  color: #ffffff;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  background: #ffffff;
-}
-
-.select-page {
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  margin: 0 5px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-page {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: 0.2s;
-}
-
-.btn-page:not(:disabled):hover {
-  border-color: #2563eb;
-  color: #2563eb;
-}
-.btn-page:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-indicator span {
-  font-weight: 700;
-  color: #2563eb;
-}
-/* --- Cập nhật phần ảnh to hơn --- */
-
-/* Căn giữa nội dung trong ô chứa Ảnh (ô thứ 2) */
-td:nth-child(2) {
-  text-align: center;
-  vertical-align: middle;
-  padding-left: 10px; /* Giảm padding một chút để dành không gian cho ảnh to */
-  padding-right: 10px;
-}
-
-/* Khung bao quanh ảnh - Tăng kích thước */
-.avatar-wrapper {
-  width: 80px; /* Đã tăng lên 80px, bạn có thể chỉnh thành 100px nếu muốn to hơn nữa */
-  height: 80px; /* Phải bằng width để tạo hình tròn */
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid #e2e8f0; /* Tăng độ dày viền một chút cho cân đối */
-  display: inline-block;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Thêm đổ bóng rõ hơn */
-  transition: transform 0.2s ease-in-out; /* Thêm hiệu ứng rẽ nhẹ khi hover */
-}
-
-/* Hiệu ứng khi di chuột vào ảnh */
-.avatar-wrapper:hover {
-  transform: scale(1.05); /* Phóng to nhẹ một chút */
-  border-color: #2563eb; /* Đổi màu viền sang màu chủ đạo */
-}
-
-/* Ảnh bên trong - Giữ nguyên object-fit để không bị méo */
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Style cho dòng "Chưa có ảnh" */
-.no-avatar {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  font-style: italic;
-  display: inline-block;
-  width: 80px; /* Bằng chiều rộng ảnh để căn chỉnh đều */
-  text-align: center;
-}
-/* Đảm bảo nội dung bên trong ô TD luôn nằm ngang */
-td.text-nowrap {
-  white-space: nowrap !important;
-}
-
-/* Tinh chỉnh Tag Giới tính */
-.gender-tag {
-  display: inline-flex; /* Chuyển sang flex để kiểm soát nội dung bên trong */
-  align-items: center;
-  justify-content: center;
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  min-width: 60px; /* Đảm bảo độ dài đồng nhất */
-  white-space: nowrap; /* Ép không xuống dòng */
-}
-
-/* Tinh chỉnh Badge Trạng thái */
-.status-badge {
-  display: inline-flex; /* Chuyển sang flex */
-  align-items: center;
-  justify-content: center;
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  min-width: 90px; /* Đang làm/Nghỉ việc có độ dài khác nhau nên đặt min-width */
-  white-space: nowrap; /* Ép không xuống dòng */
-}
-th {
-  background: #f8fafc;
-  padding: 14px 20px;
-  text-align: left;
-  font-size: 0.75rem;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  /* Thêm dòng này để tiêu đề "GIỚI TÍNH" nằm ngang */
-  white-space: nowrap;
-}
-/* Ép cột thứ 7 (Giới tính) và thứ 8 (Trạng thái) rộng ra một chút */
-td:nth-child(7),
-th:nth-child(7) {
-  min-width: 100px; /* Đảm bảo đủ chỗ cho chữ "GIỚI TÍNH" */
-  text-align: center; /* Căn giữa cho đẹp vì tag thường ngắn */
-}
-
-td:nth-child(8),
-th:nth-child(8) {
-  min-width: 120px; /* Cho cột Trạng thái */
-  text-align: center;
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
 }
 </style>

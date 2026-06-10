@@ -12,19 +12,18 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class SanPhamRequest {
 
-    @NotNull
     private Integer idDanhMuc;
 
-    @NotNull
+
     private Integer idThuongHieu;
 
-    @NotNull
+
     private Integer idChatLieu;
 
-    @NotBlank
+
     private String maSanPham;
 
-    @NotBlank
+
     private String tenSanPham;
 
     private String moTa;

@@ -18,7 +18,7 @@ import java.time.Instant;
 public class SanPhamChiTiet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Integer id;
 
     @NotNull
@@ -49,10 +49,6 @@ public class SanPhamChiTiet {
     @NotNull
     @Column(name = "gia_nhap", nullable = false, precision = 18, scale = 2)
     private BigDecimal giaNhap;
-
-    @NotNull
-    @Column(name = "gia_goc", nullable = false, precision = 18, scale = 2)
-    private BigDecimal giaGoc;
 
     @NotNull
     @Column(name = "gia_ban", nullable = false, precision = 18, scale = 2)

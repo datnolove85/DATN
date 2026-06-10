@@ -22,7 +22,7 @@ public class KhachHangRequest {
     private String anh;
     private String gioiTinh;
     private String diaChi;
-    private Integer trangThai;
+    private Boolean trangThai;
 
     //địa chỉ
     private String thanhPho;

@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -26,11 +27,12 @@ public class DotGiamGiaRequest {
 
     private BigDecimal giaTriGiamToiDa;
 
-    @NotNull
-    private Instant ngayBatDau;
 
     @NotNull
-    private Instant ngayKetThuc;
+    private LocalDateTime ngayBatDau;
+
+    @NotNull
+    private LocalDateTime ngayKetThuc;
 
     private String moTa;
 

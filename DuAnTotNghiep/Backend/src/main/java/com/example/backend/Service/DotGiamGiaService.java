@@ -42,11 +42,20 @@ public class DotGiamGiaService {
         DotGiamGia e = new DotGiamGia();
         e.setMaDotGiamGia(r.getMaDotGiamGia());
         e.setTenDotGiamGia(r.getTenDotGiamGia());
-        e.setLoaiGiamGia(r.getLoaiGiamGia());
+        e.setLoaiGiamGia("phan_tram");
         e.setGiaTriGiam(r.getGiaTriGiam());
         e.setGiaTriGiamToiDa(r.getGiaTriGiamToiDa());
-        e.setNgayBatDau(r.getNgayBatDau());
-        e.setNgayKetThuc(r.getNgayKetThuc());
+        e.setNgayBatDau(
+                r.getNgayBatDau()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+        );
+
+        e.setNgayKetThuc(
+                r.getNgayKetThuc()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+        );
         e.setMoTa(r.getMoTa());
         e.setTrangThai(r.getTrangThai() != null ? r.getTrangThai() : true);
 
@@ -64,11 +73,20 @@ public class DotGiamGiaService {
 
         e.setMaDotGiamGia(r.getMaDotGiamGia());
         e.setTenDotGiamGia(r.getTenDotGiamGia());
-        e.setLoaiGiamGia(r.getLoaiGiamGia());
+        e.setLoaiGiamGia("phan_tram");
         e.setGiaTriGiam(r.getGiaTriGiam());
         e.setGiaTriGiamToiDa(r.getGiaTriGiamToiDa());
-        e.setNgayBatDau(r.getNgayBatDau());
-        e.setNgayKetThuc(r.getNgayKetThuc());
+        e.setNgayBatDau(
+                r.getNgayBatDau()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+        );
+
+        e.setNgayKetThuc(
+                r.getNgayKetThuc()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+        );
         e.setMoTa(r.getMoTa());
         e.setTrangThai(r.getTrangThai());
 

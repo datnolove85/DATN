@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Entity.DanhMuc;
+import com.example.backend.Repository.DanhMucRepository;
 import com.example.backend.Request.DanhMucRequest;
 import com.example.backend.Service.DanhMucService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class DanhMucController {
 
     @Autowired
     private DanhMucService danhMucService;
+
+    @Autowired
+    DanhMucRepository danhMucRepository;
 
     // ================= GET ALL =================
     @GetMapping
@@ -44,6 +48,8 @@ public class DanhMucController {
     // ================= DELETE =================
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
-        danhMucService.delete(id);
+        DanhMuc danhMuc = danhMucService.getById(id);
+        danhMuc.setTrangThai(false);
+        danhMucRepository.save(danhMuc);
     }
 }

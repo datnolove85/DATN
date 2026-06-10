@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Entity.ThuongHieu;
+import com.example.backend.Repository.ThuongHieuRepository;
 import com.example.backend.Request.ThuongHieuRequest;
 import com.example.backend.Service.ThuongHieuService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class ThuongHieuController {
 
     @Autowired
     private ThuongHieuService service;
+
+    @Autowired
+    private ThuongHieuRepository thuongHieuRepository;
 
     @GetMapping
     public List<ThuongHieu> getAll() {
@@ -39,6 +43,8 @@ public class ThuongHieuController {
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
-        service.delete(id);
+     ThuongHieu thuongHieu = thuongHieuRepository.getById(id);
+     thuongHieu.setTrangThai(false);
+     thuongHieuRepository.save(thuongHieu);
     }
 }

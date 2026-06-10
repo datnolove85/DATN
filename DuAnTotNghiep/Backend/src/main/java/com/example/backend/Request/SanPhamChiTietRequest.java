@@ -24,7 +24,6 @@ public class SanPhamChiTietRequest {
 
     private BigDecimal giaNhap;
 
-    private BigDecimal giaGoc;
 
     private BigDecimal giaBan;
 

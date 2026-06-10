@@ -56,8 +56,10 @@ from HinhAnh ha
 
     @Query("""
 select ha.link
-from HinhAnh ha
+from HinhAnh ha 
 """)
     List<String> getAllImagesFlat();
 
+
+    List<SanPhamChiTiet>  getSanPhamChiTietsByIdSanPham(@Param("idSanPham") Integer id);
 }

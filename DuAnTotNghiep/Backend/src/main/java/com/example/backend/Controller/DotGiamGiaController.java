@@ -1,5 +1,7 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Entity.DotGiamGia;
+import com.example.backend.Repository.DotGiamGiaRepository;
 import com.example.backend.Request.DotGiamGiaRequest;
 import com.example.backend.Response.DotGiamGiaResponse;
 import com.example.backend.Service.DotGiamGiaService;
@@ -15,6 +17,9 @@ public class DotGiamGiaController {
 
     @Autowired
     private DotGiamGiaService service;
+
+    @Autowired
+    private DotGiamGiaRepository repository;
 
     // ================= GET ALL =================
     @GetMapping
@@ -37,9 +42,10 @@ public class DotGiamGiaController {
 
     // ================= DELETE =================
     @DeleteMapping("/delete/{id}")
-    public String delete(@PathVariable Integer id) {
-        service.delete(id);
-        return "Xóa đợt giảm giá thành công";
+    public void delete(@PathVariable Integer id) {
+        DotGiamGia dotGiamGia = repository.findById(id).orElse(null);
+        dotGiamGia.setTrangThai(false);
+        repository.save(dotGiamGia);
     }
 
     // ================= GET BY ID =================

@@ -9,7 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -57,10 +57,10 @@ public class Voucher {
     private Integer soLuongDaDung;
 
     @Column(name = "ngay_bat_dau")
-    private Instant ngayBatDau;
+    private LocalDateTime ngayBatDau;
 
     @Column(name = "ngay_ket_thuc")
-    private Instant ngayKetThuc;
+    private LocalDateTime ngayKetThuc;
 
     @Nationalized
     @Lob
@@ -69,14 +69,13 @@ public class Voucher {
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
-    private Instant ngayTao;
+    private LocalDateTime ngayTao;
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
+    private LocalDateTime ngayCapNhat;
 
     @ColumnDefault("1")
     @Column(name = "trang_thai")
-    private Boolean trangThai;
-
+    private Integer trangThai;
 }

@@ -3,25 +3,19 @@
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
     <div
-      class="relative p-6 bg-gradient-to-r from-sky-600 via-blue-700 to-indigo-800 rounded-2xl border border-blue-500 shadow-[0_8px_30px_rgba(0,0,0,0.15)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 overflow-hidden group transition-all duration-300 hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)]"
+      class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm overflow-hidden"
     >
-      <div
-        class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_50%)] transition-opacity duration-500 group-hover:opacity-100"
-      ></div>
-
-      <div class="relative z-10">
-        <h1
-          class="text-2xl font-black tracking-wider text-white uppercase group-hover:tracking-widest transition-all duration-500 ease-in-out"
+      <div>
+        <span class="text-[10px] tracking-widest uppercase font-bold text-indigo-400"
+          >Hệ thống quản trị thế hệ mới</span
         >
-          Quản lý kích cỡ (Size)
-        </h1>
-
-        <p class="text-xs text-blue-100 mt-1 flex items-center gap-2 font-semibold">
+        <h1 class="text-2xl font-bold tracking-tight mt-1">Quản Lý Kích Cỡ</h1>
+        <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
           <span class="relative flex h-2 w-2">
             <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
             ></span>
-            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-400"></span>
+            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
           Hệ thống cơ sở dữ liệu thời gian thực
         </p>
@@ -29,36 +23,31 @@
 
       <button
         @click="openAddModal"
-        class="relative z-10 flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-md hover:bg-white/25 text-white rounded-xl text-xs font-bold border border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(255,255,255,0.15)] transition-all duration-300 active:scale-95 active:duration-75 group/btn overflow-hidden"
+        class="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap"
       >
-        <span
-          class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-shimmer"
-        ></span>
-
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          stroke-width="3"
+          stroke-width="2.5"
           stroke="currentColor"
-          class="w-3.5 h-3.5 transition-transform group-hover/btn:rotate-90 duration-300"
+          class="w-4 h-4"
         >
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-
-        TẠO KÍCH CỠ MỚI
+        + TẠO KÍCH CỠ MỚI
       </button>
     </div>
 
     <div class="space-y-3 overflow-hidden">
       <div
-        class="hidden md:grid grid-cols-12 gap-0 px-6 py-3 bg-white border border-b-2 border-slate-300 rounded-t-xl text-[11px] uppercase text-indigo-950 font-black tracking-widest select-none shadow-sm"
+        class="hidden md:grid grid-cols-12 gap-0 px-6 py-3 bg-white border border-slate-100 rounded-t-xl text-[11px] uppercase text-slate-400 font-bold tracking-wider select-none shadow-sm"
       >
-        <div class="col-span-1 text-center border-r border-slate-200">ID</div>
-        <div class="col-span-2 px-4 border-r border-slate-200">Mã định danh</div>
-        <div class="col-span-3 px-4 border-r border-slate-200">Tên kích cỡ</div>
-        <div class="col-span-2 text-center border-r border-slate-200">Trạng thái</div>
-        <div class="col-span-3 px-4 border-r border-slate-200">Thời gian</div>
+        <div class="col-span-1 text-center border-r border-slate-100">ID</div>
+        <div class="col-span-2 px-4 border-r border-slate-100">Mã định danh</div>
+        <div class="col-span-3 px-4 border-r border-slate-100">Tên kích cỡ</div>
+        <div class="col-span-2 text-center border-r border-slate-100">Trạng thái</div>
+        <div class="col-span-3 px-4 border-r border-slate-100">Thời gian</div>
         <div class="col-span-1 text-center">Tùy chọn</div>
       </div>
 
@@ -66,48 +55,48 @@
         <div
           v-for="(size, index) in sizes"
           :key="size.id ?? index"
-          class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 px-6 py-4 md:py-3 items-center bg-white border border-slate-300 hover:border-indigo-500 hover:bg-slate-50/80 rounded-xl md:rounded-lg transition-all duration-300 ease-in-out shadow-[0_2px_4px_rgba(0,0,0,0.01)] hover:shadow-[0_10px_25px_-5px_rgba(99,102,241,0.12)] group"
+          class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 px-6 py-4 md:py-3 items-center bg-white border border-slate-100 hover:border-indigo-500 hover:bg-slate-50/80 rounded-xl md:rounded-lg transition-all duration-300 ease-in-out shadow-sm group"
         >
           <div
-            class="col-span-1 flex md:justify-center items-center gap-2 md:gap-0 md:border-r md:border-slate-200 h-full"
+            class="col-span-1 flex md:justify-center items-center gap-2 md:gap-0 md:border-r md:border-slate-100 h-full"
           >
             <span class="md:hidden text-[10px] uppercase font-bold text-slate-400">ID:</span>
             <span
-              class="px-2 py-0.5 bg-slate-100 border border-slate-300 text-indigo-700 font-mono text-xs rounded font-bold group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all"
-              >#{{ size.id }}</span
+              class="px-2 py-0.5 bg-indigo-50 border border-indigo-100 text-indigo-600 font-mono text-[10px] rounded-xl font-bold transition-all"
             >
+              #{{ size.id }}
+            </span>
           </div>
 
-          <div class="col-span-2 md:px-4 md:border-r md:border-slate-200 h-full flex items-center">
+          <div class="col-span-2 md:px-4 md:border-r md:border-slate-100 h-full flex items-center">
             <span
-              class="inline-block px-2.5 py-1 bg-slate-50 text-indigo-800 font-black rounded border border-slate-300 text-xs font-mono tracking-wider group-hover:bg-white group-hover:border-indigo-400 transition-all"
-              >{{ size.maKichThuoc }}</span
+              class="inline-block px-2.5 py-1 bg-slate-50/80 text-slate-700 font-bold rounded-xl border border-slate-100 text-[11px] font-mono tracking-wider group-hover:bg-white group-hover:border-indigo-400 transition-all uppercase"
             >
+              {{ size.maKichThuoc }}
+            </span>
           </div>
 
           <div
-            class="col-span-3 text-sm font-bold text-slate-800 capitalize truncate md:px-4 md:border-r md:border-slate-200 h-full flex items-center group-hover:translate-x-1.5 transition-transform"
+            class="col-span-3 text-sm font-bold text-slate-800 capitalize truncate md:px-4 md:border-r md:border-slate-100 h-full flex items-center group-hover:translate-x-1.5 transition-transform"
           >
             {{ size.tenKichThuoc }}
           </div>
 
           <div
-            class="col-span-2 flex md:justify-center items-center gap-2 md:gap-0 md:border-r md:border-slate-200 h-full"
+            class="col-span-2 flex md:justify-center items-center gap-2 md:gap-0 md:border-r md:border-slate-100 h-full"
           >
             <span
               :class="[
-                'inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full border transition-all duration-300 group-hover:scale-105',
+                'inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-xl border transition-all duration-300',
                 size.trangThai
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 group-hover:bg-emerald-500 group-hover:text-white'
-                  : 'bg-rose-50 text-rose-700 border-rose-300 group-hover:bg-rose-500 group-hover:text-white',
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                  : 'bg-rose-50 text-rose-600 border-rose-100',
               ]"
             >
               <span
                 :class="[
                   'w-1.5 h-1.5 rounded-full',
-                  size.trangThai
-                    ? 'bg-emerald-500 group-hover:bg-white animate-pulse'
-                    : 'bg-rose-500 group-hover:bg-white',
+                  size.trangThai ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500',
                 ]"
               ></span>
               {{ size.trangThai ? 'Active' : 'Muted' }}
@@ -115,50 +104,43 @@
           </div>
 
           <div
-            class="col-span-3 text-[10px] text-slate-500 flex flex-col gap-0.5 md:px-4 md:border-r md:border-slate-200 h-full justify-center font-mono"
+            class="col-span-3 text-[10px] text-slate-400 flex flex-col gap-0.5 md:px-4 md:border-r md:border-slate-100 h-full justify-center font-mono"
           >
             <div>Tạo: {{ formatDate(size.ngayTao) }}</div>
             <div>Sửa: {{ formatDate(size.ngayCapNhat) }}</div>
           </div>
 
           <div class="col-span-1 flex justify-end md:justify-center items-center pt-3 md:pt-0">
-            <div
-              class="inline-flex items-center bg-white border border-slate-300 rounded-xl p-1.5 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all duration-300"
-            >
+            <div class="flex gap-1">
               <button
                 @click="openEditModal(size)"
-                class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200"
+                class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                 title="Chỉnh sửa"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5"
+                  class="w-4 h-4"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
-              <div class="w-px h-5 bg-slate-300 mx-1"></div>
               <button
-                @click="deleteSize(size.id)"
-                class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-all duration-200"
+                @click="promptDelete(size.id)"
+                class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                 title="Xóa"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5"
+                  class="w-4 h-4"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
                   <polyline points="3 6 5 6 21 6" />
                   <path
@@ -172,43 +154,53 @@
 
         <div
           v-if="sizes.length === 0"
-          class="text-center py-16 border-2 border-dashed border-slate-300 rounded-2xl bg-white shadow-sm"
+          class="text-center py-20 bg-white border border-slate-100 rounded-3xl text-slate-400 text-sm"
         >
-          <p class="text-slate-700 font-bold text-sm">Kho lưu trữ kích cỡ trống rỗng</p>
+          <p>Kho lưu trữ kích cỡ trống rỗng.</p>
         </div>
       </div>
     </div>
 
     <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[4px]" @click="closeModal"></div>
+      <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm" @click="closeModal"></div>
       <div
-        class="bg-white border border-slate-300 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.12)] w-full max-w-md z-10 p-6 animate-scale-up"
+        class="bg-white border border-slate-100 rounded-3xl shadow-xl w-full max-w-md z-10 p-6 animate-scale-up"
       >
-        <h3 class="text-xs font-black uppercase tracking-widest text-indigo-600 mb-6">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-6">
           {{ isEditMode ? '⚡ CẬP NHẬT KÍCH CỠ' : '✨ KHỞI TẠO KÍCH CỠ' }}
         </h3>
         <form @submit.prevent="handleSubmit" class="space-y-4">
-          <input
-            v-model="form.maKichThuoc"
-            placeholder="Mã kích cỡ (VD: XL, 42)"
-            class="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all uppercase font-mono"
-            required
-          />
-          <input
-            v-model="form.tenKichThuoc"
-            placeholder="Tên kích cỡ"
-            class="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-            required
-          />
-          <div class="flex gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1"
+              >Mã định danh</label
+            >
+            <input
+              v-model="form.maKichThuoc"
+              placeholder="VD: XL, 42"
+              class="w-full bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl text-sm outline-none uppercase font-mono focus:bg-white focus:border-indigo-500 transition-all"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1"
+              >Tên kích cỡ</label
+            >
+            <input
+              v-model="form.tenKichThuoc"
+              placeholder="Nhập tên kích cỡ..."
+              class="w-full bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl text-sm outline-none focus:bg-white focus:border-indigo-500 transition-all"
+              required
+            />
+          </div>
+          <div class="flex gap-3 pt-2">
             <button
               type="button"
               @click="form.trangThai = true"
               :class="[
-                'flex-1 py-2 text-xs font-bold rounded-xl border transition-all',
+                'flex-1 py-3 text-xs font-bold rounded-2xl border transition-all',
                 form.trangThai
                   ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-400',
+                  : 'bg-slate-50 border-slate-100 text-slate-400',
               ]"
             >
               HOẠT ĐỘNG
@@ -217,10 +209,10 @@
               type="button"
               @click="form.trangThai = false"
               :class="[
-                'flex-1 py-2 text-xs font-bold rounded-xl border transition-all',
+                'flex-1 py-3 text-xs font-bold rounded-2xl border transition-all',
                 !form.trangThai
                   ? 'bg-rose-50 border-rose-500 text-rose-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-400',
+                  : 'bg-slate-50 border-slate-100 text-slate-400',
               ]"
             >
               TẠM NGỪNG
@@ -230,19 +222,59 @@
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold transition-colors"
+              class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl text-xs font-bold transition-all"
             >
               HỦY
             </button>
             <button
               type="submit"
-              class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-100 transition-all"
+              class="px-6 py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-bold shadow-md shadow-indigo-600/10 transition-all"
             >
               LƯU DỮ LIỆU
             </button>
           </div>
         </form>
       </div>
+    </div>
+
+    <div v-if="deleteId" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm" @click="deleteId = null"></div>
+      <div
+        class="bg-white border border-slate-100 rounded-3xl shadow-xl w-full max-w-xs p-6 z-10 animate-scale-up text-center"
+      >
+        <h3 class="text-sm font-bold text-slate-800 mb-2">Xác nhận xóa</h3>
+        <p class="text-[11px] text-slate-400 mb-6">Bạn có chắc muốn xóa kích cỡ này?</p>
+        <div class="flex gap-2">
+          <button
+            @click="deleteId = null"
+            class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl text-xs font-bold transition-all"
+          >
+            HỦY
+          </button>
+          <button
+            @click="confirmDelete"
+            class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-rose-600/10 transition-all"
+          >
+            XÓA NGAY
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
+      <transition-group name="toast">
+        <div
+          v-for="toast in toasts"
+          :key="toast.id"
+          :class="[
+            'px-5 py-3.5 rounded-2xl text-white shadow-xl flex items-center gap-3 font-bold text-xs',
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600',
+          ]"
+        >
+          <span>{{ toast.type === 'success' ? '✓' : '✕' }}</span>
+          <p>{{ toast.message }}</p>
+        </div>
+      </transition-group>
     </div>
   </div>
 </template>
@@ -256,10 +288,20 @@ import {
   deleteKichThuoc,
 } from '@/service/KichThuocService'
 
-const sizes = ref([])
-const isModalOpen = ref(false)
-const isEditMode = ref(false)
+const sizes = ref([]),
+  toasts = ref([]),
+  isModalOpen = ref(false),
+  isEditMode = ref(false),
+  deleteId = ref(null)
 const form = ref({ id: null, maKichThuoc: '', tenKichThuoc: '', trangThai: true })
+
+const showToast = (message, type = 'success') => {
+  const id = Date.now()
+  toasts.value.push({ id, message, type })
+  setTimeout(() => {
+    toasts.value = toasts.value.filter((t) => t.id !== id)
+  }, 3000)
+}
 
 const loadData = async () => {
   try {
@@ -295,32 +337,67 @@ const closeModal = () => {
 }
 
 const handleSubmit = async () => {
+  const isDuplicateMa = sizes.value.some(
+    (size) =>
+      size.maKichThuoc.trim().toLowerCase() === form.value.maKichThuoc.trim().toLowerCase() &&
+      (!isEditMode.value || size.id !== form.value.id),
+  )
+
+  const isDuplicateTen = sizes.value.some(
+    (size) =>
+      size.tenKichThuoc.trim().toLowerCase() === form.value.tenKichThuoc.trim().toLowerCase() &&
+      (!isEditMode.value || size.id !== form.value.id),
+  )
+
+  if (isDuplicateMa) {
+    showToast('Mã kích cỡ này đã tồn tại!', 'error')
+    return
+  }
+
+  if (isDuplicateTen) {
+    showToast('Tên kích cỡ này đã tồn tại!', 'error')
+    return
+  }
+
   try {
-    if (isEditMode.value) {
-      await updateKichThuoc(form.value.id, form.value)
-    } else {
-      await createKichThuoc(form.value)
-    }
+    isEditMode.value
+      ? await updateKichThuoc(form.value.id, form.value)
+      : await createKichThuoc(form.value)
+    showToast(isEditMode.value ? 'Cập nhật thành công!' : 'Thêm mới thành công!')
     await loadData()
     closeModal()
   } catch (err) {
-    console.error('Lỗi khi lưu dữ liệu:', err)
+    showToast('Có lỗi xảy ra', 'error')
   }
 }
 
-const deleteSize = async (id) => {
-  if (confirm('Bạn có chắc chắn muốn xóa kích cỡ này?')) {
-    try {
-      await deleteKichThuoc(id)
-      await loadData()
-    } catch (err) {
-      console.error('Lỗi khi xóa:', err)
-    }
+const promptDelete = (id) => {
+  deleteId.value = id
+}
+
+const confirmDelete = async () => {
+  try {
+    await deleteKichThuoc(deleteId.value)
+    await loadData()
+    showToast('Đã xóa thành công!')
+  } catch (err) {
+    showToast('Lỗi khi xóa', 'error')
+  } finally {
+    deleteId.value = null
   }
 }
 </script>
 
 <style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -341,18 +418,10 @@ const deleteSize = async (id) => {
     transform: scale(1);
   }
 }
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
 .animate-fade-in {
   animation: fadeIn 0.35s ease-out forwards;
 }
 .animate-scale-up {
-  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-.animate-shimmer {
-  animation: shimmer 1.5s infinite;
+  animation: scaleUp 0.2s ease-out forwards;
 }
 </style>

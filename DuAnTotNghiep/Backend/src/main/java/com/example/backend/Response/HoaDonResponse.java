@@ -1,15 +1,19 @@
 package com.example.backend.Response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class HoaDonResponse {
+
     private Integer id;
-    private Integer idKhachHang; // Hoặc trả về một Object KhachHangResponse nếu cần
+    private Integer idKhachHang;
     private String maHoaDon;
     private BigDecimal tongTienHang;
     private BigDecimal tongGiamGia;
@@ -23,4 +27,5 @@ public class HoaDonResponse {
     private String ghiChu;
     private Instant ngayTao;
     private Instant ngayCapNhat;
+    private String phuongThucThanhToan;
 }
