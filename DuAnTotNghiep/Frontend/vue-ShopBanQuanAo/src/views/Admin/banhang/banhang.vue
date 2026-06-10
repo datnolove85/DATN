@@ -29,6 +29,39 @@
             />
           </div>
         </div>
+        <div class="flex items-center gap-2">
+          <button
+            @click="createNewOrder"
+            class="text-xs font-bold bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl hover:bg-indigo-100 transition-all"
+          >
+            + Hóa đơn mới
+          </button>
+          <div class="relative">
+            <button
+              @click="showWaitingOrders = !showWaitingOrders"
+              class="text-xs font-bold bg-amber-50 text-amber-700 px-4 py-2 rounded-xl hover:bg-amber-100 transition-all"
+            >
+              ⏳ Chờ ({{ waitingOrders.length }})
+            </button>
+            <div
+              v-if="showWaitingOrders"
+              class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2"
+            >
+              <div v-if="waitingOrders.length === 0" class="text-xs text-slate-400 p-2 text-center">
+                Không có hóa đơn chờ
+              </div>
+              <div
+                v-for="(order, idx) in waitingOrders"
+                :key="idx"
+                class="p-2 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center"
+                @click="loadOrder(idx)"
+              >
+                <span class="text-xs font-bold text-slate-700">HĐ Chờ #{{ idx + 1 }}</span>
+                <span class="text-[10px] text-slate-400">{{ order.timestamp }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -911,6 +944,69 @@ const submitCheckout = async () => {
     toast.error('Quá trình lưu hóa đơn thất bại!')
   }
 }
+const waitingOrders = ref([]) // <--- MỚI: Danh sách hóa đơn chờ
+const showWaitingOrders = ref(false)
+
+// ... (Giữ nguyên các hàm loadAllDataFromAPI, loadPTTT, v.v.)
+
+// --- MỚI: HÀM XỬ LÝ HÓA ĐƠN CHỜ ---
+const saveOrderToWaiting = () => {
+  if (cart.value.length === 0) {
+    toast.warning('Giỏ hàng trống, không thể lưu hóa đơn chờ!')
+    return
+  }
+
+  // Lưu state hiện tại
+  waitingOrders.value.push({
+    cart: [...cart.value],
+    selectedCustomer: selectedCustomer.value,
+    appliedVoucher: appliedVoucher.value,
+    voucherQuery: voucherQuery.value,
+    timestamp: new Date().toLocaleTimeString(),
+  })
+
+  toast.success('Đã lưu hóa đơn vào danh sách chờ!')
+  resetCart()
+}
+
+const loadOrder = (index) => {
+  const order = waitingOrders.value[index]
+
+  // Nạp dữ liệu vào giỏ
+  cart.value = [...order.cart]
+  selectedCustomer.value = order.selectedCustomer
+  appliedVoucher.value = order.appliedVoucher
+  voucherQuery.value = order.voucherQuery
+
+  // Xóa khỏi danh sách chờ
+  waitingOrders.value.splice(index, 1)
+  showWaitingOrders.value = false
+  toast.info('Đã tải lại hóa đơn chờ!')
+}
+
+const createNewOrder = () => {
+  if (cart.value.length > 0) {
+    if (
+      confirm(
+        'Giỏ hàng hiện tại đang có sản phẩm. Bạn có muốn lưu vào hóa đơn chờ trước khi tạo mới không?',
+      )
+    ) {
+      saveOrderToWaiting()
+      return
+    }
+  }
+  resetCart()
+}
+
+// Hàm resetCart của bạn cần đồng bộ để xóa hết các trạng thái
+const resetCart = () => {
+  cart.value = []
+  selectedCustomer.value = null
+  removeVoucher()
+  // Nếu có các state khác cần reset, thêm vào đây
+}
+
+// ... (Giữ nguyên các hàm cũ: submitCheckout, formatPrice, v.v.)
 
 const formatPrice = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
