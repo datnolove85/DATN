@@ -104,11 +104,11 @@ const router = createRouter({
           name: 'khachHang',
           component: () => import('../views/Admin/KhachHangView.vue'),
         },
-        // {
-        //   path: 'khach-hang/add',
-        //   name: 'addKhachHang',
-        //   component: () => import('../components/FormKhachHangComponents.vue'),
-        // },
+        {
+          path: 'khach-hang/add',
+          name: 'addKhachHang',
+          component: () => import('../components/FormKhachHangComponents.vue'),
+        },
         {
           path: 'khach-hang/edit/:id',
           name: 'editKhachHang',
