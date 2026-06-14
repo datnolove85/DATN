@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Request.SanPhamChiTietRequest;
+import com.example.backend.Request.SanPhamCreateVariantRequest;
 import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Response.SanPhamResponse;
 import com.example.backend.Service.SanPhamChiTietService;
@@ -63,4 +64,13 @@ public class SanPhamChiTietController {
     public List<SanPhamChiTietResponse> getBySpct(@PathVariable Integer id) {
         return  sanPhamChiTietService.getByIdSP(id);}
 
+
+    @PostMapping("/bulk")
+    public ResponseEntity<?> createBulk(@RequestBody List<SanPhamCreateVariantRequest> req) {
+        sanPhamChiTietService.createBulk(req);
+        return ResponseEntity.ok("OK");
     }
+
+    }
+
+

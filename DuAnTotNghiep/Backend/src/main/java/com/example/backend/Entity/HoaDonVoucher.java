@@ -23,6 +23,11 @@ public class HoaDonVoucher {
     private HoaDon idHoaDon;
 
     @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_voucher", nullable = false)
+    private Voucher idVoucher;
+
+    @NotNull
     @Column(name = "so_tien_giam", nullable = false, precision = 18, scale = 2)
     private BigDecimal soTienGiam;
 

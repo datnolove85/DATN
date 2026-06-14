@@ -40,4 +40,8 @@ left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
     List<HoaDonResponse> getAllResponse();
 
 
+    List<HoaDon> findByTrangThaiOrderByNgayTaoDesc(
+            String trangThai
+    );
+
 }

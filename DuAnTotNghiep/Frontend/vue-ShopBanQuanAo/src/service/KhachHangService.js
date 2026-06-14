@@ -51,7 +51,21 @@ export const addKhachHangService = async (data, file) => {
     throw new Error('lỗi khi thêm khách hàng')
   }
 }
+export const addKhachHangQuickService = async (data) => {
+  const res = await fetch(`${Api}/add-quick`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
 
+  if (!res.ok) {
+    throw new Error('Lỗi khi thêm khách hàng')
+  }
+
+  return await res.json()
+}
 export const updateKhachHangService = async (id, data, file) => {
   const res = await fetch(`${Api}/update/${id}`, {
     method: 'PUT',

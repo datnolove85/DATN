@@ -73,3 +73,10 @@ export const deleteSanPhamChiTiet = async (id) => {
 
   return await res.text()
 }
+export const createBulkSPCT = (payload) => {
+  return fetch('http://localhost:8080/spct/bulk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}

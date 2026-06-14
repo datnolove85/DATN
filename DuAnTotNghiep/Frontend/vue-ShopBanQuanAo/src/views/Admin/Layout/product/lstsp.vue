@@ -2,39 +2,32 @@
   <div
     class="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased selection:bg-indigo-600 selection:text-white p-4 sm:p-8 animate-fade-in"
   >
-    <div class="max-w-[1500px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-      <div class="xl:col-span-9 space-y-8">
+    <div class="max-w-[1500px] mx-auto space-y-8">
+      <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div
-          class="relative bg-slate-900 rounded-3xl p-8 overflow-hidden shadow-[0_20px_50px_rgba(15,23,42,0.15)] text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+          class="relative bg-slate-900 rounded-3xl p-8 overflow-hidden shadow-[0_20px_50px_rgba(15,23,42,0.15)] text-white flex flex-col justify-between"
         >
           <div
             class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/20 rounded-full blur-3xl"
           ></div>
-          <div
-            class="absolute -left-10 -bottom-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"
-          ></div>
-
           <div class="relative z-10 space-y-1">
             <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400"
-              >Hệ thống quản trị thế hệ mới</span
+              >Hệ thống quản trị</span
             >
-            <h1 class="text-3xl font-black tracking-tight text-white">Bảng Điều Phối Sản Phẩm</h1>
-            <p class="text-xs text-slate-400">
-              Sắp xếp, định danh và tối ưu hóa chuỗi cung ứng thời gian thực.
-            </p>
+            <h1 class="text-3xl font-black tracking-tight text-white">Bảng Điều Phối</h1>
+            <p class="text-xs text-slate-400">Sắp xếp và tối ưu hóa hệ thống.</p>
           </div>
-
           <button
             @click="openAddModal"
-            class="relative z-10 shrink-0 flex items-center gap-2.5 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-indigo-600/20 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+            class="mt-8 relative z-10 flex items-center justify-center gap-2.5 w-full px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold uppercase tracking-wider shadow-lg transition-all hover:-translate-y-0.5"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
               fill="none"
               viewBox="0 0 24 24"
-              stroke-width="3"
               stroke="currentColor"
-              class="w-4 h-4"
+              stroke-width="3"
             >
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -42,556 +35,1059 @@
           </button>
         </div>
 
-        <div
-          class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.01)] flex flex-col lg:flex-row items-center gap-4"
-        >
-          <div class="relative w-full lg:max-w-xs">
+        <div class="xl:col-span-3 grid grid-cols-3 gap-4">
+          <div
+            class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+          >
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Danh mục
+              </div>
+              <div class="text-2xl font-black text-slate-800">{{ danhMucs.length }}</div>
+            </div>
             <span
-              class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400"
+              class="text-xl bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center border"
+              >📁</span
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                class="w-4 h-4"
-              >
+          </div>
+          <div
+            class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+          >
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Thương hiệu
+              </div>
+              <div class="text-2xl font-black text-slate-800">{{ thuongHieus.length }}</div>
+            </div>
+            <span
+              class="text-xl bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center border"
+              >🏷️</span
+            >
+          </div>
+          <div
+            class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+          >
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Chất liệu
+              </div>
+              <div class="text-2xl font-black text-slate-800">{{ chatLieus.length }}</div>
+            </div>
+            <span
+              class="text-xl bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center border"
+              >🧵</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white border border-slate-200/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden"
+      >
+        <div class="p-5 border-b border-slate-100 flex flex-col lg:flex-row items-center gap-4">
+          <div class="relative w-full lg:max-w-xs">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"
+              ><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
+                  stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z"
-                />
-              </svg>
-            </span>
+                /></svg
+            ></span>
             <input
               v-model="filters.search"
               type="text"
-              placeholder="Tìm theo tên hoặc mã hàng..."
-              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 outline-none rounded-xl text-xs font-medium transition-all placeholder:text-slate-400"
+              placeholder="Tìm kiếm..."
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none"
             />
           </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full flex-1">
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 w-full flex-1">
             <select
               v-model="filters.idDanhMuc"
-              class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50 text-slate-600 focus:border-indigo-600 focus:bg-white outline-none font-medium transition-colors"
+              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
             >
               <option :value="null">Danh mục</option>
-              <option v-for="item in danhMucs" :key="item.id" :value="item.id">
-                {{ item.tenDanhMuc }}
-              </option>
+              <option v-for="i in danhMucs" :key="i.id" :value="i.id">{{ i.tenDanhMuc }}</option>
             </select>
-
             <select
               v-model="filters.idThuongHieu"
-              class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50 text-slate-600 focus:border-indigo-600 focus:bg-white outline-none font-medium transition-colors"
+              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
             >
               <option :value="null">Thương hiệu</option>
-              <option v-for="item in thuongHieus" :key="item.id" :value="item.id">
-                {{ item.tenThuongHieu }}
+              <option v-for="i in thuongHieus" :key="i.id" :value="i.id">
+                {{ i.tenThuongHieu }}
               </option>
             </select>
-
             <select
               v-model="filters.idChatLieu"
-              class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50 text-slate-600 focus:border-indigo-600 focus:bg-white outline-none font-medium transition-colors"
+              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
             >
               <option :value="null">Chất liệu</option>
-              <option v-for="item in chatLieus" :key="item.id" :value="item.id">
-                {{ item.tenChatLieu }}
-              </option>
+              <option v-for="i in chatLieus" :key="i.id" :value="i.id">{{ i.tenChatLieu }}</option>
             </select>
-
             <select
               v-model="filters.trangThai"
-              class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-slate-50 text-slate-600 focus:border-indigo-600 focus:bg-white outline-none font-medium transition-colors"
+              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
             >
               <option :value="null">Trạng thái</option>
               <option :value="true">Kinh doanh</option>
-              <option :value="false">Tạm ngưng</option>
+              <option :value="false">Lưu kho</option>
             </select>
-          </div>
-
-          <button
-            v-if="hasActiveFilters"
-            @click="clearFilters"
-            class="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 px-3.5 py-2.5 rounded-xl transition-all shrink-0"
-          >
-            Xóa bộ lọc
-          </button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="product in filteredProducts"
-            :key="product.id"
-            @dblclick="goToSPCT(product.id)"
-            class="group relative bg-white border border-slate-200/80 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] hover:border-indigo-600/50 transition-all duration-300 flex flex-col justify-between overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-slate-50 to-transparent -z-0 transition-all duration-300 group-hover:scale-110"
-            ></div>
-
-            <div class="relative z-10 space-y-4 w-full">
-              <div class="flex justify-between items-center">
-                <span
-                  class="font-mono text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100/50"
-                >
-                  SKU.{{ product.maSanPham }}
-                </span>
-
-                <span
-                  :class="[
-                    'w-2 h-2 rounded-full ring-4',
-                    product.trangThai
-                      ? 'bg-emerald-500 ring-emerald-500/10'
-                      : 'bg-slate-300 ring-slate-300/10',
-                  ]"
-                  :title="product.trangThai ? 'Đang kích hoạt' : 'Tạm ngưng'"
-                ></span>
-              </div>
-
-              <div class="flex items-start gap-4 pt-2">
-                <div
-                  class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
-                >
-                  <img
-                    v-if="product.image"
-                    :src="getImageUrl(product.image)"
-                    class="w-full h-full object-cover"
-                  />
-                  <span v-else class="text-2xl">👕</span>
-                </div>
-                <div class="space-y-1 min-w-0">
-                  <h3
-                    class="font-bold text-slate-900 text-base tracking-tight truncate capitalize group-hover:text-indigo-600 transition-colors"
-                  >
-                    {{ product.tenSanPham }}
-                  </h3>
-                  <div class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
-                    <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                    {{ product.idDanhMuc?.tenDanhMuc || 'Chưa phân loại' }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2 pt-2 text-[11px]">
-                <div class="bg-slate-50/80 p-2 rounded-xl border border-slate-100">
-                  <div class="text-slate-400 font-medium scale-90 origin-left">THƯƠNG HIỆU</div>
-                  <div class="font-semibold text-slate-700 truncate mt-0.5">
-                    {{ product.idThuongHieu?.tenThuongHieu || 'N/A' }}
-                  </div>
-                </div>
-                <div class="bg-slate-50/80 p-2 rounded-xl border border-slate-100">
-                  <div class="text-slate-400 font-medium scale-90 origin-left">CHẤT LIỆU</div>
-                  <div class="font-semibold text-slate-700 truncate mt-0.5">
-                    {{ product.idChatLieu?.tenChatLieu || 'N/A' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="relative z-10 flex items-center justify-between border-t border-slate-100 mt-6 pt-4"
-            >
-              <span
-                class="text-[11px] font-semibold tracking-wider uppercase"
-                :class="product.trangThai ? 'text-emerald-600' : 'text-slate-400'"
-              >
-                {{ product.trangThai ? 'Kinh doanh' : 'Lưu kho' }}
-              </span>
-
-              <div class="flex items-center gap-1">
-                <button
-                  @click="openEditModal(product)"
-                  class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                  title="Xem chi tiết sản phẩm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M2.036 12.322a1.012 1.012 0 010-.644M12 18.75c-5.42 0-9.75-4.25-9.75-9.75s4.33-9.75 9.75-9.75 9.75 4.33 9.75 9.75-4.33 9.75-9.75 9.75z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </button>
-
-                <button
-                  @click="openEditModal(product)"
-                  class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
-                  title="Biến đổi thông tin"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
-                    fill="none"
-                    viewTemplate="0 0 24 24"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-                    />
-                  </svg>
-                </button>
-
-                <button
-                  @click="triggerDeleteConfirm(product.id)"
-                  class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                  title="Hủy bỏ bản ghi"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-if="filteredProducts.length === 0"
-            class="col-span-full bg-white border border-dashed border-slate-300 rounded-2xl py-20 text-center space-y-3"
-          >
-            <span class="text-3xl block animate-bounce">📦</span>
-            <h4 class="font-bold text-slate-700 text-sm">Không tìm thấy sản phẩm nào</h4>
-            <p class="text-xs text-slate-400 max-w-xs mx-auto">
-              Không có thực thể nào khớp với bộ lọc hiện tại của bạn. Thử thiết lập lại tiêu chí tìm
-              kiếm.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="xl:col-span-3 space-y-6">
-        <div
-          class="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] space-y-5"
-        >
-          <div class="flex justify-between items-center">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Cấu trúc dữ liệu
-            </h3>
-            <span
-              class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"
-            ></span>
-          </div>
-
-          <div class="grid grid-cols-1 gap-4">
-            <div
-              class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center"
-            >
-              <div>
-                <div class="text-[11px] text-slate-400 font-medium">Danh mục nhóm</div>
-                <div class="text-xl font-black text-slate-800 mt-0.5">{{ danhMucs.length }}</div>
-              </div>
-              <span
-                class="text-lg bg-white w-8 h-8 rounded-lg flex items-center justify-center border shadow-xs"
-                >📁</span
-              >
-            </div>
-
-            <div
-              class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center"
-            >
-              <div>
-                <div class="text-[11px] text-slate-400 font-medium">Nhà cung ứng / Nhãn hiệu</div>
-                <div class="text-xl font-black text-slate-800 mt-0.5">{{ thuongHieus.length }}</div>
-              </div>
-              <span
-                class="text-lg bg-white w-8 h-8 rounded-lg flex items-center justify-center border shadow-xs"
-                >🏷️</span
-              >
-            </div>
-
-            <div
-              class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center"
-            >
-              <div>
-                <div class="text-[11px] text-slate-400 font-medium">Cơ sở chất liệu</div>
-                <div class="text-xl font-black text-slate-800 mt-0.5">{{ chatLieus.length }}</div>
-              </div>
-              <span
-                class="text-lg bg-white w-8 h-8 rounded-lg flex items-center justify-center border shadow-xs"
-                >🧵</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="bg-indigo-950 text-indigo-200 rounded-2xl p-6 shadow-xl relative overflow-hidden"
-        >
-          <div
-            class="absolute right-0 bottom-0 translate-x-4 translate-y-4 text-8xl text-indigo-900/40 font-mono font-bold select-none -z-0"
-          >
-            i
-          </div>
-          <div class="relative z-10 space-y-2">
-            <h4
-              class="text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-              Lưu lưu vận hành
-            </h4>
-            <p class="text-[11px] text-indigo-300 leading-relaxed">
-              Mã định danh SKU là duy nhất. Khi cập nhật hình ảnh thông qua URL, hãy đảm bảo giao
-              thức bảo mật mã hóa HTTPS hoạt động bình thường.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
-      <transition name="toast">
-        <div
-          v-if="toast.show"
-          :class="[
-            'px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-3 backdrop-blur-md border',
-            toast.type === 'success'
-              ? 'bg-slate-900/95 border-slate-800 text-emerald-400'
-              : 'bg-rose-950/95 border-rose-900 text-rose-400',
-          ]"
-        >
-          <span
-            :class="[
-              'w-1.5 h-1.5 rounded-full',
-              toast.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400',
-            ]"
-          ></span>
-          {{ toast.message }}
-        </div>
-      </transition>
-    </div>
-
-    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="closeModal"></div>
-      <div
-        class="bg-white rounded-3xl shadow-2xl w-full max-w-md z-10 p-7 border border-slate-100 animate-scale-up"
-      >
-        <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
-          <h3 class="text-base font-bold text-slate-900 tracking-tight">
-            {{ isEditMode ? '⚡ Chi Tiết & Hiệu Chỉnh' : '✨ Thiết Lập Mặt Hàng Mới' }}
-          </h3>
-          <button
-            @click="closeModal"
-            class="text-slate-400 hover:text-slate-900 p-1 rounded-lg transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2.5"
-              stroke="currentColor"
-              class="w-4 h-4"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-          <div class="space-y-4">
-            <div>
-              <label
-                class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5"
-                >Tên gọi sản phẩm *</label
-              >
-              <input
-                v-model="form.tenSanPham"
-                placeholder="Nhập tên hàng hóa chi tiết..."
-                class="w-full border border-slate-200 px-4 py-2.5 rounded-xl text-sm focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 outline-none transition-all placeholder:text-slate-300"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5"
-                >Mã định danh SKU *</label
-              >
-              <input
-                v-model="form.maSanPham"
-                placeholder="Ví dụ: QUAN01"
-                class="w-full border border-slate-200 px-4 py-2.5 rounded-xl text-sm focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 outline-none transition-all uppercase font-mono placeholder:text-slate-300"
-                required
-              />
-            </div>
-
-            <div class="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"
-                >Mạng lưới liên kết dữ liệu</span
-              >
-
-              <div class="space-y-2">
-                <select
-                  v-model.number="form.idDanhMuc"
-                  class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-white text-slate-700 focus:border-indigo-600 outline-none shadow-xs"
-                >
-                  <option :value="null">-- Chỉ định Danh mục --</option>
-                  <option v-for="item in danhMucs" :key="item.id" :value="item.id">
-                    {{ item.tenDanhMuc }}
-                  </option>
-                </select>
-
-                <select
-                  v-model.number="form.idThuongHieu"
-                  class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-white text-slate-700 focus:border-indigo-600 outline-none shadow-xs"
-                >
-                  <option :value="null">-- Chỉ định Thương hiệu --</option>
-                  <option v-for="item in thuongHieus" :key="item.id" :value="item.id">
-                    {{ item.tenThuongHieu }}
-                  </option>
-                </select>
-
-                <select
-                  v-model.number="form.idChatLieu"
-                  class="w-full border border-slate-200 px-3 py-2.5 rounded-xl text-xs bg-white text-slate-700 focus:border-indigo-600 outline-none shadow-xs"
-                >
-                  <option :value="null">-- Chỉ định Chất liệu --</option>
-                  <option v-for="item in chatLieus" :key="item.id" :value="item.id">
-                    {{ item.tenChatLieu }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5"
-                >Trạng thái vận hành</label
-              >
-              <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-                <button
-                  type="button"
-                  @click="form.trangThai = true"
-                  :class="[
-                    'py-2 text-xs font-bold rounded-lg transition-all',
-                    form.trangThai
-                      ? 'bg-white text-emerald-600 shadow-xs'
-                      : 'text-slate-400 hover:text-slate-600',
-                  ]"
-                >
-                  Kinh doanh
-                </button>
-                <button
-                  type="button"
-                  @click="form.trangThai = false"
-                  :class="[
-                    'py-2 text-xs font-bold rounded-lg transition-all',
-                    !form.trangThai
-                      ? 'bg-white text-slate-600 shadow-xs'
-                      : 'text-slate-400 hover:text-slate-600',
-                  ]"
-                >
-                  Tạm ngưng
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2.5 pt-4 border-t border-slate-100 mt-6">
             <button
-              type="button"
-              @click="closeModal"
-              class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+              @click="clearFilters"
+              class="border px-3 py-2.5 rounded-xl text-xs bg-rose-50 text-rose-600 hover:bg-rose-100"
             >
-              Hủy bỏ
-            </button>
-            <button
-              type="submit"
-              class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/10 transition-all"
-            >
-              Lưu cấu trúc
+              Xóa bộ lọc
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
 
-    <div v-if="confirmModal.show" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-xs" @click="cancelDelete"></div>
+        <table class="w-full text-left">
+          <thead class="text-[10px] font-bold text-slate-400 uppercase border-b">
+            <tr>
+              <th class="px-6 py-4">Mã SP</th>
+              <th class="px-6 py-4">Sản phẩm</th>
+              <th class="px-6 py-4">Danh mục</th>
+              <th class="px-6 py-4">Thương hiệu</th>
+              <th class="px-6 py-4">Trạng thái</th>
+              <th class="px-6 py-4 text-right">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <template v-for="product in filteredProducts" :key="product.id">
+              <tr class="hover:bg-slate-50">
+                <td class="px-6 py-4">
+                  <span
+                    class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
+                    >{{ product.maSanPham }}</span
+                  >
+                </td>
+                <td class="px-6 py-4 flex items-center gap-3">
+                  <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                    👕
+                  </div>
+                  {{ product.tenSanPham }}
+                </td>
+                <td class="px-6 py-4 text-xs">{{ product.idDanhMuc?.tenDanhMuc }}</td>
+                <td class="px-6 py-4 text-xs">{{ product.idThuongHieu?.tenThuongHieu }}</td>
+                <td
+                  class="px-6 py-4 text-xs font-bold"
+                  :class="product.trangThai ? 'text-emerald-600' : 'text-slate-400'"
+                >
+                  {{ product.trangThai ? 'Kinh doanh' : 'Lưu kho' }}
+                </td>
+                <td class="px-6 py-4 text-right flex justify-end gap-2">
+                  <button
+                    @click="toggleSPCT(product)"
+                    class="p-2 hover:bg-emerald-50 rounded-lg text-slate-400 hover:text-emerald-600"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="openEditModal(product)"
+                    class="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="triggerDeleteConfirm(product.id)"
+                    class="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="expandedProductId === product.id" class="bg-slate-50">
+                <td colspan="6" class="p-5">
+                  <div class="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 class="font-bold">
+                        {{ product.tenSanPham }}
+                      </h3>
+
+                      <p class="text-xs text-slate-400">Danh sách biến thể</p>
+                    </div>
+
+                    <button
+                      @click="openAddSPCTModal(product)"
+                      class="px-4 py-2 bg-indigo-600 text-white rounded-xl"
+                    >
+                      + Thêm biến thể
+                    </button>
+                    <button
+                      @click="isBulkOpen = true"
+                      class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm"
+                    >
+                      ⚡ Tạo hàng loạt biến thể
+                    </button>
+                  </div>
+
+                  <div class="overflow-x-auto bg-white rounded-2xl border border-slate-200">
+                    <table class="w-full text-sm">
+                      <thead class="bg-slate-100">
+                        <tr>
+                          <th class="px-4 py-3 text-left">Mã SPCT</th>
+                          <th class="px-4 py-3 text-left">Tên biến thể</th>
+                          <th class="px-4 py-3 text-left">Màu</th>
+                          <th class="px-4 py-3 text-left">Size</th>
+                          <th class="px-4 py-3 text-center">Tồn</th>
+                          <th class="px-4 py-3 text-right">Giá nhập</th>
+                          <th class="px-4 py-3 text-right">Giá bán</th>
+                          <th class="px-4 py-3 text-center">Trạng thái</th>
+                          <th class="px-4 py-3 text-right">Thao tác</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        <tr
+                          v-for="spct in spctList"
+                          :key="spct.id"
+                          class="border-t hover:bg-slate-50"
+                        >
+                          <td class="px-4 py-3">
+                            <span
+                              class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
+                            >
+                              {{ spct.maSanPhamChiTiet }}
+                            </span>
+                          </td>
+
+                          <td class="px-4 py-3 font-medium">
+                            {{ spct.tenSanPhamChiTiet }}
+                          </td>
+
+                          <td class="px-4 py-3">
+                            {{ spct.tenMauSac }}
+                          </td>
+
+                          <td class="px-4 py-3">
+                            {{ spct.tenKichThuoc }}
+                          </td>
+
+                          <td class="px-4 py-3 text-center font-semibold">
+                            {{ spct.soLuongTon }}
+                          </td>
+
+                          <td class="px-4 py-3 text-right">
+                            {{ formatCurrency(spct.giaNhap) }}
+                          </td>
+
+                          <td class="px-4 py-3 text-right text-indigo-600 font-bold">
+                            {{ formatCurrency(spct.giaBan) }}
+                          </td>
+
+                          <td class="px-4 py-3 text-center">
+                            <span
+                              class="px-2 py-1 rounded-full text-xs font-semibold"
+                              :class="
+                                spct.trangThai
+                                  ? 'bg-emerald-100 text-emerald-600'
+                                  : 'bg-slate-100 text-slate-500'
+                              "
+                            >
+                              {{ spct.trangThai ? 'Đang bán' : 'Lưu kho' }}
+                            </span>
+                          </td>
+
+                          <td class="px-4 py-3">
+                            <div class="flex justify-end gap-2">
+                              <button
+                                @click="editSPCT(spct)"
+                                class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                              >
+                                Sửa
+                              </button>
+
+                              <button
+                                @click="removeSPCT(spct.id)"
+                                class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"
+                              >
+                                Xóa
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+
+                        <tr v-if="spctList.length === 0">
+                          <td colspan="9" class="text-center py-10 text-slate-400">
+                            Chưa có biến thể nào
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <transition name="fade">
       <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-5 z-10 animate-scale-up text-center border border-slate-100"
+        v-if="isModalOpen"
+        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/40"
       >
-        <div
-          class="w-10 h-10 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg"
-        >
-          ⚠️
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold">
+              {{ isEditMode ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm' }}
+            </h2>
+
+            <button @click="isModalOpen = false" class="w-8 h-8 rounded-full hover:bg-slate-100">
+              ✕
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-500">Mã sản phẩm</label>
+              <input v-model="form.maSanPham" class="w-full border rounded-xl p-3 mt-1" />
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Tên sản phẩm</label>
+              <input v-model="form.tenSanPham" class="w-full border rounded-xl p-3 mt-1" />
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Danh mục</label>
+              <select v-model="form.idDanhMuc" class="w-full border rounded-xl p-3 mt-1">
+                <option :value="null">Chọn danh mục</option>
+
+                <option v-for="dm in danhMucs" :key="dm.id" :value="dm.id">
+                  {{ dm.tenDanhMuc }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Thương hiệu</label>
+              <select v-model="form.idThuongHieu" class="w-full border rounded-xl p-3 mt-1">
+                <option :value="null">Chọn thương hiệu</option>
+
+                <option v-for="th in thuongHieus" :key="th.id" :value="th.id">
+                  {{ th.tenThuongHieu }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-span-2">
+              <label class="text-xs text-slate-500">Chất liệu</label>
+              <select v-model="form.idChatLieu" class="w-full border rounded-xl p-3 mt-1">
+                <option :value="null">Chọn chất liệu</option>
+
+                <option v-for="cl in chatLieus" :key="cl.id" :value="cl.id">
+                  {{ cl.tenChatLieu }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-span-2">
+              <label class="text-xs text-slate-500">Mô tả</label>
+
+              <textarea
+                v-model="form.moTa"
+                rows="4"
+                class="w-full border rounded-xl p-3 mt-1"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6">
+            <button @click="isModalOpen = false" class="px-5 py-3 rounded-xl border">Hủy</button>
+
+            <button @click="handleSubmit" class="px-5 py-3 rounded-xl bg-indigo-600 text-white">
+              {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+            </button>
+          </div>
         </div>
-        <h3 class="text-sm font-bold text-slate-900 mb-1">Xóa vĩnh viễn?</h3>
-        <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-          Hành động này sẽ ngắt kết nối thực thể khỏi hệ thống dữ liệu chính.
-        </p>
-        <div class="flex gap-2">
-          <button
-            @click="cancelDelete"
-            class="flex-1 py-2.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors"
-          >
-            Đóng
-          </button>
-          <button
-            @click="confirmDelete"
-            class="flex-1 py-2.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-colors shadow-sm"
-          >
-            Xác nhận
+      </div>
+    </transition>
+    <transition name="fade">
+      <div
+        v-if="isSPCTModalOpen"
+        class="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      >
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden">
+          <!-- HEADER -->
+          <div class="p-6 border-b flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-bold">
+                {{ isEditSPCT ? 'Cập nhật biến thể' : 'Thêm biến thể mới' }}
+              </h2>
+
+              <p class="text-sm text-slate-400">
+                {{ selectedProduct?.tenSanPham }}
+              </p>
+            </div>
+
+            <button
+              @click="isSPCTModalOpen = false"
+              class="w-10 h-10 rounded-xl hover:bg-slate-100"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- BODY -->
+          <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-slate-500"> Mã SPCT </label>
+
+                <input
+                  v-model="formData.maSanPhamChiTiet"
+                  class="w-full border rounded-xl p-3 mt-1"
+                />
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-500"> Tên SPCT </label>
+
+                <input
+                  v-model="formData.tenSanPhamChiTiet"
+                  class="w-full border rounded-xl p-3 mt-1"
+                />
+              </div>
+            </div>
+
+            <!-- MÀU + SIZE -->
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-slate-500"> Màu sắc </label>
+
+                <select v-model="formData.idMauSac" class="w-full border rounded-xl p-3 mt-1">
+                  <option :value="null">Chọn màu sắc</option>
+
+                  <option v-for="mau in mauSacs" :key="mau.id" :value="mau.id">
+                    {{ mau.tenMauSac }}
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-500"> Kích thước </label>
+
+                <select v-model="formData.idKichThuoc" class="w-full border rounded-xl p-3 mt-1">
+                  <option :value="null">Chọn kích thước</option>
+
+                  <option v-for="size in kichThuocs" :key="size.id" :value="size.id">
+                    {{ size.tenKichThuoc }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- GIÁ -->
+
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="text-xs text-slate-500"> Giá nhập </label>
+
+                <input
+                  v-model.number="formData.giaNhap"
+                  type="number"
+                  class="w-full border rounded-xl p-3 mt-1"
+                />
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-500"> Giá bán </label>
+
+                <input
+                  v-model.number="formData.giaBan"
+                  type="number"
+                  class="w-full border rounded-xl p-3 mt-1"
+                />
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-500"> Tồn kho </label>
+
+                <input
+                  v-model.number="formData.soLuongTon"
+                  type="number"
+                  class="w-full border rounded-xl p-3 mt-1"
+                />
+              </div>
+            </div>
+
+            <!-- TRẠNG THÁI -->
+
+            <div>
+              <label class="text-xs text-slate-500"> Trạng thái </label>
+
+              <select v-model="formData.trangThai" class="w-full border rounded-xl p-3 mt-1">
+                <option :value="true">Đang kinh doanh</option>
+                <option :value="false">Lưu kho</option>
+              </select>
+            </div>
+
+            <!-- ẢNH -->
+
+            <div>
+              <label class="text-xs text-slate-500"> Hình ảnh </label>
+
+              <input
+                type="file"
+                multiple
+                @change="handleFileUpload"
+                class="w-full border rounded-xl p-3 mt-1"
+              />
+
+              <div class="flex gap-2 mt-3 flex-wrap">
+                <img
+                  v-for="(img, i) in previewImages"
+                  :key="i"
+                  :src="img"
+                  class="w-20 h-20 rounded-xl object-cover border"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+
+          <div class="p-6 border-t flex justify-end gap-3">
+            <button @click="isSPCTModalOpen = false" class="px-5 py-3 border rounded-xl">
+              Hủy
+            </button>
+
+            <button @click="submitSPCT" class="px-5 py-3 bg-indigo-600 text-white rounded-xl">
+              {{ isEditSPCT ? 'Cập nhật SPCT' : 'Thêm SPCT' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+    <div
+      v-if="isBulkOpen"
+      class="fixed inset-0 z-[999] bg-black/50 flex items-center justify-center"
+    >
+      <div class="bg-white w-[700px] rounded-2xl p-6 space-y-4">
+        <h2 class="text-lg font-bold">Tạo biến thể hàng loạt</h2>
+
+        <!-- MÀU -->
+        <div>
+          <p class="text-sm font-semibold mb-2">Màu sắc</p>
+          <div class="flex flex-wrap gap-3">
+            <label v-for="m in mauSacs" :key="m.id" class="flex items-center gap-2 text-sm">
+              <input type="checkbox" :value="m.id" v-model="selectedColors" />
+              {{ m.tenMauSac }}
+            </label>
+          </div>
+        </div>
+
+        <!-- SIZE -->
+        <div>
+          <p class="text-sm font-semibold mb-2">Kích thước</p>
+          <div class="flex flex-wrap gap-3">
+            <label v-for="s in kichThuocs" :key="s.id" class="flex items-center gap-2 text-sm">
+              <input type="checkbox" :value="s.id" v-model="selectedSizes" />
+              {{ s.tenKichThuoc }}
+            </label>
+          </div>
+        </div>
+
+        <!-- GIÁ CHUNG -->
+        <div class="grid grid-cols-2 gap-3">
+          <input
+            v-model.number="formData.giaNhap"
+            class="border p-2 rounded-xl"
+            placeholder="Giá nhập"
+            type="number"
+          />
+
+          <input
+            v-model.number="formData.giaBan"
+            class="border p-2 rounded-xl"
+            placeholder="Giá bán"
+            type="number"
+          />
+        </div>
+
+        <!-- PREVIEW -->
+        <div class="bg-slate-50 p-3 rounded-xl max-h-[200px] overflow-auto text-sm">
+          <p class="font-semibold mb-2">Preview:</p>
+
+          <div v-for="v in previewVariants" :key="v.key">{{ v.colorName }} - {{ v.sizeName }}</div>
+        </div>
+
+        <!-- ACTION -->
+        <div class="flex justify-end gap-3">
+          <button @click="isBulkOpen = false" class="px-4 py-2 border rounded-xl">Hủy</button>
+
+          <button @click="submitBulkSPCT" class="px-4 py-2 bg-indigo-600 text-white rounded-xl">
+            Tạo {{ previewVariants.length }} biến thể
           </button>
         </div>
       </div>
     </div>
+    <transition name="fade">
+      <div
+        v-if="confirmModal.show"
+        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      >
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div class="p-6">
+            <h3 class="text-lg font-bold text-slate-900">Xác nhận xóa sản phẩm</h3>
+
+            <p class="mt-2 text-sm text-slate-500">
+              Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa?
+            </p>
+          </div>
+
+          <div class="flex justify-end gap-3 p-6 border-t">
+            <button
+              @click="cancelDelete"
+              class="px-5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+
+            <button
+              @click="confirmDelete"
+              class="px-5 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+            >
+              Xóa
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
-
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue' // Thêm computed từ vue
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
 import { getAllSanpham } from '@/service/SanphamService'
 import { getAllDanhMuc } from '@/service/DanhMucService'
 import { getAllThuongHieu } from '@/service/ThuongHieuService'
 import { getAllChatLieu } from '@/service/ChatLieuService'
-import { useRouter } from 'vue-router'
+import { updateSanPhamChiTiet } from '@/service/SanPhamChiTiet'
+import { useToast } from 'vue-toastification'
+import { getAllMauSac } from '@/service/MauSacService'
+import { getAllKichThuoc } from '@/service/KichThuocService'
 
+const toast = useToast()
+const baseUrl = 'http://localhost:8080'
+import {
+  getSanPhamChiTietByProductId,
+  createSanPhamChiTiet,
+  deleteSanPhamChiTiet,
+} from '@/service/SanPhamChiTiet'
+
+// ========================
+// PRODUCT DATA
+// ========================
 const router = useRouter()
-const products = ref([]),
-  danhMucs = ref([]),
-  thuongHieus = ref([]),
-  chatLieus = ref([])
+const products = ref([])
+const danhMucs = ref([])
+const thuongHieus = ref([])
+const chatLieus = ref([])
+const mauSacs = ref([])
+const kichThuocs = ref([])
+// ========================
+// DRAWER STATE (SPCT)
+// ========================
+const isSPCTModalOpen = ref(false)
+const selectedProduct = ref(null)
+const expandedProductId = ref(null)
 
-const goToSPCT = (id) => {
-  router.push(`/sp/${id}`)
+const spctList = ref([])
+const loadingSpct = ref(false)
+
+const isBulkOpen = ref(false)
+
+const selectedColors = ref([])
+const selectedSizes = ref([])
+// ========================
+// FORM SPCT (ONLY ONE SOURCE OF TRUTH)
+// ========================
+const formData = ref({
+  idSanPham: null,
+
+  idMauSac: null,
+  idKichThuoc: null,
+
+  maSanPhamChiTiet: '',
+  tenSanPhamChiTiet: '',
+
+  giaNhap: 0,
+  giaBan: 0,
+
+  soLuongTon: 0,
+
+  trangThai: true,
+})
+const cancelEditSPCT = () => {
+  isEditSPCT.value = false
+  editingSPCTId.value = null
+
+  selectedFiles.value = []
+  previewImages.value = []
+
+  Object.assign(formData.value, {
+    idSanPham: selectedProduct.value?.id,
+
+    idMauSac: null,
+    idKichThuoc: null,
+
+    maSanPhamChiTiet: '',
+    tenSanPhamChiTiet: '',
+
+    giaNhap: 0,
+    giaBan: 0,
+    soLuongTon: 0,
+
+    trangThai: true,
+  })
 }
 
-const isModalOpen = ref(false),
-  isEditMode = ref(false)
+const selectedFiles = ref([])
+const previewImages = ref([])
+const isEditSPCT = ref(false)
+const editingSPCTId = ref(null)
 
-const toast = reactive({ show: false, message: '', type: 'success' })
-const confirmModal = reactive({ show: false, targetId: null })
+// ========================
+// LOAD PRODUCT LIST
+// ========================
+const loadData = async () => {
+  try {
+    ;[
+      products.value,
+      danhMucs.value,
+      thuongHieus.value,
+      chatLieus.value,
+      mauSacs.value,
+      kichThuocs.value,
+    ] = await Promise.all([
+      getAllSanpham(),
+      getAllDanhMuc(),
+      getAllThuongHieu(),
+      getAllChatLieu(),
+      getAllMauSac(),
+      getAllKichThuoc(),
+    ])
+  } catch (err) {
+    console.error(err)
+  }
+}
 
-// Khởi tạo trạng thái cho các bộ lọc đầu vào
+onMounted(loadData)
+
+// ========================
+// OPEN DRAWER + LOAD SPCT
+// ========================
+const toggleSPCT = async (product) => {
+  try {
+    if (expandedProductId.value === product.id) {
+      expandedProductId.value = null
+      return
+    }
+
+    expandedProductId.value = product.id
+    selectedProduct.value = product
+
+    formData.value.idSanPham = product.id
+
+    loadingSpct.value = true
+
+    const data = await getSanPhamChiTietByProductId(product.id)
+
+    spctList.value = Array.isArray(data) ? data : []
+  } catch (err) {
+    console.error(err)
+    spctList.value = []
+    toast.error('Không tải được danh sách SPCT')
+  } finally {
+    loadingSpct.value = false
+  }
+}
+
+const openAddSPCTModal = (product) => {
+  cancelEditSPCT()
+
+  selectedProduct.value = product
+  formData.value.idSanPham = product.id
+
+  isSPCTModalOpen.value = true
+}
+
+const loadSPCT = async (id) => {
+  loadingSpct.value = true
+  try {
+    const data = await getSanPhamChiTietByProductId(id)
+    spctList.value = Array.isArray(data) ? data : []
+  } catch (e) {
+    console.error(e)
+    spctList.value = []
+  } finally {
+    loadingSpct.value = false
+  }
+}
+const previewVariants = computed(() => {
+  const result = []
+
+  selectedColors.value.forEach((c) => {
+    const color = mauSacs.value.find((m) => m.id === c)
+
+    selectedSizes.value.forEach((s) => {
+      const size = kichThuocs.value.find((k) => k.id === s)
+
+      result.push({
+        colorId: c,
+        sizeId: s,
+        colorName: color?.tenMauSac,
+        sizeName: size?.tenKichThuoc,
+        key: `${c}-${s}`,
+      })
+    })
+  })
+
+  return result
+})
+const submitBulkSPCT = async () => {
+  if (!selectedColors.value.length || !selectedSizes.value.length) {
+    toast.error('Chọn màu và size')
+    return
+  }
+
+  const payload = previewVariants.value.map((v) => ({
+    idSanPham: selectedProduct.value.id,
+    idMauSac: v.colorId,
+    idKichThuoc: v.sizeId,
+    giaNhap: formData.value.giaNhap,
+    giaBan: formData.value.giaBan,
+    soLuongTon: formData.value.soLuongTon || 0,
+  }))
+
+  try {
+    await fetch('http://localhost:8080/spct/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    toast.success('Tạo biến thể thành công')
+
+    isBulkOpen.value = false
+    selectedColors.value = []
+    selectedSizes.value = []
+
+    await loadSPCT(selectedProduct.value.id)
+  } catch (e) {
+    toast.error('Lỗi tạo biến thể')
+  }
+}
+
+const openBulk = (product) => {
+  selectedProduct.value = product
+  formData.value.idSanPham = product.id
+
+  selectedColors.value = []
+  selectedSizes.value = []
+
+  isBulkOpen.value = true
+}
+// ========================
+// FILE UPLOAD PREVIEW
+// ========================
+const handleFileUpload = (event) => {
+  const files = event.target.files
+  if (files.length > 5) {
+    toast.error('Chỉ được chọn tối đa 5 ảnh')
+    return
+  }
+  if (!files) return
+
+  selectedFiles.value = Array.from(files)
+
+  previewImages.value = []
+  Array.from(files).forEach((file) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(`${file.name} vượt quá 5MB`)
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImages.value.push(e.target.result)
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+// ========================
+// CREATE SPCT (FORMDATA BACKEND)
+// ========================
+const validateSPCT = () => {
+  if (!formData.value.maSanPhamChiTiet?.trim()) {
+    toast.error('Mã SPCT không được để trống')
+    return false
+  }
+
+  if (!formData.value.tenSanPhamChiTiet?.trim()) {
+    toast.error('Tên SPCT không được để trống')
+    return false
+  }
+
+  if (!formData.value.idMauSac) {
+    toast.error('Vui lòng chọn màu sắc')
+    return false
+  }
+
+  if (!formData.value.idKichThuoc) {
+    toast.error('Vui lòng chọn kích thước')
+    return false
+  }
+
+  if (Number(formData.value.giaNhap) <= 0) {
+    toast.error('Giá nhập phải lớn hơn 0')
+    return false
+  }
+
+  if (Number(formData.value.giaBan) <= 0) {
+    toast.error('Giá bán phải lớn hơn 0')
+    return false
+  }
+
+  if (Number(formData.value.giaBan) < Number(formData.value.giaNhap)) {
+    toast.error('Giá bán không được nhỏ hơn giá nhập')
+    return false
+  }
+
+  return true
+}
+const isDuplicateVariant = () => {
+  return spctList.value.some(
+    (item) =>
+      Number(item.idMauSac) === Number(formData.value.idMauSac) &&
+      Number(item.idKichThuoc) === Number(formData.value.idKichThuoc) &&
+      item.id !== editingSPCTId.value,
+  )
+}
+
+const isDuplicateCode = () => {
+  return spctList.value.some(
+    (item) =>
+      item.maSanPhamChiTiet?.trim().toLowerCase() ===
+        formData.value.maSanPhamChiTiet?.trim().toLowerCase() && item.id !== editingSPCTId.value,
+  )
+}
+const submitSPCT = async () => {
+  if (!validateSPCT()) return
+
+  if (isDuplicateCode()) {
+    toast.error('Mã SPCT đã tồn tại')
+    return
+  }
+
+  if (isDuplicateVariant()) {
+    toast.error('Màu sắc và kích thước đã tồn tại')
+    return
+  }
+  try {
+    const payload = new FormData()
+
+    Object.entries({
+      idSanPham: formData.value.idSanPham,
+      idMauSac: formData.value.idMauSac,
+      idKichThuoc: formData.value.idKichThuoc,
+      maSanPhamChiTiet: formData.value.maSanPhamChiTiet,
+      tenSanPhamChiTiet: formData.value.tenSanPhamChiTiet,
+      giaNhap: formData.value.giaNhap,
+      giaBan: formData.value.giaBan,
+      soLuongTon: formData.value.soLuongTon,
+      trangThai: formData.value.trangThai,
+    }).forEach(([k, v]) => payload.append(k, v ?? ''))
+
+    selectedFiles.value.forEach((f) => payload.append('files', f))
+
+    try {
+      if (isEditSPCT.value) {
+        await updateSanPhamChiTiet(editingSPCTId.value, payload)
+        toast.success('Cập nhật SPCT thành công')
+      } else {
+        await createSanPhamChiTiet(payload)
+        toast.success('Thêm SPCT thành công')
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error('Có lỗi xảy ra')
+    }
+
+    // reload SPCT list
+    await loadSPCT(formData.value.idSanPham)
+
+    // reset form
+    selectedFiles.value = []
+    previewImages.value = []
+    isEditSPCT.value = false
+    editingSPCTId.value = null
+    isSPCTModalOpen.value = false
+
+    Object.assign(formData.value, {
+      maSanPhamChiTiet: '',
+      tenSanPhamChiTiet: '',
+      giaNhap: 0,
+      giaBan: 0,
+      soLuongTon: 0,
+      trangThai: true,
+    })
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const editSPCT = (spct) => {
+  isEditSPCT.value = true
+  editingSPCTId.value = spct.id
+
+  formData.value = {
+    ...spct,
+  }
+
+  previewImages.value = []
+
+  isSPCTModalOpen.value = true
+}
+
+// ========================
+// DELETE SPCT (OPTIONAL)
+// ========================
+const removeSPCT = async (id) => {
+  try {
+    await deleteSanPhamChiTiet(id)
+    await loadSPCT(selectedProduct.value.id)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+// ========================
+// FILTER PRODUCT LIST
+// ========================
 const filters = reactive({
   search: '',
   idDanhMuc: null,
@@ -600,53 +1096,25 @@ const filters = reactive({
   trangThai: null,
 })
 
-const form = ref({
-  id: null,
-  idDanhMuc: null,
-  idThuongHieu: null,
-  idChatLieu: null,
-  maSanPham: '',
-  tenSanPham: '',
-  trangThai: true,
-  image: '',
-})
-
-// Kiểm tra xem người dùng có đang chọn bất kỳ bộ lọc nào không
-const hasActiveFilters = computed(() => {
-  return (
-    filters.search.trim() !== '' ||
-    filters.idDanhMuc !== null ||
-    filters.idThuongHieu !== null ||
-    filters.idChatLieu !== null ||
-    filters.trangThai !== null
-  )
-})
-
-// Hàm xử lý lọc dữ liệu Client-side mượt mà
 const filteredProducts = computed(() => {
-  return products.value.filter((product) => {
-    const matchesSearch =
-      !filters.search.trim() ||
-      product.tenSanPham?.toLowerCase().includes(filters.search.toLowerCase()) ||
-      product.maSanPham?.toLowerCase().includes(filters.search.toLowerCase())
+  return products.value.filter((p) => {
+    const q = filters.search.toLowerCase()
 
-    const matchesDanhMuc = filters.idDanhMuc === null || product.idDanhMuc?.id === filters.idDanhMuc
+    const matchSearch =
+      !q || p.tenSanPham?.toLowerCase().includes(q) || p.maSanPham?.toLowerCase().includes(q)
 
-    const matchesThuongHieu =
-      filters.idThuongHieu === null || product.idThuongHieu?.id === filters.idThuongHieu
+    const matchDM = !filters.idDanhMuc || p.idDanhMuc?.id === filters.idDanhMuc
+    const matchTH = !filters.idThuongHieu || p.idThuongHieu?.id === filters.idThuongHieu
+    const matchCL = !filters.idChatLieu || p.idChatLieu?.id === filters.idChatLieu
+    const matchTT = filters.trangThai === null || p.trangThai === filters.trangThai
 
-    const matchesChatLieu =
-      filters.idChatLieu === null || product.idChatLieu?.id === filters.idChatLieu
-
-    const matchesTrangThai = filters.trangThai === null || product.trangThai === filters.trangThai
-
-    return (
-      matchesSearch && matchesDanhMuc && matchesThuongHieu && matchesChatLieu && matchesTrangThai
-    )
+    return matchSearch && matchDM && matchTH && matchCL && matchTT
   })
 })
 
-// Hàm xóa nhanh toàn bộ bộ lọc về trạng thái ban đầu
+// ========================
+// UTILS
+// ========================
 const clearFilters = () => {
   filters.search = ''
   filters.idDanhMuc = null
@@ -655,14 +1123,20 @@ const clearFilters = () => {
   filters.trangThai = null
 }
 
-const showToast = (message, type = 'success') => {
-  toast.message = message
-  toast.type = type
-  toast.show = true
-  setTimeout(() => {
-    toast.show = false
-  }, 3000)
-}
+//Sản phẩm
+
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const isVariantMode = ref(false)
+
+const form = ref({
+  idDanhMuc: null,
+  idThuongHieu: null,
+  idChatLieu: null,
+  maSanPham: '',
+  tenSanPham: '',
+  moTa: '',
+})
 
 const resetForm = () => {
   form.value = {
@@ -677,43 +1151,128 @@ const resetForm = () => {
   }
 }
 
-const loadData = async () => {
-  try {
-    ;[products.value, danhMucs.value, thuongHieus.value, chatLieus.value] = await Promise.all([
-      getAllSanpham(),
-      getAllDanhMuc(),
-      getAllThuongHieu(),
-      getAllChatLieu(),
-    ])
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-onMounted(loadData)
-
-const getImageUrl = (path) => (path?.startsWith('http') ? path : `http://localhost:8080${path}`)
 const openAddModal = () => {
-  resetForm()
+  form.value = {
+    idDanhMuc: null,
+    idThuongHieu: null,
+    idChatLieu: null,
+    maSanPham: '',
+    tenSanPham: '',
+    moTa: '',
+  }
+
   isEditMode.value = false
   isModalOpen.value = true
 }
+const validateSP = () => {
+  if (!form.value.maSanPham?.trim()) {
+    toast.error('Mã sản phẩm không được để trống')
+    return false
+  }
+
+  if (!form.value.tenSanPham?.trim()) {
+    toast.error('Tên sản phẩm không được để trống')
+    return false
+  }
+
+  if (!form.value.idDanhMuc) {
+    toast.error('Vui lòng chọn danh mục')
+    return false
+  }
+
+  if (!form.value.idThuongHieu) {
+    toast.error('Vui lòng chọn thương hiệu')
+    return false
+  }
+
+  if (!form.value.idChatLieu) {
+    toast.error('Vui lòng chọn chất liệu')
+    return false
+  }
+
+  return true
+}
+
+const handleSubmit = async () => {
+  if (!validateSP()) return
+
+  if (isDuplicateMaSP()) {
+    toast.error('Mã sản phẩm đã tồn tại')
+    return
+  }
+  try {
+    const payload = {
+      idDanhMuc: form.value.idDanhMuc,
+      idThuongHieu: form.value.idThuongHieu,
+      idChatLieu: form.value.idChatLieu,
+      maSanPham: form.value.maSanPham,
+      tenSanPham: form.value.tenSanPham,
+      moTa: form.value.moTa,
+    }
+
+    const url = isEditMode.value
+      ? `http://localhost:8080/sanpham/update/${form.value.id}`
+      : `http://localhost:8080/sanpham`
+
+    const res = await fetch(url, {
+      method: isEditMode.value ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) throw new Error()
+
+    await loadData()
+
+    isModalOpen.value = false
+    toast.success(isEditMode.value ? 'Cập nhật sản phẩm thành công' : 'Thêm sản phẩm thành công')
+  } catch (err) {
+    toast.error('Có lỗi xảy ra')
+  }
+}
+
 const openEditModal = async (product) => {
   const res = await fetch(`http://localhost:8080/sanpham/detail/${product.id}`)
   const detail = await res.json()
+
   form.value = {
     ...detail,
     idDanhMuc: detail.idDanhMuc?.id,
     idThuongHieu: detail.idThuongHieu?.id,
     idChatLieu: detail.idChatLieu?.id,
   }
+
   isEditMode.value = true
   isModalOpen.value = true
 }
+const confirmModal = reactive({
+  show: false,
+  targetId: null,
+})
 
 const triggerDeleteConfirm = (id) => {
   confirmModal.targetId = id
   confirmModal.show = true
+}
+
+const confirmDelete = async () => {
+  try {
+    await fetch(`http://localhost:8080/sanpham/delete/${confirmModal.targetId}`, {
+      method: 'DELETE',
+    })
+
+    await loadData()
+
+    toast.success('🗑️ Xóa sản phẩm thành công')
+  } catch (err) {
+    console.error(err)
+    toast.error('❌ Xóa sản phẩm thất bại')
+  } finally {
+    confirmModal.show = false
+    confirmModal.targetId = null
+  }
 }
 
 const cancelDelete = () => {
@@ -721,84 +1280,23 @@ const cancelDelete = () => {
   confirmModal.targetId = null
 }
 
-const confirmDelete = async () => {
-  const id = confirmModal.targetId
-  if (!id) return
-  try {
-    await fetch(`http://localhost:8080/sanpham/delete/${id}`, { method: 'DELETE' })
-    cancelDelete()
-    await loadData()
-    showToast('Đã cập nhật thành công!')
-  } catch {
-    cancelDelete()
-    showToast('Lỗi khi xóa!', 'error')
-  }
-}
-
-const closeModal = () => {
-  isModalOpen.value = false
-  resetForm()
-}
-
-const handleSubmit = async () => {
-  if (!form.value.tenSanPham?.trim() || !form.value.maSanPham?.trim())
-    return showToast('Vui lòng điền tên & mã SP', 'error')
-  try {
-    const url = isEditMode.value
-      ? `http://localhost:8080/sanpham/update/${form.value.id}`
-      : `http://localhost:8080/sanpham`
-    const res = await fetch(url, {
-      method: isEditMode.value ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form.value),
-    })
-
-    if (!res.ok) throw new Error()
-    await loadData()
-    closeModal()
-    showToast(isEditMode.value ? 'Cập nhật thành công!' : 'Thêm mới thành công!')
-  } catch {
-    showToast('Có lỗi xảy ra!', 'error')
-  }
-}
+const formatCurrency = (val) =>
+  new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(val || 0)
 </script>
 
 <style scoped>
-@keyframes fadeIn {
+.animate-slide-in-right {
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideIn {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    transform: translateX(100%);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
-}
-@keyframes scaleUp {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.animate-scale-up {
-  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translateY(15px);
 }
 </style>

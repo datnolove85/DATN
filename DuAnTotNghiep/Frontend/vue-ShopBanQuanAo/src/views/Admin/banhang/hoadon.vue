@@ -478,7 +478,9 @@ const applyFilter = () => {
     data = data.filter((x) => x.createdRaw && x.createdRaw <= to)
   }
 
-  invoices.value = data
+  invoices.value = data.sort((a, b) => {
+    return new Date(b.createdRaw) - new Date(a.createdRaw)
+  })
 }
 
 watch(filters, applyFilter, { deep: true })

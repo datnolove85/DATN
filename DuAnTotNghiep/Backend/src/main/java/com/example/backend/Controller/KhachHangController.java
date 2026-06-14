@@ -50,6 +50,13 @@ public class KhachHangController {
     public void addKhachHang(@RequestPart("data") KhachHangRequest khachHangRequest, @RequestPart(value = "file", required = false) MultipartFile file) {
         khachHangServcie.addKhachHang(khachHangRequest, file);
     }
+
+    @PostMapping("/add-quick")
+    public KhachHang addQuick(
+            @RequestBody KhachHangRequest request
+    ) {
+        return khachHangServcie.addQuick(request);
+    }
     @PutMapping("/update/{id}")
     public void updateKhachHang(@PathVariable Integer id, @RequestPart("data") KhachHangRequest khachHangRequest, @RequestPart(value = "file", required = false) MultipartFile file) {
         khachHangServcie.updateKhachHang(id, khachHangRequest, file);

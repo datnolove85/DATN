@@ -9,11 +9,13 @@ import com.example.backend.Repository.MauSacRepository;
 import com.example.backend.Repository.SanPhamChiTietRepository;
 import com.example.backend.Repository.SanPhamRepository;
 import com.example.backend.Request.SanPhamChiTietRequest;
+import com.example.backend.Request.SanPhamCreateVariantRequest;
 import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Response.SanPhamResponse;
 import com.example.backend.Response.VariantResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -414,5 +416,61 @@ public class SanPhamChiTietService {
             return res;
 
         }).toList();
+    }
+
+    @Transactional
+    public void createBulk(List<SanPhamCreateVariantRequest> reqList) {
+
+        List<SanPhamChiTiet> list = new ArrayList<>();
+
+        for (SanPhamCreateVariantRequest req : reqList) {
+
+            SanPham sp = sanPhamRepository.findById(req.getIdSanPham())
+                    .orElseThrow();
+
+            MauSac mau = mauSacRepository.findById(req.getIdMauSac())
+                    .orElseThrow();
+
+            KichThuoc size = kichThuocRepository.findById(req.getIdKichThuoc())
+                    .orElseThrow();
+
+            // 🚨 CHECK TRÙNG (QUAN TRỌNG POS)
+            boolean exists = sanPhamChiTietRepository
+                    .existsByIdSanPhamAndIdMauSacAndIdKichThuoc(sp, mau, size);
+
+            if (exists) continue;
+
+            SanPhamChiTiet spct = new SanPhamChiTiet();
+
+            spct.setIdSanPham(sp);
+            spct.setIdMauSac(mau);
+            spct.setIdKichThuoc(size);
+
+            // 🔥 AUTO SKU POS
+            String sku = generateSKU(sp.getTenSanPham(), mau.getTenMauSac(), size.getTenKichThuoc(), sp.getId());
+
+            spct.setMaSanPhamChiTiet(sku);
+
+            spct.setTenSanPhamChiTiet(
+                    sp.getTenSanPham() + " " + mau.getTenMauSac() + " " + size.getTenKichThuoc()
+            );
+
+            spct.setGiaNhap(req.getGiaNhap());
+            spct.setGiaBan(req.getGiaBan());
+            spct.setSoLuongTon(req.getSoLuongTon());
+            spct.setTrangThai(true);
+
+            list.add(spct);
+        }
+
+        sanPhamChiTietRepository.saveAll(list);
+    }
+    private String generateSKU(String tenSP, String mau, String size, Integer id) {
+
+        String cleanSP = tenSP.replaceAll("\\s+", "-").toUpperCase();
+        String cleanMau = mau.replaceAll("\\s+", "-").toUpperCase();
+        String cleanSize = size.replaceAll("\\s+", "-").toUpperCase();
+
+        return cleanSP + "-" + cleanMau + "-" + cleanSize + "-" + id;
     }
 }

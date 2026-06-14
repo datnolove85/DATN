@@ -26,4 +26,6 @@ public interface KhachHangService {
 
     void addKH(KhachHangRequest khachHangRequest);
 
+    KhachHang addQuick(KhachHangRequest request);
+
 }

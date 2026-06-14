@@ -18,7 +18,7 @@ import java.time.LocalDate;
 public class KhachHang {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ◄ THÊM DÒNG NÀY
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -26,9 +26,8 @@ public class KhachHang {
     private TaiKhoan idTaiKhoan;
 
     @Size(max = 50)
-    @NotNull
     @Nationalized
-    @Column(name = "ma_khach_hang", nullable = false, length = 50)
+    @Column(name = "ma_khach_hang", length = 50)
     private String maKhachHang;
 
     @Size(max = 150)

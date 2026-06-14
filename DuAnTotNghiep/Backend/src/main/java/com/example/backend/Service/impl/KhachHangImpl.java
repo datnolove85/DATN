@@ -72,6 +72,7 @@ public class KhachHangImpl implements KhachHangService {
         taiKhoan.setNgayTao(Instant.now());
         taiKhoan.setNgayCapNhat(Instant.now());
         taiKhoan.setTrangThai(1);
+
         taiKhoan = taiKhoanRepository.save(taiKhoan);
 
         KhachHang khachHang = new KhachHang();
@@ -301,4 +302,19 @@ public class KhachHangImpl implements KhachHangService {
     public void addKH(KhachHangRequest request) {
 
     }
+    @Override
+    public KhachHang addQuick(KhachHangRequest request) {
+
+        KhachHang kh = new KhachHang();
+
+        kh.setHoTen(request.getHoTen());
+        kh.setSoDienThoai(request.getSoDienThoai());
+
+        // Các giá trị mặc định
+        kh.setTrangThai(true);
+
+        return khachHangRepository.save(kh);
+    }
+
+
 }

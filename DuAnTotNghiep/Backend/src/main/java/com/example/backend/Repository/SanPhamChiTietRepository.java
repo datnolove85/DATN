@@ -1,5 +1,8 @@
 package com.example.backend.Repository;
 
+import com.example.backend.Entity.KichThuoc;
+import com.example.backend.Entity.MauSac;
+import com.example.backend.Entity.SanPham;
 import com.example.backend.Entity.SanPhamChiTiet;
 import com.example.backend.Response.SanPhamChiTietResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,6 +63,10 @@ from HinhAnh ha
 """)
     List<String> getAllImagesFlat();
 
-
+    boolean existsByIdSanPhamAndIdMauSacAndIdKichThuoc(
+            SanPham sp,
+            MauSac mau,
+            KichThuoc size
+    );
     List<SanPhamChiTiet>  getSanPhamChiTietsByIdSanPham(@Param("idSanPham") Integer id);
 }

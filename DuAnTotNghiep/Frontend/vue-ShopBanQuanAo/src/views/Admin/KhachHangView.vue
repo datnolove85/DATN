@@ -185,13 +185,11 @@
             </td>
 
             <td class="py-3.5 px-4 space-y-0.5">
-              <div
-                class="font-semibold text-slate-700 text-nowrap max-w-[160px] truncate"
-                :title="item.email"
-              >
-                {{ item.email }}
+              <div class="font-semibold text-slate-700 text-nowrap max-w-[160px] truncate">
+                {{ item.email || item.soDienThoai }}
               </div>
-              <div class="text-[10px] font-mono text-slate-400 tracking-wider">
+
+              <div v-if="item.email" class="text-[10px] font-mono text-slate-400 tracking-wider">
                 {{ item.soDienThoai }}
               </div>
             </td>

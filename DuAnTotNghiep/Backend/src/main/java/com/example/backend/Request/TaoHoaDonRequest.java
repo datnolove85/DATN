@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 public class TaoHoaDonRequest {
 
+    private Integer idHoaDon;
     private Integer idKhachHang;
     private String loaiHoaDon;      // tai_quay
     private Integer phuongThucTt;    // tien_mat

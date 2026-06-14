@@ -12,6 +12,12 @@ const handleResponse = async (response) => {
   return data
 }
 
+export const thanhToanHoaDon = async (payload) => {
+  const response = await axios.post('http://localhost:8080/hoadon/thanh-toan', payload)
+
+  return response.data
+}
+
 // ================= GET ALL =================
 export const getAllHoadon = async () => {
   try {
@@ -86,4 +92,105 @@ export const deleteHoadon = async (id) => {
     console.error('deleteHoadon error:', error)
     throw error
   }
+}
+// ================= TAO HOA DON CHO =================
+export const taoHoaDonCho = async () => {
+  try {
+    const response = await fetch(`${API}/hoa-don-cho`, {
+      method: 'POST',
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('taoHoaDonCho error:', error)
+    throw error
+  }
+}
+
+export const getHoaDonCho = async () => {
+  try {
+    const response = await fetch(`${API}/hoa-don-cho`)
+    return await handleResponse(response)
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+export const themSanPhamVaoHoaDon = async (data) => {
+  try {
+    const response = await fetch(`${API}/them-san-pham`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('themSanPhamVaoHoaDon error:', error)
+    throw error
+  }
+}
+
+export const giamSoLuongSanPham = async (idHdct) => {
+  const response = await fetch(`${API}/chi-tiet/${idHdct}/giam`, {
+    method: 'PUT',
+  })
+
+  return await handleResponse(response)
+}
+
+export const getChiTietHoaDon = async (idHoaDon) => {
+  try {
+    const response = await fetch(`${API}/${idHoaDon}/chi-tiet`)
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+export const xoaSanPhamKhoiHoaDon = async (idHoaDonChiTiet) => {
+  const response = await fetch(`${API}/chi-tiet/${idHoaDonChiTiet}`, {
+    method: 'DELETE',
+  })
+
+  return await handleResponse(response)
+}
+export const tangSoLuongSanPham = async (idHdct) => {
+  const response = await fetch(`${API}/chi-tiet/${idHdct}/tang`, {
+    method: 'PUT',
+  })
+
+  return await handleResponse(response)
+}
+export const ganKhachHang = async (idHoaDon, idKhachHang) => {
+  const response = await fetch('http://localhost:8080/hoadon/gan-khach-hang', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      idHoaDon,
+      idKhachHang,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Không thể gán khách hàng')
+  }
+
+  return await response.text()
+}
+export const huyHoaDon = (id) => {
+  return fetch(`http://localhost:8080/hoadon/huy/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then((r) => {
+    if (!r.ok) throw new Error('Hủy hóa đơn thất bại')
+    return r.text()
+  })
 }
