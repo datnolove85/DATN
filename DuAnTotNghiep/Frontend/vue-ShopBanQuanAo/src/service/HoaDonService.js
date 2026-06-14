@@ -12,10 +12,23 @@ const handleResponse = async (response) => {
   return data
 }
 
+// ================= THANH TOAN =================
 export const thanhToanHoaDon = async (payload) => {
-  const response = await axios.post('http://localhost:8080/hoadon/thanh-toan', payload)
+  try {
+    // Sửa lại URL cho khớp: không truyền id ở URL vì đã có trong payload
+    const response = await fetch(`${API}/thanh-toan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
 
-  return response.data
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('thanhToanHoaDon error:', error)
+    throw error
+  }
 }
 
 // ================= GET ALL =================

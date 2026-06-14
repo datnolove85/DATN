@@ -918,32 +918,32 @@ const removeVoucher = () => {
   voucherQuery.value = ''
 }
 
-// --- 8. TÍNH TOÁN GIÁ & LỌC DỮ LIỆU ---
-const totalCartPrice = computed(
-  () =>
-    currentOrder.value?.cart?.reduce((sum, item) => sum + item.product.giaBan * item.soLuong, 0) ||
-    0,
-)
+// // --- 8. TÍNH TOÁN GIÁ & LỌC DỮ LIỆU ---
+// const totalCartPrice = computed(
+//   () =>
+//     currentOrder.value?.cart?.reduce((sum, item) => sum + item.product.giaBan * item.soLuong, 0) ||
+//     0,
+// )
 
-const voucherDiscount = computed(() => {
-  if (!appliedVoucher.value || totalCartPrice.value < appliedVoucher.value.giaTriDonHangToiThieu)
-    return 0
-  let discount = 0
-  if (appliedVoucher.value.loaiGiamGia === 'tien_mat') {
-    discount = appliedVoucher.value.giaTriGiam
-  } else if (appliedVoucher.value.loaiGiamGia === 'phan_tram') {
-    discount = (totalCartPrice.value * appliedVoucher.value.giaTriGiam) / 100
-    if (appliedVoucher.value.giaTriGiamToiDa && discount > appliedVoucher.value.giaTriGiamToiDa) {
-      discount = appliedVoucher.value.giaTriGiamToiDa
-    }
-  }
-  return discount
-})
+// const voucherDiscount = computed(() => {
+//   if (!appliedVoucher.value || totalCartPrice.value < appliedVoucher.value.giaTriDonHangToiThieu)
+//     return 0
+//   let discount = 0
+//   if (appliedVoucher.value.loaiGiamGia === 'tien_mat') {
+//     discount = appliedVoucher.value.giaTriGiam
+//   } else if (appliedVoucher.value.loaiGiamGia === 'phan_tram') {
+//     discount = (totalCartPrice.value * appliedVoucher.value.giaTriGiam) / 100
+//     if (appliedVoucher.value.giaTriGiamToiDa && discount > appliedVoucher.value.giaTriGiamToiDa) {
+//       discount = appliedVoucher.value.giaTriGiamToiDa
+//     }
+//   }
+//   return discount
+// })
 
-const finalPaymentPrice = computed(() => {
-  const result = totalCartPrice.value - voucherDiscount.value
-  return result > 0 ? result : 0
-})
+// const finalPaymentPrice = computed(() => {
+//   const result = totalCartPrice.value - voucherDiscount.value
+//   return result > 0 ? result : 0
+// })
 
 const filteredProducts = computed(() => {
   return products.value.filter((sp) => {
@@ -1243,6 +1243,75 @@ const handleCloseInvoice = () => {
       phuongThucThanhToan: ptttList.value.length > 0 ? ptttList.value[0].id : '',
     })
     currentOrderIndex.value = 0
+  }
+}
+
+// --- 7. LOGIC XỬ LÝ GIỎ HÀNG & TÍNH TOÁN ---
+const totalCartPrice = computed(() => {
+  return (currentOrder.value?.cart || []).reduce(
+    (sum, item) => sum + item.product.giaBan * item.soLuong,
+    0,
+  )
+})
+
+const voucherDiscount = computed(() => {
+  if (!appliedVoucher.value) return 0
+  const vc = appliedVoucher.value
+  let discount = 0
+  if (vc.loaiGiamGia === 'tien_mat') {
+    discount = vc.giaTriGiam
+  } else {
+    discount = (totalCartPrice.value * vc.giaTriGiam) / 100
+  }
+  return vc.giaTriGiamToiDa ? Math.min(discount, vc.giaTriGiamToiDa) : discount
+})
+
+const finalPaymentPrice = computed(() => {
+  return Math.max(0, totalCartPrice.value - voucherDiscount.value)
+})
+
+// --- 8. HÀM GỬI THANH TOÁN ---
+// ================= THANH TOAN =================
+const submitCheckout = async () => {
+  if (!currentOrder.value.id) return toast.error('Hóa đơn không hợp lệ!')
+
+  if (!phuongThucThanhToan.value) {
+    return toast.error('Vui lòng chọn phương thức thanh toán!')
+  }
+
+  const payload = {
+    idHoaDon: currentOrder.value.id,
+    idPhuongThucThanhToan: parseInt(phuongThucThanhToan.value),
+    idVoucher: appliedVoucher.value ? appliedVoucher.value.id : null,
+  }
+
+  try {
+    const result = await thanhToanHoaDon(payload)
+
+    hoaDonPrint.value = result
+    showInvoiceModal.value = true
+
+    // ================= RESET POS =================
+
+    const paidOrderId = currentOrder.value.id
+
+    // Xóa hóa đơn đã thanh toán khỏi danh sách
+    allOrders.value = allOrders.value.filter((o) => o.id !== paidOrderId)
+
+    // Load lại sản phẩm để cập nhật tồn kho
+    await loadAllDataFromAPI()
+
+    if (allOrders.value.length > 0) {
+      currentOrderIndex.value = 0
+
+      await loadChiTietHoaDon(allOrders.value[0].id)
+    } else {
+      resetPOSState()
+    }
+
+    toast.success('Thanh toán thành công!')
+  } catch (error) {
+    toast.error('Thanh toán thất bại: ' + error.message)
   }
 }
 </script>
