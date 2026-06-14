@@ -1192,12 +1192,33 @@ const validateSP = () => {
 
   return true
 }
+const isDuplicateMaSP = () => {
+  return products.value.some(
+    (item) =>
+      item.maSanPham?.trim().toLowerCase() === form.value.maSanPham?.trim().toLowerCase() &&
+      item.id !== form.value.id,
+  )
+}
 
+const isDuplicateProduct = () => {
+  return products.value.some(
+    (item) =>
+      item.tenSanPham?.trim().toLowerCase() === form.value.tenSanPham?.trim().toLowerCase() &&
+      item.idThuongHieu?.id === Number(form.value.idThuongHieu) &&
+      item.idChatLieu?.id === Number(form.value.idChatLieu) &&
+      item.id !== form.value.id,
+  )
+}
 const handleSubmit = async () => {
   if (!validateSP()) return
 
   if (isDuplicateMaSP()) {
     toast.error('Mã sản phẩm đã tồn tại')
+    return
+  }
+
+  if (isDuplicateProduct()) {
+    toast.error('Sản phẩm cùng tên, thương hiệu và chất liệu đã tồn tại')
     return
   }
   try {

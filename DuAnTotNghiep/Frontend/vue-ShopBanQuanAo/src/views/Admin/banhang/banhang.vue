@@ -446,12 +446,12 @@
                   <div
                     v-for="vc in filteredVouchers"
                     :key="vc.id"
-                    @mousedown.prevent="vc.trangThai !== 0 ? selectVoucher(vc) : null"
+                    @mousedown.prevent="isVoucherValid(vc) ? selectVoucher(vc) : null"
                     :class="[
                       'px-4 py-3 border-b border-slate-50 last:border-none flex flex-col gap-1 transition-colors',
-                      vc.trangThai === 0
-                        ? 'opacity-40 bg-slate-50 cursor-not-allowed'
-                        : 'hover:bg-indigo-50 cursor-pointer',
+                      isVoucherValid(vc)
+                        ? 'hover:bg-indigo-50 cursor-pointer'
+                        : 'opacity-50 bg-slate-100 cursor-not-allowed',
                     ]"
                   >
                     <div class="flex justify-between items-center text-[11px]">
@@ -491,10 +491,10 @@
                       </div>
                     </div>
                     <div
-                      v-if="vc.trangThai === 0"
-                      class="text-[9px] text-rose-500 font-bold text-right italic mt-0.5"
+                      v-if="!isVoucherValid(vc)"
+                      class="text-[10px] text-rose-500 font-bold text-right italic mt-1"
                     >
-                      🔒 Không thể sử dụng
+                      🔒 {{ getVoucherError(vc) }}
                     </div>
                   </div>
                 </div>
@@ -632,7 +632,7 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import InvoiceModal from './InvoiceModal.vue'
 
@@ -877,38 +877,85 @@ const saveNewCustomer = async () => {
 }
 
 const selectVoucher = (voucher) => {
-  if (voucher.trangThai === 0) {
-    toast.warning('Voucher này hiện đang bị khóa không thể sử dụng!')
+  const now = new Date()
+
+  if (voucher.trangThai !== 1) {
+    toast.warning('Voucher đang bị khóa!')
     return
   }
+
+  if (voucher.ngayBatDau && new Date(voucher.ngayBatDau) > now) {
+    toast.warning('Voucher chưa đến thời gian áp dụng!')
+    return
+  }
+
+  if (voucher.ngayKetThuc && new Date(voucher.ngayKetThuc) < now) {
+    toast.warning('Voucher đã hết hạn!')
+    return
+  }
+
+  if (voucher.soLuongDaDung >= voucher.soLuong) {
+    toast.warning('Voucher đã hết lượt sử dụng!')
+    return
+  }
+
+  if (totalCartPrice.value < voucher.giaTriDonHangToiThieu) {
+    toast.warning(`Đơn hàng phải từ ${formatPrice(voucher.giaTriDonHangToiThieu)}`)
+    return
+  }
+
   selectedVoucher.value = voucher
+  appliedVoucher.value = voucher
   voucherQuery.value = voucher.maVoucher
   voucherCode.value = voucher.maVoucher
-  appliedVoucher.value = voucher
+
   showVoucherDropdown.value = false
 }
 
 const applyVoucher = () => {
-  const code = (voucherQuery.value || voucherCode.value).toUpperCase().trim()
-  const foundVoucher = vouchers.value.find((v) => v.maVoucher && v.maVoucher.toUpperCase() === code)
-  if (foundVoucher) {
-    if (foundVoucher.trangThai === 0) {
-      toast.error('Mã giảm giá này hiện đang bị khóa!')
-      return
-    }
-    if (totalCartPrice.value < foundVoucher.giaTriDonHangToiThieu) {
-      toast.warning(
-        `Đơn hàng chưa đạt giá trị tối thiểu ${formatPrice(foundVoucher.giaTriDonHangToiThieu)}`,
-      )
-      return
-    }
-    appliedVoucher.value = foundVoucher
-    selectedVoucher.value = foundVoucher
-    voucherQuery.value = foundVoucher.maVoucher
-    toast.success('Áp dụng mã thành công!')
-  } else {
+  const code = (voucherQuery.value || voucherCode.value).trim().toUpperCase()
+
+  const foundVoucher = vouchers.value.find((v) => v.maVoucher?.toUpperCase() === code)
+
+  if (!foundVoucher) {
     toast.error('Mã giảm giá không hợp lệ!')
+    return
   }
+
+  const now = new Date()
+
+  if (foundVoucher.trangThai !== 1) {
+    toast.error('Voucher đang bị khóa!')
+    return
+  }
+
+  if (foundVoucher.ngayBatDau && new Date(foundVoucher.ngayBatDau) > now) {
+    toast.error('Voucher chưa đến thời gian áp dụng!')
+    return
+  }
+
+  if (foundVoucher.ngayKetThuc && new Date(foundVoucher.ngayKetThuc) < now) {
+    toast.error('Voucher đã hết hạn!')
+    return
+  }
+
+  if (foundVoucher.soLuongDaDung >= foundVoucher.soLuong) {
+    toast.error('Voucher đã hết lượt sử dụng!')
+    return
+  }
+
+  if (totalCartPrice.value < foundVoucher.giaTriDonHangToiThieu) {
+    toast.warning(
+      `Đơn hàng tối thiểu ${formatPrice(foundVoucher.giaTriDonHangToiThieu)} mới được áp dụng voucher`,
+    )
+    return
+  }
+
+  appliedVoucher.value = foundVoucher
+  selectedVoucher.value = foundVoucher
+  voucherQuery.value = foundVoucher.maVoucher
+
+  toast.success('Áp dụng voucher thành công!')
 }
 
 const removeVoucher = () => {
@@ -1313,6 +1360,65 @@ const submitCheckout = async () => {
   } catch (error) {
     toast.error('Thanh toán thất bại: ' + error.message)
   }
+}
+
+watch(totalCartPrice, () => {
+  if (!appliedVoucher.value) return
+
+  if (totalCartPrice.value < appliedVoucher.value.giaTriDonHangToiThieu) {
+    toast.warning('Đơn hàng không còn đủ điều kiện áp dụng voucher')
+
+    removeVoucher()
+  }
+})
+
+const isVoucherValid = (vc) => {
+  const now = new Date()
+
+  if (vc.trangThai !== 1) return false
+
+  if (vc.ngayBatDau && new Date(vc.ngayBatDau) > now) {
+    return false
+  }
+
+  if (vc.ngayKetThuc && new Date(vc.ngayKetThuc) < now) {
+    return false
+  }
+
+  if (vc.soLuongDaDung >= vc.soLuong) {
+    return false
+  }
+
+  if (totalCartPrice.value < vc.giaTriDonHangToiThieu) {
+    return false
+  }
+
+  return true
+}
+const getVoucherError = (vc) => {
+  const now = new Date()
+
+  if (vc.trangThai !== 1) {
+    return 'Voucher bị khóa'
+  }
+
+  if (vc.ngayBatDau && new Date(vc.ngayBatDau) > now) {
+    return 'Chưa tới ngày áp dụng'
+  }
+
+  if (vc.ngayKetThuc && new Date(vc.ngayKetThuc) < now) {
+    return 'Voucher đã hết hạn'
+  }
+
+  if (vc.soLuongDaDung >= vc.soLuong) {
+    return 'Đã hết lượt sử dụng'
+  }
+
+  if (totalCartPrice.value < vc.giaTriDonHangToiThieu) {
+    return `Đơn tối thiểu ${formatPrice(vc.giaTriDonHangToiThieu)}`
+  }
+
+  return ''
 }
 </script>
 
