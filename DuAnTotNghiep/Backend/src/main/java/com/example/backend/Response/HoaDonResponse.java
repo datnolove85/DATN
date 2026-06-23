@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -25,7 +26,7 @@ public class HoaDonResponse {
     private String loaiHoaDon;
     private String trangThai;
     private String ghiChu;
-    private Instant ngayTao;
-    private Instant ngayCapNhat;
+    private LocalDateTime ngayTao;
+    private LocalDateTime ngayCapNhat;
     private String phuongThucThanhToan;
 }

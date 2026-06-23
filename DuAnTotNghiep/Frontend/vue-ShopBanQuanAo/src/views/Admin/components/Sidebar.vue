@@ -219,14 +219,14 @@
               Danh sách sản phẩm
             </router-link>
 
-            <router-link
+            <!-- <router-link
               to="/admin/spct"
               class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs w-5 text-center">📑</span>
               Biến thể sản phẩm
-            </router-link>
+            </router-link> -->
           </div>
         </div>
         <div class="space-y-1">

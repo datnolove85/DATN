@@ -12,6 +12,23 @@ const handleResponse = async (response) => {
   return data
 }
 
+export const searchHoadon = async (filters, page = 0, size = 20) => {
+  try {
+    const response = await fetch(`${API}/search?page=${page}&size=${size}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(filters),
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('searchHoadon error:', error)
+    throw error
+  }
+}
+
 // ================= THANH TOAN =================
 export const thanhToanHoaDon = async (payload) => {
   try {
@@ -206,4 +223,58 @@ export const huyHoaDon = (id) => {
     if (!r.ok) throw new Error('Hủy hóa đơn thất bại')
     return r.text()
   })
+}
+
+export const apVoucher = async (idHoaDon, idVoucher) => {
+  try {
+    const response = await fetch(`${API}/${idHoaDon}/voucher?idVoucher=${idVoucher}`, {
+      method: 'POST',
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+export const boVoucher = async (idHoaDon) => {
+  try {
+    const response = await fetch(`${API}/${idHoaDon}/voucher`, {
+      method: 'DELETE',
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+export const getTraHangByHoaDon = async (idHoaDon) => {
+  try {
+    const response = await fetch(`${API}/trahang/${idHoaDon}`, {
+      method: 'GET',
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('getTraHangByHoaDon error:', error)
+    throw error
+  }
+}
+
+export const submitTraHang = async (payload) => {
+  try {
+    const response = await fetch(`${API}/tra-hang`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('submitTraHang error:', error)
+    throw error
+  }
 }

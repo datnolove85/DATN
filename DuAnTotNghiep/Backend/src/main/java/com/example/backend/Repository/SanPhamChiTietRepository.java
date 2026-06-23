@@ -1,15 +1,14 @@
 package com.example.backend.Repository;
 
-import com.example.backend.Entity.KichThuoc;
-import com.example.backend.Entity.MauSac;
-import com.example.backend.Entity.SanPham;
-import com.example.backend.Entity.SanPhamChiTiet;
+import com.example.backend.Entity.*;
 import com.example.backend.Response.SanPhamChiTietResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
+
 public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet,Integer> {
 
     // LIST PRODUCT - 1 SPCT đại diện
@@ -38,7 +37,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet,I
     select spct
     from SanPhamChiTiet spct
     where spct.idSanPham.id = :idSanPham
-    and spct.trangThai = true
     """)
     List<SanPhamChiTiet> findVariantsByProduct(@Param("idSanPham") Integer idSanPham);
 
@@ -69,4 +67,23 @@ from HinhAnh ha
             KichThuoc size
     );
     List<SanPhamChiTiet>  getSanPhamChiTietsByIdSanPham(@Param("idSanPham") Integer id);
+
+    @Query("""
+    select spct.idSanPham.id, coalesce(sum(spct.soLuongTon),0)
+    from SanPhamChiTiet spct
+    group by spct.idSanPham.id
+""")
+    List<Object[]> tongSoLuongTheoSanPham();
+
+    Optional<SanPhamChiTiet> findByIdSanPham_IdAndIdMauSac_IdAndIdKichThuoc_Id(
+            Integer idSanPham,
+            Integer idMauSac,
+            Integer idKichThuoc);
+
+    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.trangThai = true")
+    List<SanPhamChiTiet> findAllDangKinhDoanh();
+
+    List<SanPhamChiTiet> findByIdSanPham_Id(Integer idSanPham);
+
+
 }

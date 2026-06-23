@@ -35,4 +35,6 @@ public class SanPhamResponse {
     private Boolean trangThai;
 
     private String image;
+
+    private Integer soLuong;
 }

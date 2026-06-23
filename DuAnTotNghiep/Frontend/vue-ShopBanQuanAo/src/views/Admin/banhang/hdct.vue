@@ -11,7 +11,7 @@
         >
         <h1 class="text-2xl font-bold tracking-tight mt-1 text-white">Chi Tiết Hóa Đơn</h1>
         <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-          Mã định danh hệ thống:
+          Mã hóa đơn:
           <span
             class="font-mono font-bold text-indigo-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/10"
           >
@@ -21,6 +21,13 @@
       </div>
 
       <div class="relative z-10 flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+        <button
+          v-if="canReturn"
+          @click="openTraHang"
+          class="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-xs font-bold"
+        >
+          🔄 TRẢ HÀNG
+        </button>
         <button
           @click="openPreview"
           :disabled="!rawInvoice"
@@ -145,7 +152,7 @@
                 class="bg-slate-50 text-slate-400 font-bold text-[11px] uppercase tracking-wider select-none border-b border-slate-200/70"
               >
                 <tr>
-                  <th class="px-6 py-4 text-left font-bold w-[12%]">Mã SKU</th>
+                  <th class="px-6 py-4 text-left font-bold w-[12%]">Mã</th>
                   <th class="px-6 py-4 text-left font-bold w-[35%]">Tên sản phẩm</th>
                   <th class="px-6 py-4 text-left font-bold w-[18%]">Thông số phân loại</th>
                   <th class="px-6 py-4 text-center font-bold w-[10%]">Số lượng</th>
@@ -394,6 +401,100 @@
         </div>
       </div>
     </Teleport>
+    <Teleport to="body">
+      <div
+        v-if="showTraHang"
+        class="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center"
+      >
+        <div class="bg-white w-[900px] rounded-2xl shadow-2xl overflow-hidden">
+          <!-- HEADER -->
+          <div class="bg-red-500 text-white px-5 py-3 flex justify-between items-center">
+            <h2 class="font-bold">🔄 Trả hàng hóa đơn</h2>
+            <button @click="showTraHang = false" class="text-white font-bold">✕</button>
+          </div>
+
+          <!-- BODY -->
+          <div class="p-5 grid grid-cols-3 gap-4">
+            <!-- LEFT: TABLE -->
+            <div class="col-span-2">
+              <table class="w-full text-xs border">
+                <thead class="bg-slate-100 text-[11px]">
+                  <tr>
+                    <th class="p-2 text-left">Sản phẩm</th>
+                    <th>Đã mua</th>
+                    <th>Đã trả</th>
+                    <th>Còn lại</th>
+                    <th>Trả</th>
+                    <th>Tiền hoàn</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr v-for="sp in traHangData?.sanPhams || []" :key="sp.hdctId">
+                    <td class="p-2 font-semibold">{{ sp.tenSanPham }}</td>
+
+                    <td>{{ sp.soLuongMua }}</td>
+                    <td class="text-rose-500 font-bold">{{ sp.daTra }}</td>
+
+                    <td class="text-green-600 font-bold">
+                      {{ sp.conLai }}
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        v-model.number="sp.soLuongTra"
+                        :max="sp.conLai"
+                        min="0"
+                        class="border px-2 py-1 w-16"
+                        @input="calcRefund"
+                      />
+                    </td>
+
+                    <td class="text-right font-bold text-indigo-600">
+                      {{ formatMoney((sp.soLuongTra || 0) * sp.donGia) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- RIGHT: SUMMARY -->
+            <div class="col-span-1 border rounded-xl p-4 bg-slate-50">
+              <h3 class="font-bold mb-3">📊 Tổng hoàn tiền</h3>
+
+              <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span>Tổng trả:</span>
+                  <span class="font-bold text-red-600">{{ totalReturnQty }}</span>
+                </div>
+
+                <div class="flex justify-between">
+                  <span>Tiền hoàn:</span>
+                  <span class="font-bold text-indigo-600">
+                    {{ formatMoney(totalRefund) }}
+                  </span>
+                </div>
+
+                <div class="border-t pt-2 mt-2 flex justify-between">
+                  <span class="font-bold">Thực nhận lại:</span>
+                  <span class="text-green-600 font-black">
+                    {{ formatMoney(totalRefund) }}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-bold"
+                @click="submitTH"
+              >
+                Xác nhận trả hàng
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -401,10 +502,91 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getHoadonById } from '@/service/HoaDonService'
-
+import { useToast } from 'vue-toastification'
+import { getTraHangByHoaDon, submitTraHang } from '@/service/HoaDonService'
 const route = useRoute()
 const router = useRouter()
 const rawInvoice = ref(null)
+
+const toast = useToast()
+
+const showTraHang = ref(false)
+const traHangData = ref(null)
+
+const openTraHang = async () => {
+  try {
+    showTraHang.value = true
+
+    const res = await getTraHangByHoaDon(route.params.id)
+
+    // QUAN TRỌNG: chuẩn hoá data riêng
+    traHangData.value = {
+      sanPhams:
+        res?.sanPhams?.map((sp) => ({
+          ...sp,
+          soLuongTra: 0,
+          conLai: sp.conLai || 0,
+        })) || [],
+    }
+  } catch (e) {
+    console.error(e)
+    showTraHang.value = false
+  }
+}
+const canReturn = computed(() => {
+  const s = invoice.value?.status?.trim()
+  return ['da_giao', 'da_xac_nhan'].includes(s)
+})
+const submitTH = async () => {
+  try {
+    const payload = {
+      hoaDonId: route.params.id,
+      maTraHang: 'TH' + Date.now(), // hoặc sinh UUID
+      tongTienHoan: totalRefund.value,
+      lyDo: 'Khách trả hàng', // optional
+      danhSachTra: traHangData.value.sanPhams
+        .filter((sp) => sp.soLuongTra > 0)
+        .map((sp) => ({
+          hdctId: sp.hdctId,
+          soLuongTra: sp.soLuongTra,
+        })),
+    }
+    console.log('PAYLOAD TRA HÀNG:', payload)
+    await submitTraHang(payload)
+
+    toast.success('Trả hàng thành công!')
+    showTraHang.value = false
+
+    loadHoaDon()
+  } catch (e) {
+    console.error(e)
+    toast.error('Trả hàng thất bại!')
+  }
+}
+
+const calcRefund = () => {
+  if (!traHangData.value?.sanPhams) return
+
+  traHangData.value.sanPhams.forEach((sp) => {
+    if (!sp.soLuongTra || sp.soLuongTra < 0) sp.soLuongTra = 0
+    if (sp.soLuongTra > sp.conLai) sp.soLuongTra = sp.conLai
+  })
+}
+const totalRefund = computed(() => {
+  return (
+    traHangData.value?.sanPhams?.reduce((sum, sp) => {
+      return sum + (sp.soLuongTra || 0) * (sp.donGia || 0)
+    }, 0) || 0
+  )
+})
+
+const totalReturnQty = computed(() => {
+  return (
+    traHangData.value?.sanPhams?.reduce((sum, sp) => {
+      return sum + (sp.soLuongTra || 0)
+    }, 0) || 0
+  )
+})
 
 // Trạng thái bật/tắt Modal kiểm tra trước khi ra lệnh in
 const isPreviewOpen = ref(false)
@@ -422,15 +604,6 @@ const closePreview = () => {
 }
 
 // Bóc tách thương hiệu tự động
-const detectBrand = (productName) => {
-  if (!productName) return 'OEM'
-  const lowerName = productName.toLowerCase()
-  if (lowerName.includes('nike')) return 'Nike'
-  if (lowerName.includes('adidas')) return 'Adidas'
-  if (lowerName.includes('puma')) return 'Puma'
-  if (lowerName.includes('vitimex')) return 'Vitimex'
-  return 'LIFESTYLE'
-}
 
 // 1. Map cấu trúc dữ liệu hiển thị bảng lớn ngoài UI
 const invoice = computed(() => {
@@ -458,7 +631,7 @@ const invoice = computed(() => {
       id: sp.id,
       sku: sp.maSanPhamChiTiet,
       name: sp.tenSanPhamChiTiet,
-      brand: detectBrand(sp.tenSanPhamChiTiet),
+      brand: sp.tenThuongHieu,
       color: sp.tenMauSac,
       size: sp.tenKichThuoc,
       quantity: sp.soLuong,

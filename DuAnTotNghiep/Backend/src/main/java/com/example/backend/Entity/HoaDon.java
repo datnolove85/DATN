@@ -9,6 +9,7 @@ import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -76,22 +77,23 @@ public class HoaDon {
     @Column(name = "ghi_chu")
     private String ghiChu;
 
+
     @Column(name = "ngay_tao")
-    private Instant ngayTao;
+    private LocalDateTime ngayTao;
 
     @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
+    private LocalDateTime ngayCapNhat;
 
     @PrePersist
     public void prePersist() {
-        Instant now = Instant.now();
+        LocalDateTime now = LocalDateTime.now();
         this.ngayTao = now;
         this.ngayCapNhat = now;
     }
 
     @PreUpdate
     public void preUpdate() {
-        this.ngayCapNhat = Instant.now();
+        this.ngayCapNhat = LocalDateTime.now();
     }
 
 }

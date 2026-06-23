@@ -1,9 +1,16 @@
 package com.example.backend.Controller;
 
+import com.example.backend.Entity.HoaDon;
 import com.example.backend.Request.*;
 import com.example.backend.Response.HoaDonResponse;
 import com.example.backend.Service.HoaDonService;
+import com.example.backend.Service.TraHangService;
+import com.example.backend.mapper.HoaDonMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +23,8 @@ import java.util.List;
 public class HoaDonController {
 
     private final HoaDonService service;
+
+    private final TraHangService traHangService;
 
     // ================= GET ALL =================
     @GetMapping
@@ -31,6 +40,18 @@ public class HoaDonController {
         return ResponseEntity.ok(
                 service.thanhToanHoaDon(req)
         );
+    }
+
+    @PostMapping("/search")
+    public Page<HoaDon> search(
+            @RequestBody HoaDonFilterRequest req,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("ngayTao").descending());
+
+        return service.search(req, pageable);
     }
 
 
@@ -131,6 +152,38 @@ public class HoaDonController {
     public ResponseEntity<?> huyHoaDon(@PathVariable Integer id) {
         service.huyHoaDon(id);
         return ResponseEntity.ok("Hủy hóa đơn thành công");
+    }
+
+    @DeleteMapping("/{idHoaDon}/voucher")
+    public void boVoucher(
+            @PathVariable Integer idHoaDon
+    ){
+        service.boVoucher(idHoaDon);
+    }
+    @PostMapping("/{idHoaDon}/voucher")
+    public void apVoucher(
+            @PathVariable Integer idHoaDon,
+            @RequestParam Integer idVoucher
+    ){
+        service.apVoucher(
+                idHoaDon,
+                idVoucher
+        );
+    }
+
+    @GetMapping("/trahang/{id}")
+    public ResponseEntity<?> getThongTinTraHang(@PathVariable Integer id) {
+        return ResponseEntity.ok(
+              traHangService.getThongTinTraHang(id)
+        );
+    }
+
+    @PostMapping("/tra-hang")
+    public ResponseEntity<?> traHang(@RequestBody TraHangRequest request) {
+
+        traHangService.traHang(request);
+
+        return ResponseEntity.ok("Trả hàng thành công");
     }
 
 }

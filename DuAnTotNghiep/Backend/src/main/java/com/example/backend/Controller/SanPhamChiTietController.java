@@ -6,8 +6,10 @@ import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Response.SanPhamResponse;
 import com.example.backend.Service.SanPhamChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -36,20 +38,24 @@ public class SanPhamChiTietController {
         return sanPhamChiTietService.add(req);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SanPhamChiTietResponse update(
             @PathVariable Integer id,
-            @ModelAttribute SanPhamChiTietRequest req) {
-        return sanPhamChiTietService.update(id, req);
+            @ModelAttribute SanPhamChiTietRequest req,
+            @RequestParam(value = "files", required = false) MultipartFile[] files) {
+
+        return sanPhamChiTietService.update(id, req, files);
     }
 
     // ================= DELETE =================
     @DeleteMapping("/delete/{id}")
-    public String delete(@PathVariable Integer id) {
-
-        sanPhamChiTietService.delete(id);
-
-        return "Xóa sản phẩm chi tiết thành công";
+    public ResponseEntity<?> delete(@PathVariable Integer id) {
+        try {
+            sanPhamChiTietService.delete(id);
+            return ResponseEntity.ok("OK");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // ================= GET BY ID =================

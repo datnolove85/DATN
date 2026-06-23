@@ -7,8 +7,10 @@ import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Response.SanPhamResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 @Service
 public class SanPhamService {
 
@@ -49,7 +51,7 @@ public class SanPhamService {
         sp.setIdDanhMuc(danhMuc);
         sp.setIdThuongHieu(thuongHieu);
         sp.setIdChatLieu(chatLieu);
-
+        sp.setTrangThai(req.getTrangThai());
         sp.setMaSanPham(req.getMaSanPham());
         sp.setTenSanPham(req.getTenSanPham());
         sp.setMoTa(req.getMoTa());
@@ -58,6 +60,7 @@ public class SanPhamService {
     }
 
     // ================= UPDATE =================
+    @Transactional
     public SanPham update(Integer id, SanPhamRequest req) {
 
         SanPham sp = sanPhamRepository.findById(id)
@@ -75,10 +78,21 @@ public class SanPhamService {
         sp.setIdDanhMuc(danhMuc);
         sp.setIdThuongHieu(thuongHieu);
         sp.setIdChatLieu(chatLieu);
-
+        sp.setTrangThai(req.getTrangThai());
         sp.setMaSanPham(req.getMaSanPham());
         sp.setTenSanPham(req.getTenSanPham());
         sp.setMoTa(req.getMoTa());
+
+        // Nếu SP ngừng kinh doanh
+        if (req.getTrangThai() == false) {
+
+            List<SanPhamChiTiet> dsSpct =
+                    sanPhamChiTietRepository.findByIdSanPham_Id(id);
+
+            dsSpct.forEach(spct -> spct.setTrangThai(false));
+
+            sanPhamChiTietRepository.saveAll(dsSpct);
+        }
 
         return sanPhamRepository.save(sp);
     }

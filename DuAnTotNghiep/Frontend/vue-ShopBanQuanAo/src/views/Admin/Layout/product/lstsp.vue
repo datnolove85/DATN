@@ -99,7 +99,7 @@
               v-model="filters.search"
               type="text"
               placeholder="Tìm kiếm..."
-              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 ring-indigo-500/20"
             />
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 w-full flex-1">
@@ -136,7 +136,7 @@
             </select>
             <button
               @click="clearFilters"
-              class="border px-3 py-2.5 rounded-xl text-xs bg-rose-50 text-rose-600 hover:bg-rose-100"
+              class="border px-3 py-2.5 rounded-xl text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
             >
               Xóa bộ lọc
             </button>
@@ -144,19 +144,21 @@
         </div>
 
         <table class="w-full text-left">
-          <thead class="text-[10px] font-bold text-slate-400 uppercase border-b">
+          <thead class="text-[10px] font-bold text-slate-400 uppercase border-b bg-slate-50/50">
             <tr>
               <th class="px-6 py-4">Mã SP</th>
               <th class="px-6 py-4">Sản phẩm</th>
               <th class="px-6 py-4">Danh mục</th>
               <th class="px-6 py-4">Thương hiệu</th>
+              <th class="px-6 py-4">Chất liệu</th>
+              <th class="px-6 py-4 text-center">Số lượng</th>
               <th class="px-6 py-4">Trạng thái</th>
               <th class="px-6 py-4 text-right">Thao tác</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
             <template v-for="product in filteredProducts" :key="product.id">
-              <tr class="hover:bg-slate-50">
+              <tr class="hover:bg-slate-50/80 transition-colors">
                 <td class="px-6 py-4">
                   <span
                     class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
@@ -171,6 +173,8 @@
                 </td>
                 <td class="px-6 py-4 text-xs">{{ product.idDanhMuc?.tenDanhMuc }}</td>
                 <td class="px-6 py-4 text-xs">{{ product.idThuongHieu?.tenThuongHieu }}</td>
+                <td class="px-6 py-4 text-xs">{{ product.idChatLieu?.tenChatLieu }}</td>
+                <td class="px-6 py-4 text-center font-semibold">{{ product.soLuong }}</td>
                 <td
                   class="px-6 py-4 text-xs font-bold"
                   :class="product.trangThai ? 'text-emerald-600' : 'text-slate-400'"
@@ -180,7 +184,7 @@
                 <td class="px-6 py-4 text-right flex justify-end gap-2">
                   <button
                     @click="toggleSPCT(product)"
-                    class="p-2 hover:bg-emerald-50 rounded-lg text-slate-400 hover:text-emerald-600"
+                    class="p-2 hover:bg-emerald-50 rounded-lg text-slate-400 hover:text-emerald-600 transition-all"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -193,7 +197,7 @@
                   </button>
                   <button
                     @click="openEditModal(product)"
-                    class="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600"
+                    class="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -204,7 +208,7 @@
                   </button>
                   <button
                     @click="triggerDeleteConfirm(product.id)"
-                    class="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600"
+                    class="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -215,119 +219,150 @@
                   </button>
                 </td>
               </tr>
-              <tr v-if="expandedProductId === product.id" class="bg-slate-50">
-                <td colspan="6" class="p-5">
+              <tr v-if="expandedProductId === product.id" class="bg-slate-100">
+                <td colspan="8" class="px-6 py-4">
                   <div class="flex justify-between items-center mb-4">
                     <div>
-                      <h3 class="font-bold">
-                        {{ product.tenSanPham }}
-                      </h3>
-
+                      <h3 class="font-bold text-sm">{{ product.tenSanPham }}</h3>
                       <p class="text-xs text-slate-400">Danh sách biến thể</p>
                     </div>
-
-                    <button
-                      @click="openAddSPCTModal(product)"
-                      class="px-4 py-2 bg-indigo-600 text-white rounded-xl"
-                    >
-                      + Thêm biến thể
-                    </button>
-                    <button
-                      @click="isBulkOpen = true"
-                      class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm"
-                    >
-                      ⚡ Tạo hàng loạt biến thể
-                    </button>
+                    <div class="flex gap-2">
+                      <button
+                        @click="openAddSPCTModal(product)"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all"
+                      >
+                        + Thêm biến thể
+                      </button>
+                      <button
+                        @click="isBulkOpen = true"
+                        class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all"
+                      >
+                        ⚡ Tạo hàng loạt
+                      </button>
+                    </div>
                   </div>
-
-                  <div class="overflow-x-auto bg-white rounded-2xl border border-slate-200">
+                  <div
+                    class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+                  >
                     <table class="w-full text-sm">
-                      <thead class="bg-slate-100">
+                      <thead class="bg-slate-50 border-b">
                         <tr>
-                          <th class="px-4 py-3 text-left">Mã SPCT</th>
-                          <th class="px-4 py-3 text-left">Tên biến thể</th>
-                          <th class="px-4 py-3 text-left">Màu</th>
-                          <th class="px-4 py-3 text-left">Size</th>
-                          <th class="px-4 py-3 text-center">Tồn</th>
-                          <th class="px-4 py-3 text-right">Giá nhập</th>
-                          <th class="px-4 py-3 text-right">Giá bán</th>
-                          <th class="px-4 py-3 text-center">Trạng thái</th>
-                          <th class="px-4 py-3 text-right">Thao tác</th>
+                          <th
+                            class="px-4 py-3 text-center text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Hình ảnh
+                          </th>
+                          <th
+                            class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Mã SPCT
+                          </th>
+
+                          <th
+                            class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Màu
+                          </th>
+                          <th
+                            class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Size
+                          </th>
+                          <th
+                            class="px-4 py-3 text-center text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Tồn
+                          </th>
+                          <th
+                            class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Giá nhập
+                          </th>
+                          <th
+                            class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Giá bán
+                          </th>
+                          <th
+                            class="px-4 py-3 text-center text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Trạng thái
+                          </th>
+                          <th
+                            class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase"
+                          >
+                            Thao tác
+                          </th>
                         </tr>
                       </thead>
-
                       <tbody>
                         <tr
                           v-for="spct in spctList"
                           :key="spct.id"
-                          class="border-t hover:bg-slate-50"
+                          class="border-t hover:bg-slate-50 transition-colors"
                         >
+                          <td class="px-4 py-3 text-center">
+                            <img
+                              v-if="spct.images && spct.images.length > 0"
+                              :src="'http://localhost:8080' + spct.images[0]"
+                              alt=""
+                              class="w-14 h-14 object-cover rounded-lg border border-slate-200 mx-auto"
+                            />
+
+                            <div
+                              v-else
+                              class="w-14 h-14 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-[10px] mx-auto"
+                            >
+                              No image
+                            </div>
+                          </td>
                           <td class="px-4 py-3">
                             <span
                               class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
+                              >{{ spct.maSanPhamChiTiet }}</span
                             >
-                              {{ spct.maSanPhamChiTiet }}
-                            </span>
                           </td>
 
-                          <td class="px-4 py-3 font-medium">
-                            {{ spct.tenSanPhamChiTiet }}
-                          </td>
-
-                          <td class="px-4 py-3">
-                            {{ spct.tenMauSac }}
-                          </td>
-
-                          <td class="px-4 py-3">
-                            {{ spct.tenKichThuoc }}
-                          </td>
-
-                          <td class="px-4 py-3 text-center font-semibold">
+                          <td class="px-4 py-3 text-xs">{{ spct.tenMauSac }}</td>
+                          <td class="px-4 py-3 text-xs">{{ spct.tenKichThuoc }}</td>
+                          <td class="px-4 py-3 text-center text-xs font-semibold">
                             {{ spct.soLuongTon }}
                           </td>
-
-                          <td class="px-4 py-3 text-right">
+                          <td class="px-4 py-3 text-right text-xs">
                             {{ formatCurrency(spct.giaNhap) }}
                           </td>
-
-                          <td class="px-4 py-3 text-right text-indigo-600 font-bold">
+                          <td class="px-4 py-3 text-right text-xs text-indigo-600 font-bold">
                             {{ formatCurrency(spct.giaBan) }}
                           </td>
-
                           <td class="px-4 py-3 text-center">
                             <span
-                              class="px-2 py-1 rounded-full text-xs font-semibold"
+                              class="px-2 py-1 rounded-full text-[10px] font-bold"
                               :class="
                                 spct.trangThai
                                   ? 'bg-emerald-100 text-emerald-600'
                                   : 'bg-slate-100 text-slate-500'
                               "
+                              >{{ spct.trangThai ? 'Đang bán' : 'Lưu kho' }}</span
                             >
-                              {{ spct.trangThai ? 'Đang bán' : 'Lưu kho' }}
-                            </span>
                           </td>
-
                           <td class="px-4 py-3">
                             <div class="flex justify-end gap-2">
                               <button
                                 @click="editSPCT(spct)"
-                                class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                                class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold"
                               >
-                                Sửa
-                              </button>
-
-                              <button
+                                Sửa</button
+                              ><button
                                 @click="removeSPCT(spct.id)"
-                                class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"
+                                class="px-3 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[10px] font-bold"
                               >
                                 Xóa
                               </button>
                             </div>
                           </td>
                         </tr>
-
                         <tr v-if="spctList.length === 0">
-                          <td colspan="9" class="text-center py-10 text-slate-400">
+                          <td colspan="9" class="text-center py-10 text-slate-400 text-xs">
                             Chưa có biến thể nào
                           </td>
                         </tr>
@@ -341,220 +376,227 @@
         </table>
       </div>
     </div>
-    <transition name="fade">
-      <div
+
+    <transition name="fade"
+      ><div
         v-if="isModalOpen"
-        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/40"
+        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
       >
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold">
               {{ isEditMode ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm' }}
             </h2>
-
-            <button @click="isModalOpen = false" class="w-8 h-8 rounded-full hover:bg-slate-100">
+            <button
+              @click="isModalOpen = false"
+              class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"
+            >
               ✕
             </button>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-xs text-slate-500">Mã sản phẩm</label>
-              <input v-model="form.maSanPham" class="w-full border rounded-xl p-3 mt-1" />
+              <label class="text-xs font-bold text-slate-500 uppercase">Mã sản phẩm</label>
+              <input
+                v-model="form.maSanPham"
+                class="w-full border rounded-xl p-3 mt-1 focus:ring-2 ring-indigo-500/20 outline-none"
+              />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase">Tên sản phẩm</label>
+              <input
+                v-model="form.tenSanPham"
+                class="w-full border rounded-xl p-3 mt-1 focus:ring-2 ring-indigo-500/20 outline-none"
+              />
+            </div>
+
+            <div class="col-span-2">
+              <label class="text-xs font-bold text-slate-500 uppercase"
+                >Trạng thái kinh doanh</label
+              >
+              <select
+                v-model="form.trangThai"
+                class="w-full border rounded-xl p-3 mt-1 outline-none focus:ring-2 ring-indigo-500/20"
+              >
+                <option :value="true">Đang kinh doanh</option>
+                <option :value="false">Lưu kho</option>
+              </select>
             </div>
 
             <div>
-              <label class="text-xs text-slate-500">Tên sản phẩm</label>
-              <input v-model="form.tenSanPham" class="w-full border rounded-xl p-3 mt-1" />
-            </div>
-
-            <div>
-              <label class="text-xs text-slate-500">Danh mục</label>
-              <select v-model="form.idDanhMuc" class="w-full border rounded-xl p-3 mt-1">
+              <label class="text-xs font-bold text-slate-500 uppercase">Danh mục</label>
+              <select
+                v-model="form.idDanhMuc"
+                class="w-full border rounded-xl p-3 mt-1 outline-none"
+              >
                 <option :value="null">Chọn danh mục</option>
-
                 <option v-for="dm in danhMucs" :key="dm.id" :value="dm.id">
                   {{ dm.tenDanhMuc }}
                 </option>
               </select>
             </div>
-
             <div>
-              <label class="text-xs text-slate-500">Thương hiệu</label>
-              <select v-model="form.idThuongHieu" class="w-full border rounded-xl p-3 mt-1">
+              <label class="text-xs font-bold text-slate-500 uppercase">Thương hiệu</label>
+              <select
+                v-model="form.idThuongHieu"
+                class="w-full border rounded-xl p-3 mt-1 outline-none"
+              >
                 <option :value="null">Chọn thương hiệu</option>
-
                 <option v-for="th in thuongHieus" :key="th.id" :value="th.id">
                   {{ th.tenThuongHieu }}
                 </option>
               </select>
             </div>
-
             <div class="col-span-2">
-              <label class="text-xs text-slate-500">Chất liệu</label>
-              <select v-model="form.idChatLieu" class="w-full border rounded-xl p-3 mt-1">
+              <label class="text-xs font-bold text-slate-500 uppercase">Chất liệu</label>
+              <select
+                v-model="form.idChatLieu"
+                class="w-full border rounded-xl p-3 mt-1 outline-none"
+              >
                 <option :value="null">Chọn chất liệu</option>
-
                 <option v-for="cl in chatLieus" :key="cl.id" :value="cl.id">
                   {{ cl.tenChatLieu }}
                 </option>
               </select>
             </div>
-
             <div class="col-span-2">
-              <label class="text-xs text-slate-500">Mô tả</label>
-
+              <label class="text-xs font-bold text-slate-500 uppercase">Mô tả</label>
               <textarea
                 v-model="form.moTa"
                 rows="4"
-                class="w-full border rounded-xl p-3 mt-1"
+                class="w-full border rounded-xl p-3 mt-1 outline-none focus:ring-2 ring-indigo-500/20"
               ></textarea>
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 mt-6">
-            <button @click="isModalOpen = false" class="px-5 py-3 rounded-xl border">Hủy</button>
-
-            <button @click="handleSubmit" class="px-5 py-3 rounded-xl bg-indigo-600 text-white">
+          <div class="flex justify-end gap-3 mt-8">
+            <button
+              @click="isModalOpen = false"
+              class="px-6 py-3 rounded-xl border hover:bg-slate-50 transition-all font-bold text-xs uppercase"
+            >
+              Hủy
+            </button>
+            <button
+              @click="handleSubmit"
+              class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all font-bold text-xs uppercase"
+            >
               {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
             </button>
           </div>
         </div>
-      </div>
-    </transition>
-    <transition name="fade">
-      <div
+      </div></transition
+    >
+
+    <transition name="fade"
+      ><div
         v-if="isSPCTModalOpen"
         class="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
       >
         <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden">
-          <!-- HEADER -->
           <div class="p-6 border-b flex justify-between items-center">
             <div>
               <h2 class="text-xl font-bold">
                 {{ isEditSPCT ? 'Cập nhật biến thể' : 'Thêm biến thể mới' }}
               </h2>
-
-              <p class="text-sm text-slate-400">
-                {{ selectedProduct?.tenSanPham }}
-              </p>
+              <p class="text-xs text-slate-400 mt-1">{{ selectedProduct?.tenSanPham }}</p>
             </div>
-
             <button
               @click="isSPCTModalOpen = false"
-              class="w-10 h-10 rounded-xl hover:bg-slate-100"
+              class="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center"
             >
               ✕
             </button>
           </div>
-
-          <!-- BODY -->
           <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-xs text-slate-500"> Mã SPCT </label>
-
-                <input
+                <label class="text-xs font-bold text-slate-500 uppercase">Mã SPCT</label
+                ><input
                   v-model="formData.maSanPhamChiTiet"
-                  class="w-full border rounded-xl p-3 mt-1"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
                 />
               </div>
-
               <div>
-                <label class="text-xs text-slate-500"> Tên SPCT </label>
-
-                <input
+                <label class="text-xs font-bold text-slate-500 uppercase">Tên SPCT</label
+                ><input
                   v-model="formData.tenSanPhamChiTiet"
-                  class="w-full border rounded-xl p-3 mt-1"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
                 />
               </div>
             </div>
-
-            <!-- MÀU + SIZE -->
-
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-xs text-slate-500"> Màu sắc </label>
-
-                <select v-model="formData.idMauSac" class="w-full border rounded-xl p-3 mt-1">
+                <label class="text-xs font-bold text-slate-500 uppercase">Màu sắc</label
+                ><select
+                  v-model="formData.idMauSac"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
+                >
                   <option :value="null">Chọn màu sắc</option>
-
                   <option v-for="mau in mauSacs" :key="mau.id" :value="mau.id">
                     {{ mau.tenMauSac }}
                   </option>
                 </select>
               </div>
-
               <div>
-                <label class="text-xs text-slate-500"> Kích thước </label>
-
-                <select v-model="formData.idKichThuoc" class="w-full border rounded-xl p-3 mt-1">
+                <label class="text-xs font-bold text-slate-500 uppercase">Kích thước</label
+                ><select
+                  v-model="formData.idKichThuoc"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
+                >
                   <option :value="null">Chọn kích thước</option>
-
                   <option v-for="size in kichThuocs" :key="size.id" :value="size.id">
                     {{ size.tenKichThuoc }}
                   </option>
                 </select>
               </div>
             </div>
-
-            <!-- GIÁ -->
-
             <div class="grid grid-cols-3 gap-4">
               <div>
-                <label class="text-xs text-slate-500"> Giá nhập </label>
-
-                <input
+                <label class="text-xs font-bold text-slate-500 uppercase">Giá nhập</label
+                ><input
                   v-model.number="formData.giaNhap"
+                  placeholder="Giá nhập"
                   type="number"
-                  class="w-full border rounded-xl p-3 mt-1"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
                 />
               </div>
-
               <div>
-                <label class="text-xs text-slate-500"> Giá bán </label>
-
-                <input
+                <label class="text-xs font-bold text-slate-500 uppercase">Giá bán</label
+                ><input
                   v-model.number="formData.giaBan"
                   type="number"
-                  class="w-full border rounded-xl p-3 mt-1"
+                  placeholder="Giá bán"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
                 />
               </div>
-
               <div>
-                <label class="text-xs text-slate-500"> Tồn kho </label>
-
-                <input
+                <label class="text-xs font-bold text-slate-500 uppercase">Tồn kho</label
+                ><input
                   v-model.number="formData.soLuongTon"
                   type="number"
-                  class="w-full border rounded-xl p-3 mt-1"
+                  class="w-full border rounded-xl p-3 mt-1 outline-none"
                 />
               </div>
             </div>
-
-            <!-- TRẠNG THÁI -->
-
             <div>
-              <label class="text-xs text-slate-500"> Trạng thái </label>
-
-              <select v-model="formData.trangThai" class="w-full border rounded-xl p-3 mt-1">
+              <label class="text-xs font-bold text-slate-500 uppercase">Trạng thái</label
+              ><select
+                v-model="formData.trangThai"
+                class="w-full border rounded-xl p-3 mt-1 outline-none"
+              >
                 <option :value="true">Đang kinh doanh</option>
                 <option :value="false">Lưu kho</option>
               </select>
             </div>
-
-            <!-- ẢNH -->
-
             <div>
-              <label class="text-xs text-slate-500"> Hình ảnh </label>
-
-              <input
+              <label class="text-xs font-bold text-slate-500 uppercase">Hình ảnh</label
+              ><input
                 type="file"
                 multiple
                 @change="handleFileUpload"
                 class="w-full border rounded-xl p-3 mt-1"
               />
-
               <div class="flex gap-2 mt-3 flex-wrap">
                 <img
                   v-for="(img, i) in previewImages"
@@ -565,121 +607,135 @@
               </div>
             </div>
           </div>
-
-          <!-- FOOTER -->
-
           <div class="p-6 border-t flex justify-end gap-3">
-            <button @click="isSPCTModalOpen = false" class="px-5 py-3 border rounded-xl">
-              Hủy
-            </button>
-
-            <button @click="submitSPCT" class="px-5 py-3 bg-indigo-600 text-white rounded-xl">
+            <button
+              @click="isSPCTModalOpen = false"
+              class="px-6 py-3 border rounded-xl font-bold text-xs uppercase"
+            >
+              Hủy</button
+            ><button
+              @click="submitSPCT"
+              class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase"
+            >
               {{ isEditSPCT ? 'Cập nhật SPCT' : 'Thêm SPCT' }}
             </button>
           </div>
         </div>
-      </div>
-    </transition>
+      </div></transition
+    >
+
     <div
       v-if="isBulkOpen"
-      class="fixed inset-0 z-[999] bg-black/50 flex items-center justify-center"
+      class="fixed inset-0 z-[999] bg-black/50 flex items-center justify-center p-4"
     >
-      <div class="bg-white w-[700px] rounded-2xl p-6 space-y-4">
-        <h2 class="text-lg font-bold">Tạo biến thể hàng loạt</h2>
-
-        <!-- MÀU -->
+      <div class="bg-white w-[700px] rounded-3xl p-8 space-y-6">
+        <h2 class="text-xl font-bold">Tạo biến thể hàng loạt</h2>
         <div>
-          <p class="text-sm font-semibold mb-2">Màu sắc</p>
-          <div class="flex flex-wrap gap-3">
-            <label v-for="m in mauSacs" :key="m.id" class="flex items-center gap-2 text-sm">
-              <input type="checkbox" :value="m.id" v-model="selectedColors" />
-              {{ m.tenMauSac }}
-            </label>
+          <p class="text-xs font-bold text-slate-500 uppercase mb-3">Màu sắc</p>
+          <div class="flex flex-wrap gap-2">
+            <label
+              v-for="m in mauSacs"
+              :key="m.id"
+              class="flex items-center gap-2 text-sm bg-slate-50 px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100"
+              ><input
+                type="checkbox"
+                :value="m.id"
+                v-model="selectedColors"
+                class="accent-indigo-600"
+              />{{ m.tenMauSac }}</label
+            >
           </div>
         </div>
-
-        <!-- SIZE -->
         <div>
-          <p class="text-sm font-semibold mb-2">Kích thước</p>
-          <div class="flex flex-wrap gap-3">
-            <label v-for="s in kichThuocs" :key="s.id" class="flex items-center gap-2 text-sm">
-              <input type="checkbox" :value="s.id" v-model="selectedSizes" />
-              {{ s.tenKichThuoc }}
-            </label>
+          <p class="text-xs font-bold text-slate-500 uppercase mb-3">Kích thước</p>
+          <div class="flex flex-wrap gap-2">
+            <label
+              v-for="s in kichThuocs"
+              :key="s.id"
+              class="flex items-center gap-2 text-sm bg-slate-50 px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100"
+              ><input
+                type="checkbox"
+                :value="s.id"
+                v-model="selectedSizes"
+                class="accent-indigo-600"
+              />{{ s.tenKichThuoc }}</label
+            >
           </div>
         </div>
-
-        <!-- GIÁ CHUNG -->
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-4">
           <input
             v-model.number="formData.giaNhap"
-            class="border p-2 rounded-xl"
-            placeholder="Giá nhập"
             type="number"
+            placeholder="Giá nhập"
+            class="border p-3 rounded-xl outline-none placeholder-gray-400"
           />
-
           <input
             v-model.number="formData.giaBan"
-            class="border p-2 rounded-xl"
+            class="border p-3 rounded-xl outline-none"
             placeholder="Giá bán"
             type="number"
           />
         </div>
-
-        <!-- PREVIEW -->
-        <div class="bg-slate-50 p-3 rounded-xl max-h-[200px] overflow-auto text-sm">
-          <p class="font-semibold mb-2">Preview:</p>
-
+        <div class="bg-slate-50 p-4 rounded-xl max-h-[150px] overflow-auto text-xs text-slate-600">
+          <p class="font-bold text-slate-900 mb-2">Preview:</p>
           <div v-for="v in previewVariants" :key="v.key">{{ v.colorName }} - {{ v.sizeName }}</div>
         </div>
-
-        <!-- ACTION -->
         <div class="flex justify-end gap-3">
-          <button @click="isBulkOpen = false" class="px-4 py-2 border rounded-xl">Hủy</button>
-
-          <button @click="submitBulkSPCT" class="px-4 py-2 bg-indigo-600 text-white rounded-xl">
+          <button
+            @click="resetBulkForm"
+            class="px-6 py-3 border rounded-xl font-bold text-xs uppercase"
+          >
+            Hủy
+          </button>
+          <button
+            @click="submitBulkSPCT"
+            class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase"
+          >
             Tạo {{ previewVariants.length }} biến thể
           </button>
         </div>
       </div>
     </div>
-    <transition name="fade">
-      <div
+
+    <transition name="fade"
+      ><div
         v-if="confirmModal.show"
-        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       >
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div class="p-6">
-            <h3 class="text-lg font-bold text-slate-900">Xác nhận xóa sản phẩm</h3>
-
-            <p class="mt-2 text-sm text-slate-500">
-              Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa?
-            </p>
+        <div
+          class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden p-8 text-center"
+        >
+          <div
+            class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+          >
+            🗑️
           </div>
-
-          <div class="flex justify-end gap-3 p-6 border-t">
+          <h3 class="text-lg font-bold text-slate-900">Xác nhận xóa</h3>
+          <p class="mt-2 text-sm text-slate-500">
+            Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa?
+          </p>
+          <div class="flex justify-center gap-3 mt-8">
             <button
               @click="cancelDelete"
-              class="px-5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50"
+              class="px-6 py-3 rounded-xl border font-bold text-xs uppercase"
             >
-              Hủy
-            </button>
-
-            <button
+              Hủy</button
+            ><button
               @click="confirmDelete"
-              class="px-5 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+              class="px-6 py-3 rounded-xl bg-rose-600 text-white font-bold text-xs uppercase"
             >
-              Xóa
+              Xóa vĩnh viễn
             </button>
           </div>
         </div>
-      </div>
-    </transition>
+      </div></transition
+    >
   </div>
 </template>
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
 
 import { getAllSanpham } from '@/service/SanphamService'
 import { getAllDanhMuc } from '@/service/DanhMucService'
@@ -734,8 +790,8 @@ const formData = ref({
   maSanPhamChiTiet: '',
   tenSanPhamChiTiet: '',
 
-  giaNhap: 0,
-  giaBan: 0,
+  giaNhap: null,
+  giaBan: null,
 
   soLuongTon: 0,
 
@@ -869,6 +925,35 @@ const previewVariants = computed(() => {
   return result
 })
 const submitBulkSPCT = async () => {
+  const duplicated = previewVariants.value.filter((v) =>
+    spctList.value.some(
+      (item) =>
+        Number(item.idMauSac) === Number(v.colorId) &&
+        Number(item.idKichThuoc) === Number(v.sizeId),
+    ),
+  )
+
+  if (duplicated.length > 0) {
+    const ds = duplicated.map((v) => `${v.colorName} - ${v.sizeName}`).join(', ')
+
+    toast.error(`Biến thể đã tồn tại: ${ds}`)
+    return
+  }
+  if (Number(formData.value.giaNhap) < 0) {
+    toast.error('Giá nhập không được âm')
+    return
+  }
+
+  if (Number(formData.value.giaBan) < 0) {
+    toast.error('Giá bán không được âm')
+    return
+  }
+
+  if (Number(formData.value.giaNhap) > Number(formData.value.giaBan)) {
+    toast.error('Giá nhập không được lớn hơn giá bán')
+    return
+  }
+
   if (!selectedColors.value.length || !selectedSizes.value.length) {
     toast.error('Chọn màu và size')
     return
@@ -891,12 +976,10 @@ const submitBulkSPCT = async () => {
     })
 
     toast.success('Tạo biến thể thành công')
-
-    isBulkOpen.value = false
-    selectedColors.value = []
-    selectedSizes.value = []
+    resetBulkForm()
 
     await loadSPCT(selectedProduct.value.id)
+    await loadData()
   } catch (e) {
     toast.error('Lỗi tạo biến thể')
   }
@@ -910,6 +993,17 @@ const openBulk = (product) => {
   selectedSizes.value = []
 
   isBulkOpen.value = true
+}
+
+const resetBulkForm = () => {
+  selectedColors.value = []
+  selectedSizes.value = []
+
+  formData.value.giaNhap = null
+  formData.value.giaBan = null
+  formData.value.soLuongTon = 0
+
+  isBulkOpen.value = false
 }
 // ========================
 // FILE UPLOAD PREVIEW
@@ -962,18 +1056,21 @@ const validateSPCT = () => {
     return false
   }
 
-  if (Number(formData.value.giaNhap) <= 0) {
-    toast.error('Giá nhập phải lớn hơn 0')
+  const giaNhap = Number(formData.value.giaNhap)
+  const giaBan = Number(formData.value.giaBan)
+
+  if (isNaN(giaNhap) || giaNhap < 0) {
+    toast.error('Giá nhập không được âm')
     return false
   }
 
-  if (Number(formData.value.giaBan) <= 0) {
-    toast.error('Giá bán phải lớn hơn 0')
+  if (isNaN(giaBan) || giaBan < 0) {
+    toast.error('Giá bán không được âm')
     return false
   }
 
-  if (Number(formData.value.giaBan) < Number(formData.value.giaNhap)) {
-    toast.error('Giá bán không được nhỏ hơn giá nhập')
+  if (giaNhap > giaBan) {
+    toast.error('Giá nhập không được lớn hơn giá bán')
     return false
   }
 
@@ -1040,6 +1137,8 @@ const submitSPCT = async () => {
     // reload SPCT list
     await loadSPCT(formData.value.idSanPham)
 
+    await loadData()
+
     // reset form
     selectedFiles.value = []
     previewImages.value = []
@@ -1077,14 +1176,27 @@ const editSPCT = (spct) => {
 // DELETE SPCT (OPTIONAL)
 // ========================
 const removeSPCT = async (id) => {
+  const result = await Swal.fire({
+    title: 'Xóa sản phẩm chi tiết?',
+    text: 'Thao tác này không thể hoàn tác!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Xóa',
+    cancelButtonText: 'Hủy',
+    reverseButtons: true,
+  })
+
+  if (!result.isConfirmed) return
+
   try {
     await deleteSanPhamChiTiet(id)
     await loadSPCT(selectedProduct.value.id)
+    await loadData()
+    toast.success('Ngừng kinh doanh biến thể thành công!')
   } catch (e) {
-    console.error(e)
+    toast.error(e.response?.data || e.message || 'Có lỗi xảy ra')
   }
 }
-
 // ========================
 // FILTER PRODUCT LIST
 // ========================
@@ -1228,6 +1340,7 @@ const handleSubmit = async () => {
       idChatLieu: form.value.idChatLieu,
       maSanPham: form.value.maSanPham,
       tenSanPham: form.value.tenSanPham,
+      trangThai: form.value.trangThai,
       moTa: form.value.moTa,
     }
 

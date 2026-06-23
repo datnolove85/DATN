@@ -3,40 +3,41 @@
     <header class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <div
-            v-for="(order, index) in allOrders"
-            :key="index"
-            @click="switchOrder(index)"
-            :class="[
-              'group flex items-center gap-2 px-4 py-1.5 rounded-t-xl border-t-2 transition-all cursor-pointer text-xs font-bold',
-              currentOrderIndex === index
-                ? 'bg-white border-indigo-500 text-indigo-600'
-                : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100',
-            ]"
-          >
-            <span>HĐ #{{ order.maHoaDon }}</span>
-            <button
-              @click.stop="removeOrder(index)"
-              class="ml-1 flex items-center justify-center w-5 h-5 rounded-full bg-slate-200 text-slate-600 hover:bg-rose-500 hover:text-white transition-all"
+          <template v-if="allOrders.length > 0">
+            <div
+              v-for="(order, index) in allOrders.filter((o) => o.id)"
+              :key="order.id"
+              @click="switchOrder(index)"
+              :class="[
+                'group flex items-center gap-2 px-4 py-1.5 rounded-t-xl border-t-2 transition-all cursor-pointer text-xs font-bold',
+                currentOrderIndex === index
+                  ? 'bg-white border-indigo-500 text-indigo-600'
+                  : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100',
+              ]"
             >
-              ×
-            </button>
-          </div>
+              <span>HĐ #{{ order.maHoaDon }}</span>
+              <button
+                @click.stop="removeOrder(index)"
+                class="ml-1 flex items-center justify-center w-5 h-5 rounded-full bg-slate-200 text-slate-600 hover:bg-rose-500 hover:text-white transition-all"
+              >
+                ×
+              </button>
+            </div>
+          </template>
 
           <button
             @click="createNewOrder"
             class="ml-2 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-indigo-600 hover:text-white transition-all text-slate-400"
+            title="Tạo hóa đơn mới"
           >
             +
           </button>
-          <div v-if="allOrders.length === 0" class="text-center py-10 text-slate-500">
-            Chưa có hóa đơn nào. Vui lòng tạo hóa đơn trước khi bán hàng.
-          </div>
         </div>
 
         <div class="flex-1 max-w-xs hidden md:block ml-8">
           <div class="relative">
             <input
+              ref="searchInput"
               v-model="searchQuery"
               @focus="openDropdown"
               @blur="closeDropdown"
@@ -56,7 +57,7 @@
               >
                 <img :src="getProductImage(sp)" class="w-8 h-8 rounded object-cover" />
                 <div class="flex-1 truncate text-xs">
-                  <p class="font-bold">{{ sp.tenSanPhamChiTiet }}</p>
+                  <p class="font-bold">{{ sp.tenSanPham }}</p>
                   <p class="text-indigo-600">{{ formatPrice(sp.giaBan) }}</p>
                 </div>
               </div>
@@ -130,12 +131,12 @@
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
           <div
-            v-for="sp in filteredProducts"
+            v-for="sp in sortedProducts"
             :key="sp.id"
-            @click="sp.soLuongTon > 0 ? addToCart(sp) : null"
+            @click="sp.soLuongTon > 0 && sp.trangThai ? addToCart(sp) : null"
             :class="[
               'bg-white rounded-2xl border p-3 flex flex-col justify-between transition-all group relative overflow-hidden select-none',
-              sp.soLuongTon > 0
+              sp.soLuongTon > 0 && sp.trangThai
                 ? 'border-slate-200 hover:border-indigo-500 hover:shadow-lg cursor-pointer'
                 : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed',
             ]"
@@ -156,7 +157,15 @@
               />
 
               <div
-                v-if="sp.soLuongTon > 0"
+                v-if="sp.trangThai === false || sp.soLuongTon <= 0"
+                class="absolute inset-0 bg-black/40 flex items-center justify-center z-20"
+              >
+                <span class="bg-white text-rose-600 text-xs font-black px-3 py-1 rounded-lg">
+                  {{ sp.trangThai === false ? 'KHÔNG KHẢ DỤNG' : 'HẾT HÀNG' }}
+                </span>
+              </div>
+              <div
+                v-if="sp.soLuongTon > 0 && sp.trangThai"
                 class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center transition-all"
               >
                 <span
@@ -178,17 +187,6 @@
                   </svg>
                 </span>
               </div>
-
-              <div
-                v-else
-                class="absolute inset-0 bg-slate-900 bg-opacity-40 flex items-center justify-center"
-              >
-                <span
-                  class="bg-white text-slate-800 text-xs font-black px-2.5 py-1 rounded-lg shadow"
-                >
-                  HẾT HÀNG
-                </span>
-              </div>
             </div>
 
             <div class="flex-1 flex flex-col justify-between">
@@ -208,9 +206,9 @@
 
                 <h3
                   class="text-xs font-bold text-slate-800 line-clamp-2 mt-1 group-hover:text-indigo-600 transition-colors"
-                  :title="sp.tenSanPhamChiTiet || sp.tenSanPham"
+                  :title="sp.tenSanPham"
                 >
-                  {{ sp.tenSanPhamChiTiet || sp.tenSanPham }}
+                  {{ sp.tenSanPham }}
                 </h3>
 
                 <div class="flex gap-1 mt-2 flex-wrap">
@@ -249,14 +247,20 @@
                 <span
                   :class="[
                     'text-[10px] px-1.5 py-0.5 rounded font-bold',
-                    sp.soLuongTon <= 0
+                    sp.soLuongTon <= 0 || !sp.trangThai
                       ? 'bg-rose-50 text-rose-600'
                       : sp.soLuongTon <= 10
                         ? 'bg-amber-50 text-amber-700'
                         : 'bg-slate-100 text-slate-600',
                   ]"
                 >
-                  Kho: {{ sp.soLuongTon }}
+                  {{
+                    !sp.trangThai
+                      ? 'Không khả dụng'
+                      : sp.soLuongTon <= 0
+                        ? 'Hết hàng'
+                        : 'Kho: ' + sp.soLuongTon
+                  }}
                 </span>
               </div>
             </div>
@@ -297,10 +301,7 @@
               <div v-if="selectedCustomer">
                 <p class="text-sm font-bold text-slate-800">{{ selectedCustomer.hoTen }}</p>
                 <p class="text-xs text-slate-500 font-medium">
-                  {{ selectedCustomer.soDienThoai }} •
-                  <span class="text-indigo-600 font-semibold">{{
-                    selectedCustomer.hangThanhVien || 'Thành viên lẻ'
-                  }}</span>
+                  {{ selectedCustomer.soDienThoai }}
                 </p>
               </div>
               <div v-else>
@@ -363,7 +364,7 @@
               />
               <div class="flex-1 min-w-0">
                 <h4 class="text-xs font-bold text-slate-800 truncate">
-                  {{ item.product.tenSanPhamChiTiet || item.product.tenSanPham }}
+                  {{ item.product.tenSanPham }}
                 </h4>
                 <p class="text-[10px] text-slate-500 font-medium">
                   {{ item.product.tenMauSac }} / {{ item.product.tenKichThuoc }}
@@ -512,7 +513,8 @@
               v-if="appliedVoucher"
               class="bg-indigo-50 text-indigo-700 text-[11px] font-bold p-2 rounded-xl flex justify-between items-center"
             >
-              <span>🎟️ Đã áp dụng Voucher ID: {{ appliedVoucher.id }}</span>
+              <span> 🎟️ Đã áp dụng: {{ appliedVoucher.maVoucher }} </span>
+
               <button @click="removeVoucher" class="text-rose-500 hover:underline font-black">
                 Xóa
               </button>
@@ -632,10 +634,10 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import InvoiceModal from './InvoiceModal.vue'
-
+import Swal from 'sweetalert2'
 // --- 1. IMPORT CÁC SERVICE API ---
 import { getAllDanhMuc } from '@/service/DanhMucService'
 import { getAllKichThuoc } from '@/service/KichThuocService'
@@ -657,6 +659,8 @@ import {
   ganKhachHang,
   thanhToanHoaDon,
   huyHoaDon,
+  apVoucher,
+  boVoucher,
 } from '@/service/HoaDonService'
 
 // --- 2. KHỞI TẠO BIẾN CƠ BẢN ---
@@ -691,6 +695,81 @@ const filterColor = ref('')
 const filterSize = ref('')
 const voucherCode = ref('')
 const searchCustomerQuery = ref('')
+const searchInput = ref(null)
+
+const handleKeyDown = async (e) => {
+  if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+    e.preventDefault() // chặn trình duyệt mở Find
+
+    searchInput.value?.focus()
+
+    // chọn toàn bộ nội dung cũ nếu có
+    searchInput.value?.select()
+  }
+
+  // F1 => tạo hóa đơn mới
+  if (e.key === 'F1') {
+    e.preventDefault() // chặn mở Help của trình duyệt
+
+    createNewOrder()
+  }
+
+  // Ctrl + D => hủy hóa đơn hiện tại
+  if (e.ctrlKey && e.key.toLowerCase() === 'd') {
+    e.preventDefault()
+
+    if (!currentOrder.value?.id) return
+
+    const result = await Swal.fire({
+      title: 'Hủy hóa đơn?',
+      html: `
+      <div style="font-size:14px;color:#64748b">
+        Hóa đơn hiện tại sẽ bị <b style="color:#dc2626">xóa vĩnh viễn</b>.<br>
+        Hành động này không thể hoàn tác.
+      </div>
+    `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: '🗑️ Hủy hóa đơn',
+      cancelButtonText: 'Tiếp tục bán',
+      reverseButtons: true,
+      focusCancel: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#334155',
+      background: '#fff',
+      color: '#0f172a',
+      width: 430,
+      customClass: {
+        popup: 'rounded-3xl shadow-2xl',
+        title: 'text-xl font-bold',
+        confirmButton: 'px-5 py-3 rounded-2xl',
+        cancelButton: 'px-5 py-3 rounded-2xl',
+      },
+    })
+
+    if (result.isConfirmed) {
+      await removeOrder(currentOrderIndex.value)
+
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Đã hủy hóa đơn',
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      })
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 
 const allOrders = ref([
   {
@@ -708,12 +787,13 @@ const currentOrderIndex = ref(0)
 const selectedVoucher = ref(null)
 
 // --- 5. COMPUTED PROPERTIES (LẤY DỮ LIỆU TỪ ORDER HIỆN TẠI) ---
-const currentOrder = computed(
-  () =>
-    (allOrders.value || [])[currentOrderIndex.value] || {
-      cart: [],
-    },
-)
+const currentOrder = computed(() => {
+  // Nếu không có hóa đơn hoặc index không hợp lệ, trả về một object rỗng có cart là []
+  if (allOrders.value.length === 0 || currentOrderIndex.value < 0) {
+    return { cart: [] }
+  }
+  return allOrders.value[currentOrderIndex.value] || { cart: [] }
+})
 
 const selectedCustomer = computed({
   get: () => currentOrder.value?.selectedCustomer || null,
@@ -792,28 +872,36 @@ const loadPTTT = async () => {
 
 const loadChiTietHoaDon = async (idHoaDon) => {
   try {
-    const data = await getChiTietHoaDon(idHoaDon)
-    // 🔥 lấy đúng order theo id
+    const data = await getHoadonById(idHoaDon)
+
     const order = allOrders.value.find((o) => o.id === idHoaDon)
     if (!order) return
 
-    order.cart = data.map((item) => ({
+    order.cart = data.sanPhams.map((item) => ({
       id: item.id,
       product: {
-        idSanPhamChiTiet: item.sanPhamChiTiet?.id,
-        id: item.sanPhamChiTiet?.id,
-
-        tenSanPhamChiTiet: item.tenSanPham,
-        giaBan: item.giaBan,
-
-        tenMauSac: item.sanPhamChiTiet?.idMauSac?.tenMauSac,
-        tenKichThuoc: item.sanPhamChiTiet?.idKichThuoc?.tenKichThuoc,
+        idSanPhamChiTiet: item.idSanPhamChiTiet,
+        id: item.idSanPhamChiTiet,
+        tenSanPhamChiTiet: item.tenSanPhamChiTiet,
+        giaBan: item.donGia,
+        tenMauSac: item.tenMauSac,
+        tenKichThuoc: item.tenKichThuoc,
       },
       soLuong: item.soLuong,
       thanhTien: item.thanhTien,
     }))
+    order.appliedVoucher = data.voucher || null
+    order.voucherQuery = data.voucher?.maVoucher || ''
+    selectedVoucher.value = data.voucher || null
 
-    // 🔥 ép Vue update UI ngay lập tức
+    order.selectedCustomer = data.idKhachHang
+      ? {
+          id: data.idKhachHang,
+          hoTen: data.tenKhachHang,
+          soDienThoai: data.soDienThoaiKhachHang,
+        }
+      : null
+
     allOrders.value = [...allOrders.value]
   } catch (error) {
     console.error(error)
@@ -832,8 +920,8 @@ onMounted(async () => {
     maHoaDon: hd.maHoaDon,
     cart: [],
     selectedCustomer: null,
-    appliedVoucher: null,
-    voucherQuery: '',
+    appliedVoucher: hd.voucher || null,
+    voucherQuery: hd.voucher?.maVoucher || '',
     loaiHoaDon: 'tai_quay',
     phuongThucThanhToan: '',
   }))
@@ -875,7 +963,6 @@ const saveNewCustomer = async () => {
     toast.error('Có lỗi xảy ra khi lưu khách hàng!')
   }
 }
-
 const selectVoucher = (voucher) => {
   const now = new Date()
 
@@ -904,15 +991,15 @@ const selectVoucher = (voucher) => {
     return
   }
 
+  // CHỈ CHỌN, CHƯA ÁP DỤNG
   selectedVoucher.value = voucher
-  appliedVoucher.value = voucher
   voucherQuery.value = voucher.maVoucher
   voucherCode.value = voucher.maVoucher
 
   showVoucherDropdown.value = false
 }
 
-const applyVoucher = () => {
+const applyVoucher = async () => {
   const code = (voucherQuery.value || voucherCode.value).trim().toUpperCase()
 
   const foundVoucher = vouchers.value.find((v) => v.maVoucher?.toUpperCase() === code)
@@ -950,19 +1037,35 @@ const applyVoucher = () => {
     )
     return
   }
+  try {
+    await apVoucher(currentOrder.value.id, foundVoucher.id)
 
-  appliedVoucher.value = foundVoucher
-  selectedVoucher.value = foundVoucher
-  voucherQuery.value = foundVoucher.maVoucher
+    // reload lại từ server
+    await loadChiTietHoaDon(currentOrder.value.id)
 
-  toast.success('Áp dụng voucher thành công!')
+    selectedVoucher.value = foundVoucher
+    voucherQuery.value = foundVoucher.maVoucher
+
+    toast.success('Áp dụng voucher thành công')
+  } catch (error) {
+    toast.error(error.message)
+  }
 }
 
-const removeVoucher = () => {
-  appliedVoucher.value = null
-  selectedVoucher.value = null
-  voucherCode.value = ''
-  voucherQuery.value = ''
+const removeVoucher = async () => {
+  try {
+    await boVoucher(currentOrder.value.id)
+    await loadChiTietHoaDon(currentOrder.value.id)
+
+    appliedVoucher.value = null
+    selectedVoucher.value = null
+    voucherCode.value = ''
+    voucherQuery.value = ''
+
+    toast.success('Đã bỏ voucher')
+  } catch (error) {
+    toast.error(error.message)
+  }
 }
 
 // // --- 8. TÍNH TOÁN GIÁ & LỌC DỮ LIỆU ---
@@ -1136,7 +1239,13 @@ const removeFromCart = async (index) => {
   }
 }
 
+const max_oder_waiting = 6
+
 const createNewOrder = async () => {
+  if (allOrders.value.length >= max_oder_waiting) {
+    toast.warning(`Chỉ được tạo tối đa ${max_oder_waiting} hóa đơn chờ`)
+    return
+  }
   try {
     const hoaDon = await taoHoaDonCho()
     allOrders.value.push({
@@ -1214,18 +1323,8 @@ const removeOrder = async (index) => {
 }
 
 const resetPOSState = () => {
-  allOrders.value = [
-    {
-      cart: [],
-      selectedCustomer: null,
-      appliedVoucher: null,
-      voucherQuery: '',
-      loaiHoaDon: 'tai_quay',
-      phuongThucThanhToan: ptttList.value.length > 0 ? ptttList.value[0].id : '',
-    },
-  ]
-  currentOrderIndex.value = 0
-  toast.info('Sẵn sàng tạo hóa đơn mới')
+  allOrders.value = []
+  currentOrderIndex.value = -1
 }
 
 // --- 10. TIỆN ÍCH & FORMATTER ---
@@ -1278,18 +1377,12 @@ const selectCustomer = async (kh) => {
     toast.error('Không thể gán khách hàng')
   }
 }
+
 const handleCloseInvoice = () => {
   showInvoiceModal.value = false
+
   if (allOrders.value.length === 0) {
-    allOrders.value.push({
-      cart: [],
-      selectedCustomer: null,
-      appliedVoucher: null,
-      voucherQuery: '',
-      loaiHoaDon: 'tai_quay',
-      phuongThucThanhToan: ptttList.value.length > 0 ? ptttList.value[0].id : '',
-    })
-    currentOrderIndex.value = 0
+    currentOrderIndex.value = -1
   }
 }
 
@@ -1334,29 +1427,21 @@ const submitCheckout = async () => {
 
   try {
     const result = await thanhToanHoaDon(payload)
-
     hoaDonPrint.value = result
     showInvoiceModal.value = true
 
-    // ================= RESET POS =================
+    // Xóa hóa đơn đã thanh toán
+    allOrders.value = allOrders.value.filter((o) => o.id !== currentOrder.value.id)
 
-    const paidOrderId = currentOrder.value.id
-
-    // Xóa hóa đơn đã thanh toán khỏi danh sách
-    allOrders.value = allOrders.value.filter((o) => o.id !== paidOrderId)
-
-    // Load lại sản phẩm để cập nhật tồn kho
-    await loadAllDataFromAPI()
-
+    // Nếu vẫn còn hóa đơn, chọn tab đầu tiên
     if (allOrders.value.length > 0) {
       currentOrderIndex.value = 0
-
       await loadChiTietHoaDon(allOrders.value[0].id)
     } else {
-      resetPOSState()
+      // Nếu không còn hóa đơn, reset index về -1 hoặc giá trị mặc định để UI không chọn tab nào
+      currentOrderIndex.value = -1
+      toast.info('Đã hết hóa đơn chờ')
     }
-
-    toast.success('Thanh toán thành công!')
   } catch (error) {
     toast.error('Thanh toán thất bại: ' + error.message)
   }
@@ -1420,6 +1505,13 @@ const getVoucherError = (vc) => {
 
   return ''
 }
+const sortedProducts = computed(() => {
+  return [...filteredProducts.value].sort((a, b) => {
+    if (a.soLuongTon <= 0 && b.soLuongTon > 0) return 1
+    if (a.soLuongTon > 0 && b.soLuongTon <= 0) return -1
+    return 0
+  })
+})
 </script>
 
 <style scoped>
@@ -1435,5 +1527,23 @@ const getVoucherError = (vc) => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.swal2-popup {
+  border-radius: 24px !important;
+}
+
+.swal2-confirm,
+.swal2-cancel {
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+}
+
+.swal2-title {
+  color: #0f172a !important;
+}
+
+.swal2-html-container {
+  color: #64748b !important;
 }
 </style>

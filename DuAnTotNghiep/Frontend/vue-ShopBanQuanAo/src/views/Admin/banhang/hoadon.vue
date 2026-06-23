@@ -21,7 +21,7 @@
         </p>
       </div>
 
-      <button
+      <!-- <button
         class="relative z-10 flex items-center justify-center gap-2 px-5 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
       >
         <svg
@@ -38,8 +38,7 @@
             d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
           />
         </svg>
-        XUẤT BÁO CÁO EXCEL
-      </button>
+      </button> -->
     </div>
 
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -55,6 +54,63 @@
         >
           Bộ lọc: Tự động áp dụng
         </span>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-5">
+        <button
+          @click="filterToday"
+          :class="[
+            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            activeFilter === 'today'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+          ]"
+        >
+          Hôm nay
+        </button>
+
+        <button
+          @click="filterYesterday"
+          :class="[
+            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            activeFilter === 'yesterday'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+          ]"
+        >
+          Hôm qua
+        </button>
+
+        <button
+          @click="filter7Days"
+          :class="[
+            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            activeFilter === '7days'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+          ]"
+        >
+          7 ngày gần đây
+        </button>
+
+        <button
+          @click="filterThisMonth"
+          :class="[
+            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            activeFilter === 'month'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+          ]"
+        >
+          Tháng này
+        </button>
+
+        <button
+          @click="resetFilter"
+          class="px-3 py-2 rounded-xl bg-slate-50 text-slate-600 text-xs font-bold"
+        >
+          Tất cả
+        </button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -175,7 +231,7 @@
         <div
           v-for="invoice in invoices"
           :key="invoice.id"
-          @dblclick="goToDetail(invoice.id)"
+          @dbclick="goToDetail(invoice.id)"
           :class="[
             'relative transition-all duration-300 group',
             expandedIds.includes(invoice.id) ? 'bg-indigo-50/40' : 'hover:bg-slate-50/60',
@@ -237,14 +293,9 @@
 
             <div class="col-span-1 flex justify-start md:justify-center">
               <button
-                @click="toggleDetails(invoice.id)"
-                :class="[
-                  'p-2 rounded-xl transition-all duration-300 border',
-                  expandedIds.includes(invoice.id)
-                    ? 'bg-indigo-600 border-indigo-600 text-white rotate-180 shadow-md shadow-indigo-600/10'
-                    : 'bg-slate-50 border-slate-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200',
-                ]"
-                title="Xem chi tiết nhanh"
+                @click="goToDetail(invoice.id)"
+                class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
+                title="Xem chi tiết"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -364,19 +415,53 @@
           </div>
         </tr>
       </div>
+      <div class="flex items-center justify-end gap-4 py-6">
+        <button
+          @click="page--"
+          :disabled="page === 0"
+          class="px-4 py-2 text-sm font-medium transition-all duration-200 border rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Trước
+        </button>
+
+        <span class="text-sm font-semibold text-gray-700">
+          Trang <span class="px-2 py-1 bg-gray-100 rounded-md">{{ page + 1 }}</span> /
+          {{ totalPages }}
+        </span>
+
+        <button
+          @click="page++"
+          :disabled="page + 1 >= totalPages"
+          class="px-4 py-2 text-sm font-medium transition-all duration-200 border rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Sau
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { getAllHoadon } from '@/service/HoaDonService'
+import { searchHoadon } from '@/service/HoaDonService'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const rawData = ref([])
 const invoices = ref([])
 const expandedIds = ref([])
+
+const page = ref(0)
+const size = ref(20)
+const totalPages = ref(0)
+
+const selectedInvoiceId = ref(null)
+const showInvoiceModal = ref(false)
+
+const openInvoice = (id) => {
+  selectedInvoiceId.value = id
+  showInvoiceModal.value = true
+}
 
 const filters = ref({
   keyword: '',
@@ -387,6 +472,68 @@ const filters = ref({
   minPrice: '',
   maxPrice: '',
 })
+const activeFilter = ref('')
+
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+const filterToday = () => {
+  activeFilter.value = 'today'
+
+  const today = formatDate(new Date())
+  filters.value.fromDate = today
+  filters.value.toDate = today
+}
+
+const filterYesterday = () => {
+  activeFilter.value = 'yesterday'
+
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+
+  const day = formatDate(d)
+  filters.value.fromDate = day
+  filters.value.toDate = day
+}
+
+const filter7Days = () => {
+  activeFilter.value = '7days'
+
+  const to = new Date()
+  const from = new Date()
+  from.setDate(from.getDate() - 6)
+
+  filters.value.fromDate = formatDate(from)
+  filters.value.toDate = formatDate(to)
+}
+
+const filterThisMonth = () => {
+  activeFilter.value = 'month'
+
+  const now = new Date()
+
+  filters.value.fromDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+
+  filters.value.toDate = formatDate(now)
+}
+
+const resetFilter = () => {
+  activeFilter.value = ''
+
+  filters.value = {
+    keyword: '',
+    fromDate: '',
+    toDate: '',
+    trangThai: '',
+    loaiHoaDon: '',
+    minPrice: '',
+    maxPrice: '',
+  }
+}
 
 const goToDetail = (id) => {
   router.push({ name: 'HoaDonChiTiet', params: { id: id } })
@@ -426,9 +573,9 @@ const statusClassModern = (status) => {
 }
 
 const fetchInvoices = async () => {
-  const res = await getAllHoadon()
+  const res = await searchHoadon(filters.value, page.value, size.value)
 
-  rawData.value = res.map((item) => ({
+  invoices.value = res.content.map((item) => ({
     id: item.id,
     code: item.maHoaDon,
     customer: item.tenNguoiNhan,
@@ -446,58 +593,18 @@ const fetchInvoices = async () => {
     discount: item.tongGiamGia,
   }))
 
-  applyFilter()
+  totalPages.value = res.totalPages
 }
+watch(
+  filters,
+  () => {
+    page.value = 0
+    fetchInvoices()
+  },
+  { deep: true },
+)
 
-const applyFilter = () => {
-  let data = [...rawData.value]
-
-  if (filters.value.keyword) {
-    const k = filters.value.keyword.toLowerCase()
-    data = data.filter(
-      (x) =>
-        x.code?.toLowerCase().includes(k) ||
-        x.customer?.toLowerCase().includes(k) ||
-        x.phone?.includes(k),
-    )
-  }
-
-  if (filters.value.trangThai) data = data.filter((x) => x.status === filters.value.trangThai)
-  if (filters.value.loaiHoaDon) data = data.filter((x) => x.type === filters.value.loaiHoaDon)
-  if (filters.value.minPrice) data = data.filter((x) => x.final >= Number(filters.value.minPrice))
-  if (filters.value.maxPrice) data = data.filter((x) => x.final <= Number(filters.value.maxPrice))
-
-  if (filters.value.fromDate) {
-    const from = new Date(filters.value.fromDate)
-    data = data.filter((x) => x.createdRaw && x.createdRaw >= from)
-  }
-
-  if (filters.value.toDate) {
-    const to = new Date(filters.value.toDate)
-    to.setHours(23, 59, 59, 999)
-    data = data.filter((x) => x.createdRaw && x.createdRaw <= to)
-  }
-
-  invoices.value = data.sort((a, b) => {
-    return new Date(b.createdRaw) - new Date(a.createdRaw)
-  })
-}
-
-watch(filters, applyFilter, { deep: true })
-
-const resetFilter = () => {
-  filters.value = {
-    keyword: '',
-    fromDate: '',
-    toDate: '',
-    trangThai: '',
-    loaiHoaDon: '',
-    minPrice: '',
-    maxPrice: '',
-  }
-  applyFilter()
-}
-
+watch(page, fetchInvoices)
 const formatMoney = (v) => Number(v || 0).toLocaleString('vi-VN') + ' đ'
 
 onMounted(fetchInvoices)

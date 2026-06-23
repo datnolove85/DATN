@@ -63,7 +63,7 @@ public class HoaDonMapper {
         res.setTrangThai((String) row[5]);
 
         // DATE → Instant
-        res.setNgayTao(((java.sql.Timestamp) row[6]).toInstant());
+        res.setNgayTao(((java.sql.Timestamp) row[6]).toLocalDateTime());
 
         // MONEY → BigDecimal (CHUẨN NHẤT)
         res.setTongTienHang((BigDecimal) row[7]);

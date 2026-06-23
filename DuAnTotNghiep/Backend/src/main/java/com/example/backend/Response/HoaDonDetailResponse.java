@@ -1,9 +1,12 @@
 package com.example.backend.Response;
 
+import com.example.backend.Entity.HoaDonVoucher;
+import com.example.backend.Entity.Voucher;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -38,9 +41,10 @@ public class HoaDonDetailResponse {
     private BigDecimal phiVanChuyen;
     private BigDecimal tongThanhToan;
 
-    private Instant ngayTao;
-    private Instant ngayCapNhat;
+    private LocalDateTime ngayTao;
+    private LocalDateTime ngayCapNhat;
 
     // Danh sách sản phẩm
     private List<HoaDonChiTietResponse> sanPhams;
+    private Voucher voucher;
 }
