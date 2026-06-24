@@ -638,6 +638,15 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import InvoiceModal from './InvoiceModal.vue'
 import Swal from 'sweetalert2'
+import stompClient from '@/socket'
+import '@/socket'
+import { onBeforeUnmount } from 'vue'
+
+onBeforeUnmount(() => {
+  if (stompClient) {
+    stompClient.deactivate()
+  }
+})
 // --- 1. IMPORT CÁC SERVICE API ---
 import { getAllDanhMuc } from '@/service/DanhMucService'
 import { getAllKichThuoc } from '@/service/KichThuocService'
@@ -860,16 +869,18 @@ const loadAllDataFromAPI = async () => {
   }
 }
 
+const defaultPTTTId = ref(null)
 const loadPTTT = async () => {
   const data = await getAllPTTT()
   ptttList.value = data
-  if (data.length > 0) {
-    allOrders.value.forEach((order) => {
-      order.phuongThucThanhToan ||= data[0].id
-    })
+
+  const defaultId = data?.[1]?.id || data?.[0]?.id
+  defaultPTTTId.value = defaultId // 👈 THIẾU CHỖ NÀY
+
+  if (currentOrder.value && !currentOrder.value.phuongThucThanhToan) {
+    currentOrder.value.phuongThucThanhToan = defaultId
   }
 }
-
 const loadChiTietHoaDon = async (idHoaDon) => {
   try {
     const data = await getHoadonById(idHoaDon)
@@ -907,11 +918,13 @@ const loadChiTietHoaDon = async (idHoaDon) => {
     console.error(error)
   }
 }
+
 onMounted(async () => {
   await loadAllDataFromAPI()
-  await loadPTTT()
 
   const [voucherData, hoaDonData] = await Promise.all([getAllVoucher(), getHoaDonCho()])
+
+  await loadPTTT() // 👈 lấy default trước
 
   vouchers.value = voucherData
 
@@ -923,15 +936,71 @@ onMounted(async () => {
     appliedVoucher: hd.voucher || null,
     voucherQuery: hd.voucher?.maVoucher || '',
     loaiHoaDon: 'tai_quay',
-    phuongThucThanhToan: '',
+    phuongThucThanhToan: defaultPTTTId.value, // 👈 dùng tại đây
   }))
 
   if (allOrders.value.length > 0) {
     currentOrderIndex.value = 0
     await loadChiTietHoaDon(allOrders.value[0].id)
   }
+
+  initSocket()
 })
 
+let socketTimer = null
+
+function initSocket() {
+  stompClient.onConnect = () => {
+    stompClient.subscribe('/topic/products', (msg) => {
+      const data = JSON.parse(msg.body)
+
+      clearTimeout(socketTimer)
+
+      socketTimer = setTimeout(() => {
+        handleSocket(data)
+      }, 50)
+    })
+  }
+}
+function handleSocket(data) {
+  switch (data.type) {
+    case 'PRODUCT_STOCK_UPDATED':
+      updateProductStock(data.productId, data.newStock)
+      break
+
+    case 'ORDER_CREATED':
+      addNewOrderToList(data.order)
+      break
+  }
+}
+
+function updateProductStock(productId, newStock) {
+  const index = products.value.findIndex(
+    (p) => p.idSanPhamChiTiet === productId || p.id === productId,
+  )
+
+  if (index === -1) return
+
+  products.value[index] = {
+    ...products.value[index],
+    stock: newStock,
+  }
+}
+
+function addNewOrderToList(order) {
+  if (allOrders.value.some((o) => o.id === order.id)) return
+
+  allOrders.value.push({
+    id: order.id,
+    maHoaDon: order.maHoaDon,
+    cart: [],
+    selectedCustomer: null,
+    appliedVoucher: order.voucher || null,
+    voucherQuery: order.voucher?.maVoucher || '',
+    loaiHoaDon: 'tai_quay',
+    phuongThucThanhToan: '',
+  })
+}
 // --- 7. HÀM XỬ LÝ KHÁCH HÀNG & VOUCHER ---
 const saveNewCustomer = async () => {
   if (!newCust.value.hoTen || !newCust.value.sdt) {

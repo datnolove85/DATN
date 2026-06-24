@@ -1,12 +1,14 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 // Import thư viện và CSS
+
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import './style.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import './socket'
 //cấu hình
 const options = {
   position: 'top-right', // Góc trên bên phải

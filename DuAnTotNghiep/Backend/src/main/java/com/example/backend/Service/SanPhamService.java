@@ -104,6 +104,13 @@ public class SanPhamService {
 
         sp.setTrangThai(false);
 
+        List<SanPhamChiTiet> dsSpct =
+                sanPhamChiTietRepository.findByIdSanPham_Id(id);
+
+        dsSpct.forEach(spct -> spct.setTrangThai(false));
+
+        sanPhamChiTietRepository.saveAll(dsSpct);
+
         sanPhamRepository.save(sp);
     }
 

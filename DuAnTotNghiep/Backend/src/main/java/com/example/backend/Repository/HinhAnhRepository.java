@@ -9,4 +9,6 @@ public interface HinhAnhRepository extends JpaRepository<HinhAnh, Integer> {
     List<HinhAnh> findByIdSanPhamChiTiet_IdAndTrangThaiTrue(Integer id);
 
     List<HinhAnh> findAllByIdIn(List<Integer> ids);
+
+
 }

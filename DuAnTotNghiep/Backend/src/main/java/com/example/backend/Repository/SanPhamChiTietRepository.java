@@ -52,6 +52,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet,I
     @Query("""
 select ha.idSanPhamChiTiet.id, ha.link
 from HinhAnh ha
+WHERE ha.trangThai = true
 """)
     List<Object[]> getAllImages();
 
@@ -85,5 +86,21 @@ from HinhAnh ha
 
     List<SanPhamChiTiet> findByIdSanPham_Id(Integer idSanPham);
 
+    List<SanPhamChiTiet> findByIdSanPham(Integer idSanPham);
+
+    @Query("""
+SELECT COUNT(spct)
+FROM SanPhamChiTiet spct
+WHERE spct.idSanPham.id = :idSanPham
+AND spct.trangThai = true
+""")
+    Integer countDangKinhDoanh(@Param("idSanPham") Integer idSanPham);
+
+    @Query("""
+SELECT COUNT(spct)
+FROM SanPhamChiTiet spct
+WHERE spct.idSanPham.id = :idSanPham
+""")
+    Integer countTong(@Param("idSanPham") Integer idSanPham);
 
 }

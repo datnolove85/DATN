@@ -1,5 +1,6 @@
 package com.example.backend.Service.impl;
 
+import com.example.backend.Config.WebSocketConfig;
 import com.example.backend.Entity.*;
 
 import com.example.backend.Repository.*;
@@ -21,6 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +41,8 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final VoucherRepository voucherRepo;
     private final HoaDonVoucherRepository hoaDonVoucherRepo;
     private final TraHangChiTietRepository traHangChiTietRepository;
-
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
     @Override
     public HoaDon taoHoaDonCho() {
         HoaDon hoaDon = new HoaDon();
@@ -336,6 +339,7 @@ public class HoaDonServiceImpl implements HoaDonService {
         res.put("sanPhams", sanPhams);
         return res;
     }
+
     @Transactional
     @Override
     public void themSanPhamVaoHoaDon(
@@ -417,6 +421,10 @@ public class HoaDonServiceImpl implements HoaDonService {
         spctRepo.save(spct);
         recalculateHoaDon(
                 hoaDon.getId()
+        );
+        messagingTemplate.convertAndSend(
+                "/topic/products",
+                "STOCK_CHANGED"
         );
     }
 

@@ -360,22 +360,18 @@ public class SanPhamChiTietService {
     }
 
 
-
+    @Transactional
     public void delete(Integer id) {
 
         SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
 
-        if (!spct.getTrangThai()) {
-            return;
-        }
-
         spct.setTrangThai(false);
+
         sanPhamChiTietRepository.save(spct);
-
         Integer idSanPham = spct.getIdSanPham().getId();
-
         capNhatTrangThaiSanPham(idSanPham);
+
     }
 
     private SanPhamChiTietResponse mapToResponse(SanPhamChiTiet spct) {
@@ -606,5 +602,12 @@ public class SanPhamChiTietService {
         sp.setTrangThai(conBienTheHoatDong ? true : false);
 
         sanPhamRepository.save(sp);
+    }
+
+    public String getThongKeSPCT(Integer idSanPham) {
+        Integer dangKD = sanPhamChiTietRepository.countDangKinhDoanh(idSanPham);
+        Integer tong = sanPhamChiTietRepository.countTong(idSanPham);
+
+        return dangKD + "/" + tong;
     }
 }

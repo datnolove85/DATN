@@ -80,3 +80,13 @@ export const createBulkSPCT = (payload) => {
     body: JSON.stringify(payload),
   })
 }
+
+export const getThongKeSPCT = async (id) => {
+  const res = await fetch(`http://localhost:8080/spct/sp/${id}/thong-ke-spct`)
+
+  if (!res.ok) {
+    throw new Error('Lỗi lấy thống kê SPCT')
+  }
+
+  return await res.text()
+}

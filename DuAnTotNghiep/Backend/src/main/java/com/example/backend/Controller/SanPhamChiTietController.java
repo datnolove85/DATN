@@ -22,7 +22,6 @@ public class SanPhamChiTietController {
     private SanPhamChiTietService sanPhamChiTietService;
 
 
-
     // ================= SPCT LIST (VARIANT MANAGE) =================
     @GetMapping()
     public ResponseEntity<List<SanPhamChiTietResponse>> getAllSpct() {
@@ -68,7 +67,8 @@ public class SanPhamChiTietController {
 
     @GetMapping("/sp/{id}")
     public List<SanPhamChiTietResponse> getBySpct(@PathVariable Integer id) {
-        return  sanPhamChiTietService.getByIdSP(id);}
+        return sanPhamChiTietService.getByIdSP(id);
+    }
 
 
     @PostMapping("/bulk")
@@ -77,6 +77,11 @@ public class SanPhamChiTietController {
         return ResponseEntity.ok("OK");
     }
 
+    @GetMapping("/sp/{id}/thong-ke-spct")
+    public ResponseEntity<String> thongKe(@PathVariable Integer id) {
+        return ResponseEntity.ok(sanPhamChiTietService.getThongKeSPCT(id));
     }
+
+}
 
 

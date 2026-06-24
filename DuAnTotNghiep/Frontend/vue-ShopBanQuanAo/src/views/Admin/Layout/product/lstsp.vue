@@ -64,6 +64,51 @@
               >🏷️</span
             >
           </div>
+          <div class="bg-white p-6 rounded-2xl border shadow-sm flex items-center justify-between">
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Sản phẩm
+              </div>
+              <div class="text-2xl font-black text-slate-800">
+                {{ tongSanPham }}
+              </div>
+            </div>
+            <span
+              class="text-xl bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center border"
+            >
+              📦
+            </span>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border shadow-sm flex items-center justify-between">
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                SPCT đang kinh doanh
+              </div>
+              <div class="text-2xl font-black text-green-600">
+                {{ tongSPCTDangKD }}
+              </div>
+            </div>
+            <span
+              class="text-xl bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center border"
+            >
+              ✅
+            </span>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border shadow-sm flex items-center justify-between">
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Tổng SPCT
+              </div>
+              <div class="text-2xl font-black text-slate-800">
+                {{ tongSPCT }}
+              </div>
+            </div>
+            <span
+              class="text-xl bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center border"
+            >
+              📦
+            </span>
+          </div>
           <div
             class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
           >
@@ -226,6 +271,9 @@
                       <h3 class="font-bold text-sm">{{ product.tenSanPham }}</h3>
                       <p class="text-xs text-slate-400">Danh sách biến thể</p>
                     </div>
+                    <span class="text-xs text-slate-500 ml-2">
+                      ({{ product.thongKe }} đang kinh doanh)
+                    </span>
                     <div class="flex gap-2">
                       <button
                         @click="openAddSPCTModal(product)"
@@ -302,18 +350,30 @@
                           class="border-t hover:bg-slate-50 transition-colors"
                         >
                           <td class="px-4 py-3 text-center">
-                            <img
-                              v-if="spct.images && spct.images.length > 0"
-                              :src="'http://localhost:8080' + spct.images[0]"
-                              alt=""
-                              class="w-14 h-14 object-cover rounded-lg border border-slate-200 mx-auto"
-                            />
+                            <div class="flex flex-wrap gap-2 justify-center items-center">
+                              <div
+                                class="w-12 h-12 rounded-lg border border-slate-200 overflow-hidden shadow-sm"
+                              >
+                                <img
+                                  v-if="spct.images?.length"
+                                  :src="'http://localhost:8080' + spct.images[0]"
+                                  class="w-full h-full object-cover"
+                                />
 
-                            <div
-                              v-else
-                              class="w-14 h-14 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-[10px] mx-auto"
-                            >
-                              No image
+                                <div
+                                  v-else
+                                  class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-[10px] font-medium"
+                                >
+                                  No Image
+                                </div>
+                              </div>
+
+                              <button
+                                @click="openImageManager(spct)"
+                                class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-100"
+                              >
+                                Quản lý ảnh
+                              </button>
                             </div>
                           </td>
                           <td class="px-4 py-3">
@@ -697,46 +757,98 @@
       </div>
     </div>
 
-    <transition name="fade"
-      ><div
-        v-if="confirmModal.show"
-        class="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      >
-        <div
-          class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden p-8 text-center"
+    <div>
+      <transition name="fade"
+        ><div
+          v-if="confirmModal.show"
+          class="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
         >
           <div
-            class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+            class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden p-8 text-center"
           >
-            🗑️
+            <div
+              class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+            >
+              🗑️
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Xác nhận xóa</h3>
+            <p class="mt-2 text-sm text-slate-500">
+              Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa?
+            </p>
+            <div class="flex justify-center gap-3 mt-8">
+              <button
+                @click="cancelDelete"
+                class="px-6 py-3 rounded-xl border font-bold text-xs uppercase"
+              >
+                Hủy</button
+              ><button
+                @click="confirmDelete"
+                class="px-6 py-3 rounded-xl bg-rose-600 text-white font-bold text-xs uppercase"
+              >
+                Xóa vĩnh viễn
+              </button>
+            </div>
           </div>
-          <h3 class="text-lg font-bold text-slate-900">Xác nhận xóa</h3>
-          <p class="mt-2 text-sm text-slate-500">
-            Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa?
-          </p>
-          <div class="flex justify-center gap-3 mt-8">
+        </div></transition
+      >
+    </div>
+    <div
+      v-if="isImageManagerOpen"
+      class="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+    >
+      <div
+        class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        @click="isImageManagerOpen = false"
+      ></div>
+      <div
+        class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8 relative z-10 animate-fade-in"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-bold">Quản lý ảnh: {{ selectedSPCT?.maSanPhamChiTiet }}</h2>
+          <button @click="isImageManagerOpen = false" class="text-slate-400 hover:text-black">
+            ✕
+          </button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-3 mb-6">
+          <div
+            v-for="(img, index) in currentGallery"
+            :key="index"
+            class="relative group aspect-square"
+          >
+            <img :src="baseUrl + img.url" class="w-full h-full object-cover rounded-xl border" />
             <button
-              @click="cancelDelete"
-              class="px-6 py-3 rounded-xl border font-bold text-xs uppercase"
+              @click="deleteImageAPI(img.id)"
+              class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 transition-all shadow-lg"
             >
-              Hủy</button
-            ><button
-              @click="confirmDelete"
-              class="px-6 py-3 rounded-xl bg-rose-600 text-white font-bold text-xs uppercase"
-            >
-              Xóa vĩnh viễn
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
           </div>
+
+          <label
+            class="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:text-indigo-600 transition-all"
+          >
+            <span class="text-xl">+</span>
+            <input type="file" multiple class="hidden" @change="handleUpload" />
+          </label>
         </div>
-      </div></transition
-    >
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-
+import stompClient from '@/socket'
+import '@/socket'
 import { getAllSanpham } from '@/service/SanphamService'
 import { getAllDanhMuc } from '@/service/DanhMucService'
 import { getAllThuongHieu } from '@/service/ThuongHieuService'
@@ -745,13 +857,14 @@ import { updateSanPhamChiTiet } from '@/service/SanPhamChiTiet'
 import { useToast } from 'vue-toastification'
 import { getAllMauSac } from '@/service/MauSacService'
 import { getAllKichThuoc } from '@/service/KichThuocService'
-
+import { uploadImages, deleteImage, getImagesBySPCT } from '@/service/HinhAnhSerivce'
 const toast = useToast()
 const baseUrl = 'http://localhost:8080'
 import {
   getSanPhamChiTietByProductId,
   createSanPhamChiTiet,
   deleteSanPhamChiTiet,
+  getThongKeSPCT,
 } from '@/service/SanPhamChiTiet'
 
 // ========================
@@ -764,12 +877,21 @@ const thuongHieus = ref([])
 const chatLieus = ref([])
 const mauSacs = ref([])
 const kichThuocs = ref([])
+
+const tongSanPham = ref(0)
+const tongSPCT = ref(0)
+const tongSPCTDangKD = ref(0)
+
 // ========================
 // DRAWER STATE (SPCT)
 // ========================
 const isSPCTModalOpen = ref(false)
 const selectedProduct = ref(null)
 const expandedProductId = ref(null)
+
+const isImageManagerOpen = ref(false)
+const currentGallery = ref([]) // Lưu danh sách ảnh {id, url}
+const selectedSPCT = ref(null)
 
 const spctList = ref([])
 const loadingSpct = ref(false)
@@ -831,14 +953,7 @@ const editingSPCTId = ref(null)
 // ========================
 const loadData = async () => {
   try {
-    ;[
-      products.value,
-      danhMucs.value,
-      thuongHieus.value,
-      chatLieus.value,
-      mauSacs.value,
-      kichThuocs.value,
-    ] = await Promise.all([
+    const [productList, danhMuc, thuongHieu, chatLieu, mauSac, kichThuoc] = await Promise.all([
       getAllSanpham(),
       getAllDanhMuc(),
       getAllThuongHieu(),
@@ -846,12 +961,52 @@ const loadData = async () => {
       getAllMauSac(),
       getAllKichThuoc(),
     ])
+
+    // gắn thống kê SPCT
+    products.value = await Promise.all(
+      productList.map(async (sp) => {
+        const thongKe = await getThongKeSPCT(sp.id)
+
+        return {
+          ...sp,
+          thongKe,
+        }
+      }),
+    )
+
+    danhMucs.value = danhMuc
+    thuongHieus.value = thuongHieu
+    chatLieus.value = chatLieu
+    mauSacs.value = mauSac
+    kichThuocs.value = kichThuoc
   } catch (err) {
     console.error(err)
   }
+
+  tongSanPham.value = products.value.length
+
+  await calcThongKeSPCT()
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+
+  if (stompClient.connected) {
+    subscribe()
+  } else {
+    stompClient.onConnect = () => {
+      subscribe()
+    }
+  }
+})
+
+function subscribe() {
+  stompClient.subscribe('/topic/products', (msg) => {
+    console.log('NHẬN SOCKET:', msg.body)
+
+    loadData() // ✔ phải có ()
+  })
+}
 
 // ========================
 // OPEN DRAWER + LOAD SPCT
@@ -903,6 +1058,7 @@ const loadSPCT = async (id) => {
     loadingSpct.value = false
   }
 }
+
 const previewVariants = computed(() => {
   const result = []
 
@@ -1191,6 +1347,7 @@ const removeSPCT = async (id) => {
   try {
     await deleteSanPhamChiTiet(id)
     await loadSPCT(selectedProduct.value.id)
+
     await loadData()
     toast.success('Ngừng kinh doanh biến thể thành công!')
   } catch (e) {
@@ -1396,8 +1553,8 @@ const confirmDelete = async () => {
     await fetch(`http://localhost:8080/sanpham/delete/${confirmModal.targetId}`, {
       method: 'DELETE',
     })
-
     await loadData()
+    await loadSPCT(selectedProduct.value.id)
 
     toast.success('🗑️ Xóa sản phẩm thành công')
   } catch (err) {
@@ -1419,6 +1576,82 @@ const formatCurrency = (val) =>
     style: 'currency',
     currency: 'VND',
   }).format(val || 0)
+
+const openImageManager = async (spct) => {
+  selectedSPCT.value = spct
+
+  try {
+    currentGallery.value = await getImagesBySPCT(spct.id)
+
+    isImageManagerOpen.value = true
+  } catch (e) {
+    toast.error(e.message)
+  }
+}
+
+const handleUpload = async (event) => {
+  try {
+    const files = Array.from(event.target.files)
+
+    await uploadImages(selectedSPCT.value.id, files)
+
+    await reloadGallery()
+    toast.success('Thêm ảnh thành công')
+
+    event.target.value = '' // 👈 QUAN TRỌNG
+
+    await loadSPCT(selectedProduct.value.id)
+  } catch (e) {
+    toast.error(e.message || 'Upload lỗi')
+  }
+}
+
+const deleteImageAPI = async (id) => {
+  try {
+    await deleteImage(id)
+
+    currentGallery.value = currentGallery.value.filter((img) => img.id !== id)
+
+    await loadSPCT(selectedProduct.value.id)
+    toast.success('Xóa ảnh thành công')
+  } catch (e) {
+    toast.error(e.message)
+  }
+}
+const reloadGallery = async () => {
+  try {
+    const id = selectedSPCT.value?.id
+    if (!id) return
+
+    const res = await fetch(`${baseUrl}/spct/sp/${id}`)
+
+    if (!res.ok) {
+      throw new Error('Load SPCT thất bại')
+    }
+
+    const data = await res.json()
+
+    // 🔥 QUAN TRỌNG: images nằm trong spct
+    currentGallery.value = data.images || []
+
+    // (optional) sync lại SPCT luôn nếu cần
+    selectedSPCT.value = data
+  } catch (err) {
+    console.error('reloadGallery lỗi:', err)
+  }
+}
+
+const calcThongKeSPCT = async () => {
+  let allSPCT = []
+
+  for (const sp of products.value) {
+    const list = await getSanPhamChiTietByProductId(sp.id)
+    allSPCT = allSPCT.concat(list)
+  }
+
+  tongSPCT.value = allSPCT.length
+  tongSPCTDangKD.value = allSPCT.filter((i) => i.trangThai === true).length
+}
 </script>
 
 <style scoped>
