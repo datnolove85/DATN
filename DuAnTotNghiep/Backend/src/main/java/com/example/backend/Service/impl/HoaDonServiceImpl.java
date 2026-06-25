@@ -43,6 +43,8 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final TraHangChiTietRepository traHangChiTietRepository;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    private HinhAnhRepository hinhAnhRepository;
+
     @Override
     public HoaDon taoHoaDonCho() {
         HoaDon hoaDon = new HoaDon();
@@ -77,25 +79,35 @@ public class HoaDonServiceImpl implements HoaDonService {
                         new RuntimeException("Không tìm thấy hóa đơn"));
 
         List<HoaDonChiTietResponse> sanPhams =
-                ctRepo.findByIdHoaDon_Id(id)
+                ctRepo.findByHoaDonWithAnh(id)
                         .stream()
-                        .map(ct -> {
-                            SanPhamChiTiet spct =
-                                    ct.getIdSanPhamChiTiet();
+                        .map(item -> {
+
+                            HoaDonChiTiet ct = item.getHoaDonChiTiet();
+                            SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
+
+                            String anh = item.getAnh() != null
+                                    ? "/sanpham/" + item.getAnh()
+                                    : null;
+
                             return new HoaDonChiTietResponse(
                                     ct.getId(),
                                     spct.getId(),
                                     spct.getMaSanPhamChiTiet(),
-                                    spct.getTenSanPhamChiTiet(),
+                                    spct.getIdSanPham().getTenSanPham(),
                                     spct.getIdMauSac().getTenMauSac(),
                                     spct.getIdKichThuoc().getTenKichThuoc(),
-                                    spct.getIdSanPham().getIdThuongHieu().getTenThuongHieu(),
+                                    spct.getIdSanPham()
+                                            .getIdThuongHieu()
+                                            .getTenThuongHieu(),
                                     ct.getSoLuong(),
                                     ct.getDonGia(),
-                                    ct.getThanhTien()
+                                    ct.getThanhTien(),
+                                    anh
                             );
                         })
                         .toList();
+
         String phuongThuc = "";
         Optional<ThanhToan> thanhToan =
                 ttRepo.findFirstByIdHoaDon_Id(id);
@@ -316,7 +328,8 @@ public class HoaDonServiceImpl implements HoaDonService {
         List<Map<String, Object>> sanPhams = new ArrayList<>();
         for (HoaDonChiTiet ct : dsChiTiet) {
             Map<String, Object> sp = new HashMap<>();
-            sp.put("tenSanPhamChiTiet", ct.getIdSanPhamChiTiet().getTenSanPhamChiTiet());
+            sp.put("tenSanPham", ct.getIdSanPhamChiTiet().getIdSanPham().getTenSanPham());
+            sp.put("maSanPhamChiTiet",ct.getIdSanPhamChiTiet().getMaSanPhamChiTiet());
             sp.put("tenChatLieu", ct.getIdSanPhamChiTiet().getIdSanPham().getIdChatLieu().getTenChatLieu());
             sp.put("tenThuongHieu", ct.getIdSanPhamChiTiet().getIdSanPham().getIdThuongHieu().getTenThuongHieu());
             sp.put("soLuong", ct.getSoLuong());

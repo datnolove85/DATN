@@ -97,10 +97,21 @@
         >
           <div class="relative pt-[100%] overflow-hidden rounded-xl">
             <RouterLink :to="`/product/${product.id}`" class="absolute inset-0">
-              <img
-                :src="getImageUrl(product.image)"
-                class="w-full h-full object-cover group-hover:scale-105 transition"
-              />
+              <div class="relative pt-[100%] overflow-hidden rounded-xl bg-neutral-200">
+                <img
+                  v-if="getImageUrl(product.images)"
+                  :src="getImageUrl(product.images)"
+                  class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition"
+                />
+
+                <div
+                  v-else
+                  class="absolute inset-0 flex flex-col items-center justify-center text-neutral-400"
+                >
+                  <ShoppingBagIcon class="w-10 h-10 mb-2 opacity-50" />
+                  <span class="text-xs font-medium">Chưa có ảnh</span>
+                </div>
+              </div>
             </RouterLink>
 
             <button
@@ -164,7 +175,7 @@
 
         <div class="w-full md:w-1/2 flex items-center justify-center">
           <img
-            :src="getImageUrl(selectedProduct.image)"
+            :src="getImageUrl(selectedProduct.images)"
             class="w-full h-64 md:h-80 object-cover rounded-2xl shadow-inner"
           />
         </div>
@@ -268,10 +279,9 @@
               />
 
               <img
-                :src="getImageUrl(item.image)"
+                :src="getImageUrl(item.images)"
                 class="w-16 h-16 object-cover rounded-lg border bg-white flex-shrink-0"
               />
-
               <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-semibold text-neutral-800 truncate">
                   {{ item.tenSanPham }}
@@ -366,8 +376,8 @@ const loadProducts = async () => {
 
 const loadCategories = async () => {
   try {
-    const res = await getAllDanhMuc()
-    categories.value = [{ id: 'all', text: 'Tất cả', tenDanhMuc: 'Tất cả' }, ...res]
+    const res = await getAllDanhMuc() // Giả sử API trả về { id, tenDanhMuc }
+    categories.value = [{ id: 'all', tenDanhMuc: 'Tất cả' }, ...res]
   } catch (error) {
     console.error('Lỗi load danh mục:', error)
   }
@@ -386,7 +396,8 @@ onUnmounted(() => {
 // ===================== FILTER & FORMAT =====================
 const filteredProducts = computed(() => {
   if (selectedCategory.value === 'all') return products.value
-  return products.value.filter((item) => item.idDanhMuc === selectedCategory.value)
+  // So sánh dựa trên tên danh mục (vì API không trả về idDanhMuc)
+  return products.value.filter((item) => item.tenDanhMuc === selectedCategory.value)
 })
 
 const formatPrice = (value) => {
@@ -397,12 +408,11 @@ const formatPrice = (value) => {
   }).format(value)
 }
 
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path}`
+const getImageUrl = (images) => {
+  if (!images || images.length === 0) return null // Trả về null nếu không có ảnh
+  const path = images[0]
+  return path.startsWith('http') ? path : `http://localhost:8080${path}`
 }
-
 // ===================== WISHLIST =====================
 const toggleWishlist = (id) => {
   if (wishlist.value.includes(id)) {

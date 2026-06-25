@@ -962,6 +962,19 @@ const loadData = async () => {
       getAllKichThuoc(),
     ])
 
+    productList.sort((a, b) => b.id - a.id)
+
+    products.value = await Promise.all(
+      productList.map(async (sp) => {
+        const thongKe = await getThongKeSPCT(sp.id)
+
+        return {
+          ...sp,
+          thongKe,
+        }
+      }),
+    )
+
     // gắn thống kê SPCT
     products.value = await Promise.all(
       productList.map(async (sp) => {

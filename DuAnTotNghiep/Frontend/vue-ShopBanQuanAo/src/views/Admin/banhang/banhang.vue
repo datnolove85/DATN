@@ -364,12 +364,23 @@
               />
               <div class="flex-1 min-w-0">
                 <h4 class="text-xs font-bold text-slate-800 truncate">
-                  {{ item.product.tenSanPham }}
+                  {{ item.product.tenSanPhamChiTiet }}
                 </h4>
-                <p class="text-[10px] text-slate-500 font-medium">
-                  {{ item.product.tenMauSac }} / {{ item.product.tenKichThuoc }}
-                </p>
-                <p class="text-xs font-black text-indigo-600 mt-0.5">
+
+                <div class="flex items-center gap-2 mt-0.5 min-w-0">
+                  <span
+                    class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded truncate max-w-[90px]"
+                    :title="item.product.maSanPhamChiTiet"
+                  >
+                    {{ item.product.maSPCT }}
+                  </span>
+
+                  <span class="text-[10px] text-slate-500 truncate">
+                    {{ item.product.tenMauSac }} / {{ item.product.tenKichThuoc }}
+                  </span>
+                </div>
+
+                <p class="text-xs font-black text-indigo-600 mt-1">
                   {{ formatPrice(item.product.giaBan) }}
                 </p>
               </div>
@@ -525,15 +536,15 @@
                 <span>Tổng tiền hàng</span>
                 <span class="text-slate-800 font-semibold">{{ formatPrice(totalCartPrice) }}</span>
               </div>
+              ,
               <div class="flex justify-between text-rose-600">
                 <span>Giảm giá Voucher</span>
-                <span>- {{ formatPrice(voucherDiscount) }}</span>
-              </div>
-              <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-                <span class="text-sm font-bold text-slate-800">Tổng thanh toán</span>
-                <span class="text-lg font-black text-indigo-600">{{
-                  formatPrice(finalPaymentPrice)
-                }}</span>
+
+                <span v-if="appliedVoucher">
+                  - {{ formatPrice(voucherDiscount) }}
+                  <span class="text-slate-400 text-xs">{{ voucherLabel }}</span>
+                </span>
+                <span v-else>- 0đ</span>
               </div>
             </div>
 
@@ -715,11 +726,9 @@ const handleKeyDown = async (e) => {
     // chọn toàn bộ nội dung cũ nếu có
     searchInput.value?.select()
   }
-
   // F1 => tạo hóa đơn mới
   if (e.key === 'F1') {
     e.preventDefault() // chặn mở Help của trình duyệt
-
     createNewOrder()
   }
 
@@ -881,6 +890,15 @@ const loadPTTT = async () => {
     currentOrder.value.phuongThucThanhToan = defaultId
   }
 }
+watch(
+  () => currentOrder.value,
+  (order) => {
+    if (order && !order.phuongThucThanhToan) {
+      order.phuongThucThanhToan = defaultPTTTId.value
+    }
+  },
+  { immediate: true, deep: true },
+)
 const loadChiTietHoaDon = async (idHoaDon) => {
   try {
     const data = await getHoadonById(idHoaDon)
@@ -892,11 +910,13 @@ const loadChiTietHoaDon = async (idHoaDon) => {
       id: item.id,
       product: {
         idSanPhamChiTiet: item.idSanPhamChiTiet,
+        maSPCT: item.maSanPhamChiTiet,
         id: item.idSanPhamChiTiet,
-        tenSanPhamChiTiet: item.tenSanPhamChiTiet,
+        tenSanPhamChiTiet: item.tenSanPham,
         giaBan: item.donGia,
         tenMauSac: item.tenMauSac,
         tenKichThuoc: item.tenKichThuoc,
+        image: item.anh,
       },
       soLuong: item.soLuong,
       thanhTien: item.thanhTien,
@@ -998,7 +1018,7 @@ function addNewOrderToList(order) {
     appliedVoucher: order.voucher || null,
     voucherQuery: order.voucher?.maVoucher || '',
     loaiHoaDon: 'tai_quay',
-    phuongThucThanhToan: '',
+    phuongThucThanhToan: defaultPTTTId.value,
   })
 }
 // --- 7. HÀM XỬ LÝ KHÁCH HÀNG & VOUCHER ---
@@ -1136,39 +1156,12 @@ const removeVoucher = async () => {
     toast.error(error.message)
   }
 }
-
-// // --- 8. TÍNH TOÁN GIÁ & LỌC DỮ LIỆU ---
-// const totalCartPrice = computed(
-//   () =>
-//     currentOrder.value?.cart?.reduce((sum, item) => sum + item.product.giaBan * item.soLuong, 0) ||
-//     0,
-// )
-
-// const voucherDiscount = computed(() => {
-//   if (!appliedVoucher.value || totalCartPrice.value < appliedVoucher.value.giaTriDonHangToiThieu)
-//     return 0
-//   let discount = 0
-//   if (appliedVoucher.value.loaiGiamGia === 'tien_mat') {
-//     discount = appliedVoucher.value.giaTriGiam
-//   } else if (appliedVoucher.value.loaiGiamGia === 'phan_tram') {
-//     discount = (totalCartPrice.value * appliedVoucher.value.giaTriGiam) / 100
-//     if (appliedVoucher.value.giaTriGiamToiDa && discount > appliedVoucher.value.giaTriGiamToiDa) {
-//       discount = appliedVoucher.value.giaTriGiamToiDa
-//     }
-//   }
-//   return discount
-// })
-
-// const finalPaymentPrice = computed(() => {
-//   const result = totalCartPrice.value - voucherDiscount.value
-//   return result > 0 ? result : 0
-// })
-
 const filteredProducts = computed(() => {
   return products.value.filter((sp) => {
-    const nameStr = (sp.tenSanPhamChiTiet || sp.tenSanPham || '').toLowerCase()
+    const nameStr = (sp.tenSanPham || '').toLowerCase()
     const codeStr = (sp.maSanPhamChiTiet || '').toLowerCase()
     const searchStr = searchQuery.value.toLowerCase().trim()
+
     const matchSearch = !searchStr || nameStr.includes(searchStr) || codeStr.includes(searchStr)
 
     const selectedDM = danhMucList.value.find((dm) => dm.id == filterCategory.value)
@@ -1182,7 +1175,6 @@ const filteredProducts = computed(() => {
     return matchSearch && matchCategory && matchBrand && matchColor && matchSize
   })
 })
-
 const filteredCustomers = computed(() => {
   return customers.value.filter(
     (kh) =>
@@ -1252,35 +1244,43 @@ const updateProductStockUI = (productId, change) => {
   products.value.splice(index, 1, updated)
 }
 const increaseQty = async (item) => {
+  const sp = products.value.find((p) => (p.idSanPhamChiTiet || p.id) === item.product.id)
+
+  if (!sp) return
+
+  // ❌ hết hàng
+  if (sp.soLuongTon <= 0) {
+    toast.error('Sản phẩm đã hết hàng')
+    return
+  }
+
   await tangSoLuongSanPham(item.id)
-  console.log('item.product.id =', item.product.id)
-  console.log(
-    'products =',
-    products.value.map((p) => p.idSanPhamChiTiet || p.id),
-  )
+
   updateProductStockUI(item.product.id, -1)
 
-  const order = currentOrder.value
+  currentOrder.value.cart = currentOrder.value.cart.map((i) =>
+    i.id === item.id ? { ...i, soLuong: i.soLuong + 1 } : i,
+  )
 
-  order.cart = order.cart.map((i) => (i.id === item.id ? { ...i, soLuong: i.soLuong + 1 } : i))
+  sp.soLuongTon--
 }
 
 const decreaseQty = async (item) => {
+  // 🔥 nếu chỉ còn 1 thì xóa luôn
   if (item.soLuong <= 1) {
-    await removeFromCart(cart.value.indexOf(item))
+    await removeFromCart(currentOrder.value.cart.indexOf(item))
     return
   }
-  try {
-    await giamSoLuongSanPham(item.id)
-    currentOrder.value.cart = currentOrder.value.cart.map((i) =>
-      i.id === item.id ? { ...i, soLuong: i.soLuong - 1 } : i,
-    )
-    const sp = products.value.find((p) => p.id === item.product.id)
-    if (sp) sp.soLuongTon++
-    toast.success('Đã giảm số lượng')
-  } catch (error) {
-    toast.error('Lỗi khi giảm số lượng')
-  }
+
+  await giamSoLuongSanPham(item.id)
+
+  currentOrder.value.cart = currentOrder.value.cart.map((i) =>
+    i.id === item.id ? { ...i, soLuong: i.soLuong - 1 } : i,
+  )
+
+  const sp = products.value.find((p) => (p.idSanPhamChiTiet || p.id) === item.product.id)
+
+  if (sp) sp.soLuongTon++
 }
 const removeFromCart = async (index) => {
   try {
@@ -1325,7 +1325,7 @@ const createNewOrder = async () => {
       appliedVoucher: null,
       voucherQuery: '',
       loaiHoaDon: 'tai_quay',
-      phuongThucThanhToan: ptttList.value.length ? ptttList.value[0].id : '',
+      phuongThucThanhToan: defaultPTTTId.value,
     })
     currentOrderIndex.value = allOrders.value.length - 1
     toast.success('Tạo hóa đơn thành công')
@@ -1397,15 +1397,17 @@ const resetPOSState = () => {
 }
 
 // --- 10. TIỆN ÍCH & FORMATTER ---
-const getProductImage = (sp) => {
-  const images = sp.images
-  if (images && images.length > 0) {
-    const rawPath = images[0]
-    if (rawPath.startsWith('http')) return rawPath
-    const cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath
-    return `http://localhost:8080/${cleanPath}`
+const getProductImage = (product) => {
+  // dữ liệu từ hóa đơn
+  if (product?.image) {
+    return `http://localhost:8080${product.image}`
   }
-  return 'https://via.placeholder.com/150'
+
+  // dữ liệu từ danh sách SPCT
+  if (product?.images?.length > 0) {
+    return `http://localhost:8080${product.images[0]}`
+  }
+  return '/default-image.png'
 }
 
 const setDefaultImage = (event) => {
@@ -1496,6 +1498,7 @@ const submitCheckout = async () => {
 
   try {
     const result = await thanhToanHoaDon(payload)
+    console.log(result)
     hoaDonPrint.value = result
     showInvoiceModal.value = true
 
@@ -1580,6 +1583,10 @@ const sortedProducts = computed(() => {
     if (a.soLuongTon > 0 && b.soLuongTon <= 0) return -1
     return 0
   })
+})
+const voucherLabel = computed(() => {
+  if (!appliedVoucher.value) return null
+  return appliedVoucher.value.loaiGiamGia === 'tien_mat' ? '(VNĐ)' : '(%)'
 })
 </script>
 

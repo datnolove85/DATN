@@ -15,7 +15,7 @@ public class HoaDonChiTietResponse {
 
     private String maSanPhamChiTiet;
 
-    private String tenSanPhamChiTiet;
+    private String tenSanPham;
 
     private String tenMauSac;
 
@@ -28,4 +28,6 @@ public class HoaDonChiTietResponse {
     private BigDecimal donGia;
 
     private BigDecimal thanhTien;
+
+    private String anh;
 }

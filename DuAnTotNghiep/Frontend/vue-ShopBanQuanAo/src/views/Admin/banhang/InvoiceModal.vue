@@ -61,8 +61,16 @@
               <span class="w-5">{{ index + 1 }}</span>
 
               <div class="flex-1">
-                <div class="font-medium">
-                  {{ sp.tenSanPhamChiTiet }}
+                <div class="flex items-center gap-2">
+                  <div class="font-medium text-slate-800">
+                    {{ sp.tenSanPham }}
+                  </div>
+
+                  <span
+                    class="px-2 py-[2px] text-[10px] rounded-full border border-slate-300 text-slate-600 bg-slate-50"
+                  >
+                    #{{ sp.maSanPhamChiTiet }}
+                  </span>
                 </div>
 
                 <div class="text-[8px] text-slate-500">
@@ -106,13 +114,13 @@
         </div>
 
         <!-- Footer -->
-        <div class="text-center mt-2 text-[10px]">
-          <p>
-            Thanh toán:
-            <span class="font-bold">
-              {{ hoaDon.phuongThucThanhToan }}
+        <div class="text-center mt-2 text-[10px] space-y-1">
+          <div class="flex justify-between">
+            <span>Thanh toán:</span>
+            <span class="font-bold text-right">
+              {{ hoaDon?.phuongThucThanhToan || '---' }}
             </span>
-          </p>
+          </div>
 
           <p class="mt-1 font-bold uppercase">Xin cảm ơn quý khách!</p>
 
