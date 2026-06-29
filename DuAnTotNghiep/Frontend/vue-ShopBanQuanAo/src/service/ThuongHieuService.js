@@ -1,9 +1,8 @@
 const API = 'http://localhost:8080/thuonghieu'
 
-export const getAllThuongHieu = async () => {
-  const res = await fetch(API)
-  return await res.json()
-}
+import { apiFetch } from './api'
+
+export const getAllThuongHieu = () => apiFetch('/thuonghieu')
 
 export const createThuongHieu = async (data) => {
   return await fetch(API, {

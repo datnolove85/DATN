@@ -2,14 +2,15 @@ package com.example.backend.Service;
 
 
 import com.example.backend.Entity.HoaDon;
-import com.example.backend.Entity.HoaDonChiTiet;
 import com.example.backend.Request.*;
 import com.example.backend.Response.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 public interface HoaDonService {
 
@@ -24,6 +25,10 @@ public interface HoaDonService {
     HoaDonDetailResponse getDetail(Integer id);
 
     HoaDon taoHoaDonCho();
+
+    HoaDon taoHoaDonChoOnline();
+
+    Map<String, Object> createOnlineOrder(CreateOnlineOrderRequest request, HttpServletRequest httpServletRequest);
 
     List<HoaDon> getHoaDonCho();
 
@@ -48,7 +53,13 @@ public interface HoaDonService {
             ThanhToanHoaDonRequest req
     );
 
+    @Transactional
+    public Object thanhToanHoaDonOnline(
+            ThanhToanHoaDonRequest req
+    );
     void huyHoaDon(Integer id);
+
+    void huyHoaDonOnline(Integer id);
 
     void apVoucher(
             Integer idHoaDon,

@@ -1,20 +1,9 @@
 const API = 'http://localhost:8080/danhmuc'
 
 // ================= GET ALL =================
-export const getAllDanhMuc = async () => {
-  try {
-    const response = await fetch(API)
+import { apiFetch } from './api'
 
-    if (!response.ok) {
-      throw new Error('Lỗi khi lấy danh sách danh mục')
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error('getAllDanhMuc error:', error)
-    throw error
-  }
-}
+export const getAllDanhMuc = () => apiFetch('/danhmuc')
 
 // ================= GET BY ID =================
 export const getDanhMucById = async (id) => {

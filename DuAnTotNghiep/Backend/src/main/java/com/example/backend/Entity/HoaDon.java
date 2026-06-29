@@ -3,7 +3,8 @@ package com.example.backend.Entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
@@ -14,10 +15,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@Builder
 @Table(name = "hoa_don")
 public class HoaDon {
     @Id
@@ -28,6 +25,10 @@ public class HoaDon {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_khach_hang")
     private KhachHang idKhachHang;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_nhan_vien")
+    private NhanVien idNhanVien;
 
     @Size(max = 30)
     @NotNull
@@ -77,23 +78,17 @@ public class HoaDon {
     @Column(name = "ghi_chu")
     private String ghiChu;
 
-
+    @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
 
+    @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
     private LocalDateTime ngayCapNhat;
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        this.ngayTao = now;
-        this.ngayCapNhat = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.ngayCapNhat = LocalDateTime.now();
-    }
+    @Size(max = 30)
+    @ColumnDefault("'chua_thanh_toan'")
+    @Column(name = "trang_thai_thanh_toan", length = 30)
+    private String trangThaiThanhToan;
 
 }

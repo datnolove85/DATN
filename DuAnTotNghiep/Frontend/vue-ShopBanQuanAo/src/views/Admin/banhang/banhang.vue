@@ -1317,6 +1317,7 @@ const createNewOrder = async () => {
   }
   try {
     const hoaDon = await taoHoaDonCho()
+
     allOrders.value.push({
       id: hoaDon.id,
       maHoaDon: hoaDon.maHoaDon,

@@ -1,10 +1,8 @@
 const API = 'http://localhost:8080/chatlieu'
 
-export const getAllChatLieu = async () => {
-  const res = await fetch(API)
-  return await res.json()
-}
+import { apiFetch } from './api'
 
+export const getAllChatLieu = () => apiFetch('/chatlieu')
 export const createChatLieu = async (data) => {
   return await fetch(API, {
     method: 'POST',

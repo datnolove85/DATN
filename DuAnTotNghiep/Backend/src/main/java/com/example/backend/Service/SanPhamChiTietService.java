@@ -4,9 +4,7 @@ import com.example.backend.Entity.*;
 import com.example.backend.Repository.*;
 import com.example.backend.Request.SanPhamChiTietRequest;
 import com.example.backend.Request.SanPhamCreateVariantRequest;
-import com.example.backend.Response.SanPhamChiTietResponse;
-import com.example.backend.Response.SanPhamResponse;
-import com.example.backend.Response.VariantResponse;
+import com.example.backend.Response.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,11 +88,11 @@ public class SanPhamChiTietService {
 
             SanPhamChiTiet spct = spctMap.get(sp.getId());
 
-            String image = null;
+            String image = spct == null
+                    ? null
+                    : imageMap.get(spct.getId());
 
-            if (spct != null) {
-                image = imageMap.get(spct.getId());
-            }
+            image = image == null ? null : "/sanpham/" + image;
 
             return new SanPhamResponse(
                     sp.getId(),
@@ -609,5 +607,39 @@ public class SanPhamChiTietService {
         Integer tong = sanPhamChiTietRepository.countTong(idSanPham);
 
         return dangKD + "/" + tong;
+    }
+
+    public ProductVariantResponse getVariantForShop(Integer productId) {
+
+        List<SanPhamChiTietResponse> variants = getByIdSP(productId);
+
+        if (variants.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy sản phẩm");
+        }
+
+        Map<Integer, ColorShopResponse> colorMap = new LinkedHashMap<>();
+
+        for (SanPhamChiTietResponse variant : variants) {
+
+            ColorShopResponse color = colorMap.computeIfAbsent(
+                    variant.getIdMauSac(),
+                    id -> new ColorShopResponse(
+                            id,
+                            variant.getTenMauSac(),
+                            new ArrayList<>()
+                    )
+            );
+            color.getVariants().add(variant);
+        }
+        return new ProductVariantResponse(
+
+                variants.get(0).getIdSanPham(),
+
+                variants.get(0).getTenSanPham(),
+
+                new ArrayList<>(colorMap.values())
+
+        );
+
     }
 }

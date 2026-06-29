@@ -2,6 +2,7 @@ package com.example.backend.Controller;
 
 import com.example.backend.Request.SanPhamChiTietRequest;
 import com.example.backend.Request.SanPhamCreateVariantRequest;
+import com.example.backend.Response.ProductVariantResponse;
 import com.example.backend.Response.SanPhamChiTietResponse;
 import com.example.backend.Response.SanPhamResponse;
 import com.example.backend.Service.SanPhamChiTietService;
@@ -82,6 +83,14 @@ public class SanPhamChiTietController {
         return ResponseEntity.ok(sanPhamChiTietService.getThongKeSPCT(id));
     }
 
+    @GetMapping("/shop/{id}")
+    public ResponseEntity<ProductVariantResponse> getVariantShop(
+            @PathVariable Integer id
+    ) {
+        return ResponseEntity.ok(
+                sanPhamChiTietService.getVariantForShop(id)
+        );
+    }
 }
 
 

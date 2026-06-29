@@ -18,12 +18,12 @@ public class GioHangChiTiet {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_gio_hang", nullable = false)
-    private GioHang idGioHang;
+    private GioHang gioHang;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_san_pham_chi_tiet", nullable = false)
-    private SanPhamChiTiet idSanPhamChiTiet;
+    private SanPhamChiTiet sanPhamChiTiet;
 
     @NotNull
     @Column(name = "so_luong", nullable = false)

@@ -8,5 +8,9 @@ import java.util.Optional;
 
 @Repository
 public interface DiaChiKhachHangRepository extends JpaRepository<DiaChiKhachHang, Integer> {
+
+    Optional<DiaChiKhachHang> findByIdKhachHang_IdAndMacDinhTrue(Integer idKhachHang);
+
+
     Optional<DiaChiKhachHang> findFirstByIdKhachHang_IdAndMacDinhAndTrangThaiOrderByIdDesc(Integer idKhachHang, Boolean macDinh, Integer trangThai);
 }

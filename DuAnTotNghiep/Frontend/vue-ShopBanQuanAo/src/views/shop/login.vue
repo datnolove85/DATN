@@ -249,14 +249,40 @@ const form = reactive({
   password: '',
 })
 
-const handleLogin = () => {
+const handleLogin = async () => {
   isLoading.value = true
+  try {
+    const res = await fetch('http://localhost:8080/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        identity: form.identity,
+        password: form.password,
+      }),
+    })
 
-  setTimeout(() => {
+    if (!res.ok) {
+      throw new Error('Login failed')
+    }
+
+    const data = await res.json()
+
+    // 🔥 QUAN TRỌNG: lưu token
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data))
+
+    alert('Đăng nhập thành công 🎉')
+
+    // 👉 redirect về home
+    window.location.href = '/san-pham'
+  } catch (err) {
+    console.log(err)
+    alert('Sai tài khoản hoặc mật khẩu')
+  } finally {
     isLoading.value = false
-
-    alert(`Đăng nhập thành công: ${form.identity}`)
-  }, 1500)
+  }
 }
 </script>
 

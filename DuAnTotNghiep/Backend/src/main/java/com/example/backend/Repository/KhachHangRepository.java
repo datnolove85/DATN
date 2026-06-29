@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface KhachHangRepository extends JpaRepository<KhachHang, Integer>, JpaSpecificationExecutor<KhachHang> {
@@ -98,4 +99,6 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer>, 
            OR LOWER(dc.diaChiCuThe) LIKE LOWER(CONCAT('%', :keyword, '%'))
     """)
     List<KhachHangResponse> search(@Param("keyword") String keyword);
+
+    Optional<KhachHang> findByIdTaiKhoan_Id(Integer idTaiKhoan);
 }

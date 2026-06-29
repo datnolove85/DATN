@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -25,11 +26,11 @@ public class GioHang {
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
-    private Instant ngayTao;
+    private LocalDateTime ngayTao;
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
-    private Instant ngayCapNhat;
+    private LocalDateTime ngayCapNhat;
 
     @ColumnDefault("1")
     @Column(name = "trang_thai")

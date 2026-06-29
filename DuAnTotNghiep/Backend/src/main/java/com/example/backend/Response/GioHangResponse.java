@@ -14,6 +14,8 @@ public class GioHangResponse {
 
     private SanPhamChiTiet sanPhamChiTiet;
 
+    private String  maHD;
+
     private String tenSanPham;
 
     private BigDecimal giaBan;
@@ -21,4 +23,10 @@ public class GioHangResponse {
     private Integer soLuong;
 
     private BigDecimal thanhTien;
+
+    private BigDecimal giamGia;
+
+    private BigDecimal phiShip;
+
+    private BigDecimal tongThanhToan;
 }

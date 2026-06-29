@@ -5,7 +5,7 @@ import com.example.backend.Request.*;
 import com.example.backend.Response.HoaDonResponse;
 import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.TraHangService;
-import com.example.backend.mapper.HoaDonMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -75,12 +76,29 @@ public class HoaDonController {
 
     @PostMapping("/hoa-don-cho")
     public ResponseEntity<?> taoHoaDonCho() {
-
         return ResponseEntity.ok(
                 service.taoHoaDonCho()
         );
     }
 
+    @PostMapping("/online")
+    public ResponseEntity<Map<String, Object>> createOnlineOrder(
+            @RequestBody CreateOnlineOrderRequest req,
+            HttpServletRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                service.createOnlineOrder(req, request)
+        );
+    }
+
+    @PostMapping("online/{id}/cancel")
+    public ResponseEntity<?> huyHoaDonOnline(
+            @PathVariable Integer id
+    ) {
+        service.huyHoaDon(id);
+        return ResponseEntity.ok("Hủy hóa đơn thành công");
+    }
 
     @GetMapping("/{id}/chi-tiet")
     public ResponseEntity<?> getChiTietHoaDon(

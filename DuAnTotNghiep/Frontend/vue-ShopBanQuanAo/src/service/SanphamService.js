@@ -13,16 +13,9 @@ const handleResponse = async (response) => {
 }
 
 // ================= GET ALL =================
-export const getAllSanpham = async () => {
-  try {
-    const response = await fetch(API)
-    return await handleResponse(response)
-  } catch (error) {
-    console.error('getAllSanpham error:', error)
-    throw error
-  }
-}
+import { apiFetch } from './api'
 
+export const getAllSanpham = () => apiFetch('/sanpham')
 // ================= GET BY ID =================
 export const getSanphamById = async (id) => {
   try {

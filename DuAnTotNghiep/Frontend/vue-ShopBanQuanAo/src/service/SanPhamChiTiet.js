@@ -90,3 +90,14 @@ export const getThongKeSPCT = async (id) => {
 
   return await res.text()
 }
+
+// ================= SHOP - GET VARIANTS =================
+export const getShopVariantsByProductId = async (productId) => {
+  const res = await fetch(`${API}/shop/${productId}`)
+
+  if (!res.ok) {
+    throw new Error('Lỗi lấy biến thể sản phẩm')
+  }
+
+  return await res.json()
+}

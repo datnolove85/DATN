@@ -1,49 +1,63 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import confirmbuy from '@/views/shop/confirmbuy.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
   routes: [
-    // ================= USER =================
-    {
-      path: '/',
-      redirect: '/home',
-    },
-    {
-      path: '/home',
-      name: 'home',
-      component: () => import('../views/Users/home.vue'),
-    },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/Users/login.vue'),
+      component: () => import('@/views/shop/login.vue'),
     },
+    // ================= SHOP =================
     {
-      path: '/san-pham',
-      name: 'sanPham',
-      component: () => import('../views/Users/sanpham.vue'),
-    },
-    {
-      path: '/confirm',
-      name: 'confirm',
-      component: () => import('../views/Users/confirmbuy.vue'),
-    },
-    {
-      path: '/product/:id',
-      name: 'product-detail',
-      component: () => import('../views/Users/confirmbuy.vue'),
-    },
-    {
-      path: '/buy/:id',
-      name: 'buy',
-      component: () => import('../views/Users/buy.vue'),
-    },
+      path: '/',
+      component: () => import('@/views/shop/layouts/ShopLayout.vue'),
 
+      children: [
+        {
+          path: '',
+          redirect: '/home',
+        },
+
+        {
+          path: 'home',
+          name: 'home',
+          component: () => import('@/views/shop/home.vue'),
+        },
+
+        {
+          path: 'san-pham',
+          name: 'sanPham',
+          component: () => import('@/views/shop/sanpham.vue'),
+        },
+        {
+          path: 'spct/:id',
+          name: 'confirmbuy',
+          component: confirmbuy,
+        },
+        {
+          path: 'product/:id',
+          name: 'product-detail',
+          component: () => import('@/views/shop/confirmbuy.vue'),
+        },
+        {
+          path: 'xacnhan',
+          name: 'xacnhan',
+          component: () => import('@/views/shop/views/xacnhan.vue'),
+        },
+        {
+          path: 'payment',
+          name: 'payment',
+          component: () => import('@/views/shop/views/payment.vue'),
+        },
+      ],
+    },
     // ================= QUẢN TRỊ ADMIN (GOM VÀO LAYOUT) =================
     {
       path: '/admin',
-      component: () => import('../views/Admin/Layout/Layout.vue'), // File Layout tổng chứa Sidebar + Navbar
+      component: () => import('../views/Admin/Layout/AdminLayout.vue'), // File Layout tổng chứa Sidebar + Navbar
       redirect: '/admin/banhang', // Nếu vào /admin thì tự động nhảy vào trang sản phẩm
       children: [
         // Quản lý Sản phẩm

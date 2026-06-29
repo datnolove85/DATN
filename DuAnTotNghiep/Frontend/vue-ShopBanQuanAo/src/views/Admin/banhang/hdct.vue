@@ -620,7 +620,7 @@ const invoice = computed(() => {
           return `${day}/${month}/${year}`
         })()
       : 'N/A',
-    address: rawInvoice.value.diaChiGiaoHang,
+    address: rawInvoice.value.loaiHoaDon,
     paymentMethod: rawInvoice.value.phuongThucThanhToan,
     note: rawInvoice.value.ghiChu,
     totalOriginal: rawInvoice.value.tongTienHang,
@@ -630,7 +630,7 @@ const invoice = computed(() => {
     items: rawInvoice.value.sanPhams.map((sp) => ({
       id: sp.id,
       sku: sp.maSanPhamChiTiet,
-      name: sp.tenSanPhamChiTiet,
+      name: sp.tenSanPham,
       brand: sp.tenThuongHieu,
       color: sp.tenMauSac,
       size: sp.tenKichThuoc,

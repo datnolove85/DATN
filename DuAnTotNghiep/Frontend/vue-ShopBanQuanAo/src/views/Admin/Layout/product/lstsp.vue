@@ -177,7 +177,7 @@
             >
               <option :value="null">Trạng thái</option>
               <option :value="true">Kinh doanh</option>
-              <option :value="false">Lưu kho</option>
+              <option :value="false">Ngừng kinh doanh</option>
             </select>
             <button
               @click="clearFilters"
@@ -224,7 +224,7 @@
                   class="px-6 py-4 text-xs font-bold"
                   :class="product.trangThai ? 'text-emerald-600' : 'text-slate-400'"
                 >
-                  {{ product.trangThai ? 'Kinh doanh' : 'Lưu kho' }}
+                  {{ product.trangThai ? 'Kinh doanh' : 'Ngừng kinh doanh' }}
                 </td>
                 <td class="px-6 py-4 text-right flex justify-end gap-2">
                   <button
@@ -402,7 +402,7 @@
                                   ? 'bg-emerald-100 text-emerald-600'
                                   : 'bg-slate-100 text-slate-500'
                               "
-                              >{{ spct.trangThai ? 'Đang bán' : 'Lưu kho' }}</span
+                              >{{ spct.trangThai ? 'Đang bán' : 'Ngừng bán' }}</span
                             >
                           </td>
                           <td class="px-4 py-3">
@@ -480,7 +480,7 @@
                 class="w-full border rounded-xl p-3 mt-1 outline-none focus:ring-2 ring-indigo-500/20"
               >
                 <option :value="true">Đang kinh doanh</option>
-                <option :value="false">Lưu kho</option>
+                <option :value="false">Ngừng kinh doanh</option>
               </select>
             </div>
 
@@ -646,7 +646,7 @@
                 class="w-full border rounded-xl p-3 mt-1 outline-none"
               >
                 <option :value="true">Đang kinh doanh</option>
-                <option :value="false">Lưu kho</option>
+                <option :value="false">Ngừng kinh doanh</option>
               </select>
             </div>
             <div>

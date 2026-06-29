@@ -137,6 +137,20 @@ export const taoHoaDonCho = async () => {
   }
 }
 
+// ================= TAO HOA DON CHO ONLINE =================
+export const taoHoaDonOnline = async (data, token) => {
+  const response = await fetch(`http://localhost:8080/hoadon/online`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+
+  return await handleResponse(response)
+}
+
 export const getHoaDonCho = async () => {
   try {
     const response = await fetch(`${API}/hoa-don-cho`)
@@ -277,4 +291,17 @@ export const submitTraHang = async (payload) => {
     console.error('submitTraHang error:', error)
     throw error
   }
+}
+// Hủy hóa đơn online
+export const huyHoaDonOnline = async (idHoaDon) => {
+  const res = await fetch(`http://localhost:8080/hoadon/online/${idHoaDon}/cancel`, {
+    method: 'POST',
+  })
+
+  if (!res.ok) {
+    const message = await res.text()
+    throw new Error(message || 'Hủy hóa đơn thất bại')
+  }
+
+  return await res.text()
 }
