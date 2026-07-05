@@ -2,7 +2,8 @@ package com.example.backend.Service.impl;
 
 import com.example.backend.Config.WebSocketConfig;
 import com.example.backend.Entity.*;
-
+import com.example.backend.Service.TrangThaiRule;
+import com.example.backend.utils.VietQrUtil;
 import com.example.backend.Repository.*;
 import com.example.backend.Request.*;
 import com.example.backend.Response.*;
@@ -48,7 +49,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     private HinhAnhRepository hinhAnhRepository;
     private final JwtService jwtService;
     private final KhachHangRepository khachHangRepository;
-
+   private final DiaChiKhachHangRepository diaChiKhachHangRepository;
     @Override
     public HoaDon taoHoaDonCho() {
         HoaDon hoaDon = new HoaDon();
@@ -85,7 +86,8 @@ public class HoaDonServiceImpl implements HoaDonService {
 
     @Override
     public List<HoaDon> getHoaDonCho() {
-        return hoaDonRepo.findByTrangThaiOrderByNgayTaoDesc(
+        return hoaDonRepo.findByLoaiHoaDonAndTrangThaiOrderByNgayTaoDesc(
+                "tai_quay",
                 "cho_xac_nhan"
         );
     }
@@ -99,18 +101,27 @@ public class HoaDonServiceImpl implements HoaDonService {
         HoaDon hd = hoaDonRepo.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Không tìm thấy hóa đơn"));
+        Map<Integer, String> thumbnailMap = new HashMap<>();
 
+        for (Object[] obj : spctRepo.getAllImages()) {
+
+            Integer spctId = (Integer) obj[0];
+            String link = (String) obj[1];
+
+            thumbnailMap.putIfAbsent(spctId, link);
+        }
         List<HoaDonChiTietResponse> sanPhams =
-                ctRepo.findByHoaDonWithAnh(id)
+                ctRepo.findByHoaDon(id)
                         .stream()
-                        .map(item -> {
+                        .map(ct -> {
 
-                            HoaDonChiTiet ct = item.getHoaDonChiTiet();
                             SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
 
-                            String anh = item.getAnh() != null
-                                    ? "/sanpham/" + item.getAnh()
-                                    : null;
+                            String anh = thumbnailMap.get(spct.getId());
+
+                            if (anh != null) {
+                                anh = "/sanpham/" + anh;
+                            }
 
                             return new HoaDonChiTietResponse(
                                     ct.getId(),
@@ -119,9 +130,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                                     spct.getIdSanPham().getTenSanPham(),
                                     spct.getIdMauSac().getTenMauSac(),
                                     spct.getIdKichThuoc().getTenKichThuoc(),
-                                    spct.getIdSanPham()
-                                            .getIdThuongHieu()
-                                            .getTenThuongHieu(),
+                                    spct.getIdSanPham().getIdThuongHieu().getTenThuongHieu(),
                                     ct.getSoLuong(),
                                     ct.getDonGia(),
                                     ct.getThanhTien(),
@@ -227,6 +236,52 @@ public class HoaDonServiceImpl implements HoaDonService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Page<HoaDonResponse> searchOnline(
+            HoaDonFilterRequest req,
+            Pageable pageable
+    ) {
+
+        // luôn là hóa đơn online
+        req.setLoaiHoaDon("online");
+
+        Page<HoaDon> page = hoaDonRepo.findAll(
+                HoaDonSpecification.filter(req),
+                pageable
+        );
+
+        return page.map(hd -> {
+
+            HoaDonResponse res = new HoaDonResponse();
+
+            res.setId(hd.getId());
+            res.setIdKhachHang(
+                    hd.getIdKhachHang() != null
+                            ? hd.getIdKhachHang().getId()
+                            : null
+            );
+            res.setMaHoaDon(hd.getMaHoaDon());
+            res.setTongTienHang(hd.getTongTienHang());
+            res.setTongGiamGia(hd.getTongGiamGia());
+            res.setPhiVanChuyen(hd.getPhiVanChuyen());
+            res.setTongThanhToan(hd.getTongThanhToan());
+
+            res.setTenNguoiNhan(hd.getTenNguoiNhan());
+            res.setSoDienThoaiNguoiNhan(hd.getSoDienThoaiNguoiNhan());
+            res.setDiaChiGiaoHang(hd.getDiaChiGiaoHang());
+
+            res.setLoaiHoaDon(hd.getLoaiHoaDon());
+            res.setTrangThai(hd.getTrangThai());
+            res.setTrangThaiThanhToan(hd.getTrangThaiThanhToan());
+
+            res.setNgayTao(hd.getNgayTao());
+            res.setNgayCapNhat(hd.getNgayCapNhat());
+
+            res.setGhiChu(hd.getGhiChu());
+
+            return res;
+        });
+    }
     // ================= PAGINATION =================
     @Override
     public Page<HoaDonResponse> getAll(Pageable pageable) {
@@ -469,8 +524,13 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         // cập nhật hóa đơn
         hd.setTrangThai(
-                "hoan_thanh");
+                "cho_xac_nhan");
 
+        if(tt.getIdPhuongThucThanhToan().getMaPhuongThuc().equals("COD")){
+            hd.setTrangThaiThanhToan("chua_thanh_toan");
+        }else{
+            hd.setTrangThaiThanhToan("da_thanh_toan");
+        }
         hd.setNgayCapNhat(
                 LocalDateTime.now());
 
@@ -1012,6 +1072,22 @@ public class HoaDonServiceImpl implements HoaDonService {
                 khachHang.getId()
         );
 
+        DiaChiKhachHang diaChi =
+                diaChiKhachHangRepository.findByIdKhachHang_IdAndMacDinhTrue(khachHang.getId())
+                .orElseThrow(() ->
+                        new RuntimeException("Khách hàng chưa có địa chỉ"));
+
+        String diaChiDayDu =
+                diaChi.getDiaChiCuThe()
+                        + ", "
+                        + diaChi.getPhuong()
+                        + ", "
+                        + diaChi.getQuan()
+                        + ", "
+                        + diaChi.getThanhPho();
+
+        hd.setDiaChiGiaoHang(diaChiDayDu);
+
         // 3. thêm toàn bộ sản phẩm
         for (CreateOnlineOrderRequest.Item item : req.getItems()) {
 
@@ -1060,6 +1136,14 @@ public class HoaDonServiceImpl implements HoaDonService {
                 hd.getId()
         );
 
+        hd = hoaDonRepo.findById(hd.getId())
+                .orElseThrow();
+
+        String qrUrl = VietQrUtil.createQrUrl(
+                hd.getTongThanhToan().longValue(),
+                hd.getMaHoaDon()
+        );
+
         // 9. trả về
         Map<String, Object> map = new HashMap<>();
 
@@ -1073,6 +1157,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 hd.getMaHoaDon()
         );
 
+        map.put("qrUrl", qrUrl);
         return map;
     }
 
@@ -1123,5 +1208,66 @@ public class HoaDonServiceImpl implements HoaDonService {
                 "STOCK_CHANGED"
         );
     }
+    @Transactional
+    public void updateTrangThai(Integer id, String trangThaiMoi) {
 
+        HoaDon hoaDon = hoaDonRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        TrangThaiHoaDon newStatus;
+        try {
+            newStatus = TrangThaiHoaDon.valueOf(trangThaiMoi.toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException("Trạng thái không hợp lệ");
+        }
+
+        String current = hoaDon.getTrangThai().toUpperCase();
+
+        if ("DA_HUY".equals(current)) {
+            throw new RuntimeException("Đơn đã huỷ không thể cập nhật");
+        }
+
+        if (!isValidTransition(current, newStatus.name())) {
+            throw new RuntimeException(
+                    "Không thể chuyển từ " + current + " sang " + newStatus
+            );
+        }
+
+        hoaDon.setTrangThai(newStatus.name());
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+
+        hoaDonRepo.save(hoaDon);
+    }
+
+    private static final Set<String> CHO_XAC_NHAN =
+            Set.of("DA_XAC_NHAN", "DA_HUY");
+
+    private static final Set<String> DA_XAC_NHAN =
+            Set.of("DANG_GIAO", "DA_HUY");
+
+    private static final Set<String> DANG_GIAO =
+            Set.of("HOAN_THANH");
+
+    private static final Set<String> DA_GIAO =
+            Set.of(); // hoặc bỏ luôn nếu không dùng
+    private boolean isValidTransition(String from, String to) {
+
+        from = from.toUpperCase();
+        to = to.toUpperCase();
+
+        return switch (from) {
+
+            case "CHO_XAC_NHAN" -> CHO_XAC_NHAN.contains(to);
+
+            case "DA_XAC_NHAN" -> DA_XAC_NHAN.contains(to);
+
+            case "DANG_GIAO" -> DANG_GIAO.contains(to);
+
+            case "DA_GIAO" -> DA_GIAO.contains(to);
+
+            case "HOAN_THANH", "DA_HUY" -> false;
+
+            default -> false;
+        };
+    }
 }

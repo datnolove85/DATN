@@ -28,7 +28,22 @@ export const searchHoadon = async (filters, page = 0, size = 20) => {
     throw error
   }
 }
+export const searchHoadonOnline = async (filters, page = 0, size = 20) => {
+  try {
+    const response = await fetch(`${API}/online/search?page=${page}&size=${size}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(filters),
+    })
 
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('searchHoadonOnline error:', error)
+    throw error
+  }
+}
 // ================= THANH TOAN =================
 export const thanhToanHoaDon = async (payload) => {
   try {
@@ -48,6 +63,23 @@ export const thanhToanHoaDon = async (payload) => {
   }
 }
 
+export const thanhToanHoaDonOnline = async (payload) => {
+  try {
+    // Sửa lại URL cho khớp: không truyền id ở URL vì đã có trong payload
+    const response = await fetch(`${API}/thanh-toan/online`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('thanhToanHoaDon error:', error)
+    throw error
+  }
+}
 // ================= GET ALL =================
 export const getAllHoadon = async () => {
   try {
@@ -304,4 +336,24 @@ export const huyHoaDonOnline = async (idHoaDon) => {
   }
 
   return await res.text()
+}
+export const hoaDonService = {
+  async updateTrangThai(id, trangThai) {
+    const response = await fetch(`${API}/${id}/trang-thai`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        trangThai: trangThai,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(errorText || 'Lỗi cập nhật trạng thái')
+    }
+
+    return await response.text() // backend trả "OK"
+  },
 }

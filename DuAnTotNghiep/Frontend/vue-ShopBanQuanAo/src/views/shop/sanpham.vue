@@ -3,9 +3,18 @@
     <div class="flex flex-col lg:flex-row gap-8">
       <aside class="w-full lg:w-72 shrink-0">
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-4">
-          <h3 class="font-bold text-lg mb-6 flex items-center gap-2">
-            <span class="w-1 h-5 bg-blue-600 rounded-full"></span> Bộ lọc
-          </h3>
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-lg flex items-center gap-2">
+              <span class="w-1 h-5 bg-blue-600 rounded-full"></span> Bộ lọc
+            </h3>
+            <button
+              v-if="hasActiveFilters"
+              @click="clearFilters"
+              class="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors"
+            >
+              Xóa tất cả
+            </button>
+          </div>
 
           <input
             v-model="filters.keyword"
@@ -38,10 +47,9 @@
         <div
           class="bg-white p-4 mb-6 rounded-2xl border border-gray-100 flex justify-between items-center shadow-sm"
         >
-          <span class="text-sm text-gray-600"
-            >Tìm thấy <strong class="text-black">{{ filteredProducts.length }}</strong> sản
-            phẩm</span
-          >
+          <span class="text-sm text-gray-600">
+            Tìm thấy <strong class="text-black">{{ filteredProducts.length }}</strong> sản phẩm
+          </span>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -49,7 +57,7 @@
             v-for="p in filteredProducts"
             :key="p.id"
             @click="goToDetail(p.id)"
-            class="group bg-white p-3 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 flex flex-col"
+            class="group bg-white p-3 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer"
           >
             <div class="relative overflow-hidden rounded-xl mb-3 h-56 bg-gray-100">
               <img
@@ -125,6 +133,24 @@ onMounted(async () => {
   dynamicFilters.value[1].options = tData.map((i) => ({ id: i.id, name: i.tenThuongHieu }))
   dynamicFilters.value[2].options = cData.map((i) => ({ id: i.id, name: i.tenChatLieu }))
 })
+
+// Kiểm tra xem có bộ lọc nào đang hoạt động không để hiển thị nút xóa
+const hasActiveFilters = computed(() => {
+  return (
+    filters.keyword !== '' ||
+    filters.categories.length > 0 ||
+    filters.brands.length > 0 ||
+    filters.materials.length > 0
+  )
+})
+
+// Hàm reset toàn bộ filter về mặc định
+const clearFilters = () => {
+  filters.keyword = ''
+  filters.categories = []
+  filters.brands = []
+  filters.materials = []
+}
 
 const filteredProducts = computed(() => {
   return products.value.filter((p) => {

@@ -31,7 +31,15 @@ public class HoaDonSpecification {
             if (req.getTrangThai() != null && !req.getTrangThai().isEmpty()) {
                 predicates.add(cb.equal(root.get("trangThai"), req.getTrangThai()));
             }
-
+            // trạng thái thanh toán
+            if (req.getTrangThaiThanhToan() != null && !req.getTrangThaiThanhToan().isBlank()) {
+                predicates.add(
+                        cb.like(
+                                root.get("trangThaiThanhToan").as(String.class),
+                                "%" + req.getTrangThaiThanhToan() + "%"
+                        )
+                );
+            }
             // loại hóa đơn
             if (req.getLoaiHoaDon() != null && !req.getLoaiHoaDon().isEmpty()) {
                 predicates.add(cb.equal(root.get("loaiHoaDon"), req.getLoaiHoaDon()));

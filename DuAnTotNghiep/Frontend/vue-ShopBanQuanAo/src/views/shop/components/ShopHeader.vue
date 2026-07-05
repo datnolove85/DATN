@@ -6,12 +6,10 @@
     ]"
   >
     <div class="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between gap-6">
-      <!-- Logo -->
       <RouterLink to="/home" class="text-3xl font-black tracking-tight select-none">
         Vel<span class="text-indigo-600">ora</span>
       </RouterLink>
 
-      <!-- Menu -->
       <nav class="hidden xl:flex items-center gap-8 font-medium text-gray-700">
         <RouterLink
           v-for="item in menus"
@@ -23,9 +21,7 @@
         </RouterLink>
       </nav>
 
-      <!-- Action -->
       <div class="flex items-center gap-3">
-        <!-- Cart -->
         <div class="relative" @mouseenter="openCart" @mouseleave="closeCart">
           <button
             type="button"
@@ -42,7 +38,6 @@
             </span>
           </button>
 
-          <!-- Dropdown -->
           <transition
             enter-active-class="transition duration-200"
             leave-active-class="transition duration-150"
@@ -51,30 +46,28 @@
           >
             <div
               v-if="showCart"
-              class="absolute right-0 mt-4 w-[380px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+              class="absolute right-0 mt-4 w-[380px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
             >
-              <!-- Header -->
-              <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+              <div
+                class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-white"
+              >
                 <h3 class="font-bold text-lg">🛒 Giỏ hàng</h3>
 
                 <span class="text-sm text-gray-500"> {{ cartCount }} sản phẩm </span>
               </div>
 
-              <!-- Empty -->
-              <div v-if="cart.length === 0" class="py-12 text-center text-gray-400">
+              <div v-if="cart.length === 0" class="py-12 text-center text-gray-400 bg-white">
                 <ShoppingBag class="mx-auto w-10 h-10 mb-3 text-gray-300" />
 
                 <p>Giỏ hàng đang trống</p>
               </div>
 
-              <!-- List -->
-              <div v-else class="max-h-[380px] overflow-y-auto">
+              <div v-else class="max-h-[380px] overflow-y-auto bg-white">
                 <div
                   v-for="item in cart"
                   :key="item.id"
                   class="flex gap-3 px-5 py-4 hover:bg-gray-50 transition border-b border-gray-100"
                 >
-                  <!-- Image -->
                   <div class="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
                     <img
                       v-if="item.anh"
@@ -90,7 +83,6 @@
                     </div>
                   </div>
 
-                  <!-- Info -->
                   <div class="flex-1 min-w-0">
                     <p class="font-semibold text-sm truncate">
                       {{ item.tenSanPham }}
@@ -111,7 +103,6 @@
                 </div>
               </div>
 
-              <!-- Footer -->
               <div v-if="cart.length" class="border-t border-gray-100 p-5 bg-gray-50">
                 <div class="flex justify-between mb-4">
                   <span class="font-medium"> Tổng tiền </span>
@@ -123,6 +114,7 @@
 
                 <RouterLink
                   to="/giohang"
+                  @click="closeCartImmediately"
                   class="block w-full text-center py-3 rounded-xl bg-black text-white font-semibold hover:bg-gray-800 transition"
                 >
                   Xem giỏ hàng
@@ -132,7 +124,6 @@
           </transition>
         </div>
 
-        <!-- User -->
         <button
           class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
         >
@@ -142,6 +133,7 @@
     </div>
   </header>
 </template>
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -174,16 +166,14 @@ const cart = ref([])
 
 const showCart = ref(false)
 
+let cartTimeout = null // Khai báo biến giữ thời gian chờ
+
 const handleScroll = () => {
   scrolled.value = window.scrollY > 15
 }
 
 /**
  * Tổng số lượng sản phẩm
- * VD:
- * Áo A : SL = 2
- * Áo B : SL = 1
- * => Badge = 3
  */
 const cartCount = computed(() => {
   return cart.value.reduce((sum, item) => sum + Number(item.soLuong), 0)
@@ -242,12 +232,25 @@ onUnmounted(() => {
 })
 
 const openCart = () => {
+  // Nếu đang có lệnh đóng giỏ hàng chuẩn bị chạy, thì hủy bỏ lệnh đó đi
+  if (cartTimeout) {
+    clearTimeout(cartTimeout)
+  }
   showCart.value = true
 }
 
 const closeCart = () => {
-  setTimeout(() => {
+  // Gán thời gian chờ vào biến cartTimeout để có thể hủy nếu người dùng rê chuột lại
+  cartTimeout = setTimeout(() => {
     showCart.value = false
-  }, 150)
+  }, 250) // Tăng thời gian delay lên 250ms cho an toàn khi rê chuột qua khoảng trống
+}
+
+const toggleCart = () => {
+  showCart.value = !showCart.value
+}
+
+const closeCartImmediately = () => {
+  showCart.value = false
 }
 </script>

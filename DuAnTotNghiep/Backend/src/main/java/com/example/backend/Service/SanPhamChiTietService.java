@@ -46,7 +46,7 @@ public class SanPhamChiTietService {
 
         // 2. SPCT đại diện (theo repo mới)
         List<SanPhamChiTiet> representativeSpct =
-                sanPhamChiTietRepository.findRepresentativeSpct();
+                sanPhamChiTietRepository.findRepresentativeSpctDangKinhDoanh();
 
 
         Map<Integer, SanPhamChiTiet> spctMap = new HashMap<>();
@@ -118,17 +118,13 @@ public class SanPhamChiTietService {
         List<SanPhamChiTiet> spcts =
                 sanPhamChiTietRepository.findAllDangKinhDoanh();
 
-        List<String> imagesFlat =
-                sanPhamChiTietRepository.getAllImagesFlat();
-
-        Map<Integer, List<String>> imageMap = new HashMap<>();
+        Map<Integer, String> imageMap = new HashMap<>();
 
         for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
             Integer id = (Integer) obj[0];
             String link = (String) obj[1];
 
-            imageMap.computeIfAbsent(id, k -> new ArrayList<>())
-                    .add(link);
+            imageMap.put(id, link);
         }
 
         return spcts.stream().map(spct -> {
@@ -198,13 +194,14 @@ public class SanPhamChiTietService {
             );
 
             // ảnh
+            String image = imageMap.get(spct.getId());
+
             res.setImages(
-                    imageMap.getOrDefault(spct.getId(), new ArrayList<>())
-                            .stream()
-                            .map(link -> link.startsWith("/sanpham/")
-                                    ? link
-                                    : "/sanpham/" + link)
-                            .toList()
+                    image == null
+                            ? List.of()
+                            : List.of(image.startsWith("/sanpham/")
+                            ? image
+                            : "/sanpham/" + image)
             );
 
             return res;
@@ -213,7 +210,6 @@ public class SanPhamChiTietService {
     }
 
     public SanPhamChiTietResponse add(SanPhamChiTietRequest request) {
-        System.out.println("DEBUG: Dữ liệu nhận được - ID SP: " + request.getIdSanPham() + ", Tên: " + request.getTenSanPhamChiTiet());
 
         SanPham sanPham = sanPhamRepository.findById(request.getIdSanPham())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
@@ -229,9 +225,6 @@ public class SanPhamChiTietService {
         spct.setIdSanPham(sanPham);
         spct.setIdMauSac(mauSac);
         spct.setIdKichThuoc(kichThuoc);
-
-        spct.setMaSanPhamChiTiet(request.getMaSanPhamChiTiet());
-        spct.setTenSanPhamChiTiet(request.getTenSanPhamChiTiet());
 
         spct.setGiaNhap(request.getGiaNhap());
 
@@ -293,17 +286,20 @@ public class SanPhamChiTietService {
         spct.setIdMauSac(mauSac);
         spct.setIdKichThuoc(kichThuoc);
 
-        spct.setMaSanPhamChiTiet(request.getMaSanPhamChiTiet());
-        spct.setTenSanPhamChiTiet(request.getTenSanPhamChiTiet());
-
         spct.setGiaNhap(request.getGiaNhap());
         spct.setGiaBan(request.getGiaBan());
 
         spct.setSoLuongTon(request.getSoLuongTon());
         spct.setTrangThai(request.getTrangThai());
 
-        // Nếu chưa dùng @PreUpdate thì thêm:
-        // spct.setNgayCapNhat(LocalDateTime.now());
+
+        spct.setTenSanPhamChiTiet(
+                spct.getIdSanPham().getTenSanPham()
+                        + " - "
+                        + mauSac.getTenMauSac()
+                        + " - "
+                        + kichThuoc.getTenKichThuoc()
+        );
 
         SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
 
@@ -528,7 +524,7 @@ public class SanPhamChiTietService {
     }
 
     @Transactional
-    public void createBulk(List<SanPhamCreateVariantRequest> reqList) {
+    public List<BulkVariantResponse> createBulk(List<SanPhamCreateVariantRequest> reqList) {
 
         List<SanPhamChiTiet> list = new ArrayList<>();
 
@@ -543,11 +539,8 @@ public class SanPhamChiTietService {
             KichThuoc size = kichThuocRepository.findById(req.getIdKichThuoc())
                     .orElseThrow();
 
-            // 🚨 CHECK TRÙNG (QUAN TRỌNG POS)
-            boolean exists = sanPhamChiTietRepository
-                    .existsByIdSanPhamAndIdMauSacAndIdKichThuoc(sp, mau, size);
-
-            if (exists) continue;
+            if (sanPhamChiTietRepository.existsByIdSanPhamAndIdMauSacAndIdKichThuoc(sp, mau, size))
+                continue;
 
             SanPhamChiTiet spct = new SanPhamChiTiet();
 
@@ -555,14 +548,19 @@ public class SanPhamChiTietService {
             spct.setIdMauSac(mau);
             spct.setIdKichThuoc(size);
 
-            // 🔥 AUTO SKU POS
-            String sku = generateSKU(sp.getTenSanPham(), mau.getTenMauSac(), size.getTenKichThuoc(), sp.getId());
-
-            spct.setMaSanPhamChiTiet(sku);
+            spct.setMaSanPhamChiTiet(
+                    generateSKU(
+                            sp.getTenSanPham(),
+                            mau.getTenMauSac(),
+                            size.getTenKichThuoc(),
+                            sp.getId()));
 
             spct.setTenSanPhamChiTiet(
-                    sp.getTenSanPham() + " " + mau.getTenMauSac() + " " + size.getTenKichThuoc()
-            );
+                    sp.getTenSanPham()
+                            + " "
+                            + mau.getTenMauSac()
+                            + " "
+                            + size.getTenKichThuoc());
 
             spct.setGiaNhap(req.getGiaNhap());
             spct.setGiaBan(req.getGiaBan());
@@ -572,7 +570,22 @@ public class SanPhamChiTietService {
             list.add(spct);
         }
 
-        sanPhamChiTietRepository.saveAll(list);
+        List<SanPhamChiTiet> saved = sanPhamChiTietRepository.saveAll(list);
+
+        List<BulkVariantResponse> result = new ArrayList<>();
+
+        for (SanPhamChiTiet spct : saved) {
+
+            BulkVariantResponse r = new BulkVariantResponse();
+
+            r.setId(spct.getId());
+            r.setColorId(spct.getIdMauSac().getId());
+            r.setSizeId(spct.getIdKichThuoc().getId());
+
+            result.add(r);
+        }
+
+        return result;
     }
 
     private String generateSKU(String tenSP, String mau, String size, Integer id) {
@@ -609,9 +622,84 @@ public class SanPhamChiTietService {
         return dangKD + "/" + tong;
     }
 
+    public List<SanPhamChiTietResponse> getByIdSPOnline(Integer idSanPham) {
+
+        List<SanPhamChiTiet> list =
+                sanPhamChiTietRepository.findVariantsByProduct(idSanPham);
+
+        Map<Integer, List<String>> imageMap = new HashMap<>();
+
+        for (Object[] obj : sanPhamChiTietRepository.getAllImagesForVariant()) {
+
+            Integer spctId = (Integer) obj[0];
+            String link = (String) obj[1];
+
+            imageMap.computeIfAbsent(
+                    spctId,
+                    k -> new ArrayList<>()
+            ).add(link);
+        }
+
+        return list.stream().map(spct -> {
+
+            SanPhamChiTietResponse res =
+                    new SanPhamChiTietResponse();
+
+            res.setId(spct.getId());
+
+            res.setIdSanPham(spct.getIdSanPham().getId());
+            res.setTenSanPham(spct.getIdSanPham().getTenSanPham());
+
+            res.setTenDanhMuc(
+                    spct.getIdSanPham()
+                            .getIdDanhMuc()
+                            .getTenDanhMuc()
+            );
+
+            res.setTenThuongHieu(
+                    spct.getIdSanPham()
+                            .getIdThuongHieu()
+                            .getTenThuongHieu()
+            );
+
+            res.setTenChatLieu(
+                    spct.getIdSanPham()
+                            .getIdChatLieu()
+                            .getTenChatLieu()
+            );
+
+            res.setIdMauSac(spct.getIdMauSac().getId());
+            res.setTenMauSac(spct.getIdMauSac().getTenMauSac());
+
+            res.setIdKichThuoc(spct.getIdKichThuoc().getId());
+            res.setTenKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
+
+            res.setMaSanPhamChiTiet(spct.getMaSanPhamChiTiet());
+            res.setTenSanPhamChiTiet(spct.getTenSanPhamChiTiet());
+
+            res.setGiaNhap(spct.getGiaNhap());
+            res.setGiaBan(spct.getGiaBan());
+
+            res.setSoLuongTon(spct.getSoLuongTon());
+            res.setTrangThai(spct.getTrangThai());
+
+            res.setImages(
+                    imageMap.getOrDefault(spct.getId(), new ArrayList<>())
+                            .stream()
+                            .map(link -> link.startsWith("/sanpham/")
+                                    ? link
+                                    : "/sanpham/" + link)
+                            .toList()
+            );
+
+            return res;
+
+        }).toList();
+    }
+
     public ProductVariantResponse getVariantForShop(Integer productId) {
 
-        List<SanPhamChiTietResponse> variants = getByIdSP(productId);
+        List<SanPhamChiTietResponse> variants = getByIdSPOnline(productId);
 
         if (variants.isEmpty()) {
             throw new RuntimeException("Không tìm thấy sản phẩm");
@@ -629,15 +717,59 @@ public class SanPhamChiTietService {
                             new ArrayList<>()
                     )
             );
+
             color.getVariants().add(variant);
         }
+
+        List<Object[]> galleryData =
+                sanPhamChiTietRepository.getGalleryByProduct(productId);
+
+        Set<String> existed = new HashSet<>();
+
+        List<GalleryImageResponse> gallery =
+                new ArrayList<>();
+
+        for (Object[] obj : galleryData) {
+
+            Integer spctId = (Integer) obj[0];
+            Integer mauSacId = (Integer) obj[1];
+            Integer kichThuocId = (Integer) obj[2];
+            String link = (String) obj[3];
+
+            // loại ảnh trùng
+            if (existed.add(link)) {
+
+                gallery.add(
+
+                        new GalleryImageResponse(
+
+                                spctId,
+
+                                mauSacId,
+
+                                kichThuocId,
+
+                                link.startsWith("/sanpham/")
+                                        ? link
+                                        : "/sanpham/" + link
+
+                        )
+
+                );
+
+            }
+
+        }
+
         return new ProductVariantResponse(
 
                 variants.get(0).getIdSanPham(),
 
                 variants.get(0).getTenSanPham(),
 
-                new ArrayList<>(colorMap.values())
+                new ArrayList<>(colorMap.values()),
+
+                gallery
 
         );
 

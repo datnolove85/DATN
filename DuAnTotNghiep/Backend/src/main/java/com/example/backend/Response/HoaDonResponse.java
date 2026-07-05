@@ -29,4 +29,5 @@ public class HoaDonResponse {
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
     private String phuongThucThanhToan;
+    private String trangThaiThanhToan;
 }

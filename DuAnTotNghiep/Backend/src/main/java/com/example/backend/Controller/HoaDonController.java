@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,6 +44,15 @@ public class HoaDonController {
         );
     }
 
+    @PostMapping("/thanh-toan/online")
+    public ResponseEntity<?> thanhToanOnline(
+            @RequestBody ThanhToanHoaDonRequest req
+    ) {
+
+        return ResponseEntity.ok(
+                service.thanhToanHoaDonOnline(req)
+        );
+    }
     @PostMapping("/search")
     public Page<HoaDon> search(
             @RequestBody HoaDonFilterRequest req,
@@ -55,6 +65,23 @@ public class HoaDonController {
         return service.search(req, pageable);
     }
 
+    @PostMapping("/online/search")
+    public ResponseEntity<Page<HoaDonResponse>> searchOnline(
+            @RequestBody HoaDonFilterRequest req,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("ngayTao").descending()
+        );
+
+        return ResponseEntity.ok(
+                service.searchOnline(req, pageable)
+        );
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> detail(
@@ -202,6 +229,15 @@ public class HoaDonController {
         traHangService.traHang(request);
 
         return ResponseEntity.ok("Trả hàng thành công");
+    }
+
+    @PatchMapping("/{id}/trang-thai")
+    public ResponseEntity<?> updateTrangThai(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> body
+    ) {
+        service.updateTrangThai(id, body.get("trangThai"));
+        return ResponseEntity.ok("Cập nhật trạng thái thành công");
     }
 
 }

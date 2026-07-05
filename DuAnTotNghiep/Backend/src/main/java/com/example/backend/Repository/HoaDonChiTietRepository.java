@@ -17,16 +17,9 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
     );
 
     @Query("""
-    SELECT new com.example.backend.Request.HoaDonChiTietWithAnhDTO(
-        ct,
-        MIN(ha.link)
-    )
-    FROM HoaDonChiTiet ct
-    LEFT JOIN HinhAnh ha
-        ON ha.idSanPhamChiTiet.id = ct.idSanPhamChiTiet.id
-    WHERE ct.idHoaDon.id = :idHoaDon
-    GROUP BY ct
+SELECT ct
+FROM HoaDonChiTiet ct
+WHERE ct.idHoaDon.id = :idHoaDon
 """)
-    List<HoaDonChiTietWithAnhDTO> findByHoaDonWithAnh(
-            @Param("idHoaDon") Integer idHoaDon);
+    List<HoaDonChiTiet> findByHoaDon(@Param("idHoaDon") Integer idHoaDon);
 }

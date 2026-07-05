@@ -21,4 +21,6 @@ public class SanPhamCreateVariantRequest {
 
     private Integer soLuongTon;
 
+    private List<String> images;
+
 }

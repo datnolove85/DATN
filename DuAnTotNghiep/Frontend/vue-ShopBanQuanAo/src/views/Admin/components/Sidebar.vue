@@ -46,6 +46,14 @@
           <span class="mr-3 text-base w-5 text-center">🛒</span>
           Bán hàng
         </router-link>
+        <router-link
+          to="/admin/hoadononline"
+          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
+        >
+          <span class="mr-3 text-base w-5 text-center">📦</span>
+          Đơn hàng Online
+        </router-link>
 
         <div class="space-y-1">
           <button

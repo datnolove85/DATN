@@ -32,12 +32,8 @@ public class SanPhamService {
     @Autowired
     private SanPhamChiTietService sanPhamChiTietService;
 
-    // ================= CREATE =================
     public SanPham create(SanPhamRequest req) {
 
-        SanPham sp = new SanPham();
-
-        // ====== LOAD ENTITY FROM DB (CÁCH 2) ======
         DanhMuc danhMuc = danhMucRepository.findById(req.getIdDanhMuc())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
 
@@ -47,15 +43,23 @@ public class SanPhamService {
         ChatLieu chatLieu = chatLieuRepository.findById(req.getIdChatLieu())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chất liệu"));
 
-        // ====== SET ENTITY ======
+        SanPham sp = new SanPham();
+
         sp.setIdDanhMuc(danhMuc);
         sp.setIdThuongHieu(thuongHieu);
         sp.setIdChatLieu(chatLieu);
-        sp.setTrangThai(req.getTrangThai());
-        sp.setMaSanPham(req.getMaSanPham());
+
         sp.setTenSanPham(req.getTenSanPham());
+        sp.setTrangThai(req.getTrangThai());
         sp.setMoTa(req.getMoTa());
 
+        // Lưu lần đầu để sinh ID
+        sp = sanPhamRepository.save(sp);
+
+        // Sinh mã từ ID
+        sp.setMaSanPham(String.format("SP%06d", sp.getId()));
+
+        // Cập nhật lại mã
         return sanPhamRepository.save(sp);
     }
 
@@ -79,7 +83,6 @@ public class SanPhamService {
         sp.setIdThuongHieu(thuongHieu);
         sp.setIdChatLieu(chatLieu);
         sp.setTrangThai(req.getTrangThai());
-        sp.setMaSanPham(req.getMaSanPham());
         sp.setTenSanPham(req.getTenSanPham());
         sp.setMoTa(req.getMoTa());
 

@@ -69,6 +69,7 @@ public class HoaDon {
     @Column(name = "loai_hoa_don", length = 20)
     private String loaiHoaDon;
 
+
     @Size(max = 30)
     @Column(name = "trang_thai", length = 30)
     private String trangThai;
@@ -85,6 +86,8 @@ public class HoaDon {
     @ColumnDefault("getdate()")
     @Column(name = "ngay_cap_nhat")
     private LocalDateTime ngayCapNhat;
+
+
 
     @Size(max = 30)
     @ColumnDefault("'chua_thanh_toan'")

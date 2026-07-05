@@ -37,8 +37,7 @@ public class SanPham {
     private ChatLieu idChatLieu;
 
     @Size(max = 20)
-    @NotNull
-    @Column(name = "ma_san_pham", nullable = false, length = 20)
+    @Column(name = "ma_san_pham",length = 20)
     private String maSanPham;
 
     @Size(max = 200)

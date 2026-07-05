@@ -3,9 +3,12 @@ package com.example.backend.Repository;
 import com.example.backend.Entity.HoaDon;
 import com.example.backend.Entity.HoaDonChiTiet;
 import com.example.backend.Response.HoaDonResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,6 +35,7 @@ select new com.example.backend.Response.HoaDonResponse(
     hd.ghiChu,
     hd.ngayTao,
     hd.ngayCapNhat,
+    hd.trangThaiThanhToan,
     p.tenPhuongThuc
 )
 from HoaDon hd
@@ -41,8 +45,56 @@ left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
     List<HoaDonResponse> getAllResponse();
 
 
-    List<HoaDon> findByTrangThaiOrderByNgayTaoDesc(
+    List<HoaDon> findByLoaiHoaDonAndTrangThaiOrderByNgayTaoDesc(
+            String loaiHoaDon,
             String trangThai
+    );
+
+    @Query(
+            value = """
+select new com.example.backend.Response.HoaDonResponse(
+    hd.id,
+    hd.idKhachHang.id,
+    hd.maHoaDon,
+    hd.tongTienHang,
+    hd.tongGiamGia,
+    hd.phiVanChuyen,
+    hd.tongThanhToan,
+    hd.tenNguoiNhan,
+    hd.soDienThoaiNguoiNhan,
+    hd.diaChiGiaoHang,
+    hd.loaiHoaDon,
+    hd.trangThai,
+    hd.ghiChu,
+    hd.ngayTao,
+    hd.ngayCapNhat,
+    hd.trangThaiThanhToan,
+    p.tenPhuongThuc
+)
+from HoaDon hd
+left join ThanhToan tt on tt.idHoaDon.id = hd.id
+left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
+where hd.loaiHoaDon = 'online'
+and (
+    lower(hd.maHoaDon) like lower(concat('%', :keyword, '%'))
+    or lower(hd.tenNguoiNhan) like lower(concat('%', :keyword, '%'))
+    or lower(hd.soDienThoaiNguoiNhan) like lower(concat('%', :keyword, '%'))
+)
+""",
+            countQuery = """
+select count(hd)
+from HoaDon hd
+where hd.loaiHoaDon = 'online'
+and (
+    lower(hd.maHoaDon) like lower(concat('%', :keyword, '%'))
+    or lower(hd.tenNguoiNhan) like lower(concat('%', :keyword, '%'))
+    or lower(hd.soDienThoaiNguoiNhan) like lower(concat('%', :keyword, '%'))
+)
+"""
+    )
+    Page<HoaDonResponse> searchOnline(
+            @Param("keyword") String keyword,
+            Pageable pageable
     );
 
 }

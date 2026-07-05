@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+
 public class HoaDonFilterRequest {
 
     private String keyword;
@@ -21,4 +22,6 @@ public class HoaDonFilterRequest {
 
     private LocalDate fromDate;
     private LocalDate toDate;
+
+    private String trangThaiThanhToan;
 }

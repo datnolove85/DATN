@@ -14,15 +14,9 @@ public class SanPhamRequest {
 
     private Integer idDanhMuc;
 
-
     private Integer idThuongHieu;
 
-
     private Integer idChatLieu;
-
-
-    private String maSanPham;
-
 
     private String tenSanPham;
 

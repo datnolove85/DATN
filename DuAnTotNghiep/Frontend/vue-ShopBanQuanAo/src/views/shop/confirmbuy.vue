@@ -24,13 +24,13 @@
           class="absolute top-1/2 -left-10 -translate-y-1/2 flex flex-col gap-2.5 p-2 bg-white/70 backdrop-blur-sm rounded-full shadow-lg border border-white/50"
         >
           <button
-            v-for="(img, idx) in allImages.slice(0, 5)"
-            :key="idx"
-            @click="mainImage = img"
+            v-for="img in galleryImages"
+            :key="img.image"
+            @click="selectImage(img)"
             class="w-11 h-11 rounded-full overflow-hidden border-2 transition-all"
-            :class="mainImage === img ? 'border-black' : 'border-white hover:border-gray-300'"
+            :class="mainImage === img.url ? 'border-black' : 'border-white hover:border-gray-300'"
           >
-            <img :src="img" class="w-full h-full object-cover" />
+            <img :src="img.url" class="w-full h-full object-cover" />
           </button>
         </div>
       </div>
@@ -250,18 +250,36 @@ const decreaseQty = () => {
   }
 }
 
-const allImages = computed(() => {
-  if (!selectedVariant.value) return []
+const galleryImages = computed(() => {
+  if (!product.value) return []
 
-  return selectedVariant.value.images?.length
-    ? selectedVariant.value.images.map((img) => `http://localhost:8080${img}`)
-    : []
+  return product.value.gallery.map((item) => ({
+    ...item,
+    url: `http://localhost:8080${item.image}`,
+  }))
 })
 
-watch(allImages, (imgs) => {
-  mainImage.value = imgs[0] || ''
-})
+watch(selectedVariant, (variant) => {
+  if (!variant || !product.value) return
 
+  const firstImage = product.value.gallery.find((g) => g.spctId === variant.id)
+
+  mainImage.value = firstImage ? `http://localhost:8080${firstImage.image}` : ''
+})
+const selectImage = (img) => {
+  mainImage.value = img.url
+
+  for (const color of product.value.colors) {
+    const variant = color.variants.find((v) => v.id === img.spctId)
+
+    if (variant) {
+      selectedColor.value = color
+      selectedVariant.value = variant
+      quantity.value = variant.soLuongTon > 0 ? 1 : 0
+      break
+    }
+  }
+}
 watch(selectedVariant, (variant) => {
   if (!variant) return
 

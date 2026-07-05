@@ -94,7 +94,7 @@
         <!-- Tổng tiền -->
         <div class="border-t border-dashed border-slate-800 pt-1 text-[10px]">
           <div class="flex justify-between">
-            <span>Tổng hàng:</span>
+            <span>Tổng tiền hàng:</span>
             <span>
               {{ formatPriceNoCurrency(hoaDon.tongTienHang) }}
             </span>
@@ -106,7 +106,7 @@
           </div>
 
           <div class="flex justify-between font-bold text-[12px] border-t mt-1 pt-1">
-            <span>TỔNG CỘNG</span>
+            <span>TỔNG THANH TOÁN</span>
             <span>
               {{ formatPriceNoCurrency(hoaDon.tongThanhToan) }}
             </span>

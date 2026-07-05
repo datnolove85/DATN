@@ -52,9 +52,9 @@
 
                 <div class="mt-4 flex justify-between items-end">
                   <div>
-                    <div class="text-gray-400 line-through">
+                    <!-- <div class="text-gray-400 line-through">
                       {{ ((product?.giaBan || 0) * 1.2).toLocaleString() }}đ
-                    </div>
+                    </div> -->
 
                     <div class="text-red-500 text-2xl font-bold">
                       {{ (product?.giaBan || 0).toLocaleString() }}đ
@@ -266,7 +266,9 @@ import { getAllVoucher } from '@/service/VoucherService'
 import { getSanPhamChiTietById } from '@/service/SanPhamChiTiet'
 import { taoHoaDonOnline } from '@/service/HoaDonService'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 //Địa chỉ
 const provinces = ref([])
 const districts = ref([])
@@ -399,7 +401,7 @@ const stock = computed(() => {
 
 const increaseQty = () => {
   if (quantity.value >= stock.value) {
-    alert(`Chỉ còn ${stock.value} sản phẩm trong kho`)
+    toast.warning(`Chỉ còn ${stock.value} sản phẩm trong kho`)
     return
   }
 
@@ -494,6 +496,7 @@ const placeOrder = async () => {
   }
 
   const body = {
+    addressId: currentAddress.value.id,
     idKhachHang: null, // hoặc lấy từ user login nếu có
     shippingFee: shippingFee.value,
     voucherId: selectedVoucher.value?.id ?? null,
@@ -511,14 +514,18 @@ const placeOrder = async () => {
     console.log('SEND ORDER BODY:', JSON.stringify(body, null, 2))
     console.log('ORDER RESULT:', res)
 
-    console.log(res.id)
-    alert('Đặt hàng thành công 🎉')
-
-    // backend trả về {id, maHoaDon}
-    router.push(`/payment?id=${res.id}&maHoaDon=${res.maHoaDon}`)
+    toast.success('Đặt hàng thành công 🎉')
+    router.push({
+      path: '/payment',
+      query: {
+        id: res.id,
+        maHoaDon: res.maHoaDon,
+        qrUrl: res.qrUrl,
+      },
+    })
   } catch (err) {
     console.error(err)
-    alert('Đặt hàng thất bại ❌')
+    toast.error('Đặt hàng thất bại ❌')
   }
 }
 </script>

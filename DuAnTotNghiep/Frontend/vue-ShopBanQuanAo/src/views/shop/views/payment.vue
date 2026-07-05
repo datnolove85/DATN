@@ -44,6 +44,19 @@
             </label>
           </div>
         </div>
+        <div v-if="method === 'BANK'" class="bg-white p-6 rounded-2xl shadow">
+          <h2 class="font-bold text-lg mb-4">Quét mã QR để thanh toán</h2>
+
+          <img :src="qrUrl" class="w-64 h-64 object-contain mx-auto" />
+
+          <div class="text-center mt-4">
+            <p class="font-semibold">Nội dung CK: {{ orderInfo.maHoaDon }}</p>
+
+            <p class="text-red-500 font-bold text-xl">
+              {{ orderInfo.tongThanhToan.toLocaleString() }}đ
+            </p>
+          </div>
+        </div>
 
         <!-- ITEMS -->
         <div class="bg-white p-6 rounded-2xl shadow">
@@ -87,13 +100,21 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { huyHoaDon, huyHoaDonOnline, thanhToanHoaDon } from '@/service/HoaDonService'
+import {
+  huyHoaDon,
+  huyHoaDonOnline,
+  thanhToanHoaDon,
+  thanhToanHoaDonOnline,
+} from '@/service/HoaDonService'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 
 const orderId = route.query.id
 const maHD = route.query.maHoaDon
+const qrUrl = route.query.qrUrl
 
 const orderItems = ref([])
 const orderInfo = ref(null)
@@ -139,25 +160,24 @@ const pay = async () => {
 
     console.log(body)
 
-    const res = await thanhToanHoaDon(body)
+    const res = await thanhToanHoaDonOnline(body)
 
     console.log(res)
+    toast.success('Thanh toán thành công 🎉')
 
-    alert('Thanh toán thành công 🎉')
-
-    router.push('/')
+    router.push('/san-pham')
   } catch (e) {
     console.error(e)
-    alert(e.message)
+    toast.error(e?.message || 'Thanh toán thất bại')
   }
 }
 const handleCancel = async () => {
   try {
     await huyHoaDonOnline(Number(orderId))
 
-    alert('Đã hủy đơn hàng')
+    toast.success('Đã hủy đơn hàng')
 
-    router.push('/')
+    router.push('/san-pham')
   } catch (e) {
     console.error(e)
 

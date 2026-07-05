@@ -15,4 +15,6 @@ public class ProductVariantResponse {
     private String productName;
 
     private List<ColorShopResponse> colors;
+
+    private List<GalleryImageResponse> gallery;
 }

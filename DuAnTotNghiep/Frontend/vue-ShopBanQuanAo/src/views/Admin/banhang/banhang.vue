@@ -268,11 +268,11 @@
         </div>
       </section>
 
-      <section class="lg:col-span-5 xl:col-span-4 flex flex-col space-y-6">
+      <section class="lg:col-span-5 xl:col-span-4 flex flex-col space-y-4">
         <div
-          class="bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col h-[calc(100vh-120px)] sticky top-24 overflow-hidden"
+          class="bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col h-[78vh] sticky top-20 overflow-hidden"
         >
-          <div class="p-4 border-b border-slate-100 bg-slate-50 bg-opacity-70">
+          <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70">
             <div class="flex items-center justify-between mb-2">
               <label class="text-xs font-bold text-slate-500 uppercase tracking-wider"
                 >Khách hàng</label
@@ -296,7 +296,7 @@
             </div>
 
             <div
-              class="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between shadow-sm"
+              class="bg-white border border-slate-200 rounded-xl px-3 py-2 flex items-center justify-between shadow-sm"
             >
               <div v-if="selectedCustomer">
                 <p class="text-sm font-bold text-slate-800">{{ selectedCustomer.hoTen }}</p>
@@ -330,7 +330,7 @@
             </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          <div class="flex-1 overflow-y-auto px-3 py-2 space-y-2 custom-scrollbar">
             <div
               v-if="currentOrder?.cart?.length === 0"
               class="h-full flex flex-col items-center justify-center text-slate-400 py-12"
@@ -359,7 +359,7 @@
             >
               <img
                 :src="getProductImage(item.product)"
-                class="w-12 h-12 rounded-lg object-cover bg-slate-50 flex-shrink-0"
+                class="w-10 h-10 rounded-lg object-cover bg-slate-50 flex-shrink-0"
                 @error="setDefaultImage"
               />
               <div class="flex-1 min-w-0">
@@ -425,8 +425,8 @@
             </div>
           </div>
 
-          <div class="border-t border-slate-100 p-4 bg-slate-50 space-y-4">
-            <div class="mt-4 flex gap-2 items-end">
+          <div class="border-t border-slate-100 p-3 bg-slate-50 space-y-3">
+            <div class="mt-1 flex gap-2 items-end">
               <div class="relative flex-1">
                 <label
                   class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"
@@ -443,12 +443,12 @@
                     placeholder="Tìm hoặc nhập mã..."
                     class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
-                  <span
-                    @click.stop="showVoucherDropdown = !showVoucherDropdown"
-                    class="absolute right-3 top-2.5 cursor-pointer select-none text-sm hover:scale-110 transition-transform"
-                  >
-                    🎟️
-                  </span>
+                  <!-- <span
+                      @click.stop="showVoucherDropdown = !showVoucherDropdown"
+                      class="absolute right-3 top-2.5 cursor-pointer select-none text-sm hover:scale-110 transition-transform"
+                    >
+                      🎟️
+                    </span> -->
                 </div>
 
                 <div
@@ -514,7 +514,7 @@
 
               <button
                 @click="applyVoucher"
-                class="bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-slate-900 transition-colors"
+                class="bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-900 transition-colors"
               >
                 Áp dụng
               </button>
@@ -536,7 +536,7 @@
                 <span>Tổng tiền hàng</span>
                 <span class="text-slate-800 font-semibold">{{ formatPrice(totalCartPrice) }}</span>
               </div>
-              ,
+
               <div class="flex justify-between text-rose-600">
                 <span>Giảm giá Voucher</span>
 
@@ -545,6 +545,17 @@
                   <span class="text-slate-400 text-xs">{{ voucherLabel }}</span>
                 </span>
                 <span v-else>- 0đ</span>
+              </div>
+              <div
+                class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 p-3"
+              >
+                <div class="flex justify-between text-sm">
+                  <span class="font-bold text-slate-700"> Tổng thanh toán </span>
+
+                  <span class="text-2xl font-black text-indigo-600">
+                    {{ formatPrice(totalCartPrice - voucherDiscount) }}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -576,7 +587,7 @@
 
             <button
               @click="submitCheckout"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 px-4 rounded-xl shadow-lg shadow-indigo-100 hover:shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-100 hover:shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
               XUẤT HÓA ĐƠN & THANH TOÁN
             </button>

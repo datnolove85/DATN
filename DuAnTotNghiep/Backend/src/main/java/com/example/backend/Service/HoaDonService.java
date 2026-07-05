@@ -2,6 +2,7 @@ package com.example.backend.Service;
 
 
 import com.example.backend.Entity.HoaDon;
+import com.example.backend.Entity.TrangThaiHoaDon;
 import com.example.backend.Request.*;
 import com.example.backend.Response.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -78,4 +79,9 @@ public interface HoaDonService {
 
     List<SanPhamTraResponse> getDanhSachTra(Integer hoaDonId);
 
+    Page<HoaDonResponse> searchOnline(
+            HoaDonFilterRequest req,
+            Pageable pageable
+    );
+    void updateTrangThai(Integer id, String trangThaiMoi);
 }

@@ -180,6 +180,16 @@ const router = createRouter({
           name: 'SanPham',
           component: () => import('@/views/Admin/Layout/product/spct.vue'),
         },
+        {
+          path: 'hoadononline',
+          name: 'hoadononline',
+          component: () => import('../views/shop/views/OrderManagement.vue'),
+        },
+        {
+          path: 'thongke',
+          name: 'thongke',
+          component: () => import('../views/shop/views/thongke.vue'),
+        },
       ],
     },
 

@@ -18,10 +18,6 @@ public class SanPhamChiTietRequest {
 
     private Integer idKichThuoc;
 
-    private String maSanPhamChiTiet;
-
-    private String tenSanPhamChiTiet;
-
     private BigDecimal giaNhap;
 
     private BigDecimal giaBan;
