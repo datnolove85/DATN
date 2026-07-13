@@ -6,14 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, Integer> {
     List<HoaDonChiTiet> findByIdHoaDon_Id(Integer idHoaDon);
-    Optional<HoaDonChiTiet> findByIdHoaDon_IdAndIdSanPhamChiTiet_Id(
+    Optional<HoaDonChiTiet> findByIdHoaDon_IdAndIdSanPhamChiTiet_IdAndDonGia(
             Integer idHoaDon,
-            Integer idSanPhamChiTiet
+            Integer idSanPhamChiTiet,
+            BigDecimal donGia
     );
 
     @Query("""
@@ -22,4 +24,5 @@ FROM HoaDonChiTiet ct
 WHERE ct.idHoaDon.id = :idHoaDon
 """)
     List<HoaDonChiTiet> findByHoaDon(@Param("idHoaDon") Integer idHoaDon);
+
 }

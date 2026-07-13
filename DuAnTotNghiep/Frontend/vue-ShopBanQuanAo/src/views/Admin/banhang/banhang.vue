@@ -129,6 +129,7 @@
             Xóa bộ lọc
           </button>
         </div>
+
         <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
           <div
             v-for="sp in sortedProducts"
@@ -141,12 +142,14 @@
                 : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed',
             ]"
           >
-            <span
-              v-if="sp.giaGoc > sp.giaBan"
-              class="absolute top-2 left-2 z-10 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm"
-            >
-              GIẢM {{ Math.round(((sp.giaGoc - sp.giaBan) / sp.giaGoc) * 100) }}%
-            </span>
+            <div v-if="sp.dangGiamGia" class="absolute top-0 right-3 z-20">
+              <div
+                class="bg-red-500 text-white text-[10px] font-bold w-10 text-center rounded-b-lg shadow-md py-1"
+              >
+                <div>-{{ sp.phanTramGiam }}%</div>
+                <div class="text-[8px] leading-none">SALE</div>
+              </div>
+            </div>
 
             <div class="aspect-square w-full rounded-xl bg-slate-100 overflow-hidden relative mb-3">
               <img
@@ -232,21 +235,33 @@
               </div>
 
               <div class="mt-3 pt-2 border-t border-slate-100 flex items-end justify-between">
+                <!-- Giá -->
                 <div>
-                  <p
-                    class="text-[10px] line-through text-slate-400 font-medium leading-none mb-0.5"
-                    v-if="sp.giaGoc > sp.giaBan"
-                  >
-                    {{ formatPrice(sp.giaGoc) }}
-                  </p>
-                  <p class="text-sm font-black text-indigo-600 leading-none">
-                    {{ formatPrice(sp.giaBan) }}
-                  </p>
+                  <template v-if="sp.dangGiamGia">
+                    <p class="text-[11px] text-slate-400 line-through font-medium">
+                      {{ formatPrice(sp.giaBan) }}
+                    </p>
+
+                    <p class="text-lg font-black text-red-600 leading-none">
+                      {{ formatPrice(sp.giaSauGiam) }}
+                    </p>
+
+                    <p class="text-[10px] text-green-600 font-semibold mt-1">
+                      Tiết kiệm {{ formatPrice(sp.giaBan - sp.giaSauGiam) }}
+                    </p>
+                  </template>
+
+                  <template v-else>
+                    <p class="text-lg font-black text-indigo-600 leading-none">
+                      {{ formatPrice(sp.giaBan) }}
+                    </p>
+                  </template>
                 </div>
 
+                <!-- Tồn kho -->
                 <span
                   :class="[
-                    'text-[10px] px-1.5 py-0.5 rounded font-bold',
+                    'text-[10px] px-2 py-1 rounded-lg font-bold',
                     sp.soLuongTon <= 0 || !sp.trangThai
                       ? 'bg-rose-50 text-rose-600'
                       : sp.soLuongTon <= 10
@@ -392,9 +407,15 @@
                 >
                   -
                 </button>
-                <span class="w-6 text-center text-xs font-bold text-slate-800">{{
-                  item.soLuong
-                }}</span>
+                <input
+                  type="number"
+                  min="1"
+                  v-model.number="item.soLuong"
+                  @focus="oldQty = item.soLuong"
+                  @keyup.enter="changeQty(item)"
+                  @blur="changeQty(item)"
+                  class="w-10 h-6 text-center text-xs font-bold text-slate-800 bg-white rounded border border-slate-200 outline-none"
+                />
                 <button
                   @click="increaseQty(item)"
                   class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold"
@@ -433,22 +454,22 @@
                 >
                   Voucher Khuyến Mãi
                 </label>
-
-                <div class="relative">
-                  <input
-                    type="text"
-                    v-model="voucherQuery"
-                    @focus="showVoucherDropdown = true"
-                    @blur="setTimeout(() => (showVoucherDropdown = false), 200)"
-                    placeholder="Tìm hoặc nhập mã..."
-                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                  />
-                  <!-- <span
+                <div class="relative flex-1" ref="voucherRef">
+                  <div class="relative">
+                    <input
+                      type="text"
+                      v-model="voucherQuery"
+                      @focus="showVoucherDropdown = true"
+                      placeholder="Tìm hoặc nhập mã..."
+                      class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    />
+                    <!-- <span
                       @click.stop="showVoucherDropdown = !showVoucherDropdown"
                       class="absolute right-3 top-2.5 cursor-pointer select-none text-sm hover:scale-110 transition-transform"
                     >
                       🎟️
                     </span> -->
+                  </div>
                 </div>
 
                 <div
@@ -553,7 +574,11 @@
                   <span class="font-bold text-slate-700"> Tổng thanh toán </span>
 
                   <span class="text-2xl font-black text-indigo-600">
-                    {{ formatPrice(totalCartPrice - voucherDiscount) }}
+                    {{
+                      formatPrice(
+                        totalCartPrice - voucherDiscount < 0 ? 0 : totalCartPrice - voucherDiscount,
+                      )
+                    }}
                   </span>
                 </div>
               </div>
@@ -655,20 +680,14 @@
     <InvoiceModal v-if="showInvoiceModal" :hoaDon="hoaDonPrint" @close="handleCloseInvoice" />
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import InvoiceModal from './InvoiceModal.vue'
 import Swal from 'sweetalert2'
 import stompClient from '@/socket'
-import '@/socket'
 import { onBeforeUnmount } from 'vue'
-
-onBeforeUnmount(() => {
-  if (stompClient) {
-    stompClient.deactivate()
-  }
-})
 // --- 1. IMPORT CÁC SERVICE API ---
 import { getAllDanhMuc } from '@/service/DanhMucService'
 import { getAllKichThuoc } from '@/service/KichThuocService'
@@ -707,9 +726,14 @@ const mauSacList = ref([])
 const kichThuocList = ref([])
 const products = ref([])
 const customers = ref([])
+
 const vouchers = ref([])
 const ptttList = ref([])
 const isLoading = ref(true)
+
+const oldQty = ref(1)
+
+const voucherRef = ref(null)
 
 // --- 4. TRẠNG THÁI FORM & GIỎ HÀNG ---
 const newCust = ref({ hoTen: '', sdt: '' })
@@ -791,7 +815,75 @@ const handleKeyDown = async (e) => {
     }
   }
 }
+const handleClickOutside = (e) => {
+  if (voucherRef.value && !voucherRef.value.contains(e.target)) {
+    showVoucherDropdown.value = false
+  }
+}
 
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+const changeQty = async (item) => {
+  let newQty = Number(item.soLuong)
+
+  if (!newQty || newQty < 1) {
+    await removeFromCart(currentOrder.value.cart.indexOf(item))
+
+    return
+  }
+
+  let diff = newQty - oldQty.value
+
+  // không đổi
+  if (diff === 0) {
+    return
+  }
+
+  // tăng
+  if (diff > 0) {
+    const sp = products.value.find((p) => (p.idSanPhamChiTiet || p.id) === item.product.id)
+
+    if (!sp) return
+
+    if (diff > sp.soLuongTon) {
+      toast.error('Không đủ số lượng tồn')
+
+      item.soLuong = oldQty.value
+
+      return
+    }
+
+    for (let i = 0; i < diff; i++) {
+      await tangSoLuongSanPham(item.id)
+    }
+
+    updateProductStockUI(item.product.id, -diff)
+
+    sp.soLuongTon -= diff
+  }
+
+  // giảm
+  else {
+    let amount = Math.abs(diff)
+
+    for (let i = 0; i < amount; i++) {
+      await giamSoLuongSanPham(item.id)
+    }
+
+    const sp = products.value.find((p) => (p.idSanPhamChiTiet || p.id) === item.product.id)
+
+    if (sp) {
+      sp.soLuongTon += amount
+    }
+  }
+
+  oldQty.value = newQty
+}
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
 })
@@ -935,6 +1027,11 @@ const loadChiTietHoaDon = async (idHoaDon) => {
     order.appliedVoucher = data.voucher || null
     order.voucherQuery = data.voucher?.maVoucher || ''
     selectedVoucher.value = data.voucher || null
+    order.tongTienHang = data.tongTienHang
+
+    order.tongGiamGia = data.tongGiamGia
+
+    order.tongThanhToan = data.tongThanhToan
 
     order.selectedCustomer = data.idKhachHang
       ? {
@@ -953,7 +1050,7 @@ const loadChiTietHoaDon = async (idHoaDon) => {
 onMounted(async () => {
   await loadAllDataFromAPI()
 
-  const [voucherData, hoaDonData] = await Promise.all([getAllVoucher(), getHoaDonCho()])
+  const [voucherData, hoaDonData] = await Promise.all([getAllVoucher(), getHoaDonCho(user.id)])
 
   await loadPTTT() // 👈 lấy default trước
 
@@ -975,47 +1072,72 @@ onMounted(async () => {
     await loadChiTietHoaDon(allOrders.value[0].id)
   }
 
-  initSocket()
+  connectSocket()
 })
-
-let socketTimer = null
-
-function initSocket() {
-  stompClient.onConnect = () => {
-    stompClient.subscribe('/topic/products', (msg) => {
-      const data = JSON.parse(msg.body)
-
-      clearTimeout(socketTimer)
-
-      socketTimer = setTimeout(() => {
-        handleSocket(data)
-      }, 50)
-    })
-  }
-}
-function handleSocket(data) {
-  switch (data.type) {
-    case 'PRODUCT_STOCK_UPDATED':
-      updateProductStock(data.productId, data.newStock)
-      break
-
-    case 'ORDER_CREATED':
-      addNewOrderToList(data.order)
-      break
-  }
+async function loadProducts() {
+  products.value = await getAllSanPhamChiTiet()
 }
 
-function updateProductStock(productId, newStock) {
-  const index = products.value.findIndex(
-    (p) => p.idSanPhamChiTiet === productId || p.id === productId,
-  )
+function connectSocket() {
+  if (stompClient.connected) {
+    subscribePos()
+  } else {
+    stompClient.onConnect = () => {
+      console.log('✅ Connected')
 
-  if (index === -1) return
-
-  products.value[index] = {
-    ...products.value[index],
-    stock: newStock,
+      subscribePos()
+    }
   }
+}
+function subscribePos() {
+  stompClient.subscribe('/topic/pos', async (msg) => {
+    const event = JSON.parse(msg.body)
+
+    console.log(event)
+
+    switch (event.type) {
+      case 'PRODUCT_UPDATED':
+        await loadProducts()
+
+        if (currentOrder.value?.id) {
+          await loadChiTietHoaDon(currentOrder.value.id)
+        }
+        break
+
+      case 'PAYMENT_SUCCESS':
+        await loadProducts()
+
+        if (currentOrder.value?.id) {
+          await loadChiTietHoaDon(currentOrder.value.id)
+        }
+        break
+      case 'VOUCHER_UPDATED':
+        vouchers.value = await getAllVoucher()
+
+        if (currentOrder.value?.id) {
+          await loadChiTietHoaDon(currentOrder.value.id)
+        }
+        console.log(vouchers.value)
+
+      case 'DISCOUNT_UPDATED':
+        await loadProducts()
+
+        if (currentOrder.value?.id) {
+          await loadChiTietHoaDon(currentOrder.value.id)
+        }
+        break
+      case 'VOUCHER_REMOVED':
+        console.log('VOUCHER_REMOVED event received:', event)
+
+        if (event.orderId === currentOrder.value.id) {
+          toast.warning('Voucher đã được gỡ vì không còn đủ điều kiện áp dụng.')
+        }
+
+        await loadChiTietHoaDon(currentOrder.value.id)
+
+        break
+    }
+  })
 }
 
 function addNewOrderToList(order) {
@@ -1201,7 +1323,7 @@ const filteredVouchers = computed(() => {
       (v) => v.maVoucher && v.maVoucher.toLowerCase().includes(voucherQuery.value.toLowerCase()),
     )
   }
-  return list.slice(0, 4)
+  return list
 })
 
 // --- 9. HÀM XỬ LÝ GIỎ HÀNG & HÓA ĐƠN ---
@@ -1320,18 +1442,19 @@ const removeFromCart = async (index) => {
 }
 
 const max_oder_waiting = 6
-
+const user = JSON.parse(sessionStorage.getItem('user'))
 const createNewOrder = async () => {
   if (allOrders.value.length >= max_oder_waiting) {
     toast.warning(`Chỉ được tạo tối đa ${max_oder_waiting} hóa đơn chờ`)
     return
   }
   try {
-    const hoaDon = await taoHoaDonCho()
+    const hoaDon = await taoHoaDonCho(user.id)
 
     allOrders.value.push({
       id: hoaDon.id,
       maHoaDon: hoaDon.maHoaDon,
+
       cart: [],
       selectedCustomer: null,
       appliedVoucher: null,
@@ -1470,27 +1593,23 @@ const handleCloseInvoice = () => {
 }
 
 // --- 7. LOGIC XỬ LÝ GIỎ HÀNG & TÍNH TOÁN ---
+// const totalCartPrice = computed(() => {
+//   return (currentOrder.value?.cart || []).reduce(
+//     (sum, item) => sum + item.product.giaBan * item.soLuong,
+//     0,
+//   )
+// })
+
 const totalCartPrice = computed(() => {
-  return (currentOrder.value?.cart || []).reduce(
-    (sum, item) => sum + item.product.giaBan * item.soLuong,
-    0,
-  )
+  return currentOrder.value?.tongTienHang || 0
 })
 
 const voucherDiscount = computed(() => {
-  if (!appliedVoucher.value) return 0
-  const vc = appliedVoucher.value
-  let discount = 0
-  if (vc.loaiGiamGia === 'tien_mat') {
-    discount = vc.giaTriGiam
-  } else {
-    discount = (totalCartPrice.value * vc.giaTriGiam) / 100
-  }
-  return vc.giaTriGiamToiDa ? Math.min(discount, vc.giaTriGiamToiDa) : discount
+  return currentOrder.value?.tongGiamGia || 0
 })
 
 const finalPaymentPrice = computed(() => {
-  return Math.max(0, totalCartPrice.value - voucherDiscount.value)
+  return currentOrder.value?.tongThanhToan || 0
 })
 
 // --- 8. HÀM GỬI THANH TOÁN ---
@@ -1568,7 +1687,7 @@ const getVoucherError = (vc) => {
   const now = new Date()
 
   if (vc.trangThai !== 1) {
-    return 'Voucher bị khóa'
+    return 'Voucher đang bị khóa'
   }
 
   if (vc.ngayBatDau && new Date(vc.ngayBatDau) > now) {

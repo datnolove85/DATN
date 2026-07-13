@@ -1,666 +1,940 @@
-<template>
-  <div
-    class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
-  >
-    <!-- HEADER BLOCK: Nền tối sâu #0b0f19 tối giản sang trọng -->
-    <div
-      class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm overflow-hidden"
-    >
-      <div>
-        <span class="text-[10px] tracking-widest uppercase font-bold text-indigo-400"
-          >Hệ thống quản trị thế hệ mới</span
-        >
-        <h1 class="text-2xl font-bold tracking-tight mt-1">Quản Lý Chiến Dịch Khuyến Mãi</h1>
-        <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
-          <span class="relative flex h-2 w-2">
-            <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-            ></span>
-            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          Điều phối và cấu hình giảm giá thời gian thực
-        </p>
-      </div>
-
-      <!-- BUTTON: Nút bấm màu Indigo đặc trưng -->
-      <button
-        @click="openAddModal"
-        class="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2.5"
-          stroke="currentColor"
-          class="w-4 h-4"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        TẠO ĐỢT GIẢM GIÁ MỚI
-      </button>
-    </div>
-
-    <!-- FILTER & SEARCH BAR -->
-    <div
-      class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm"
-    >
-      <div class="relative flex-grow">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Tìm kiếm theo mã hoặc tên chiến dịch..."
-          class="w-full pl-4 pr-4 h-11 bg-slate-50/60 border border-slate-100 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all"
-        />
-      </div>
-      <select
-        v-model="statusFilter"
-        class="px-4 h-11 bg-slate-50/60 border border-slate-100 rounded-xl text-xs font-bold text-slate-700 outline-none cursor-pointer tracking-wide focus:bg-white focus:border-indigo-500 transition-all min-w-[160px]"
-      >
-        <option value="all">TẤT CẢ TRẠNG THÁI</option>
-        <option value="active">ACTIVE</option>
-        <option value="inactive">MUTED</option>
-      </select>
-    </div>
-
-    <!-- DATA TABLE LIST -->
-    <div class="space-y-3">
-      <!-- TABLE HEADER -->
-      <div
-        class="hidden md:grid grid-cols-12 gap-0 px-6 py-3 bg-white border border-slate-100 rounded-t-xl text-[11px] uppercase text-slate-400 font-bold tracking-wider select-none shadow-sm"
-      >
-        <div class="col-span-3 px-4 border-r border-slate-100">Chương trình</div>
-        <div class="col-span-2 text-center border-r border-slate-100">Loại áp dụng</div>
-        <div class="col-span-2 text-center border-r border-slate-100">Giá trị giảm</div>
-        <div class="col-span-2 text-center border-r border-slate-100">Trạng thái</div>
-        <div class="col-span-2 px-4 border-r border-slate-100">Thời hạn chiến dịch</div>
-        <div class="col-span-1 text-center">Tùy chọn</div>
-      </div>
-
-      <div class="space-y-2">
-        <!-- LIST ITEM -->
-        <div
-          v-for="(item, index) in filteredList"
-          :key="item.id ?? index"
-          class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 px-6 py-4 md:py-3 items-center bg-white border border-slate-100 hover:border-indigo-500 hover:bg-slate-50/80 rounded-xl md:rounded-lg transition-all duration-300 ease-in-out shadow-sm group"
-        >
-          <div
-            class="col-span-3 flex flex-col justify-center md:px-4 md:border-r md:border-slate-100 h-full group-hover:translate-x-1 transition-transform"
-          >
-            <div class="text-sm font-bold text-slate-800 truncate">{{ item.tenDotGiamGia }}</div>
-            <div class="mt-1">
-              <span
-                class="inline-block px-2 py-0.5 bg-slate-50 text-indigo-600 font-bold rounded-xl border border-slate-100 text-[10px] font-mono tracking-wide uppercase group-hover:bg-white group-hover:border-indigo-400 transition-all"
-              >
-                {{ item.maDotGiamGia }}
-              </span>
-            </div>
-          </div>
-
-          <div
-            class="col-span-2 flex md:justify-center items-center md:px-4 md:border-r md:border-slate-100 h-full text-xs font-bold text-slate-500"
-          >
-            <span class="md:hidden text-[10px] uppercase font-bold text-slate-400 mr-2">Loại:</span>
-            {{ item.loaiGiamGia || 'Phần trăm (%)' }}
-          </div>
-
-          <div
-            class="col-span-2 flex md:justify-center items-center md:px-4 md:border-r md:border-slate-100 h-full font-mono text-sm font-bold text-indigo-600"
-          >
-            <span class="md:hidden text-[10px] uppercase font-bold text-slate-400 mr-2"
-              >Giảm giá:</span
-            >
-            {{ item.giaTriGiam }}%
-          </div>
-
-          <div
-            class="col-span-2 flex md:justify-center items-center md:border-r md:border-slate-100 h-full"
-          >
-            <span
-              :class="[
-                'inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-xl border transition-all duration-300',
-                item.trangThai
-                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                  : 'bg-rose-50 text-rose-600 border-rose-100',
-              ]"
-            >
-              <span
-                :class="[
-                  'w-1.5 h-1.5 rounded-full',
-                  item.trangThai ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500',
-                ]"
-              ></span>
-              {{ item.trangThai ? 'Active' : 'Muted' }}
-            </span>
-          </div>
-
-          <div
-            class="col-span-2 text-[10px] text-slate-400 flex flex-col gap-0.5 md:px-4 md:border-r md:border-slate-100 h-full justify-center font-mono whitespace-nowrap"
-          >
-            <div>BD: {{ formatDate(item.ngayBatDau) }}</div>
-            <div>KT: {{ formatDate(item.ngayKetThuc) }}</div>
-          </div>
-
-          <div class="col-span-1 flex justify-end md:justify-center items-center pt-2 md:pt-0">
-            <!-- OPERATIONS BUTTONS -->
-            <div class="flex gap-1">
-              <button
-                @click="openEditModal(item)"
-                class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                title="Chỉnh sửa"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
-              <button
-                @click="prepareDelete(item.id)"
-                class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                title="Xóa"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path
-                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- EMPTY STATE -->
-        <div
-          v-if="filteredList.length === 0"
-          class="text-center py-20 bg-white border border-slate-100 rounded-3xl text-slate-400 text-sm"
-        >
-          <p>Không tìm thấy chiến dịch khuyến mãi nào phù hợp.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL FORM -->
-    <Teleport to="body">
-      <div v-if="isModalOpen" class="fixed inset-0 z-[999] flex items-center justify-center p-4">
-        <div
-          class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
-          @click="isModalOpen = false"
-        ></div>
-        <div
-          class="bg-white border border-slate-100 rounded-3xl shadow-xl w-full max-w-xl z-10 flex flex-col max-h-[90vh] overflow-hidden animate-scale-up"
-        >
-          <!-- MODAL HEADER -->
-          <div
-            class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center flex-shrink-0"
-          >
-            <div class="space-y-0.5">
-              <h3 class="text-xs font-bold uppercase tracking-widest text-indigo-600">
-                {{ isEdit ? '⚡ CẬP NHẬT CHIẾN DỊCH' : '✨ KHỞI TẠO CHIẾN DỊCH' }}
-              </h3>
-              <p class="text-[11px] text-slate-400">
-                Vui lòng cấu hình các thông số chiến dịch giảm giá dưới đây
-              </p>
-            </div>
-            <button
-              type="button"
-              @click="isModalOpen = false"
-              class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2.5"
-                stroke="currentColor"
-                class="w-4 h-4"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- MODAL BODY FORM -->
-          <form @submit.prevent="save" class="flex flex-col flex-grow overflow-hidden">
-            <div class="p-6 space-y-5 overflow-y-auto flex-grow custom-scrollbar">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="space-y-1">
-                  <label class="text-[10px] font-bold text-slate-400 uppercase"
-                    >Mã giảm giá *</label
-                  >
-                  <input
-                    v-model="form.maDotGiamGia"
-                    placeholder="VD: SUMMER2026"
-                    class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all uppercase font-mono font-bold text-indigo-600"
-                    required
-                  />
-                </div>
-
-                <div class="space-y-1">
-                  <label class="text-[10px] font-bold text-slate-400 uppercase"
-                    >Giá trị giảm (%) *</label
-                  >
-                  <input
-                    type="number"
-                    v-model="form.giaTriGiam"
-                    placeholder="Nhập từ 1 - 100"
-                    class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-mono font-bold text-slate-700"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 uppercase"
-                  >Tên chương trình *</label
-                >
-                <input
-                  v-model="form.tenDotGiamGia"
-                  placeholder="Nhập tên đợt giảm giá (ví dụ: Ưu đãi mùa hè)..."
-                  class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-semibold text-slate-800"
-                  required
-                />
-              </div>
-
-              <!-- TIMELINE BLOCK -->
-              <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-3">
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Thời hạn áp dụng chiến dịch
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-slate-500">Ngày bắt đầu</label>
-                    <input
-                      type="datetime-local"
-                      v-model="form.ngayBatDau"
-                      class="w-full h-10 border border-slate-100 px-3 rounded-xl text-xs font-mono font-medium text-slate-700 outline-none focus:border-indigo-500 bg-white shadow-sm"
-                      required
-                    />
-                  </div>
-                  <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-slate-500">Ngày kết thúc</label>
-                    <input
-                      type="datetime-local"
-                      v-model="form.ngayKetThuc"
-                      class="w-full h-10 border border-slate-100 px-3 rounded-xl text-xs font-mono font-medium text-slate-700 outline-none focus:border-indigo-500 bg-white shadow-sm"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- STATUS CHANGER -->
-              <div class="space-y-1.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase"
-                  >Trạng thái hoạt động</label
-                >
-                <div
-                  class="flex p-1 bg-slate-100 rounded-xl border border-slate-200/40 w-full sm:w-64"
-                >
-                  <button
-                    type="button"
-                    @click="form.trangThai = true"
-                    :class="[
-                      'flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5',
-                      form.trangThai
-                        ? 'bg-white text-emerald-600 shadow-sm'
-                        : 'text-slate-400 hover:text-slate-600',
-                    ]"
-                  >
-                    <span
-                      class="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                      v-if="form.trangThai"
-                    ></span>
-                    ACTIVE
-                  </button>
-                  <button
-                    type="button"
-                    @click="form.trangThai = false"
-                    :class="[
-                      'flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5',
-                      !form.trangThai
-                        ? 'bg-white text-rose-600 shadow-sm'
-                        : 'text-slate-400 hover:text-slate-600',
-                    ]"
-                  >
-                    <span
-                      class="w-1.5 h-1.5 rounded-full bg-rose-500"
-                      v-if="!form.trangThai"
-                    ></span>
-                    MUTED
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- MODAL FOOTER ACTION -->
-            <div
-              class="flex justify-end gap-2 px-6 py-4 border-t border-slate-100 bg-slate-50 flex-shrink-0"
-            >
-              <button
-                type="button"
-                @click="isModalOpen = false"
-                class="px-5 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
-              >
-                HỦY BỎ
-              </button>
-              <button
-                type="submit"
-                class="px-6 h-10 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 shadow-md shadow-indigo-600/10 transition-all uppercase"
-              >
-                XÁC NHẬN LƯU
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Teleport>
-
-    <!-- DIALOG: CONFIRM DELETE -->
-    <Teleport to="body">
-      <div v-if="deleteId" class="fixed inset-0 z-[999] flex items-center justify-center p-4">
-        <div
-          class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
-          @click="deleteId = null"
-        ></div>
-        <div
-          class="bg-white border border-slate-100 rounded-3xl shadow-xl w-full max-w-xs p-6 z-10 animate-scale-up text-center"
-        >
-          <div
-            class="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </div>
-          <h3 class="text-sm font-bold text-slate-800 mb-1">XÁC NHẬN XÓA</h3>
-          <p class="text-[11px] text-slate-400 mb-6">Chiến dịch này sẽ bị gỡ bỏ vĩnh viễn.</p>
-          <div class="flex gap-2">
-            <button
-              @click="deleteId = null"
-              class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl text-xs font-bold transition-all"
-            >
-              HỦY
-            </button>
-            <button
-              @click="executeDelete"
-              class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-rose-600/10 transition-all"
-            >
-              XÓA NGAY
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-
-    <!-- TOAST NOTIFICATION CORNER: Bọc Teleport độc lập để giải quyết triệt để lỗi che khuất thông báo -->
-    <Teleport to="body">
-      <div
-        class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full sm:w-auto"
-      >
-        <transition-group name="toast">
-          <div
-            v-for="toast in toasts"
-            :key="toast.id"
-            :class="[
-              'pointer-events-auto px-5 py-4 rounded-2xl text-white shadow-[0_10px_30px_rgba(0,0,0,0.2)] flex items-center gap-3 font-bold text-xs border backdrop-blur-md transition-all duration-300',
-              toast.type === 'success'
-                ? 'bg-emerald-600/95 border-emerald-500 shadow-emerald-600/10'
-                : 'bg-rose-600/95 border-rose-500 shadow-rose-600/10',
-            ]"
-          >
-            <div
-              class="flex-shrink-0 w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]"
-            >
-              {{ toast.type === 'success' ? '✓' : '✕' }}
-            </div>
-            <p class="flex-grow tracking-wide text-white">{{ toast.message }}</p>
-          </div>
-        </transition-group>
-      </div>
-    </Teleport>
-  </div>
-</template>
-
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import {
-  getAllDotGiamGia,
-  createDotGiamGia,
-  updateDotGiamGia,
-  deleteDotGiamGia,
-} from '@/service/DotGiamGiaService'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import ThemSanPhamGiamGiaModal from '@/views/Admin/Layout/sales/ThemSanPhamGiamGiaModal.vue'
+import { useRouter } from 'vue-router'
+import { getAllDotGiamGia, getSanPhamChuaApDung } from '@/service/DotGiamGiaService'
+import { createDotGiamGia } from '@/service/DotGiamGiaService'
+import ThemDotGiamGiaModal from '@/views/Admin/Layout/sales/ThemDotGiamGiaModal.vue'
+import { updateDotGiamGia } from '@/service/DotGiamGiaService'
+import { deleteDotGiamGia } from '@/service/DotGiamGiaService'
+import { doiTrangThaiDotGiamGia } from '@/service/DotGiamGiaService'
+import QuanLySanPhamGiamGia from '@/views/Admin/Layout/sales/QuanLySanPhamTrongDot.vue'
+const showModal = ref(false)
+const firstLoading = ref(true)
+const fromDate = ref('')
+const toDate = ref('')
+const filteredData = computed(() => {
+  return danhSachDot.value.filter((dot) => {
+    // tìm kiếm
+    const keyword = search.value.trim().toLowerCase()
 
-const list = ref([])
-const isModalOpen = ref(false)
-const isEdit = ref(false)
-const form = ref({
-  id: null,
-  maDotGiamGia: '',
-  tenDotGiamGia: '',
-  giaTriGiam: null,
-  trangThai: true,
-  ngayBatDau: '',
-  ngayKetThuc: '',
-})
-const currentId = ref(null)
-const searchQuery = ref('')
-const statusFilter = ref('all')
-const toasts = ref([])
-const deleteId = ref(null)
+    const matchKeyword =
+      !keyword ||
+      dot.tenDotGiamGia?.toLowerCase().includes(keyword) ||
+      dot.maDotGiamGia?.toLowerCase().includes(keyword)
 
-const showToast = (message, type = 'success') => {
-  const id = Date.now()
-  toasts.value.push({ id, message, type })
-  setTimeout(() => {
-    toasts.value = toasts.value.filter((t) => t.id !== id)
-  }, 3000)
-}
+    // trạng thái
+    const matchStatus = filterStatus.value === 'all' || dot.trangThai === filterStatus.value
 
-const filteredList = computed(() => {
-  return list.value.filter((item) => {
-    const ma = item.maDotGiamGia?.toLowerCase() || ''
-    const ten = item.tenDotGiamGia?.toLowerCase() || ''
-    const query = searchQuery.value.toLowerCase().trim()
+    // ngày bắt đầu
+    let matchDate = true
 
-    const matchesSearch = ma.includes(query) || ten.includes(query)
-    const matchesStatus =
-      statusFilter.value === 'all' ||
-      (statusFilter.value === 'active' ? item.trangThai : !item.trangThai)
+    if (fromDate.value && toDate.value) {
+      const filterStart = new Date(fromDate.value)
+      const filterEnd = new Date(toDate.value)
+      filterEnd.setHours(23, 59, 59, 999)
 
-    return matchesSearch && matchesStatus
+      const dotStart = new Date(dot.ngayBatDau)
+      const dotEnd = new Date(dot.ngayKetThuc)
+
+      // Hai khoảng thời gian có giao nhau
+      matchDate = dotStart <= filterEnd && dotEnd >= filterStart
+    }
+
+    return matchKeyword && matchStatus && matchDate
   })
 })
 
-const loadData = async () => {
-  try {
-    list.value = await getAllDotGiamGia()
-  } catch (err) {
-    console.error('Lỗi khi tải danh sách đợt giảm giá:', err)
-  }
+// Cập nhật hàm refresh
+const resetFilter = () => {
+  search.value = ''
+  filterStatus.value = 'all'
+  fromDate.value = ''
+  toDate.value = ''
 }
+const showEditModal = ref(false)
 
-const formatDate = (date) => {
-  if (!date) return 'N/A'
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return 'N/A'
-  return `${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
-}
+const dotEdit = ref(null)
 
-const openAddModal = () => {
+const isEdit = ref(false)
+
+const form = ref({})
+
+const showAddModal = ref(false)
+
+const openCreate = () => {
   isEdit.value = false
-  currentId.value = null
+
   form.value = {
-    id: null,
-    maDotGiamGia: '',
     tenDotGiamGia: '',
-    giaTriGiam: null,
-    trangThai: true,
+    loaiGiamGia: 'phan_tram',
+    giaTriGiam: 0,
+    giaTriGiamToiDa: null,
     ngayBatDau: '',
     ngayKetThuc: '',
   }
-  isModalOpen.value = true
-}
 
-const openEditModal = (item) => {
-  isEdit.value = true
-  currentId.value = item.id
-  form.value = {
-    ...item,
-    ngayBatDau: item.ngayBatDau?.slice(0, 16) || '',
-    ngayKetThuc: item.ngayKetThuc?.slice(0, 16) || '',
+  showModal.value = true
+}
+const suaDotGiamGia = (dot) => {
+  dotEdit.value = dot
+
+  showEditModal.value = true
+}
+const capNhatDotGiamGia = async (payload) => {
+  try {
+    await updateDotGiamGia(dotEdit.value.id, payload)
+
+    showEditModal.value = false
+
+    await loadData()
+  } catch (e) {
+    console.log(e)
   }
-  isModalOpen.value = true
 }
 
-const save = async () => {
-  const code = form.value.maDotGiamGia.trim().toLowerCase()
-  const name = form.value.tenDotGiamGia.trim().toLowerCase()
-  const valueDiscount = Number(form.value.giaTriGiam)
+const xoaDot = async (dot) => {
+  const ok = confirm(`Bạn có chắc muốn xóa ${dot.tenDotGiamGia}?`)
 
-  // 1. Kiểm tra dải giá trị phần trăm (%)
-  if (isNaN(valueDiscount) || valueDiscount <= 0 || valueDiscount > 100) {
-    showToast('Giá trị giảm giá phải từ 1% đến 100%!', 'error')
+  if (!ok) return
+
+  try {
+    await deleteDotGiamGia(dot.id)
+
+    await loadData()
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+// =======================
+// DATA
+// =======================
+
+const loading = ref(false)
+
+const danhSachDot = ref([])
+
+const danhSachSanPham = ref([])
+
+const search = ref('')
+
+const filterStatus = ref('all')
+
+const showProductModal = ref(false)
+
+const dotSelected = ref(null)
+
+// =======================
+// PANEL QUẢN LÝ SẢN PHẨM
+// =======================
+
+const selectedDot = ref(null)
+
+const showProductManager = ref(false)
+
+const quanLySanPham = (dot) => {
+  if (selectedDot.value?.id === dot.id && showProductManager.value) {
+    showProductManager.value = false
+    selectedDot.value = null
     return
   }
 
-  // 2. Kiểm tra logic mốc thời gian áp dụng
-  if (form.value.ngayBatDau && form.value.ngayKetThuc) {
-    const start = new Date(form.value.ngayBatDau).getTime()
-    const end = new Date(form.value.ngayKetThuc).getTime()
-    if (end <= start) {
-      showToast('Ngày kết thúc phải diễn ra sau ngày bắt đầu!', 'error')
-      return
+  selectedDot.value = dot
+  showProductManager.value = true
+
+  nextTick(() => {
+    document.getElementById('product-manager')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  })
+}
+
+const themDotGiamGia = async (payload) => {
+  try {
+    console.log(payload)
+    await createDotGiamGia(payload)
+
+    showAddModal.value = false
+
+    await loadData()
+  } catch (e) {
+    console.log(e)
+  }
+}
+// =======================
+// LOAD DATA
+// =======================
+
+const loadData = async () => {
+  try {
+    if (firstLoading.value) {
+      loading.value = true
     }
-  }
 
-  // 3. Kiểm tra trùng lặp mã chiến dịch
-  const isDuplicateCode = list.value.some(
-    (item) =>
-      item.maDotGiamGia.trim().toLowerCase() === code &&
-      (!isEdit.value || item.id !== currentId.value),
-  )
-  if (isDuplicateCode) {
-    showToast('Mã đợt giảm giá này đã tồn tại trên hệ thống!', 'error')
-    return
-  }
-
-  // 4. Kiểm tra trùng lặp tên chiến dịch
-  const isDuplicateName = list.value.some(
-    (item) =>
-      item.tenDotGiamGia.trim().toLowerCase() === name &&
-      (!isEdit.value || item.id !== currentId.value),
-  )
-  if (isDuplicateName) {
-    showToast('Tên chương trình giảm giá này đã tồn tại!', 'error')
-    return
-  }
-
-  try {
-    isEdit.value
-      ? await updateDotGiamGia(currentId.value, form.value)
-      : await createDotGiamGia(form.value)
-    showToast(isEdit.value ? 'Cập nhật chiến dịch thành công!' : 'Khởi tạo chiến dịch thành công!')
-    isModalOpen.value = false
-    await loadData()
-  } catch (error) {
-    showToast('Có lỗi xảy ra trong quá trình xử lý', 'error')
-  }
-}
-
-const prepareDelete = (id) => {
-  deleteId.value = id
-}
-
-const executeDelete = async () => {
-  if (!deleteId.value) return
-  try {
-    await deleteDotGiamGia(deleteId.value)
-    showToast('Đã xóa đợt giảm giá thành công!')
-    await loadData()
-  } catch (error) {
-    showToast('Lỗi hệ thống khi thực hiện xóa', 'error')
+    danhSachDot.value = await getAllDotGiamGia()
   } finally {
-    deleteId.value = null
+    loading.value = false
+    firstLoading.value = false
+  }
+}
+const doiTrangThai = async (dot) => {
+  try {
+    await doiTrangThaiDotGiamGia(dot.id)
+
+    await loadData()
+  } catch (e) {
+    console.log(e)
+
+    alert(e.message || 'Không thể đổi trạng thái')
   }
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+})
+
+// =======================
+// FORMAT
+// =======================
+
+const formatDate = (date) => {
+  if (!date) return '--'
+
+  return new Date(date).toLocaleDateString('vi-VN')
+}
+
+const money = (value) => {
+  return Number(value || 0).toLocaleString('vi-VN')
+}
+
+const formatDiscount = (dot) => {
+  if (dot.loaiGiamGia === 'phan_tram') {
+    return `${dot.giaTriGiam}%`
+  }
+
+  if (dot.loaiGiamGia === 'tien_mat') {
+    return `${money(dot.giaTriGiam)} đ`
+  }
+
+  return ''
+}
+
+// =======================
+// STATUS
+// =======================
+
+const formatStatus = (status) => {
+  const map = {
+    dang_dien_ra: 'Đang diễn ra',
+    sap_dien_ra: 'Sắp diễn ra',
+    tam_dung: 'Tạm dừng',
+    da_ket_thuc: 'Đã kết thúc',
+  }
+
+  return map[status] || status
+}
+
+const statusStyle = (status) => {
+  const map = {
+    dang_dien_ra: 'bg-green-100 text-green-700 border border-green-200',
+
+    sap_dien_ra: 'bg-amber-100 text-amber-700 border border-amber-200',
+
+    tam_dung: 'bg-red-100 text-red-700 border border-red-200',
+
+    da_ket_thuc: 'bg-slate-100 text-slate-600 border border-slate-200',
+  }
+
+  return map[status]
+}
+
+// =======================
+// THỐNG KÊ
+// =======================
+
+const tongDangDienRa = computed(
+  () => danhSachDot.value.filter((x) => x.trangThai === 'dang_dien_ra').length,
+)
+
+const tongSapDienRa = computed(
+  () => danhSachDot.value.filter((x) => x.trangThai === 'sap_dien_ra').length,
+)
+
+const tongTamDung = computed(
+  () => danhSachDot.value.filter((x) => x.trangThai === 'tam_dung').length,
+)
+
+const tongKetThuc = computed(
+  () => danhSachDot.value.filter((x) => x.trangThai === 'da_ket_thuc').length,
+)
+
+// =======================
+// FILTER
+// =======================
+
+// =======================
+// ACTION
+// =======================
+
+const openProduct = async (dot) => {
+  try {
+    loading.value = true
+
+    dotSelected.value = dot.id
+
+    danhSachSanPham.value = await getSanPhamChuaApDung(dot.id)
+
+    showProductModal.value = true
+  } catch (e) {
+    console.log(e)
+  } finally {
+    loading.value = false
+  }
+}
 </script>
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 p-8">
+    <!-- Background decoration -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+      <div
+        class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl animate-pulse"
+      ></div>
 
-<style scoped>
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.3s ease;
-}
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes scaleUp {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.animate-fade-in {
-  animation: fadeIn 0.35s ease-out forwards;
-}
-.animate-scale-up {
-  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+      <div
+        class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-300/20 rounded-full blur-3xl animate-pulse"
+      ></div>
+    </div>
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 9999px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
-}
-</style>
+    <div class="relative z-10">
+      <!-- HEADER -->
+
+      <div
+        class="overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 shadow-2xl"
+      >
+        <div class="flex justify-between items-center px-10 py-8">
+          <div>
+            <div class="flex items-center gap-4">
+              <div
+                class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-lg flex items-center justify-center text-3xl shadow-lg"
+              >
+                🎉
+              </div>
+
+              <div>
+                <h1 class="text-4xl font-extrabold text-white tracking-wide">
+                  Quản lý đợt giảm giá
+                </h1>
+
+                <p class="text-indigo-100 mt-2 text-lg">
+                  Quản lý toàn bộ chương trình khuyến mãi của cửa hàng.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            @click="showAddModal = true"
+            class="group flex items-center gap-3 rounded-2xl bg-white px-6 py-4 font-semibold text-indigo-700 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-2xl"
+          >
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white transition group-hover:rotate-90"
+            >
+              +
+            </span>
+
+            <span> Thêm đợt giảm giá </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistic -->
+
+      <div class="grid grid-cols-5 gap-6 mt-8">
+        <!-- Card 1 -->
+
+        <div
+          class="group rounded-3xl bg-white/90 backdrop-blur-xl border border-white shadow-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+        >
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-slate-500 font-medium">Tổng đợt</p>
+
+              <h2 class="mt-3 text-4xl font-black text-slate-800">
+                {{ danhSachDot.length }}
+              </h2>
+            </div>
+
+            <div
+              class="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center text-3xl group-hover:rotate-12 transition"
+            >
+              📦
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+
+        <div
+          class="group rounded-3xl bg-white border shadow-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+        >
+          <div class="flex justify-between">
+            <div>
+              <p class="text-slate-500">Đang diễn ra</p>
+
+              <h2 class="mt-3 text-4xl font-black text-green-600">
+                {{ tongDangDienRa }}
+              </h2>
+            </div>
+
+            <div
+              class="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center text-3xl"
+            >
+              🟢
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+
+        <div
+          class="group rounded-3xl bg-white border shadow-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+        >
+          <div class="flex justify-between">
+            <div>
+              <p class="text-slate-500">Sắp diễn ra</p>
+
+              <h2 class="mt-3 text-4xl font-black text-amber-500">
+                {{ tongSapDienRa }}
+              </h2>
+            </div>
+
+            <div
+              class="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center text-3xl"
+            >
+              🕒
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+
+        <div
+          class="group rounded-3xl bg-white border shadow-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+        >
+          <div class="flex justify-between">
+            <div>
+              <p class="text-slate-500">Tạm dừng</p>
+
+              <h2 class="mt-3 text-4xl font-black text-red-500">
+                {{ tongTamDung }}
+              </h2>
+            </div>
+
+            <div class="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center text-3xl">
+              ⏸
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+
+        <div
+          class="group rounded-3xl bg-white border shadow-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+        >
+          <div class="flex justify-between">
+            <div>
+              <p class="text-slate-500">Đã kết thúc</p>
+
+              <h2 class="mt-3 text-4xl font-black text-slate-600">
+                {{ tongKetThuc }}
+              </h2>
+            </div>
+
+            <div
+              class="w-16 h-16 rounded-2xl bg-slate-200 flex items-center justify-center text-3xl"
+            >
+              ✅
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- HEADER -->
+
+      <!-- FILTER -->
+
+      <!-- ================= FILTER ================= -->
+
+      <div
+        class="mt-8 rounded-3xl border border-white/60 bg-white/80 backdrop-blur-xl shadow-xl p-6"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Bộ lọc dữ liệu</h2>
+
+            <p class="text-slate-500 mt-1">Tìm kiếm và lọc nhanh các đợt giảm giá.</p>
+          </div>
+
+          <div class="hidden lg:flex items-center gap-2 text-sm text-slate-500">
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+
+            {{ filteredData.length }} kết quả
+          </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 items-end">
+          <!-- SEARCH -->
+
+          <div class="col-span-12 lg:col-span-5">
+            <div class="relative group">
+              <svg
+                class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 21l-5.2-5.2M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"
+                />
+              </svg>
+
+              <input
+                v-model="search"
+                placeholder="Tìm kiếm theo tên hoặc mã đợt giảm giá..."
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-14 pr-5 py-4 text-slate-700 shadow-sm transition-all duration-300 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 hover:border-indigo-300"
+              />
+            </div>
+          </div>
+
+          <!-- Từ ngày -->
+
+          <div class="col-span-6 lg:col-span-2">
+            <label class="text-sm text-slate-500 mb-2 block"> Từ ngày </label>
+
+            <input
+              v-model="fromDate"
+              type="date"
+              class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </div>
+
+          <!-- Đến ngày -->
+
+          <div class="col-span-6 lg:col-span-2">
+            <label class="text-sm text-slate-500 mb-2 block"> Đến ngày </label>
+
+            <input
+              v-model="toDate"
+              type="date"
+              class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </div>
+          <!-- STATUS -->
+
+          <!-- BUTTON -->
+
+          <div class="col-span-12 lg:col-span-3 flex gap-3">
+            <button
+              @click="resetFilter"
+              class="group w-full rounded-2xl bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-95"
+            >
+              <span class="flex items-center justify-center gap-2">
+                <svg
+                  class="w-5 h-5 transition-transform duration-500 group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6" />
+
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M20 9A8 8 0 005.3 5.3L4 6m16 12l-1.3-1.3A8 8 0 018 20"
+                  />
+                </svg>
+
+                Làm mới
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Filter -->
+
+        <div class="flex flex-wrap gap-3 mt-6">
+          <button
+            @click="filterStatus = 'all'"
+            class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
+            :class="
+              filterStatus == 'all'
+                ? 'bg-indigo-600 text-white shadow-lg'
+                : 'bg-slate-100 hover:bg-slate-200'
+            "
+          >
+            Tất cả
+          </button>
+
+          <button
+            @click="filterStatus = 'dang_dien_ra'"
+            class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
+            :class="
+              filterStatus == 'dang_dien_ra'
+                ? 'bg-green-600 text-white shadow-lg'
+                : 'bg-green-100 text-green-700 hover:bg-green-200'
+            "
+          >
+            Đang diễn ra
+          </button>
+
+          <button
+            @click="filterStatus = 'sap_dien_ra'"
+            class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
+            :class="
+              filterStatus == 'sap_dien_ra'
+                ? 'bg-yellow-500 text-white shadow-lg'
+                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+            "
+          >
+            Sắp diễn ra
+          </button>
+
+          <button
+            @click="filterStatus = 'tam_dung'"
+            class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
+            :class="
+              filterStatus == 'tam_dung'
+                ? 'bg-red-600 text-white shadow-lg'
+                : 'bg-red-100 text-red-700 hover:bg-red-200'
+            "
+          >
+            Tạm dừng
+          </button>
+
+          <button
+            @click="filterStatus = 'da_ket_thuc'"
+            class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
+            :class="
+              filterStatus == 'da_ket_thuc'
+                ? 'bg-slate-700 text-white shadow-lg'
+                : 'bg-slate-100 hover:bg-slate-200'
+            "
+          >
+            Đã kết thúc
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+
+      <!-- ========================= TABLE ========================= -->
+
+      <div
+        class="mt-8 overflow-hidden rounded-3xl border border-white/70 bg-white/90 backdrop-blur-xl shadow-2xl"
+      >
+        <!-- Header -->
+
+        <div
+          class="flex items-center justify-between border-b border-slate-100 px-8 py-6 bg-gradient-to-r from-white to-slate-50"
+        >
+          <div>
+            <h2 class="text-2xl font-bold text-slate-800">Danh sách đợt giảm giá</h2>
+
+            <p class="mt-1 text-sm text-slate-500">
+              Theo dõi và quản lý toàn bộ chương trình khuyến mãi.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="rounded-2xl bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">
+              {{ filteredData.length }}
+
+              đợt
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full border-separate border-spacing-0">
+            <thead>
+              <tr class="sticky top-0 z-10 bg-slate-50">
+                <th
+                  class="px-8 py-5 text-left text-xs uppercase tracking-wider font-bold text-slate-500"
+                >
+                  Đợt giảm giá
+                </th>
+
+                <th class="text-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                  Loại
+                </th>
+
+                <th class="text-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                  Giá trị
+                </th>
+
+                <th class="text-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                  Thời gian
+                </th>
+
+                <th class="text-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                  Trạng thái
+                </th>
+
+                <th class="text-center text-xs uppercase tracking-wider font-bold text-slate-500">
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-slate-100">
+              <!-- DATA -->
+
+              <tr
+                v-for="dot in filteredData"
+                :key="dot.id"
+                class="group transition-all duration-300 hover:bg-indigo-50/40"
+              >
+                <!-- Đợt giảm giá -->
+
+                <td class="px-8 py-6">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg"
+                    >
+                      🎁
+                    </div>
+
+                    <div>
+                      <h3 class="font-bold text-slate-800 transition group-hover:text-indigo-600">
+                        {{ dot.tenDotGiamGia }}
+                      </h3>
+
+                      <p class="mt-1 text-xs text-slate-500">
+                        {{ dot.maDotGiamGia }}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Loại -->
+
+                <td class="text-center">
+                  <span
+                    v-if="dot.loaiGiamGia === 'phan_tram'"
+                    class="rounded-full bg-indigo-100 px-4 py-2 text-xs font-semibold text-indigo-700"
+                  >
+                    % Phần trăm
+                  </span>
+
+                  <span
+                    v-else
+                    class="rounded-full bg-emerald-100 px-4 py-2 text-xs font-semibold text-emerald-700"
+                  >
+                    💰 Tiền mặt
+                  </span>
+                </td>
+
+                <!-- Giá trị -->
+
+                <td class="text-center">
+                  <div class="font-bold text-lg text-indigo-600">
+                    {{ formatDiscount(dot) }}
+                  </div>
+
+                  <div v-if="dot.giaTriGiamToiDa" class="mt-1 text-xs text-slate-400">
+                    Tối đa {{ money(dot.giaTriGiamToiDa) }} đ
+                  </div>
+                </td>
+
+                <!-- Thời gian -->
+
+                <td class="text-center">
+                  <div class="inline-flex flex-col rounded-xl bg-slate-50 px-4 py-3">
+                    <span class="text-xs text-slate-400">Bắt đầu</span>
+
+                    <span class="font-semibold">
+                      {{ formatDate(dot.ngayBatDau) }}
+                    </span>
+
+                    <div class="my-2 h-px bg-slate-200"></div>
+
+                    <span class="text-xs text-slate-400">Kết thúc</span>
+
+                    <span class="font-semibold">
+                      {{ formatDate(dot.ngayKetThuc) }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Trạng thái -->
+
+                <td class="text-center">
+                  <span
+                    class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
+                    :class="statusStyle(dot.trangThai)"
+                  >
+                    <span class="h-2.5 w-2.5 rounded-full bg-current animate-pulse"></span>
+
+                    {{ formatStatus(dot.trangThai) }}
+                  </span>
+                </td>
+
+                <!-- Action -->
+
+                <td class="py-6">
+                  <div class="flex flex-wrap justify-center gap-2">
+                    <button
+                      @click="quanLySanPham(dot)"
+                      class="rounded-xl bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-1 hover:bg-slate-800"
+                    >
+                      Quản lý
+                    </button>
+
+                    <button
+                      v-if="
+                        dot.trangThai === 'sap_dien_ra' ||
+                        (dot.trangThai === 'dang_dien_ra' && dot.tongSanPham === 0) ||
+                        dot.trangThai === 'tam_dung'
+                      "
+                      @click="suaDotGiamGia(dot)"
+                      class="rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-1 hover:bg-amber-600"
+                    >
+                      ✏
+                    </button>
+
+                    <button
+                      v-if="dot.trangThai === 'sap_dien_ra' && dot.tongSanPham === 0"
+                      @click="xoaDot(dot)"
+                      class="rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-1 hover:bg-red-700"
+                    >
+                      🗑
+                    </button>
+
+                    <button
+                      v-if="dot.trangThai === 'dang_dien_ra'"
+                      @click="doiTrangThai(dot)"
+                      class="rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-1 hover:bg-orange-600"
+                    >
+                      Tạm dừng
+                    </button>
+
+                    <button
+                      v-if="dot.trangThai === 'tam_dung'"
+                      @click="doiTrangThai(dot)"
+                      class="rounded-xl bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-1 hover:bg-green-700"
+                    >
+                      Tiếp tục
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty -->
+
+              <tr v-if="filteredData.length === 0">
+                <td colspan="6" class="py-24">
+                  <div class="flex flex-col items-center">
+                    <div class="mb-4 text-6xl">📭</div>
+
+                    <h3 class="text-xl font-bold text-slate-700">Không tìm thấy dữ liệu</h3>
+
+                    <p class="mt-2 text-slate-400">Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <Teleport to="body">
+        <Transition
+          enter-active-class="transition duration-300 ease-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition duration-200 ease-in"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div v-if="showProductManager" class="fixed inset-0 z-[100]">
+            <!-- Overlay -->
+            <div
+              class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              @click="showProductManager = false"
+            />
+
+            <!-- Drawer -->
+            <Transition
+              enter-active-class="transition duration-300 ease-out"
+              enter-from-class="translate-x-full"
+              enter-to-class="translate-x-0"
+              leave-active-class="transition duration-200 ease-in"
+              leave-from-class="translate-x-0"
+              leave-to-class="translate-x-full"
+            >
+              <div
+                class="absolute right-0 top-0 h-full w-full md:w-[90vw] lg:w-[80vw] xl:w-[72vw] 2xl:w-[70vw] bg-slate-100 rounded-l-3xl border-l border-slate-200 shadow-2xl flex flex-col"
+              >
+                <!-- Header -->
+                <div
+                  class="flex items-center justify-between px-8 py-6 border-b bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600"
+                >
+                  <div>
+                    <h2 class="text-3xl font-bold text-white">
+                      {{ selectedDot?.tenDotGiamGia }}
+                    </h2>
+
+                    <p class="text-indigo-100 mt-1">Quản lý sản phẩm trong đợt giảm giá</p>
+                  </div>
+
+                  <button
+                    @click="showProductManager = false"
+                    class="h-12 w-12 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 overflow-auto">
+                  <QuanLySanPhamGiamGia :dot="selectedDot" @close="showProductManager = false" />
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <ThemSanPhamGiamGiaModal
+        :show="showProductModal"
+        :idDot="dotSelected"
+        :danhSachSanPham="danhSachSanPham"
+        @close="showProductModal = false"
+        @success="loadData"
+      />
+
+      <!-- Modal thêm đợt giảm giá -->
+      <ThemDotGiamGiaModal
+        :show="showAddModal"
+        :isEdit="false"
+        @close="showAddModal = false"
+        @success="themDotGiamGia"
+      />
+
+      <!-- Modal sửa đợt giảm giá -->
+      <ThemDotGiamGiaModal
+        :show="showEditModal"
+        :isEdit="true"
+        :dataEdit="dotEdit"
+        @close="showEditModal = false"
+        @success="capNhatDotGiamGia"
+      />
+    </div>
+  </div>
+</template>

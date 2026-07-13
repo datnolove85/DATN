@@ -54,6 +54,18 @@ public class DiaChiKhachHang {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
+    @Column(name = "district_id")
+    private Integer districtId;
+
+    @Column(name = "ward_code")
+    private String wardCode;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_khach_hang")
     private KhachHang idKhachHang;

@@ -1,22 +1,19 @@
 package com.example.backend.Response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class LoginResponse {
 
     private String token;
-
     private Integer id;
-
-    private String tenTaiKhoan;
-
+    private Integer idNhanVien;
+    private Integer idKhachHang;
+    private String hoTen;
     private String email;
-
     private String vaiTro;
+
 
 }

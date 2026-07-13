@@ -113,7 +113,7 @@
                 </div>
 
                 <RouterLink
-                  to="/giohang"
+                  to="/admin/giohang"
                   @click="closeCartImmediately"
                   class="block w-full text-center py-3 rounded-xl bg-black text-white font-semibold hover:bg-gray-800 transition"
                 >
@@ -188,48 +188,47 @@ const totalPrice = computed(() => {
   }, 0)
 })
 
-const loadCart = async () => {
-  console.log('Đang load cart...')
-  try {
-    const token = localStorage.getItem('token')
+// const loadCart = async () => {
+//   try {
+//     const token = sessionStorage.getItem('token')
 
-    if (!token) {
-      cart.value = []
-      return
-    }
+//     if (!token) {
+//       cart.value = []
+//       return
+//     }
 
-    const res = await axios.get('http://localhost:8080/giohang', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    console.log(res.data)
+//     // const res = await axios.get('http://localhost:8080/giohang', {
+//     //   headers: {
+//     //     Authorization: `Bearer ${token}`,
+//     //   },
+//     // })
+//     console.log(res.data)
 
-    cart.value = res.data || []
+//     cart.value = res.data || []
 
-    console.log('Cart:', cart.value)
-  } catch (err) {
-    console.log(err)
+//     console.log('Cart:', cart.value)
+//   } catch (err) {
+//     console.log(err)
 
-    cart.value = []
-  }
-}
+//     cart.value = []
+//   }
+// }
 
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-  emitter.on('cart-updated', () => {
-    console.log('Header nhận được sự kiện')
+// onMounted(() => {
+//   window.addEventListener('scroll', handleScroll)
+//   emitter.on('cart-updated', () => {
+//     console.log('Header nhận được sự kiện')
 
-    loadCart()
-  })
-  loadCart()
-})
+//     loadCart()
+//   })
+//   loadCart()
+// })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+// onUnmounted(() => {
+//   window.removeEventListener('scroll', handleScroll)
 
-  emitter.off('cart-updated', loadCart)
-})
+//   emitter.off('cart-updated', loadCart)
+// })
 
 const openCart = () => {
   // Nếu đang có lệnh đóng giỏ hàng chuẩn bị chạy, thì hủy bỏ lệnh đó đi

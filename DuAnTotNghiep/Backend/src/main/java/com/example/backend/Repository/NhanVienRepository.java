@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NhanVienRepository extends JpaRepository<NhanVien, Integer>, JpaSpecificationExecutor<NhanVien> {
@@ -38,6 +39,8 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer>, Jp
                Where nv.id=?1
             """)
     NhanVienResponse detailNhanVien(Integer id);
+
+    Optional<NhanVien> findByIdTaiKhoan_Id(Integer idTaiKhoan);
 
 }
 

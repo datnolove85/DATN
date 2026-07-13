@@ -25,13 +25,13 @@ public interface HoaDonService {
 
     HoaDonDetailResponse getDetail(Integer id);
 
-    HoaDon taoHoaDonCho();
+    HoaDon taoHoaDonCho(TaoHoaDonRequest taoHoaDonRequest);
 
     HoaDon taoHoaDonChoOnline();
 
     Map<String, Object> createOnlineOrder(CreateOnlineOrderRequest request, HttpServletRequest httpServletRequest);
 
-    List<HoaDon> getHoaDonCho();
+    List<HoaDon> getHoaDonCho(Integer idNhanVien);
 
     List<GioHangResponse> getChiTietHoaDon(
             Integer idHoaDon

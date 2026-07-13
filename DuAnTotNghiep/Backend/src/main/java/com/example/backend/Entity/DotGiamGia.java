@@ -1,60 +1,73 @@
 package com.example.backend.Entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "dot_giam_gia")
-public class DotGiamGia extends BaseEntity {
+public class DotGiamGia {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size(max = 30)
-    @NotNull
-    @Column(name = "ma_dot_giam_gia", nullable = false, length = 30)
+
+    @Column(name = "ma_dot_giam_gia")
     private String maDotGiamGia;
 
-    @Size(max = 200)
-    @NotNull
-    @Nationalized
-    @Column(name = "ten_dot_giam_gia", nullable = false, length = 200)
+
+    @Column(name = "ten_dot_giam_gia")
     private String tenDotGiamGia;
 
-    @Size(max = 20)
-    @NotNull
-    @Column(name = "loai_giam_gia", nullable = false, length = 20)
+
+    @Column(name = "loai_giam_gia")
     private String loaiGiamGia;
 
-    @NotNull
-    @Column(name = "gia_tri_giam", nullable = false, precision = 18, scale = 2)
+
+    @Column(name = "gia_tri_giam")
     private BigDecimal giaTriGiam;
 
-    @Column(name = "gia_tri_giam_toi_da", precision = 18, scale = 2)
+
+    @Column(name = "gia_tri_giam_toi_da")
     private BigDecimal giaTriGiamToiDa;
 
-    @NotNull
-    @Column(name = "ngay_bat_dau", nullable = false)
+
+    @Column(name = "ngay_bat_dau")
     private Instant ngayBatDau;
 
-    @NotNull
-    @Column(name = "ngay_ket_thuc", nullable = false)
+
+    @Column(name = "ngay_ket_thuc")
     private Instant ngayKetThuc;
 
-    @Nationalized
-    @Lob
+
     @Column(name = "mo_ta")
     private String moTa;
+
+
+    @Column(name = "ngay_tao")
+    private Instant ngayTao;
+
+
+    @Column(name = "ngay_cap_nhat")
+    private Instant ngayCapNhat;
+
+
+    @Column(name = "trang_thai")
+    private String trangThai;
+
+
+    @OneToMany(
+            mappedBy = "dotGiamGia",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<SanPhamGiamGia> sanPhamGiamGias;
 
 }

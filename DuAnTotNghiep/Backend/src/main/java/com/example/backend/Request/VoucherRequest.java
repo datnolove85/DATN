@@ -11,14 +11,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 public class VoucherRequest {
-    private String maVoucher;
     private String tenVoucher;
     private String loaiGiamGia;
     private BigDecimal giaTriGiam;
     private BigDecimal giaTriDonHangToiThieu;
     private BigDecimal giaTriGiamToiDa;
     private Integer soLuong;
-    private Integer soLuongDaDung;
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
     private String moTa;

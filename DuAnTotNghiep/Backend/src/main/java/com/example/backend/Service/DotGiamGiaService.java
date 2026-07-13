@@ -1,118 +1,68 @@
 package com.example.backend.Service;
 
-import com.example.backend.Entity.DotGiamGia;
-import com.example.backend.Repository.DotGiamGiaRepository;
-import com.example.backend.Request.DotGiamGiaRequest;
+import com.example.backend.Request.CreateDotGiamGiaRequest;
+import com.example.backend.Request.ThemSanPhamGGRequest;
+import com.example.backend.Request.ThemSanPhamRequest;
+import com.example.backend.Request.UpdateDotGiamGiaRequest;
+import com.example.backend.Response.DotGiamGiaDetailResponse;
 import com.example.backend.Response.DotGiamGiaResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.example.backend.Response.SanPhamGiamGiaResponse;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Service
-public class DotGiamGiaService {
+public interface DotGiamGiaService {
 
-    @Autowired
-    private DotGiamGiaRepository repo;
+    /**
+     * Danh sách đợt giảm giá
+     */
+    List<DotGiamGiaResponse> getAll();
 
-    // ================== GET ALL ==================
-    public List<DotGiamGiaResponse> getAll() {
-        return repo.findAll()
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toList());
-    }
+    /**
+     * Chi tiết đợt giảm giá
+     */
+    DotGiamGiaDetailResponse getById(Integer id);
 
-    // ================== GET BY ID ==================
-    public DotGiamGiaResponse getById(Integer id) {
-        DotGiamGia e = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá"));
-        return map(e);
-    }
+    /**
+     * Tạo đợt giảm giá
+     */
+    DotGiamGiaResponse create(CreateDotGiamGiaRequest request);
 
-    // ================== CREATE ==================
-    public DotGiamGiaResponse create(DotGiamGiaRequest r) {
+    /**
+     * Cập nhật
+     */
+    DotGiamGiaResponse update(Integer id,
+                              UpdateDotGiamGiaRequest request);
 
-        if (repo.existsByMaDotGiamGia(r.getMaDotGiamGia())) {
-            throw new RuntimeException("Mã đợt giảm giá đã tồn tại");
-        }
+    /**
+     * Xóa
+     */
+    void delete(Integer id);
 
-        DotGiamGia e = new DotGiamGia();
-        e.setMaDotGiamGia(r.getMaDotGiamGia());
-        e.setTenDotGiamGia(r.getTenDotGiamGia());
-        e.setLoaiGiamGia("phan_tram");
-        e.setGiaTriGiam(r.getGiaTriGiam());
-        e.setGiaTriGiamToiDa(r.getGiaTriGiamToiDa());
-        e.setNgayBatDau(
-                r.getNgayBatDau()
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toInstant()
-        );
+    /**
+     * Thêm sản phẩm vào đợt
+     */
+    List<SanPhamGiamGiaResponse> themSanPham(Integer idDot,
+                     ThemSanPhamGGRequest request);
 
-        e.setNgayKetThuc(
-                r.getNgayKetThuc()
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toInstant()
-        );
-        e.setMoTa(r.getMoTa());
-        e.setTrangThai(r.getTrangThai() != null ? r.getTrangThai() : true);
+    /**
+     * Xóa sản phẩm khỏi đợt
+     */
+    void xoaSanPham(Integer idDot,
+                    Integer idSPCT);
 
-        e.setNgayTao(Instant.now());
-        e.setNgayCapNhat(Instant.now());
+    /**
+     * Danh sách sản phẩm trong đợt
+     */
+    List<SanPhamGiamGiaResponse> getSanPham(Integer idDot);
 
-        return map(repo.save(e));
-    }
+    /**
+     * Danh sách sản phẩm chưa áp dụng
+     */
+    List<SanPhamGiamGiaResponse> getSanPhamChuaApDung(Integer idDot);
 
-    // ================== UPDATE ==================
-    public DotGiamGiaResponse update(Integer id, DotGiamGiaRequest r) {
+    /**
+     * Đổi trạng thái
+     */
+    void doiTrangThai(Integer id);
 
-        DotGiamGia e = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá"));
-
-        e.setMaDotGiamGia(r.getMaDotGiamGia());
-        e.setTenDotGiamGia(r.getTenDotGiamGia());
-        e.setLoaiGiamGia("phan_tram");
-        e.setGiaTriGiam(r.getGiaTriGiam());
-        e.setGiaTriGiamToiDa(r.getGiaTriGiamToiDa());
-        e.setNgayBatDau(
-                r.getNgayBatDau()
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toInstant()
-        );
-
-        e.setNgayKetThuc(
-                r.getNgayKetThuc()
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toInstant()
-        );
-        e.setMoTa(r.getMoTa());
-        e.setTrangThai(r.getTrangThai());
-
-        e.setNgayCapNhat(Instant.now());
-
-        return map(repo.save(e));
-    }
-
-    // ================== DELETE ==================
-    public void delete(Integer id) {
-        repo.deleteById(id);
-    }
-
-    // ================== MAPPER ==================
-    private DotGiamGiaResponse map(DotGiamGia e) {
-        DotGiamGiaResponse r = new DotGiamGiaResponse();
-        r.setId(e.getId());
-        r.setMaDotGiamGia(e.getMaDotGiamGia());
-        r.setTenDotGiamGia(e.getTenDotGiamGia());
-        r.setLoaiGiamGia(e.getLoaiGiamGia());
-        r.setGiaTriGiam(e.getGiaTriGiam());
-        r.setGiaTriGiamToiDa(e.getGiaTriGiamToiDa());
-        r.setNgayBatDau(e.getNgayBatDau());
-        r.setNgayKetThuc(e.getNgayKetThuc());
-        r.setMoTa(e.getMoTa());
-        r.setTrangThai(e.getTrangThai());
-        return r;
-    }
 }

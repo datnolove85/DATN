@@ -10,6 +10,7 @@ import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -71,4 +72,6 @@ public class SanPhamChiTiet {
     @Column(name = "trang_thai")
     private Boolean trangThai;
 
+    @OneToMany(mappedBy = "sanPhamChiTiet")
+    private List<SanPhamGiamGia> sanPhamGiamGias;
 }

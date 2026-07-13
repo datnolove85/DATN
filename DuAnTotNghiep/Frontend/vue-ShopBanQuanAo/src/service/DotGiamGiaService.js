@@ -1,38 +1,75 @@
-const API = 'http://localhost:8080/dot-giam-gia'
+import { apiFetch } from './api'
 
-// ================= GET ALL =================
-export const getAllDotGiamGia = async () => {
-  const res = await fetch(API)
-  return await res.json()
+// ======================================
+// ĐỢT GIẢM GIÁ
+// ======================================
+
+// Danh sách đợt giảm giá
+export const getAllDotGiamGia = () => {
+  return apiFetch('/dot-giam-gia')
 }
 
-// ================= GET BY ID =================
-export const getDotGiamGiaById = async (id) => {
-  const res = await fetch(`${API}/detail/${id}`)
-  return await res.json()
+// Chi tiết đợt giảm giá
+export const getDotGiamGiaById = (id) => {
+  return apiFetch(`/dot-giam-gia/${id}`)
 }
 
-// ================= CREATE =================
-export const createDotGiamGia = async (data) => {
-  return await fetch(API, {
+// Tạo đợt giảm giá
+export const createDotGiamGia = (payload) => {
+  return apiFetch('/dot-giam-gia', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 }
 
-// ================= UPDATE =================
-export const updateDotGiamGia = async (id, data) => {
-  return await fetch(`${API}/update/${id}`, {
+// Cập nhật
+export const updateDotGiamGia = (id, payload) => {
+  return apiFetch(`/dot-giam-gia/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 }
 
-// ================= DELETE =================
-export const deleteDotGiamGia = async (id) => {
-  return await fetch(`${API}/delete/${id}`, {
+// Xóa
+export const deleteDotGiamGia = (id) => {
+  return apiFetch(`/dot-giam-gia/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export const doiTrangThaiDotGiamGia = async (id) => {
+  const response = await fetch(`http://localhost:8080/dot-giam-gia/${id}/doi-trang-thai`, {
+    method: 'PUT',
+  })
+
+  return await response.text()
+}
+
+// ======================================
+// SẢN PHẨM TRONG ĐỢT GIẢM GIÁ
+// ======================================
+
+// Danh sách sản phẩm đang áp dụng
+export const getSanPhamTrongDot = (idDot) => {
+  return apiFetch(`/dot-giam-gia/${idDot}/san-pham`)
+}
+
+// Danh sách sản phẩm CHƯA áp dụng
+export const getSanPhamChuaApDung = (idDot) => {
+  return apiFetch(`/dot-giam-gia/${idDot}/san-pham-chua-ap-dung`)
+}
+
+// Thêm sản phẩm
+export const themSanPhamGiamGia = (idDot, payload) => {
+  return apiFetch(`/dot-giam-gia/${idDot}/san-pham`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+// Xóa sản phẩm khỏi đợt
+export const xoaSanPhamGiamGia = (idDot, idSPCT) => {
+  return apiFetch(`/dot-giam-gia/${idDot}/san-pham/${idSPCT}`, {
     method: 'DELETE',
   })
 }

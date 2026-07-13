@@ -132,6 +132,17 @@ onMounted(async () => {
   dynamicFilters.value[0].options = dData.map((i) => ({ id: i.id, name: i.tenDanhMuc }))
   dynamicFilters.value[1].options = tData.map((i) => ({ id: i.id, name: i.tenThuongHieu }))
   dynamicFilters.value[2].options = cData.map((i) => ({ id: i.id, name: i.tenChatLieu }))
+  client.onConnect = () => {
+    client.subscribe('/topic/pos', (message) => {
+      const event = JSON.parse(message.body)
+
+      if (event.type === 'DISCOUNT_UPDATED') {
+        loadProducts()
+      }
+    })
+  }
+
+  client.activate()
 })
 
 // Kiểm tra xem có bộ lọc nào đang hoạt động không để hiển thị nút xóa

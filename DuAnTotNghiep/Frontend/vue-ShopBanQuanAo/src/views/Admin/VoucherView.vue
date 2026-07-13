@@ -40,64 +40,80 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div
-        class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
+        class="bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
       >
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-          >Tổng phiếu</span
-        >
-        <strong class="block text-2xl font-black text-slate-800 mt-2 font-mono">{{
-          vouchers.length
-        }}</strong>
-        <small class="block text-[10px] text-slate-400 mt-1 font-medium"
-          >Đang hiển thị trên hệ thống</small
-        >
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          Tổng phiếu
+        </span>
+
+        <strong class="block text-xl font-black text-slate-800 mt-1.5 font-mono">
+          {{ vouchers.length }}
+        </strong>
+
+        <small class="block text-[10px] text-slate-400 mt-0.5 font-medium">
+          Đang hiển thị trên hệ thống
+        </small>
+
         <div
-          class="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-slate-50 group-hover:scale-110 transition-transform"
+          class="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-slate-50 group-hover:scale-110 transition-transform"
         ></div>
       </div>
 
       <div
-        class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
+        class="bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
       >
-        <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider"
-          >Đang hoạt động</span
-        >
-        <strong class="block text-2xl font-black text-emerald-600 mt-2 font-mono">{{
-          activeCount
-        }}</strong>
-        <small class="block text-[10px] text-slate-400 mt-1 font-medium">Có thể áp dụng ngay</small>
+        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+          Đang hoạt động
+        </span>
+
+        <strong class="block text-xl font-black text-emerald-600 mt-1.5 font-mono">
+          {{ activeCount }}
+        </strong>
+
+        <small class="block text-[10px] text-slate-400 mt-0.5 font-medium">
+          Có thể áp dụng ngay
+        </small>
+
         <div
-          class="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-emerald-50 group-hover:scale-110 transition-transform"
+          class="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-emerald-50 group-hover:scale-110 transition-transform"
         ></div>
       </div>
 
       <div
-        class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
+        class="bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
       >
-        <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Đã dùng</span>
-        <strong class="block text-2xl font-black text-amber-600 mt-2 font-mono">{{
-          usedQuantity
-        }}</strong>
-        <small class="block text-[10px] text-slate-400 mt-1 font-medium"
-          >Lượt sử dụng thực tế</small
-        >
+        <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider"> Đã dùng </span>
+
+        <strong class="block text-xl font-black text-amber-600 mt-1.5 font-mono">
+          {{ usedQuantity }}
+        </strong>
+
+        <small class="block text-[10px] text-slate-400 mt-0.5 font-medium">
+          Lượt sử dụng thực tế
+        </small>
+
         <div
-          class="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-amber-50 group-hover:scale-110 transition-transform"
+          class="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-amber-50 group-hover:scale-110 transition-transform"
         ></div>
       </div>
 
       <div
-        class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
+        class="bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group"
       >
-        <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Còn lại</span>
-        <strong class="block text-2xl font-black text-indigo-600 mt-2 font-mono">{{
-          remainingQuantity
-        }}</strong>
-        <small class="block text-[10px] text-slate-400 mt-1 font-medium"
-          >Lượt khả dụng còn lại</small
-        >
+        <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+          Còn lại
+        </span>
+
+        <strong class="block text-xl font-black text-indigo-600 mt-1.5 font-mono">
+          {{ remainingQuantity }}
+        </strong>
+
+        <small class="block text-[10px] text-slate-400 mt-0.5 font-medium">
+          Lượt khả dụng còn lại
+        </small>
+
         <div
-          class="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-indigo-50 group-hover:scale-110 transition-transform"
+          class="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-indigo-50 group-hover:scale-110 transition-transform"
         ></div>
       </div>
     </div>
@@ -108,215 +124,178 @@
       <div class="relative flex-grow">
         <input
           v-model="keyword"
-          @keyup.enter="fetchVouchers"
           type="text"
           placeholder="Tìm mã, tên hoặc loại giảm giá..."
-          class="w-full pl-4 pr-4 h-11 bg-slate-50/60 border border-slate-100 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all"
+          class="w-full pl-4 pr-4 h-11 bg-slate-50 border border-slate-100 rounded-xl"
         />
       </div>
-      <div class="flex gap-2">
-        <button
-          @click="fetchVouchers"
-          class="px-5 h-11 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/10 transition-all active:scale-95 whitespace-nowrap flex-1 sm:flex-none"
-        >
-          TÌM KIẾM
-        </button>
-        <button
-          @click="resetSearch"
-          class="px-4 h-11 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap flex-1 sm:flex-none"
-        >
-          LÀM MỚI
-        </button>
-      </div>
+
+      <span
+        class="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold whitespace-nowrap"
+      >
+        {{ vouchers.length }} kết quả
+      </span>
+
+      <button
+        @click="resetSearch"
+        class="px-4 h-11 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold"
+      >
+        Làm mới
+      </button>
     </div>
 
     <transition name="slide-fade">
       <div
         v-if="showForm"
-        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5 animate-scale-up"
+        class="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-scale-up"
       >
-        <div class="flex justify-between items-start gap-4 pb-4 border-b border-slate-100">
-          <div>
-            <span
-              class="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-600 font-extrabold rounded-xl border border-indigo-100 text-[10px] uppercase tracking-wide"
-            >
-              {{ form.id ? 'Cập nhật' : 'Thêm mới' }}
-            </span>
-            <h3 class="text-base font-bold text-slate-800 mt-1.5">
-              {{ form.id ? 'Cập nhật phiếu giảm giá' : 'Tạo phiếu giảm giá mới' }}
-            </h3>
-            <p class="text-xs text-slate-400 mt-0.5">
-              Nhập đầy đủ thông tin để hệ thống kiểm tra điều kiện sử dụng voucher.
-            </p>
-          </div>
-          <button
-            @click="closeForm"
-            class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
-          >
-            Đóng
-          </button>
+        <!-- HEADER SIÊU MỎNG -->
+        <div
+          class="px-5 py-3 bg-gradient-to-r from-indigo-600 to-violet-500 text-white flex items-center justify-between"
+        >
+          <h2 class="text-base font-bold flex items-center gap-2">
+            <span class="text-xl">🎁</span> {{ form.id ? 'Cập nhật Voucher' : 'Tạo Voucher' }}
+          </h2>
+          <button @click="closeForm" class="hover:bg-white/20 p-1 rounded-lg transition">✕</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Mã voucher *</label>
-            <input
-              v-model.trim="form.maVoucher"
-              maxlength="30"
-              placeholder="VD: VC001"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all uppercase font-mono font-bold text-indigo-600"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Tên voucher *</label>
+        <!-- NỘI DUNG NÉN DỌC -->
+        <div class="p-4 space-y-4">
+          <!-- Hàng 1: Tên -->
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+              >Tên voucher</label
+            >
             <input
               v-model.trim="form.tenVoucher"
-              maxlength="200"
-              placeholder="VD: Giảm 10%"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-semibold text-slate-800"
+              class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-indigo-100 outline-none"
             />
           </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Loại giảm giá *</label>
-            <select
-              v-model="form.loaiGiamGia"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-3 rounded-xl text-xs font-bold text-slate-700 outline-none cursor-pointer focus:bg-white focus:border-indigo-500 transition-all"
-            >
-              <option value="phan_tram">Phần trăm (%)</option>
-              <option value="tien_mat">Tiền mặt (đ)</option>
-            </select>
+
+          <!-- Hàng 2: Grid loại & giá trị -->
+          <!-- Hàng 2: Grid loại & giá trị -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+                >Loại giảm</label
+              >
+              <select
+                v-model="form.loaiGiamGia"
+                class="w-full h-9 rounded-lg border border-slate-200 px-2 text-sm outline-none"
+              >
+                <option value="phan_tram">Phần trăm (%)</option>
+                <option value="tien_mat">Tiền mặt (VNĐ)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+                >Giá trị giảm</label
+              >
+              <input
+                type="text"
+                v-model="giaTriGiamDisplay"
+                class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
+              />
+            </div>
           </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Giá trị giảm *</label>
-            <input
-              type="number"
-              min="1"
-              step="1000"
-              v-model.number="form.giaTriGiam"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-mono font-bold text-slate-700"
-            />
+
+          <!-- Hàng 3: Điều kiện (Đơn tối thiểu luôn có, Tối đa chỉ hiện khi là %) -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+                >Đơn tối thiểu</label
+              >
+              <input
+                type="number"
+                v-model.number="form.giaTriDonHangToiThieu"
+                class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
+              />
+            </div>
+            <div v-if="form.loaiGiamGia === 'phan_tram'">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+                >Giảm tối đa</label
+              >
+              <input
+                type="number"
+                v-model.number="form.giaTriGiamToiDa"
+                class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
+                placeholder="VD: 50.000"
+              />
+            </div>
           </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Đơn hàng tối thiểu</label>
-            <input
-              type="number"
-              min="0"
-              step="1000"
-              v-model.number="form.giaTriDonHangToiThieu"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-mono text-slate-700"
-            />
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
+                Số lượng
+              </label>
+
+              <input
+                type="number"
+                min="1"
+                v-model.number="form.soLuong"
+                class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
+                Trạng thái
+              </label>
+
+              <select
+                v-model.number="form.trangThai"
+                class="w-full h-9 rounded-lg border border-slate-200 px-2 text-sm outline-none"
+              >
+                <option :value="1">Hoạt động</option>
+                <option :value="0">Ngừng hoạt động</option>
+              </select>
+            </div>
           </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Giảm tối đa</label>
-            <input
-              type="number"
-              min="0"
-              step="1000"
-              v-model.number="form.giaTriGiamToiDa"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-mono text-slate-700"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Số lượng tổng</label>
-            <input
-              type="number"
-              min="0"
-              v-model.number="form.soLuong"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-mono text-slate-700"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Số lượng đã dùng</label>
-            <input
-              type="number"
-              min="0"
-              v-model.number="form.soLuongDaDung"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-4 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all font-mono text-slate-700"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase"
-              >Trạng thái cấu hình</label
-            >
-            <select
-              v-model.number="form.trangThai"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-3 rounded-xl text-xs font-bold text-slate-700 outline-none cursor-pointer focus:bg-white focus:border-indigo-500 transition-all"
-            >
-              <option :value="1">Hoạt động</option>
-              <option :value="0">Ngừng hoạt động</option>
-            </select>
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Ngày bắt đầu *</label>
-            <input
-              type="datetime-local"
-              v-model="form.ngayBatDau"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-3 rounded-xl text-xs font-mono text-slate-700 outline-none focus:bg-white focus:border-indigo-500 transition-all"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">Ngày kết thúc *</label>
-            <input
-              type="datetime-local"
-              v-model="form.ngayKetThuc"
-              class="w-full h-11 bg-slate-50 border border-slate-100 px-3 rounded-xl text-xs font-mono text-slate-700 outline-none focus:bg-white focus:border-indigo-500 transition-all"
-            />
-          </div>
-          <div class="md:col-span-3 space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase"
-              >Mô tả chi tiết điều kiện</label
-            >
-            <textarea
-              v-model="form.moTa"
-              rows="2"
-              placeholder="Ghi rõ điều kiện áp dụng phối hợp mã..."
-              class="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none transition-all"
-            ></textarea>
+
+          <!-- Hàng 4: Thời gian -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+                >Ngày bắt đầu</label
+              >
+              <input
+                type="datetime-local"
+                v-model="form.ngayBatDau"
+                class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5"
+                >Ngày kết thúc</label
+              >
+              <input
+                type="datetime-local"
+                v-model="form.ngayKetThuc"
+                class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
+              />
+            </div>
           </div>
         </div>
 
-        <p
-          v-if="errorMessage"
-          class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 px-4 py-3 rounded-xl"
-        >
-          {{ errorMessage }}
-        </p>
-
-        <div class="flex justify-end gap-2 pt-2">
+        <!-- FOOTER MỎNG -->
+        <div class="flex justify-end gap-2 px-4 py-3 bg-slate-50 border-t border-slate-100">
           <button
             @click="closeForm"
-            class="px-5 h-10 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+            class="px-4 h-9 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
           >
-            HỦY BỎ
+            Hủy
           </button>
           <button
-            :disabled="saving"
             @click="requestSaveVoucher"
-            class="px-6 h-10 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500 shadow-md shadow-indigo-600/10 transition-all uppercase"
+            class="px-4 h-9 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition"
           >
-            {{ saving ? 'Đang lưu...' : form.id ? 'Lưu cập nhật' : 'Thêm mới' }}
+            {{ form.id ? 'Lưu thay đổi' : 'Tạo mới' }}
           </button>
         </div>
       </div>
     </transition>
 
     <div class="space-y-3">
-      <div
-        class="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"
-      >
-        <div>
-          <h3 class="text-sm font-bold text-slate-800">Danh sách phiếu giảm giá</h3>
-          <p class="text-xs text-slate-400 mt-0.5">
-            Theo dõi số lượng, thời gian áp dụng và trạng thái từng voucher.
-          </p>
-        </div>
-        <span
-          class="px-2.5 py-1 bg-indigo-50 text-indigo-600 font-extrabold rounded-xl text-[11px] border border-indigo-100"
-        >
-          {{ vouchers.length }} kết quả
-        </span>
-      </div>
-
       <div class="overflow-x-auto bg-white border border-slate-100 rounded-2xl shadow-sm">
         <table class="w-full border-collapse text-left min-w-[1000px]">
           <thead>
@@ -327,10 +306,10 @@
               <th class="py-3.5 px-4">Mã</th>
               <th class="py-3.5 px-4 w-64">Thông tin phiếu</th>
               <th class="py-3.5 px-4 text-center">Loại</th>
-              <th class="py-3.5 px-4 text-center">Giá trị</th>
+              <th class="py-3.5 px-4 text-center">Giá trị giảm</th>
               <th class="py-3.5 px-4">Điều kiện áp dụng</th>
               <th class="py-3.5 px-4 w-40">Tỉ lệ sử dụng</th>
-              <th class="py-3.5 px-4">Thời gian hạn định</th>
+              <th class="py-3.5 px-4">Thời gian</th>
               <th class="py-3.5 px-4 text-center">Trạng thái</th>
               <th class="py-3.5 px-4 text-center">Thao tác</th>
             </tr>
@@ -432,7 +411,7 @@
                       item.trangThai === 1 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500',
                     ]"
                   ></span>
-                  {{ item.trangThai === 1 ? 'Active' : 'Muted' }}
+                  {{ item.trangThai === 1 ? 'Đang diễn ra' : 'Ngừng hoạt động' }}
                 </span>
               </td>
               <td class="py-3.5 px-4">
@@ -602,7 +581,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import {
   addVoucherService,
@@ -643,14 +622,14 @@ const remainingQuantity = computed(() => Math.max(totalQuantity.value - usedQuan
 
 const emptyForm = () => ({
   id: null,
-  maVoucher: '',
+
   tenVoucher: '',
   loaiGiamGia: 'phan_tram',
   giaTriGiam: 1,
   giaTriDonHangToiThieu: 0,
   giaTriGiamToiDa: null,
   soLuong: 0,
-  soLuongDaDung: 0,
+
   ngayBatDau: '',
   ngayKetThuc: '',
   moTa: '',
@@ -661,23 +640,29 @@ const form = ref(emptyForm())
 const normalizeDateTime = (v) => (v ? (v.length === 16 ? `${v}:00` : v) : null)
 const normalizeNumber = (v, d = 0) => (!v && v !== 0 ? d : Number(v))
 
-const buildPayload = () => ({
-  maVoucher: form.value.maVoucher?.trim(),
-  tenVoucher: form.value.tenVoucher?.trim(),
-  loaiGiamGia: form.value.loaiGiamGia,
-  giaTriGiam: normalizeNumber(form.value.giaTriGiam, 0),
-  giaTriDonHangToiThieu: normalizeNumber(form.value.giaTriDonHangToiThieu, 0),
-  giaTriGiamToiDa:
-    form.value.giaTriGiamToiDa === '' || form.value.giaTriGiamToiDa === null
-      ? null
-      : Number(form.value.giaTriGiamToiDa),
-  soLuong: normalizeNumber(form.value.soLuong, 0),
-  soLuongDaDung: normalizeNumber(form.value.soLuongDaDung, 0),
-  ngayBatDau: normalizeDateTime(form.value.ngayBatDau),
-  ngayKetThuc: normalizeDateTime(form.value.ngayKetThuc),
-  moTa: form.value.moTa,
-  trangThai: Number(form.value.trangThai),
-})
+const buildPayload = () => {
+  // Đảm bảo số lượng và giá trị không bao giờ là NaN
+  const safeNum = (v) => {
+    const n = Number(v)
+    return isNaN(n) ? 0 : n
+  }
+
+  return {
+    tenVoucher: form.value.tenVoucher?.trim(),
+    loaiGiamGia: form.value.loaiGiamGia,
+    giaTriGiam: safeNum(form.value.giaTriGiam),
+    giaTriDonHangToiThieu: safeNum(form.value.giaTriDonHangToiThieu),
+    giaTriGiamToiDa:
+      form.value.giaTriGiamToiDa === null || form.value.giaTriGiamToiDa === ''
+        ? null
+        : safeNum(form.value.giaTriGiamToiDa),
+    soLuong: safeNum(form.value.soLuong),
+    ngayBatDau: normalizeDateTime(form.value.ngayBatDau),
+    ngayKetThuc: normalizeDateTime(form.value.ngayKetThuc),
+    moTa: form.value.moTa,
+    trangThai: Number(form.value.trangThai),
+  }
+}
 
 const fetchVouchers = async () => {
   loading.value = true
@@ -725,26 +710,36 @@ const openEditForm = (item) => {
   errorMessage.value = ''
   showForm.value = true
 }
-
 const validateForm = () => {
   const p = buildPayload()
-  if (!p.maVoucher) return 'Vui lòng nhập mã voucher.'
-  if (p.maVoucher.length > 30) return 'Mã voucher không được vượt quá 30 ký tự.'
+
   if (!p.tenVoucher) return 'Vui lòng nhập tên voucher.'
-  if (p.tenVoucher.length > 200) return 'Tên voucher không được vượt quá 200 ký tự.'
-  if (!['phan_tram', 'tien_mat'].includes(p.loaiGiamGia)) return 'Loại giảm giá không hợp lệ.'
-  if (!p.giaTriGiam || p.giaTriGiam <= 0) return 'Giá trị giảm phải lớn hơn 0.'
-  if (p.loaiGiamGia === 'phan_tram' && p.giaTriGiam > 100)
-    return 'Giảm theo phần trăm không được vượt quá 100%.'
-  if (p.giaTriDonHangToiThieu < 0 || p.soLuong < 0 || p.soLuongDaDung < 0)
-    return 'Giá trị nhập vào không được âm.'
-  if (p.giaTriGiamToiDa !== null && p.giaTriGiamToiDa < 0) return 'Giảm tối đa không được âm.'
-  if (p.soLuongDaDung > p.soLuong) return 'Đã dùng không được lớn hơn số lượng.'
-  if (!p.ngayBatDau || !p.ngayKetThuc) return 'Vui lòng chọn đầy đủ thời gian.'
-  if (p.ngayBatDau >= p.ngayKetThuc) return 'Ngày bắt đầu phải trước ngày kết thúc.'
+  if (p.giaTriGiam <= 0) return 'Giá trị giảm phải lớn hơn 0.'
+
+  // Kiểm tra Đơn tối thiểu
+  if (p.giaTriDonHangToiThieu < 0) return 'Giá trị đơn tối thiểu không được âm.'
+
+  if (p.loaiGiamGia === 'phan_tram') {
+    if (p.giaTriGiam > 100) return 'Phần trăm giảm không được vượt quá 100%.'
+    // Bắt buộc có giảm tối đa khi chọn %
+    if (!p.giaTriGiamToiDa || p.giaTriGiamToiDa <= 0) {
+      return 'Vui lòng nhập giá trị giảm tối đa cho voucher phần trăm.'
+    }
+  }
+
+  if (p.loaiGiamGia === 'tien_mat') {
+    if (p.giaTriGiam > p.giaTriDonHangToiThieu) {
+      return 'Giá trị giảm không được lớn hơn đơn hàng tối thiểu.'
+    }
+  }
+
+  if (!p.ngayBatDau || !p.ngayKetThuc) return 'Vui lòng chọn thời gian.'
+  if (new Date(p.ngayBatDau) >= new Date(p.ngayKetThuc)) {
+    return 'Ngày kết thúc phải sau ngày bắt đầu.'
+  }
+
   return ''
 }
-
 const requestSaveVoucher = async () => {
   errorMessage.value = validateForm()
   if (errorMessage.value) return
@@ -842,6 +837,46 @@ const getUsagePercent = (i) => {
   return t <= 0 ? 0 : Math.min(Math.round((Number(i.soLuongDaDung || 0) / t) * 100), 100)
 }
 
+let searchTimeout = null
+
+watch(keyword, (value) => {
+  clearTimeout(searchTimeout)
+
+  searchTimeout = setTimeout(() => {
+    pageNo.value = 0
+    fetchVouchers()
+  }, 400)
+})
+
+watch(
+  () => form.value.loaiGiamGia,
+  (newVal) => {
+    if (newVal === 'tien_mat') {
+      form.value.giaTriGiamToiDa = null // Xóa giá trị tối đa khi chuyển sang tiền mặt
+    }
+  },
+)
+
+const formatMoneyInput = (value) => {
+  if (value === null || value === undefined || value === '') return ''
+
+  return new Intl.NumberFormat('vi-VN').format(Number(value))
+}
+
+const parseMoneyInput = (value) => {
+  if (!value) return 0
+
+  return Number(value.replace(/\./g, '').replace(/,/g, ''))
+}
+const giaTriGiamDisplay = computed({
+  get() {
+    return form.value.giaTriGiam === 0 ? '' : formatMoneyInput(form.value.giaTriGiam)
+  },
+  set(value) {
+    const parsed = parseMoneyInput(value)
+    form.value.giaTriGiam = parsed
+  },
+})
 onMounted(fetchVouchers)
 </script>
 

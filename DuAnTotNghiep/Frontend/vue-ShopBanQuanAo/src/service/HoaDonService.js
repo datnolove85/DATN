@@ -156,10 +156,16 @@ export const deleteHoadon = async (id) => {
   }
 }
 // ================= TAO HOA DON CHO =================
-export const taoHoaDonCho = async () => {
+export const taoHoaDonCho = async (idNhanVien) => {
   try {
     const response = await fetch(`${API}/hoa-don-cho`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        idNhanVien,
+      }),
     })
 
     return await handleResponse(response)
@@ -183,14 +189,10 @@ export const taoHoaDonOnline = async (data, token) => {
   return await handleResponse(response)
 }
 
-export const getHoaDonCho = async () => {
-  try {
-    const response = await fetch(`${API}/hoa-don-cho`)
-    return await handleResponse(response)
-  } catch (error) {
-    console.error(error)
-    throw error
-  }
+export const getHoaDonCho = async (idNhanVien) => {
+  const response = await fetch(`${API}/hoa-don-cho?idNhanVien=${idNhanVien}`)
+
+  return await handleResponse(response)
 }
 export const themSanPhamVaoHoaDon = async (data) => {
   try {

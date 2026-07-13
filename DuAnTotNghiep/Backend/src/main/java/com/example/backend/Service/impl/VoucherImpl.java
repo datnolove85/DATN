@@ -4,7 +4,9 @@ import com.example.backend.Entity.Voucher;
 import com.example.backend.Repository.VoucherRepository;
 import com.example.backend.Request.VoucherRequest;
 import com.example.backend.Response.VoucherResponse;
+import com.example.backend.Service.PosSocketService;
 import com.example.backend.Service.VoucherService;
+import com.example.backend.websocket.PosEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,9 @@ public class VoucherImpl implements VoucherService {
 
     @Autowired
     private VoucherRepository voucherRepository;
+
+    @Autowired
+    private PosSocketService posSocketService;
 
     @Override
     @Transactional(readOnly = true)
@@ -44,18 +49,41 @@ public class VoucherImpl implements VoucherService {
         return voucherRepository.detail(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher với ID: " + id));
     }
+    private String generateVoucherCode() {
+
+        Integer maxId = voucherRepository.getMaxId();
+
+        int next = maxId == null ? 1 : maxId + 1;
+
+        return "VC" + String.format("%06d", next);
+    }
 
     @Override
     @Transactional
     public VoucherResponse addVoucher(VoucherRequest voucherRequest) {
         validate(voucherRequest, null);
-
         Voucher voucher = new Voucher();
+
         mapRequest(voucherRequest, voucher);
+
+        voucher.setMaVoucher(generateVoucherCode());
+        voucher.setSoLuongDaDung(0);
+
         voucher.setNgayTao(LocalDateTime.now());
         voucher.setNgayCapNhat(LocalDateTime.now());
 
-        return toResponse(voucherRepository.save(voucher));
+        Voucher saved = voucherRepository.save(voucher);
+
+        posSocketService.send(
+                new PosEvent(
+                        "VOUCHER_UPDATED",
+                        null,
+                        saved.getId(),
+                        null
+                )
+        );
+
+        return toResponse(saved);
     }
 
     @Override
@@ -69,7 +97,20 @@ public class VoucherImpl implements VoucherService {
         mapRequest(voucherRequest, voucher);
         voucher.setNgayCapNhat(LocalDateTime.now());
 
-        return toResponse(voucherRepository.save(voucher));
+        voucher.setNgayCapNhat(LocalDateTime.now());
+
+        Voucher updated = voucherRepository.save(voucher);
+
+        posSocketService.send(
+                new PosEvent(
+                        "VOUCHER_UPDATED",
+                        null,
+                        updated.getId(),
+                        null
+                )
+        );
+
+        return toResponse(updated);
     }
 
     @Override
@@ -81,20 +122,33 @@ public class VoucherImpl implements VoucherService {
         voucher.setTrangThai(0);
         voucher.setNgayCapNhat(LocalDateTime.now());
         voucherRepository.save(voucher);
+
+        posSocketService.send(
+                new PosEvent(
+                        "VOUCHER_UPDATED",
+                        null,
+                        voucher.getId(),
+                        null
+                )
+        );
     }
 
     private void mapRequest(VoucherRequest request, Voucher voucher) {
-        voucher.setMaVoucher(request.getMaVoucher().trim().toLowerCase());
+
         voucher.setTenVoucher(request.getTenVoucher().trim());
         voucher.setLoaiGiamGia(request.getLoaiGiamGia().trim());
         voucher.setGiaTriGiam(request.getGiaTriGiam());
         voucher.setGiaTriDonHangToiThieu(defaultMoney(request.getGiaTriDonHangToiThieu()));
-        voucher.setGiaTriGiamToiDa(request.getGiaTriGiamToiDa());
+        if (LOAI_PHAN_TRAM.equals(request.getLoaiGiamGia())) {
+            voucher.setGiaTriGiamToiDa(request.getGiaTriGiamToiDa());
+        } else {
+            voucher.setGiaTriGiamToiDa(null);
+        }
         voucher.setSoLuong(defaultInt(request.getSoLuong()));
-        voucher.setSoLuongDaDung(defaultInt(request.getSoLuongDaDung()));
         voucher.setNgayBatDau(request.getNgayBatDau());
         voucher.setNgayKetThuc(request.getNgayKetThuc());
         voucher.setMoTa(request.getMoTa());
+        voucher.setSoLuongDaDung(0);
         voucher.setTrangThai(request.getTrangThai() == null ? 1 : request.getTrangThai());
     }
 
@@ -102,12 +156,7 @@ public class VoucherImpl implements VoucherService {
         if (request == null) {
             throw new RuntimeException("Dữ liệu voucher không được để trống");
         }
-        if (isBlank(request.getMaVoucher())) {
-            throw new RuntimeException("Mã voucher không được để trống");
-        }
-        if (request.getMaVoucher().trim().length() > 30) {
-            throw new RuntimeException("Mã voucher không được vượt quá 30 ký tự");
-        }
+
         if (isBlank(request.getTenVoucher())) {
             throw new RuntimeException("Tên voucher không được để trống");
         }
@@ -115,13 +164,7 @@ public class VoucherImpl implements VoucherService {
             throw new RuntimeException("Tên voucher không được vượt quá 200 ký tự");
         }
 
-        voucherRepository.findByMaVoucherIgnoreCase(request.getMaVoucher().trim()).ifPresent(existing -> {
-            if (currentId == null || !existing.getId().equals(currentId)) {
-                throw new RuntimeException("Mã voucher đã tồn tại");
-            }
-        });
-
-        String loaiGiamGia = request.getLoaiGiamGia() == null ? "" : request.getLoaiGiamGia().trim();
+             String loaiGiamGia = request.getLoaiGiamGia() == null ? "" : request.getLoaiGiamGia().trim();
         if (!LOAI_PHAN_TRAM.equals(loaiGiamGia) && !LOAI_TIEN_MAT.equals(loaiGiamGia)) {
             throw new RuntimeException("Loại giảm giá chỉ được là phan_tram hoặc tien_mat");
         }
@@ -135,17 +178,17 @@ public class VoucherImpl implements VoucherService {
         if (request.getGiaTriDonHangToiThieu() != null && request.getGiaTriDonHangToiThieu().compareTo(BigDecimal.ZERO) < 0) {
             throw new RuntimeException("Giá trị đơn hàng tối thiểu không được âm");
         }
-        if (request.getGiaTriGiamToiDa() != null && request.getGiaTriGiamToiDa().compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Giá trị giảm tối đa không được âm");
+        if (LOAI_PHAN_TRAM.equals(loaiGiamGia)) {
+
+            if (request.getGiaTriGiamToiDa() != null
+                    && request.getGiaTriGiamToiDa().compareTo(BigDecimal.ZERO) < 0) {
+
+                throw new RuntimeException("Giá trị giảm tối đa không được âm");
+            }
+
         }
         if (request.getSoLuong() != null && request.getSoLuong() < 0) {
             throw new RuntimeException("Số lượng voucher không được âm");
-        }
-        if (request.getSoLuongDaDung() != null && request.getSoLuongDaDung() < 0) {
-            throw new RuntimeException("Số lượng đã dùng không được âm");
-        }
-        if (defaultInt(request.getSoLuongDaDung()) > defaultInt(request.getSoLuong())) {
-            throw new RuntimeException("Số lượng đã dùng không được lớn hơn số lượng voucher");
         }
         if (request.getNgayBatDau() == null) {
             throw new RuntimeException("Ngày bắt đầu không được để trống");
@@ -204,4 +247,6 @@ public class VoucherImpl implements VoucherService {
     public List<Voucher> getAll(){
         return voucherRepository.findAll();
     }
+
+
 }

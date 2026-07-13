@@ -11,37 +11,39 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpecificationExecutor<HoaDon> {
     @Query(value = "SELECT * FROM v_hoa_don_full", nativeQuery = true)
     List<Object[]> getAllFromView();
+
     // Spring Boot tự động cung cấp findAll(), findAll(Pageable pageable),...
     @Query("""
-select new com.example.backend.Response.HoaDonResponse(
-    hd.id,
-    hd.idKhachHang.id,
-    hd.maHoaDon,
-    hd.tongTienHang,
-    hd.tongGiamGia,
-    hd.phiVanChuyen,
-    hd.tongThanhToan,
-    hd.tenNguoiNhan,
-    hd.soDienThoaiNguoiNhan,
-    hd.diaChiGiaoHang,
-    hd.loaiHoaDon,
-    hd.trangThai,
-    hd.ghiChu,
-    hd.ngayTao,
-    hd.ngayCapNhat,
-    hd.trangThaiThanhToan,
-    p.tenPhuongThuc
-)
-from HoaDon hd
-left join ThanhToan tt on tt.idHoaDon.id = hd.id
-left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
-""")
+            select new com.example.backend.Response.HoaDonResponse(
+                hd.id,
+                hd.idKhachHang.id,
+                hd.maHoaDon,
+                hd.tongTienHang,
+                hd.tongGiamGia,
+                hd.phiVanChuyen,
+                hd.tongThanhToan,
+                hd.tenNguoiNhan,
+                hd.soDienThoaiNguoiNhan,
+                hd.diaChiGiaoHang,
+                hd.loaiHoaDon,
+                hd.trangThai,
+                hd.ghiChu,
+                hd.ngayTao,
+                hd.ngayCapNhat,
+                hd.trangThaiThanhToan,
+                p.tenPhuongThuc
+            )
+            from HoaDon hd
+            left join ThanhToan tt on tt.idHoaDon.id = hd.id
+            left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
+            """)
     List<HoaDonResponse> getAllResponse();
 
 
@@ -52,49 +54,62 @@ left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
 
     @Query(
             value = """
-select new com.example.backend.Response.HoaDonResponse(
-    hd.id,
-    hd.idKhachHang.id,
-    hd.maHoaDon,
-    hd.tongTienHang,
-    hd.tongGiamGia,
-    hd.phiVanChuyen,
-    hd.tongThanhToan,
-    hd.tenNguoiNhan,
-    hd.soDienThoaiNguoiNhan,
-    hd.diaChiGiaoHang,
-    hd.loaiHoaDon,
-    hd.trangThai,
-    hd.ghiChu,
-    hd.ngayTao,
-    hd.ngayCapNhat,
-    hd.trangThaiThanhToan,
-    p.tenPhuongThuc
-)
-from HoaDon hd
-left join ThanhToan tt on tt.idHoaDon.id = hd.id
-left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
-where hd.loaiHoaDon = 'online'
-and (
-    lower(hd.maHoaDon) like lower(concat('%', :keyword, '%'))
-    or lower(hd.tenNguoiNhan) like lower(concat('%', :keyword, '%'))
-    or lower(hd.soDienThoaiNguoiNhan) like lower(concat('%', :keyword, '%'))
-)
-""",
+                    select new com.example.backend.Response.HoaDonResponse(
+                        hd.id,
+                        hd.idKhachHang.id,
+                        hd.maHoaDon,
+                        hd.tongTienHang,
+                        hd.tongGiamGia,
+                        hd.phiVanChuyen,
+                        hd.tongThanhToan,
+                        hd.tenNguoiNhan,
+                        hd.soDienThoaiNguoiNhan,
+                        hd.diaChiGiaoHang,
+                        hd.loaiHoaDon,
+                        hd.trangThai,
+                        hd.ghiChu,
+                        hd.ngayTao,
+                        hd.ngayCapNhat,
+                        hd.trangThaiThanhToan,
+                        p.tenPhuongThuc
+                    )
+                    from HoaDon hd
+                    left join ThanhToan tt on tt.idHoaDon.id = hd.id
+                    left join PhuongThucThanhToan p on p.id = tt.idPhuongThucThanhToan.id
+                    where hd.loaiHoaDon = 'online'
+                    and (
+                        lower(hd.maHoaDon) like lower(concat('%', :keyword, '%'))
+                        or lower(hd.tenNguoiNhan) like lower(concat('%', :keyword, '%'))
+                        or lower(hd.soDienThoaiNguoiNhan) like lower(concat('%', :keyword, '%'))
+                    )
+                    """,
             countQuery = """
-select count(hd)
-from HoaDon hd
-where hd.loaiHoaDon = 'online'
-and (
-    lower(hd.maHoaDon) like lower(concat('%', :keyword, '%'))
-    or lower(hd.tenNguoiNhan) like lower(concat('%', :keyword, '%'))
-    or lower(hd.soDienThoaiNguoiNhan) like lower(concat('%', :keyword, '%'))
-)
-"""
+                    select count(hd)
+                    from HoaDon hd
+                    where hd.loaiHoaDon = 'online'
+                    and (
+                        lower(hd.maHoaDon) like lower(concat('%', :keyword, '%'))
+                        or lower(hd.tenNguoiNhan) like lower(concat('%', :keyword, '%'))
+                        or lower(hd.soDienThoaiNguoiNhan) like lower(concat('%', :keyword, '%'))
+                    )
+                    """
     )
     Page<HoaDonResponse> searchOnline(
             @Param("keyword") String keyword,
             Pageable pageable
     );
 
+    List<HoaDon> findByLoaiHoaDonAndTrangThaiAndIdNhanVien_IdOrderByNgayTaoDesc(
+            String loaiHoaDon,
+            String trangThai,
+            Integer idNhanVien
+    );
+
+    @Query("""
+            SELECT h
+            FROM HoaDon h
+            WHERE h.trangThai='cho_xac_nhan'
+            AND h.ngayCapNhat <= :time
+            """)
+    List<HoaDon> findExpiredHoaDon(LocalDateTime time);
 }

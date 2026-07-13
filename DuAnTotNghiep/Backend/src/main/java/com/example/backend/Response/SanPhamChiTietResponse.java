@@ -40,4 +40,10 @@ public class SanPhamChiTietResponse {
     private Boolean trangThai;
 
     private List<String> images;
+
+    private BigDecimal giaSauGiam;
+
+    private Integer phanTramGiam;
+
+    private Boolean dangGiamGia;
 }

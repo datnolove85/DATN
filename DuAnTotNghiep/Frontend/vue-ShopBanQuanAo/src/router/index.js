@@ -190,6 +190,16 @@ const router = createRouter({
           name: 'thongke',
           component: () => import('../views/shop/views/thongke.vue'),
         },
+        {
+          path: 'giohang',
+          name: 'giohang',
+          component: () => import('../views/shop/components/CarView.vue'),
+        },
+        {
+          path: 'spgg/:id',
+          name: 'spgg',
+          component: () => import('../views/Admin/Layout/sales/QuanLySanPhamTrongDot.vue'),
+        },
       ],
     },
 

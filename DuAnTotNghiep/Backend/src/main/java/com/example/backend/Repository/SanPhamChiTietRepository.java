@@ -140,6 +140,16 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             """)
     List<SanPhamChiTiet> findRepresentativeSpctDangKinhDoanh();
 
+    @Query("""
+                select ha.link
+                from HinhAnh ha
+                where ha.idSanPhamChiTiet.idSanPham.id = :idSanPham
+                and ha.laAnhChinh = true
+                order by ha.id desc
+            """)
+    List<String> findAnhChinhBySanPhamId(
+            @Param("idSanPham") Integer idSanPham
+    );
 
     @Query("""
             select
@@ -153,4 +163,38 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             order by ha.id
             """)
     List<Object[]> getGalleryByProduct(@Param("idSanPham") Integer idSanPham);
+
+    @Query("""
+            SELECT ha.tenAnh
+            FROM HinhAnh ha
+            WHERE ha.idSanPhamChiTiet.id = :idSpct
+            AND ha.laAnhChinh = true
+            """)
+    List<String> findAnhChinhBySanPhamChiTietId(
+            @Param("idSpct") Integer idSpct
+    );
+
+    @Query("""
+            SELECT ha.link
+            FROM HinhAnh ha
+            WHERE ha.idSanPhamChiTiet.id = :idSpct
+              AND ha.laAnhChinh = true
+              AND ha.trangThai = true
+            """)
+    List<String> findLinkAnhChinhBySanPhamChiTietId(
+            @Param("idSpct") Integer idSpct
+    );
+
+    // Chỉ lấy những sản phẩm chưa nằm trong đợt giảm giá nào đang diễn ra/sắp diễn ra
+    @Query("""
+            SELECT spct
+            FROM SanPhamChiTiet spct
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM SanPhamGiamGia spgg
+                WHERE spgg.sanPhamChiTiet.id = spct.id
+            )
+            """)
+    List<SanPhamChiTiet> findSanPhamChuaApDung();
+
 }

@@ -5,13 +5,6 @@ const stompClient = new Client({
   reconnectDelay: 5000,
 })
 
-stompClient.onConnect = () => {
-  console.log('Đã kết nối WebSocket')
-
-  stompClient.subscribe('/topic/test', (msg) => {
-    console.log('NHẬN ĐƯỢC:', msg.body)
-  })
-}
 stompClient.activate()
 
 export default stompClient

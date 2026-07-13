@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +38,9 @@ public class SanPhamChiTietService {
 
     @Autowired
     private HinhAnhRepository hinhAnhRepository;
+
+    @Autowired
+    SanPhamGiamGiaRepository sanPhamGiamGiaRepository;
 
     // ================= GET ALL PRODUCT =================
     public List<SanPhamResponse> getAllSanPham() {
@@ -119,6 +123,14 @@ public class SanPhamChiTietService {
                 sanPhamChiTietRepository.findAllDangKinhDoanh();
 
         Map<Integer, String> imageMap = new HashMap<>();
+        List<SanPhamGiamGia> dsGG = sanPhamGiamGiaRepository.findAllDangGiamGia();
+        Map<Integer, DotGiamGia> giamGiaMap =
+                sanPhamGiamGiaRepository.findAllDangGiamGia()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                x -> x.getSanPhamChiTiet().getId(),
+                                x -> x.getDotGiamGia()
+                        ));
 
         for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
             Integer id = (Integer) obj[0];
@@ -185,6 +197,46 @@ public class SanPhamChiTietService {
 
             res.setGiaBan(spct.getGiaBan());
 
+            DotGiamGia dot = giamGiaMap.get(spct.getId());
+
+            if (dot != null) {
+
+                if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+
+                    BigDecimal giam = spct.getGiaBan()
+                            .multiply(dot.getGiaTriGiam())
+                            .divide(BigDecimal.valueOf(100));
+
+                    if (dot.getGiaTriGiamToiDa() != null &&
+                            giam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+
+                        giam = dot.getGiaTriGiamToiDa();
+                    }
+
+                    res.setGiaSauGiam(spct.getGiaBan().subtract(giam));
+                    res.setPhanTramGiam(dot.getGiaTriGiam().intValue());
+
+                } else {
+
+                    BigDecimal giam = dot.getGiaTriGiam();
+
+                    if (giam.compareTo(spct.getGiaBan()) > 0) {
+                        giam = spct.getGiaBan();
+                    }
+
+                    res.setGiaSauGiam(spct.getGiaBan().subtract(giam));
+                }
+
+                res.setDangGiamGia(true);
+
+
+            } else {
+
+                res.setGiaSauGiam(spct.getGiaBan());
+
+                res.setDangGiamGia(false);
+
+            }
             res.setSoLuongTon(
                     spct.getSoLuongTon()
             );
@@ -346,13 +398,58 @@ public class SanPhamChiTietService {
 
     public SanPhamChiTietResponse getById(Integer id) {
 
-        SanPhamChiTiet spct =
-                sanPhamChiTietRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
 
-        return mapToResponse(spct);
+        SanPhamChiTietResponse res = mapToResponse(spct);
+
+        // Lấy danh sách giảm giá đang áp dụng
+        List<SanPhamGiamGia> dsGG = sanPhamGiamGiaRepository.findAllDangGiamGia();
+
+        DotGiamGia dot = dsGG.stream()
+                .filter(x -> x.getSanPhamChiTiet().getId().equals(spct.getId()))
+                .map(SanPhamGiamGia::getDotGiamGia)
+                .findFirst()
+                .orElse(null);
+
+        if (dot != null) {
+
+            if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+
+                BigDecimal giam = spct.getGiaBan()
+                        .multiply(dot.getGiaTriGiam())
+                        .divide(BigDecimal.valueOf(100));
+
+                if (dot.getGiaTriGiamToiDa() != null
+                        && giam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+
+                    giam = dot.getGiaTriGiamToiDa();
+                }
+
+                res.setGiaSauGiam(spct.getGiaBan().subtract(giam));
+                res.setPhanTramGiam(dot.getGiaTriGiam().intValue());
+
+            } else {
+
+                BigDecimal giam = dot.getGiaTriGiam();
+
+                if (giam.compareTo(spct.getGiaBan()) > 0) {
+                    giam = spct.getGiaBan();
+                }
+
+                res.setGiaSauGiam(spct.getGiaBan().subtract(giam));
+            }
+
+            res.setDangGiamGia(true);
+
+        } else {
+
+            res.setGiaSauGiam(spct.getGiaBan());
+            res.setDangGiamGia(false);
+        }
+
+        return res;
     }
-
 
     @Transactional
     public void delete(Integer id) {
@@ -627,6 +724,13 @@ public class SanPhamChiTietService {
         List<SanPhamChiTiet> list =
                 sanPhamChiTietRepository.findVariantsByProduct(idSanPham);
 
+        Map<Integer, DotGiamGia> giamGiaMap =
+                sanPhamGiamGiaRepository.findAllDangGiamGia()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                x -> x.getSanPhamChiTiet().getId(),
+                                x -> x.getDotGiamGia()
+                        ));
         Map<Integer, List<String>> imageMap = new HashMap<>();
 
         for (Object[] obj : sanPhamChiTietRepository.getAllImagesForVariant()) {
@@ -679,6 +783,56 @@ public class SanPhamChiTietService {
 
             res.setGiaNhap(spct.getGiaNhap());
             res.setGiaBan(spct.getGiaBan());
+            DotGiamGia dot = giamGiaMap.get(spct.getId());
+
+            if (dot != null) {
+
+                if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+
+                    BigDecimal giam = spct.getGiaBan()
+                            .multiply(dot.getGiaTriGiam())
+                            .divide(BigDecimal.valueOf(100));
+
+                    if (dot.getGiaTriGiamToiDa() != null &&
+                            giam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+
+                        giam = dot.getGiaTriGiamToiDa();
+                    }
+
+                    res.setGiaSauGiam(
+                            spct.getGiaBan().subtract(giam)
+                    );
+
+                    res.setPhanTramGiam(
+                            dot.getGiaTriGiam().intValue()
+                    );
+
+                } else {
+
+                    BigDecimal giam = dot.getGiaTriGiam();
+
+                    if (giam.compareTo(spct.getGiaBan()) > 0) {
+                        giam = spct.getGiaBan();
+                    }
+
+                    res.setGiaSauGiam(
+                            spct.getGiaBan().subtract(giam)
+                    );
+
+                    // Nếu giảm theo tiền thì không có %
+                    res.setPhanTramGiam(null);
+                }
+
+                res.setDangGiamGia(true);
+
+            } else {
+
+                res.setGiaSauGiam(spct.getGiaBan());
+
+                res.setDangGiamGia(false);
+
+                res.setPhanTramGiam(null);
+            }
 
             res.setSoLuongTon(spct.getSoLuongTon());
             res.setTrangThai(spct.getTrangThai());

@@ -251,6 +251,7 @@ const form = reactive({
 
 const handleLogin = async () => {
   isLoading.value = true
+
   try {
     const res = await fetch('http://localhost:8080/auth/login', {
       method: 'POST',
@@ -268,17 +269,32 @@ const handleLogin = async () => {
     }
 
     const data = await res.json()
-
-    // 🔥 QUAN TRỌNG: lưu token
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data))
+    // Lưu thông tin đăng nhập
+    sessionStorage.setItem('token', data.token)
+    sessionStorage.setItem('user', JSON.stringify(data))
 
     alert('Đăng nhập thành công 🎉')
 
-    // 👉 redirect về home
-    window.location.href = '/san-pham'
+    switch (data.vaiTro) {
+      case 'ADMIN':
+        window.location.href = '/admin'
+        break
+
+      case 'STAFF':
+        window.location.href = '/admin'
+        break
+
+      case 'USERS':
+        window.location.href = '/san-pham'
+        break
+
+      default:
+        alert('Tài khoản không có quyền truy cập')
+        sessionStorage.clear()
+        break
+    }
   } catch (err) {
-    console.log(err)
+    console.error(err)
     alert('Sai tài khoản hoặc mật khẩu')
   } finally {
     isLoading.value = false

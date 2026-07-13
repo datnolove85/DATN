@@ -94,17 +94,17 @@ public class HoaDonController {
 
     //Mới
     @GetMapping("/hoa-don-cho")
-    public ResponseEntity<?> getHoaDonCho() {
+    public ResponseEntity<?> getHoaDonCho(Integer idNhanVien) {
 
         return ResponseEntity.ok(
-                service.getHoaDonCho()
+                service.getHoaDonCho(idNhanVien)
         );
     }
 
     @PostMapping("/hoa-don-cho")
-    public ResponseEntity<?> taoHoaDonCho() {
+    public ResponseEntity<?> taoHoaDonCho(@RequestBody  TaoHoaDonRequest taoHoaDonRequest) {
         return ResponseEntity.ok(
-                service.taoHoaDonCho()
+                service.taoHoaDonCho(taoHoaDonRequest)
         );
     }
 
