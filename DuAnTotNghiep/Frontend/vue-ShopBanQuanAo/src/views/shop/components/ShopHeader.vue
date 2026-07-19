@@ -10,12 +10,13 @@
         Vel<span class="text-indigo-600">ora</span>
       </RouterLink>
 
-      <nav class="hidden xl:flex items-center gap-8 font-medium text-gray-700">
+      <nav class="hidden xl:flex items-center gap-8 font-semibold text-gray-700">
         <RouterLink
           v-for="item in menus"
           :key="item.name"
           :to="item.path"
-          class="hover:text-indigo-600 transition"
+          class="uppercase tracking-wide text-sm hover:text-indigo-600 transition-colors"
+          active-class="text-indigo-600"
         >
           {{ item.name }}
         </RouterLink>
