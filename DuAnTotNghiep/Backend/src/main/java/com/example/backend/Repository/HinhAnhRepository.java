@@ -2,6 +2,7 @@ package com.example.backend.Repository;
 
 import com.example.backend.Entity.HinhAnh;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,4 +15,12 @@ public interface HinhAnhRepository extends JpaRepository<HinhAnh, Integer> {
     List<HinhAnh> findAllByIdIn(List<Integer> ids);
 
     Optional<HinhAnh> findFirstByIdSanPhamChiTiet_IdAndLaAnhChinhTrue(Integer idSanPhamChiTiet);
+
+    @Modifying
+    @Query("""
+update HinhAnh h
+set h.laAnhChinh = false
+where h.idSanPhamChiTiet.id = :idSPCT
+""")
+    void boAnhChinh(@Param("idSPCT") Integer idSPCT);
 }

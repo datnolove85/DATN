@@ -55,4 +55,24 @@ public class GioHangController {
 
         return ResponseEntity.ok(gioHangService.layGioHang(idTaiKhoan));
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> xoaSanPham(
+            @PathVariable Integer id,
+            HttpServletRequest servletRequest
+    ) {
+
+        String authHeader = servletRequest.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Thiếu token");
+        }
+
+        String token = authHeader.substring(7);
+
+        Integer idTaiKhoan = jwtService.extractId(token);
+
+        gioHangService.xoaSanPham(idTaiKhoan, id);
+
+        return ResponseEntity.ok("Xóa sản phẩm khỏi giỏ hàng thành công");
+    }
 }

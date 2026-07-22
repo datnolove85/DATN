@@ -21,4 +21,7 @@ public interface HoaDonVoucherRepository extends JpaRepository<HoaDonVoucher,Int
     WHERE hdv.idHoaDon.id = :idHoaDon
 """)
     Optional<Voucher> findVoucherByHoaDonId(@Param("idHoaDon") Integer idHoaDon);
+
+
+    List<HoaDonVoucher> findByIdVoucher_Id(Integer idVoucher);
 }

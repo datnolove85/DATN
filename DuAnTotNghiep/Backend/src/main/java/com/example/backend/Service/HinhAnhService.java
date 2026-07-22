@@ -7,6 +7,7 @@ import com.example.backend.Repository.SanPhamChiTietRepository;
 import com.example.backend.Response.HinhAnhResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -92,5 +93,21 @@ public class HinhAnhService {
                                 img.getLaAnhChinh()
                 ))
                 .toList();
+    }
+    @Transactional
+    public void datAnhChinh(Integer idAnh) {
+
+        HinhAnh anh = hinhAnhRepository.findById(idAnh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh"));
+
+        Integer idSPCT = anh.getIdSanPhamChiTiet().getId();
+
+        // bỏ ảnh chính cũ
+        hinhAnhRepository.boAnhChinh(idSPCT);
+
+        // đặt ảnh mới
+        anh.setLaAnhChinh(true);
+
+        hinhAnhRepository.save(anh);
     }
 }

@@ -84,4 +84,10 @@ public interface HoaDonService {
             Pageable pageable
     );
     void updateTrangThai(Integer id, String trangThaiMoi);
+
+     Map<String, Object> taoQr(Integer hoaDonId);
+
+    void capNhatHoaDonTheoVoucher(Integer idVoucher);
+
+    void capNhatSoLuong(Integer idHoaDonChiTiet, Integer soLuongMoi);
 }

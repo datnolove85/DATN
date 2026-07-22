@@ -582,7 +582,7 @@ function subscribeDetail() {
   })
 }
 const addToCart = async () => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
 
   if (!token) {
     alert('Bạn cần đăng nhập')
@@ -612,8 +612,6 @@ const addToCart = async () => {
     console.log('Emit cart-updated')
     // Báo Header tải lại giỏ hàng
     emitter.emit('cart-updated')
-
-    alert('Thêm vào giỏ thành công 🎉')
   } catch (err) {
     console.log(err)
     alert(err?.response?.data || 'Lỗi thêm giỏ hàng')

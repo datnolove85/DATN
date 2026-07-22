@@ -2,10 +2,7 @@ package com.example.backend.Service.impl;
 
 
 import com.example.backend.Entity.*;
-import com.example.backend.Repository.DotGiamGiaRepository;
-import com.example.backend.Repository.SanPhamChiTietRepository;
-import com.example.backend.Repository.SanPhamGiamGiaRepository;
-import com.example.backend.Repository.SanPhamRepository;
+import com.example.backend.Repository.*;
 import com.example.backend.Request.CreateDotGiamGiaRequest;
 import com.example.backend.Request.ThemSanPhamGGRequest;
 import com.example.backend.Request.UpdateDotGiamGiaRequest;
@@ -15,15 +12,17 @@ import com.example.backend.Response.SanPhamGiamGiaResponse;
 import com.example.backend.Service.DotGiamGiaService;
 import com.example.backend.Service.PosSocketService;
 import com.example.backend.mapper.DotGiamGiaMapper;
+import com.example.backend.websocket.PosEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.backend.Service.HoaDonService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +39,12 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     private final SanPhamRepository sanPhamRepository;
 
     private final PosSocketService posSocketService;
+
+    private final HoaDonChiTietRepository hdctRepo;
+
+    private final HoaDonRepository hoaDonRepo;
+
+    private final HoaDonService hoaDonService;
 
     //================================================
     // Danh sách
@@ -202,6 +207,20 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
 
         }
         dotRepo.save(dot);
+        List<SanPhamGiamGia> ds =
+                spggRepo.findByDotGiamGiaId(id);
+
+
+        for (SanPhamGiamGia spgg : ds) {
+
+            capNhatGiaHoaDonTheoDotGiamGia(
+                    spgg.getSanPhamChiTiet().getId()
+            );
+
+        }
+
+
+        posSocketService.notifyDiscountUpdated();
 
         return DotGiamGiaMapper.toResponse(
                 dot,
@@ -298,6 +317,19 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
 
 
         dotRepo.save(dot);
+
+
+        List<SanPhamGiamGia> ds =
+                spggRepo.findByDotGiamGiaId(id);
+
+
+        for (SanPhamGiamGia spgg : ds) {
+
+            capNhatGiaHoaDonTheoDotGiamGia(
+                    spgg.getSanPhamChiTiet().getId()
+            );
+
+        }
         posSocketService.notifyDiscountUpdated();
     }
 
@@ -968,4 +1000,129 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
             return rs;
 
         }
+
+
+    private void capNhatGiaHoaDonTheoDotGiamGia(
+            Integer idSanPhamChiTiet
+    ){
+
+        List<HoaDonChiTiet> list =
+                hdctRepo.findByIdSanPhamChiTiet_Id(idSanPhamChiTiet);
+
+
+        for(HoaDonChiTiet hdct : list){
+
+
+            SanPhamChiTiet spct =
+                    hdct.getIdSanPhamChiTiet();
+
+
+            BigDecimal giaMoi =
+                    spct.getGiaBan();
+
+
+            Optional<SanPhamGiamGia> spggOpt =
+                    spggRepo.findDangGiamGiaBySpctId(
+                            spct.getId()
+                    );
+
+
+            // nếu còn giảm giá
+            if(spggOpt.isPresent()){
+
+
+                DotGiamGia dot =
+                        spggOpt.get()
+                                .getDotGiamGia();
+
+
+
+                if("phan_tram".equals(dot.getLoaiGiamGia())){
+
+
+                    BigDecimal tienGiam =
+                            giaMoi.multiply(
+                                            dot.getGiaTriGiam()
+                                    )
+                                    .divide(
+                                            BigDecimal.valueOf(100)
+                                    );
+
+
+                    if(dot.getGiaTriGiamToiDa()!=null
+                            &&
+                            tienGiam.compareTo(
+                                    dot.getGiaTriGiamToiDa()
+                            )>0
+                    ){
+
+                        tienGiam =
+                                dot.getGiaTriGiamToiDa();
+
+                    }
+
+
+                    giaMoi =
+                            giaMoi.subtract(tienGiam);
+
+
+                }
+                else {
+
+
+                    giaMoi =
+                            giaMoi.subtract(
+                                    dot.getGiaTriGiam()
+                            );
+
+
+                    if(giaMoi.compareTo(BigDecimal.ZERO)<0){
+
+                        giaMoi =
+                                BigDecimal.ZERO;
+
+                    }
+
+                }
+
+            }
+
+
+
+            // cập nhật giá mới
+            hdct.setDonGia(
+                    giaMoi
+            );
+
+
+            hdct.setThanhTien(
+                    giaMoi.multiply(
+                            BigDecimal.valueOf(
+                                    hdct.getSoLuong()
+                            )
+                    )
+            );
+
+
+            hdctRepo.save(hdct);
+
+
+
+            hoaDonService.recalculateHoaDon(
+                    hdct.getIdHoaDon().getId()
+            );
+
+
+            posSocketService.send(
+                    new PosEvent(
+                            "PRODUCT_UPDATED",
+                            hdct.getIdHoaDon().getId(),
+                            spct.getId(),
+                            spct.getSoLuongTon()
+                    )
+            );
+
+        }
+
+    }
 }

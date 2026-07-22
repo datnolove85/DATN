@@ -289,7 +289,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            <template v-for="product in filteredProducts" :key="product.id">
+            <template v-for="product in paginatedProducts" :key="product.id">
               <tr class="hover:bg-slate-50/80 transition-colors">
                 <td class="px-6 py-4">
                   <span
@@ -521,6 +521,69 @@
             </template>
           </tbody>
         </table>
+        <div
+          class="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4"
+        >
+          <div class="text-xs text-slate-500 flex items-center gap-2">
+            <span>Hiển thị</span>
+            <select
+              v-model="pageSize"
+              class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500 font-semibold"
+            >
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+            </select>
+            <span
+              >trong tổng số
+              <strong class="text-slate-800">{{ filteredProducts.length }}</strong> sản phẩm</span
+            >
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              @click="changePage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+                currentPage === 1
+                  ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300',
+              ]"
+            >
+              Trước
+            </button>
+
+            <div class="flex items-center gap-1">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                @click="changePage(page)"
+                :class="[
+                  'w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center',
+                  currentPage === page
+                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50',
+                ]"
+              >
+                {{ page }}
+              </button>
+            </div>
+
+            <button
+              @click="changePage(currentPage + 1)"
+              :disabled="currentPage === totalPages || totalPages === 0"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+                currentPage === totalPages || totalPages === 0
+                  ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300',
+              ]"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1148,7 +1211,7 @@
         @click="isImageManagerOpen = false"
       ></div>
       <div
-        class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8 relative z-10 animate-fade-in"
+        class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-8 relative z-10 animate-fade-in"
       >
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-lg font-bold">Quản lý ảnh: {{ selectedSPCT?.maSanPhamChiTiet }}</h2>
@@ -1157,32 +1220,70 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-4 gap-3 mb-6">
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <!-- Vòng lặp danh sách ảnh -->
           <div
-            v-for="(img, index) in currentGallery"
-            :key="index"
-            class="relative group aspect-square"
+            v-for="img in currentGallery"
+            :key="img.id"
+            class="relative group aspect-square overflow-hidden rounded-2xl bg-slate-100 transition-all duration-300 shadow-2xs hover:shadow-md border border-slate-200/80"
           >
-            <img :src="baseUrl + img.url" class="w-full h-full object-cover rounded-xl border" />
+            <!-- Ảnh -->
+            <img
+              :src="baseUrl + img.url"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            <!-- Gradient phủ nhẹ ở cạnh trên & dưới để làm nổi bật các nút -->
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none"
+            ></div>
+
+            <!-- 1. Badge Ảnh chính (Góc trên bên trái) -->
+            <div
+              v-if="img.laAnhChinh"
+              class="absolute top-2.5 left-2.5 bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 z-10"
+            >
+              ⭐ Ảnh chính
+            </div>
+
+            <!-- 2. Nút Xóa ảnh (Góc trên bên phải - Chỉ hiện khi hover để tránh bấm nhầm) -->
             <button
               @click="deleteImageAPI(img.id)"
-              class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 transition-all shadow-lg"
+              class="absolute top-2 right-2 w-7 h-7 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-lg transition z-[999]"
             >
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  stroke-width="2"
+                  stroke-width="2.5"
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
             </button>
+
+            <!-- 3. Nút Đặt làm ảnh chính (Luôn hiển thị ở đáy ảnh, nổi bật dễ thấy) -->
+            <button
+              v-if="!img.laAnhChinh"
+              @click="changeMainImage(img)"
+              class="absolute bottom-2.5 left-2.5 right-2.5 bg-white/90 hover:bg-indigo-600 text-slate-800 hover:text-white text-[11px] font-bold rounded-xl py-2 shadow-md backdrop-blur-md transition-all transform active:scale-95 z-10 border border-slate-200/50"
+            >
+              👑 Đặt làm ảnh chính
+            </button>
           </div>
 
+          <!-- Ô Upload ảnh mới -->
           <label
-            class="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:text-indigo-600 transition-all"
+            class="aspect-square border-2 border-dashed border-slate-300 hover:border-indigo-500 bg-slate-50/50 hover:bg-indigo-50/30 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all group shadow-2xs"
           >
-            <span class="text-xl">+</span>
+            <div
+              class="w-10 h-10 rounded-full bg-slate-200/70 group-hover:bg-indigo-100 group-hover:text-indigo-600 text-slate-500 flex items-center justify-center transition-all mb-1.5"
+            >
+              <span class="text-xl font-light">+</span>
+            </div>
+            <span
+              class="text-[11px] font-semibold text-slate-500 group-hover:text-indigo-600 transition-colors"
+              >Thêm ảnh</span
+            >
             <input type="file" multiple class="hidden" @change="handleUpload" />
           </label>
         </div>
@@ -1205,7 +1306,7 @@ import { updateSanPhamChiTiet } from '@/service/SanPhamChiTiet'
 import { useToast } from 'vue-toastification'
 import { getAllMauSac } from '@/service/MauSacService'
 import { getAllKichThuoc } from '@/service/KichThuocService'
-import { uploadImages, deleteImage, getImagesBySPCT } from '@/service/HinhAnhSerivce'
+import { uploadImages, deleteImage, getImagesBySPCT, setMainImage } from '@/service/HinhAnhSerivce'
 const toast = useToast()
 const baseUrl = 'http://localhost:8080'
 import {
@@ -1249,6 +1350,30 @@ const isBulkOpen = ref(false)
 
 const selectedColors = ref([])
 const selectedSizes = ref([])
+
+// Phân trang
+// --- Bổ sung các biến phân trang ---
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// --- Computed cắt danh sách hiển thị theo trang ---
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredProducts.value.slice(start, end)
+})
+
+// --- Computed tính tổng số trang dựa trên kết quả đã lọc ---
+const totalPages = computed(() => {
+  return Math.ceil(filteredProducts.value.length / pageSize.value) || 1
+})
+
+// --- Hàm chuyển trang ---
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
 // ========================
 // FORM SPCT (ONLY ONE SOURCE OF TRUTH)
 // ========================
@@ -1987,12 +2112,17 @@ const openImageManager = async (spct) => {
   selectedSPCT.value = spct
 
   try {
-    currentGallery.value = await getImagesBySPCT(spct.id)
+    await loadGallery()
 
     isImageManagerOpen.value = true
   } catch (e) {
     toast.error(e.message)
   }
+}
+const loadGallery = async () => {
+  if (!selectedSPCT.value) return
+
+  currentGallery.value = await getImagesBySPCT(selectedSPCT.value.id)
 }
 
 const handleUpload = async (event) => {
@@ -2017,6 +2147,7 @@ const deleteImageAPI = async (id) => {
     await deleteImage(id)
 
     currentGallery.value = currentGallery.value.filter((img) => img.id !== id)
+    await reloadGallery()
 
     await loadSPCT(selectedProduct.value.id)
     toast.success('Xóa ảnh thành công')
@@ -2025,26 +2156,11 @@ const deleteImageAPI = async (id) => {
   }
 }
 const reloadGallery = async () => {
-  try {
-    const id = selectedSPCT.value?.id
-    if (!id) return
+  if (!selectedSPCT.value) return
 
-    const res = await fetch(`${baseUrl}/spct/sp/${id}`)
+  currentGallery.value = await getImagesBySPCT(selectedSPCT.value.id)
 
-    if (!res.ok) {
-      throw new Error('Load SPCT thất bại')
-    }
-
-    const data = await res.json()
-
-    // 🔥 QUAN TRỌNG: images nằm trong spct
-    currentGallery.value = data.images || []
-
-    // (optional) sync lại SPCT luôn nếu cần
-    selectedSPCT.value = data
-  } catch (err) {
-    console.error('reloadGallery lỗi:', err)
-  }
+  console.log(currentGallery.value)
 }
 
 const calcThongKeSPCT = async () => {
@@ -2096,6 +2212,17 @@ watch(isModalOpen, async (newValue) => {
     tenSanPhamInput.value?.focus()
   }
 })
+const changeMainImage = async (img) => {
+  try {
+    await setMainImage(img.id)
+
+    await reloadGallery()
+
+    toast.success('Đã đặt làm ảnh chính')
+  } catch (e) {
+    toast.error(e.message)
+  }
+}
 </script>
 
 <style scoped>

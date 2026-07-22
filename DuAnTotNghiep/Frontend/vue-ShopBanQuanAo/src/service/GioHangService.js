@@ -17,3 +17,12 @@ export const layGioHang = (token) => {
     },
   })
 }
+
+// Xóa sản phẩm khỏi giỏ hàng
+export const xoaGioHang = (id, token) => {
+  return axios.delete(`${API}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}

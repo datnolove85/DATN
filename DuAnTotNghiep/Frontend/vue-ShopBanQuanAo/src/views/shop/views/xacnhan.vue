@@ -1,396 +1,1049 @@
 <template>
-  <div class="min-h-screen bg-slate-50 py-10">
-    <div class="max-w-6xl mx-auto px-6">
-      <!-- HEADER -->
-      <div class="mb-10 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div
-            class="w-14 h-14 rounded-3xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-lg"
+  <div class="checkout-page min-h-screen bg-slate-50 text-slate-900">
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+      <div class="absolute -left-24 top-20 h-80 w-80 rounded-full bg-indigo-200/40 blur-3xl"></div>
+      <div class="absolute -right-24 top-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl"></div>
+      <div
+        class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-100/50 blur-3xl"
+      ></div>
+    </div>
+
+    <div class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+      <!-- TOP BAR -->
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <button
+          type="button"
+          class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-indigo-700"
+          @click="router.push('/san-pham')"
+        >
+          <span
+            class="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white shadow-sm transition group-hover:border-indigo-200 group-hover:bg-indigo-50"
           >
-            🛒
-          </div>
-          <div>
-            <h1 class="text-3xl font-black text-slate-900">Xác nhận đơn hàng</h1>
-            <p class="text-slate-500">Kiểm tra thông tin và hoàn tất giao dịch</p>
-          </div>
-        </div>
-        <!-- Progress Steps -->
-        <div class="flex items-center gap-3 text-sm font-bold">
-          <div class="text-indigo-600 flex items-center gap-2">
-            <span
-              class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center"
-              >1</span
-            >
-            Mua hàng
-          </div>
-          <div class="w-10 h-[2px] bg-indigo-200"></div>
-          <div class="text-indigo-600 flex items-center gap-2">
-            <span
-              class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center"
-              >2</span
-            >
-            Xác nhận
-          </div>
-          <div class="w-10 h-[2px] bg-slate-200"></div>
-          <div class="text-slate-400 flex items-center gap-2">
-            <span class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center"
-              >3</span
-            >
-            Thanh toán
-          </div>
+            <ArrowLeft :size="17" />
+          </span>
+          Quay lại sản phẩm
+        </button>
+
+        <div
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
+        >
+          <UserRound :size="16" class="text-indigo-600" />
+          {{ isLoggedIn ? 'Khách hàng đã đăng nhập' : 'Đặt hàng không cần tài khoản' }}
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- LEFT COLUMN -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- ĐỊA CHỈ GIAO HÀNG -->
-          <div class="bg-white rounded-2xl shadow-sm border p-6">
-            <div class="flex justify-between items-center mb-5">
-              <h2 class="font-bold text-lg">Địa chỉ giao hàng</h2>
-              <button
-                v-if="addresses.length < 3"
-                @click="openAddAddress"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl transition font-medium"
-              >
-                + Thêm địa chỉ
-              </button>
-              <div v-else class="text-sm text-slate-500 bg-slate-100 px-4 py-2 rounded-xl">
-                Đã đạt tối đa 3 địa chỉ
-              </div>
-            </div>
+      <!-- HERO -->
+      <section
+        class="relative overflow-hidden rounded-[28px] border border-white/70 bg-slate-950 px-6 py-7 text-white shadow-2xl shadow-slate-300/60 sm:px-8 lg:px-10 lg:py-9"
+      >
+        <div
+          class="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-indigo-500/30 blur-2xl"
+        ></div>
+        <div
+          class="absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-cyan-400/20 blur-2xl"
+        ></div>
 
+        <div class="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
             <div
-              v-for="item in showAllAddresses ? addresses : addresses.filter((a) => a.macDinh)"
-              :key="item.id"
-              @click="selectAddress(item.id)"
-              class="border rounded-2xl p-5 mb-4 cursor-pointer hover:border-indigo-400 transition-all"
-              :class="
-                selectedAddressId === item.id
-                  ? 'border-indigo-600 bg-indigo-50/50'
-                  : 'border-slate-200'
-              "
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-indigo-100"
             >
-              <label class="flex cursor-pointer">
-                <input
-                  type="radio"
-                  :checked="selectedAddressId === item.id"
-                  @change="selectAddress(item.id)"
-                  class="mt-1 accent-indigo-600"
-                />
-                <div class="ml-3 flex-1">
-                  <div class="font-bold">
-                    {{ item.tenNguoiNhan }}
-                    <span
-                      v-if="item.macDinh"
-                      class="ml-2 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded"
-                      >Mặc định</span
-                    >
-                  </div>
-                  <div class="text-sm">{{ item.soDienThoai }}</div>
-                  <div class="text-sm text-slate-600">
-                    {{ item.diaChiCuThe }}, {{ item.phuong }}, {{ item.quan }}, {{ item.thanhPho }}
-                  </div>
-                  <div class="mt-2 space-x-3 text-sm">
-                    <button @click.stop="openEditAddress(item)" class="text-blue-600 font-medium">
-                      Sửa
-                    </button>
-                    <button @click.stop="deleteAddress(item.id)" class="text-red-600 font-medium">
-                      Xóa
-                    </button>
-                    <button
-                      v-if="!item.macDinh"
-                      @click.stop="setDefault(item.id)"
-                      class="text-green-600 font-medium"
-                    >
-                      Đặt mặc định
-                    </button>
-                  </div>
-                </div>
-              </label>
+              <ClipboardCheck :size="14" />
+              Xác nhận đơn hàng
             </div>
-            <button
-              v-if="addresses.length > 1"
-              @click="showAllAddresses = !showAllAddresses"
-              class="w-full mt-2 py-2 text-indigo-600 font-semibold bg-indigo-50 rounded-xl hover:bg-indigo-100"
-            >
-              {{
-                showAllAddresses
-                  ? 'Thu gọn địa chỉ'
-                  : 'Xem thêm địa chỉ khác (' + (addresses.length - 1) + ')'
-              }}
-            </button>
+
+            <h1 class="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+              Kiểm tra lần cuối trước khi đặt hàng
+            </h1>
+
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+              Hoàn thiện thông tin nhận hàng, vận chuyển và ưu đãi. Bạn sẽ chọn phương thức thanh
+              toán ở bước tiếp theo.
+            </p>
           </div>
 
-          <!-- SẢN PHẨM -->
-          <div class="bg-white rounded-2xl shadow-sm border p-6">
-            <h2 class="font-bold text-lg mb-5">Sản phẩm</h2>
-            <div class="flex gap-6 items-start bg-slate-50 rounded-2xl p-4">
-              <img
-                :src="product?.images?.length ? 'http://localhost:8080' + product.images[0] : ''"
-                class="w-28 h-28 rounded-xl object-cover border"
-              />
-              <div class="flex-1">
-                <h3 class="font-bold text-lg">{{ product?.tenSanPham }}</h3>
-                <div class="flex gap-4 mt-2 text-sm text-slate-500">
-                  <p>
-                    Màu: <span class="font-semibold text-slate-800">{{ product?.tenMauSac }}</span>
-                  </p>
-                  <p>
-                    Size:
-                    <span class="font-semibold text-slate-800">{{ product?.tenKichThuoc }}</span>
-                  </p>
-                </div>
-                <div class="mt-4 flex justify-between items-center">
-                  <div v-if="product?.dangGiamGia" class="flex items-center gap-2">
-                    <!-- Giá sau giảm -->
-                    <span class="text-red-600 font-bold text-2xl">
-                      {{ (product?.giaSauGiam || 0).toLocaleString() }}₫
-                    </span>
-
-                    <!-- Giá gốc -->
-                    <span class="text-gray-400 line-through">
-                      {{ (product?.giaBan || 0).toLocaleString() }}₫
-                    </span>
-                  </div>
-
-                  <div v-else>
-                    <span class="text-2xl font-bold">
-                      {{ (product?.giaBan || 0).toLocaleString() }}₫
-                    </span>
-                  </div>
-                  <div class="flex items-center border rounded-lg bg-white">
-                    <button class="px-3 py-1 hover:bg-slate-100" @click="decreaseQty">-</button>
-                    <span class="px-3 font-bold">{{ quantity }}</span>
-                    <button class="px-3 py-1 hover:bg-slate-100" @click="increaseQty">+</button>
-                  </div>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-1">Kho: {{ stock }} sản phẩm sẵn có</p>
-              </div>
+          <div
+            class="min-w-[250px] rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"
+          >
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-300">
+              Tổng thanh toán dự kiến
+            </p>
+            <p class="mt-2 text-3xl font-black text-white">{{ formatMoney(total) }}</p>
+            <div class="mt-3 flex items-center gap-2 text-xs text-emerald-300">
+              <ShieldCheck :size="15" />
+              Giá được kiểm tra lại ở máy chủ
             </div>
           </div>
+        </div>
+      </section>
 
-          <!-- VẬN CHUYỂN & VOUCHER -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl shadow-sm border p-6">
-              <h2 class="font-bold mb-4">Phương thức vận chuyển</h2>
-              <div
-                class="border border-indigo-200 bg-indigo-50/50 rounded-xl p-4 flex justify-between"
-              >
-                <div>
-                  <div class="font-semibold">Tiêu chuẩn</div>
-                  <div class="text-xs text-slate-500">2-4 ngày làm việc</div>
-                </div>
-                <div class="font-bold text-indigo-600">{{ shippingFee.toLocaleString() }}đ</div>
-              </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border p-6">
-              <h2 class="font-bold mb-4">Mã ưu đãi (Voucher)</h2>
-              <select
-                v-model="selectedVoucherId"
-                class="w-full bg-slate-50 border rounded-xl p-3 outline-indigo-500"
-              >
-                <option :value="null">Không áp dụng</option>
-                <option
-                  v-for="v in vouchers"
-                  :key="v.id"
-                  :value="v.id"
-                  :disabled="subtotal < v.giaTriDonHangToiThieu"
+      <!-- CHECKOUT STEPS -->
+      <div
+        class="mx-auto mt-5 grid max-w-3xl grid-cols-3 rounded-2xl border border-slate-200/80 bg-white/90 p-2 shadow-sm backdrop-blur"
+      >
+        <div
+          class="flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-xs font-bold text-emerald-700 sm:text-sm"
+        >
+          <span class="grid h-6 w-6 place-items-center rounded-full bg-emerald-100">
+            <Check :size="14" />
+          </span>
+          <span class="hidden sm:inline">Sản phẩm</span>
+        </div>
+
+        <div
+          class="flex items-center justify-center gap-2 rounded-xl bg-indigo-50 px-2 py-3 text-xs font-bold text-indigo-700 sm:text-sm"
+        >
+          <span class="grid h-6 w-6 place-items-center rounded-full bg-indigo-600 text-white"
+            >2</span
+          >
+          Xác nhận
+        </div>
+
+        <div
+          class="flex items-center justify-center gap-2 rounded-xl px-2 py-3 text-xs font-bold text-slate-400 sm:text-sm"
+        >
+          <span class="grid h-6 w-6 place-items-center rounded-full bg-slate-100">3</span>
+          <span class="hidden sm:inline">Thanh toán</span>
+        </div>
+      </div>
+
+      <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.75fr)]">
+        <!-- LEFT COLUMN -->
+        <div class="space-y-6">
+          <!-- RECIPIENT -->
+          <section
+            class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="flex items-start gap-3">
+                <span
+                  class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-indigo-50 text-indigo-600"
                 >
-                  {{ v.tenVoucher }} - {{ v.maVoucher }}
-                </option>
-              </select>
+                  <MapPin :size="24" />
+                </span>
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">
+                    Bước 1
+                  </p>
+                  <h2 class="mt-1 text-2xl font-black tracking-tight">
+                    {{ isLoggedIn ? 'Chọn địa chỉ giao hàng' : 'Thông tin nhận hàng' }}
+                  </h2>
+                  <p class="mt-2 text-sm text-slate-500">
+                    {{
+                      isLoggedIn
+                        ? 'Chọn một địa chỉ đã lưu hoặc thêm địa chỉ mới.'
+                        : 'Nhập đúng thông tin để đơn vị vận chuyển có thể liên hệ.'
+                    }}
+                  </p>
+                </div>
+              </div>
+
+              <template v-if="isLoggedIn">
+                <button
+                  v-if="addresses.length < 3"
+                  type="button"
+                  class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
+                  @click="openAddAddress"
+                >
+                  <Plus :size="17" />
+                  Thêm địa chỉ
+                </button>
+                <span
+                  v-else
+                  class="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-500"
+                >
+                  Tối đa 3 địa chỉ
+                </span>
+              </template>
             </div>
+
+            <!-- LOGGED-IN ADDRESSES -->
+            <div v-if="isLoggedIn" class="mt-6 space-y-4">
+              <article
+                v-for="item in showAllAddresses
+                  ? addresses
+                  : addresses.filter((a) => a.macDinh || a.id === selectedAddressId).slice(0, 1)"
+                :key="item.id"
+                class="cursor-pointer rounded-2xl border-2 p-5 transition"
+                :class="
+                  selectedAddressId === item.id
+                    ? 'border-indigo-600 bg-indigo-50/60 shadow-lg shadow-indigo-100/70'
+                    : 'border-slate-200 hover:border-indigo-200 hover:bg-slate-50'
+                "
+                @click="selectAddress(item.id)"
+              >
+                <div class="flex items-start gap-4">
+                  <span
+                    class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2"
+                    :class="
+                      selectedAddressId === item.id
+                        ? 'border-indigo-600 bg-indigo-600 text-white'
+                        : 'border-slate-300 text-transparent'
+                    "
+                  >
+                    <Check :size="14" />
+                  </span>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h3 class="font-black text-slate-900">{{ item.tenNguoiNhan }}</h3>
+                      <span
+                        v-if="item.macDinh"
+                        class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700"
+                      >
+                        <Star :size="11" />
+                        Mặc định
+                      </span>
+                    </div>
+
+                    <p class="mt-2 flex items-center gap-2 text-sm font-semibold text-slate-600">
+                      <Phone :size="15" class="text-indigo-500" />
+                      {{ item.soDienThoai }}
+                    </p>
+                    <p class="mt-2 flex items-start gap-2 text-sm leading-6 text-slate-500">
+                      <MapPin :size="15" class="mt-1 shrink-0 text-indigo-500" />
+                      <span>
+                        {{ item.diaChiCuThe }}, {{ item.phuong }}, {{ item.quan }},
+                        {{ item.thanhPho }}
+                      </span>
+                    </p>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-blue-600 shadow-sm ring-1 ring-slate-200 transition hover:ring-blue-200"
+                        @click.stop="openEditAddress(item)"
+                      >
+                        <Pencil :size="14" />
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-red-600 shadow-sm ring-1 ring-slate-200 transition hover:ring-red-200"
+                        @click.stop="deleteAddress(item.id)"
+                      >
+                        <Trash2 :size="14" />
+                        Xóa
+                      </button>
+                      <button
+                        v-if="!item.macDinh"
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-emerald-600 shadow-sm ring-1 ring-slate-200 transition hover:ring-emerald-200"
+                        @click.stop="setDefault(item.id)"
+                      >
+                        <Star :size="14" />
+                        Đặt mặc định
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <div
+                v-if="addresses.length === 0"
+                class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-7 text-center"
+              >
+                <MapPin :size="35" class="mx-auto text-slate-300" />
+                <p class="mt-3 font-bold text-slate-600">Bạn chưa có địa chỉ giao hàng</p>
+                <button
+                  type="button"
+                  class="mt-4 rounded-xl bg-indigo-600 px-5 py-2.5 font-bold text-white"
+                  @click="openAddAddress"
+                >
+                  Thêm địa chỉ đầu tiên
+                </button>
+              </div>
+
+              <button
+                v-if="addresses.length > 1"
+                type="button"
+                class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 py-3 font-bold text-indigo-700 transition hover:bg-indigo-100"
+                @click="showAllAddresses = !showAllAddresses"
+              >
+                <ChevronUp v-if="showAllAddresses" :size="18" />
+                <ChevronDown v-else :size="18" />
+                {{
+                  showAllAddresses
+                    ? 'Thu gọn địa chỉ'
+                    : 'Xem thêm địa chỉ khác (' + (addresses.length - 1) + ')'
+                }}
+              </button>
+            </div>
+
+            <!-- GUEST FORM -->
+            <div v-else class="mt-6 space-y-5">
+              <div class="grid gap-5 md:grid-cols-2">
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Họ và tên</span>
+                  <span class="relative block">
+                    <UserRound
+                      :size="18"
+                      class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      v-model.trim="addressForm.tenNguoiNhan"
+                      maxlength="100"
+                      placeholder="Nguyễn Văn A"
+                      class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </span>
+                </label>
+
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Số điện thoại</span>
+                  <span class="relative block">
+                    <Phone
+                      :size="18"
+                      class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      v-model.trim="addressForm.soDienThoai"
+                      inputmode="numeric"
+                      maxlength="11"
+                      placeholder="09xxxxxxxx"
+                      class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </span>
+                </label>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-3">
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Tỉnh / Thành phố</span>
+                  <select
+                    v-model="selectedProvince"
+                    class="w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    @change="onProvinceChange"
+                  >
+                    <option :value="null">Chọn tỉnh/thành phố</option>
+                    <option v-for="p in provinces" :key="p.ProvinceID" :value="p">
+                      {{ p.ProvinceName }}
+                    </option>
+                  </select>
+                </label>
+
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Quận / Huyện</span>
+                  <select
+                    v-model="selectedDistrict"
+                    :disabled="!selectedProvince"
+                    class="w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    @change="onDistrictChange"
+                  >
+                    <option :value="null">Chọn quận/huyện</option>
+                    <option v-for="d in districts" :key="d.DistrictID" :value="d">
+                      {{ d.DistrictName }}
+                    </option>
+                  </select>
+                </label>
+
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Phường / Xã</span>
+                  <select
+                    v-model="selectedWard"
+                    :disabled="!selectedDistrict"
+                    class="w-full rounded-xl border border-slate-300 bg-white p-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    @change="onWardChange"
+                  >
+                    <option :value="null">Chọn phường/xã</option>
+                    <option v-for="w in wards" :key="w.WardCode" :value="w">
+                      {{ w.WardName }}
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="mb-2 block text-sm font-bold text-slate-700">Địa chỉ cụ thể</span>
+                <textarea
+                  v-model.trim="addressForm.diaChiCuThe"
+                  rows="3"
+                  maxlength="250"
+                  placeholder="Số nhà, tên đường, tòa nhà..."
+                  class="w-full resize-none rounded-xl border border-slate-300 bg-white p-4 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                ></textarea>
+              </label>
+
+              <div
+                class="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm leading-6 text-amber-900"
+              >
+                <ShieldCheck :size="19" class="mt-0.5 shrink-0" />
+                <p>
+                  Sau khi đặt hàng, hãy lưu mã đơn. Bạn có thể tra cứu bằng mã đơn và số điện thoại
+                  nhận hàng.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- PRODUCT -->
+          <section
+            class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-start gap-3">
+                <span
+                  class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-indigo-50 text-indigo-600"
+                >
+                  <Package :size="24" />
+                </span>
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">
+                    Bước 2
+                  </p>
+                  <h2 class="mt-1 text-2xl font-black tracking-tight">Sản phẩm đã chọn</h2>
+                </div>
+              </div>
+              <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600">
+                Kho: {{ stock }}
+              </span>
+            </div>
+            <!-- Checkout từ giỏ hàng -->
+            <template v-if="isCartCheckout">
+              <article
+                v-for="item in checkoutItems"
+                :key="item.productDetailId"
+                class="mt-6 grid gap-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[132px_1fr] sm:p-5"
+              >
+                <!-- Ảnh sản phẩm -->
+                <div
+                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner"
+                >
+                  <img
+                    :src="
+                      item.anh
+                        ? item.anh.startsWith('http')
+                          ? item.anh
+                          : 'http://localhost:8080' + item.anh
+                        : '/no-image.png'
+                    "
+                    :alt="item.tenSanPham"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+
+                <!-- Thông tin sản phẩm -->
+                <div class="flex min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <!-- Tên & Mã -->
+                    <div class="flex items-start justify-between gap-4">
+                      <h3 class="line-clamp-2 text-lg font-bold text-slate-900">
+                        {{ item.tenSanPham }}
+                      </h3>
+                      <span class="text-xs font-medium text-slate-400">
+                        #{{ item.maSanPhamChiTiet }}
+                      </span>
+                    </div>
+
+                    <!-- Thuộc tính (Màu sắc, Kích cỡ) -->
+                    <div class="mt-2.5 flex flex-wrap gap-2">
+                      <span
+                        v-if="item.mauSac"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        🎨 {{ item.mauSac }}
+                      </span>
+
+                      <span
+                        v-if="item.kichCo"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        📏 {{ item.kichCo }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Giá, Số lượng & Thành tiền -->
+                  <div
+                    class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <!-- Đơn giá & Số lượng -->
+                    <div class="flex items-center gap-4">
+                      <div>
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Đơn giá</p>
+                        <span class="text-base font-bold text-slate-900">
+                          {{ formatMoney(item.giaBan) }}
+                        </span>
+                      </div>
+
+                      <div class="h-6 w-px bg-slate-200"></div>
+
+                      <div
+                        class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        SL: × {{ item.quantity }}
+                      </div>
+                    </div>
+
+                    <!-- Thành tiền -->
+                    <div
+                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-3 sm:border-t-0 sm:pt-0 sm:justify-end sm:gap-2"
+                    >
+                      <span class="text-sm text-slate-500">Thành tiền:</span>
+                      <span class="text-xl font-extrabold text-red-600">
+                        {{ formatMoney(item.thanhTien) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </template>
+
+            <!-- Mua ngay -->
+            <template v-else>
+              <!-- GIỮ NGUYÊN TOÀN BỘ ARTICLE CŨ CỦA BẠN -->
+              <article
+                class="mt-6 grid gap-5 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 sm:grid-cols-[132px_1fr] sm:p-5"
+              >
+                <div
+                  class="h-32 w-32 overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
+                >
+                  <img
+                    :src="
+                      product?.images?.length
+                        ? 'http://localhost:8080' + product.images[0]
+                        : '/no-image.png'
+                    "
+                    :alt="product?.tenSanPham || 'Sản phẩm'"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+
+                <div class="min-w-0">
+                  <h3 class="text-xl font-black text-slate-900">{{ product?.tenSanPham }}</h3>
+                  <div class="mt-2 flex flex-wrap gap-2 text-sm">
+                    <span
+                      class="rounded-full bg-white px-3 py-1.5 font-semibold text-slate-600 shadow-sm"
+                    >
+                      Màu: <b class="text-slate-900">{{ product?.tenMauSac }}</b>
+                    </span>
+                    <span
+                      class="rounded-full bg-white px-3 py-1.5 font-semibold text-slate-600 shadow-sm"
+                    >
+                      Size: <b class="text-slate-900">{{ product?.tenKichThuoc }}</b>
+                    </span>
+                  </div>
+
+                  <div class="mt-5 flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                      <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                        Đơn giá
+                      </p>
+                      <div
+                        v-if="product?.dangGiamGia"
+                        class="mt-1 flex flex-wrap items-center gap-2"
+                      >
+                        <span class="text-2xl font-black text-red-600">
+                          {{ formatMoney(product?.giaSauGiam) }}
+                        </span>
+                        <span class="text-sm font-semibold text-slate-400 line-through">
+                          {{ formatMoney(product?.giaBan) }}
+                        </span>
+                      </div>
+                      <span v-else class="mt-1 block text-2xl font-black text-indigo-700">
+                        {{ formatMoney(product?.giaBan) }}
+                      </span>
+                    </div>
+
+                    <div
+                      class="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+                    >
+                      <button
+                        type="button"
+                        class="grid h-10 w-10 place-items-center rounded-lg text-lg font-black text-slate-600 transition hover:bg-slate-100"
+                        @click="decreaseQty"
+                      >
+                        −
+                      </button>
+                      <span class="min-w-12 text-center font-black text-slate-900">{{
+                        quantity
+                      }}</span>
+                      <button
+                        type="button"
+                        class="grid h-10 w-10 place-items-center rounded-lg text-lg font-black text-slate-600 transition hover:bg-slate-100"
+                        @click="increaseQty"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </template>
+          </section>
+
+          <!-- SHIPPING & VOUCHER -->
+          <div class="grid gap-6 md:grid-cols-2">
+            <section
+              class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-6"
+            >
+              <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 place-items-center rounded-2xl bg-sky-50 text-sky-600">
+                  <Truck :size="22" />
+                </span>
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.15em] text-sky-600">
+                    Vận chuyển
+                  </p>
+                  <h2 class="font-black text-slate-900">Giao hàng tiêu chuẩn</h2>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-2xl border border-sky-100 bg-sky-50/70 p-4">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <p class="font-black text-slate-900">Tiêu chuẩn</p>
+                    <p class="mt-1 text-xs text-slate-500">Dự kiến 2–4 ngày làm việc</p>
+                  </div>
+                  <LoaderCircle
+                    v-if="shippingLoading"
+                    :size="20"
+                    class="animate-spin text-sky-600"
+                  />
+                  <p v-else class="font-black text-sky-700">{{ formatMoney(shippingFee) }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section
+              class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-6"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600"
+                >
+                  <TicketPercent :size="22" />
+                </span>
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.15em] text-emerald-600">
+                    Ưu đãi
+                  </p>
+                  <h2 class="font-black text-slate-900">Voucher đơn hàng</h2>
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <button
+                  @click="showVoucherModal = true"
+                  class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-4 hover:border-indigo-500 transition"
+                >
+                  <div class="text-left">
+                    <p class="font-semibold">
+                      {{ selectedVoucher ? selectedVoucher.tenVoucher : 'Chọn voucher' }}
+                    </p>
+
+                    <p class="text-sm text-gray-500">
+                      {{ selectedVoucher ? selectedVoucher.maVoucher : 'Nhấn để chọn voucher' }}
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </section>
           </div>
 
-          <!-- GHI CHÚ -->
-          <div class="bg-white rounded-2xl shadow-sm border p-6">
-            <h2 class="font-bold mb-2">Ghi chú cho đơn hàng</h2>
+          <!-- NOTE -->
+          <section
+            class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
+          >
+            <div class="flex items-center gap-3">
+              <span
+                class="grid h-11 w-11 place-items-center rounded-2xl bg-violet-50 text-violet-600"
+              >
+                <MessageSquareText :size="22" />
+              </span>
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.15em] text-violet-600">
+                  Ghi chú
+                </p>
+                <h2 class="font-black text-slate-900">Yêu cầu giao hàng</h2>
+              </div>
+            </div>
+
             <textarea
               v-model="note"
-              class="w-full bg-slate-50 border rounded-xl p-4 resize-none outline-indigo-500"
-              placeholder="Ví dụ: Giao hàng giờ hành chính..."
+              rows="4"
+              maxlength="500"
+              class="mt-5 w-full resize-none rounded-2xl border border-slate-300 bg-slate-50 p-4 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              placeholder="Ví dụ: Giao hàng giờ hành chính, gọi trước khi giao..."
             ></textarea>
-          </div>
+          </section>
         </div>
 
-        <!-- RIGHT COLUMN: SUMMARY -->
-        <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl shadow-sm border p-6 sticky top-8">
-            <h2 class="font-bold text-lg mb-6">Tóm tắt đơn hàng</h2>
-            <div class="space-y-4">
-              <div class="flex justify-between">
-                <span>Tiền hàng</span>
-                <span class="font-bold">{{ subtotal.toLocaleString() }}đ</span>
+        <!-- SUMMARY -->
+        <aside class="space-y-5 lg:sticky lg:top-6">
+          <section
+            class="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-2xl shadow-slate-200/60"
+          >
+            <div class="border-b border-slate-100 px-6 py-5">
+              <div class="flex items-center gap-3">
+                <span class="grid h-11 w-11 place-items-center rounded-2xl bg-slate-900 text-white">
+                  <ReceiptText :size="22" />
+                </span>
+                <div>
+                  <h2 class="text-xl font-black">Tóm tắt đơn hàng</h2>
+                  <p class="text-xs text-slate-400">{{ quantity }} sản phẩm trong đơn</p>
+                </div>
               </div>
-              <div class="flex justify-between">
-                <span>Phí ship</span>
-                <span class="font-bold">{{ shippingFee.toLocaleString() }}đ</span>
+            </div>
+
+            <div class="space-y-4 px-6 py-5 text-sm">
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-slate-500">Tiền hàng</span>
+                <span class="font-bold text-slate-800">{{ formatMoney(subtotal) }}</span>
               </div>
-              <div class="flex justify-between text-emerald-600">
-                <span>Voucher giảm</span>
-                <span class="font-bold">-{{ voucherDiscount.toLocaleString() }}đ</span>
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-slate-500">Phí vận chuyển</span>
+                <span class="font-bold text-slate-800">{{ formatMoney(shippingFee) }}</span>
               </div>
-              <div class="border-t pt-4 flex justify-between items-center">
-                <span class="font-bold">Tổng thanh toán</span>
-                <span class="text-2xl font-black text-indigo-600"
-                  >{{ total.toLocaleString() }}đ</span
-                >
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-slate-500">Voucher giảm</span>
+                <span class="font-bold text-emerald-600">-{{ formatMoney(voucherDiscount) }}</span>
               </div>
+
+              <div class="border-t border-dashed border-slate-200 pt-4">
+                <div class="flex items-end justify-between gap-4">
+                  <span class="font-black text-slate-900">Tổng thanh toán</span>
+                  <span class="text-right text-2xl font-black text-indigo-700">
+                    {{ formatMoney(total) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-100 bg-slate-50/80 p-5">
               <button
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg"
+                type="button"
+                :disabled="isPlacingOrder || shippingLoading"
+                class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-4 text-base font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 @click="placeOrder"
               >
-                ĐẶT HÀNG NGAY
+                <LoaderCircle v-if="isPlacingOrder" :size="20" class="animate-spin" />
+                <CreditCard v-else :size="20" />
+                {{ isPlacingOrder ? 'Đang tạo đơn...' : 'Đặt hàng và thanh toán' }}
               </button>
+
+              <p class="mt-3 text-center text-xs leading-5 text-slate-400">
+                Nhấn đặt hàng đồng nghĩa bạn xác nhận thông tin phía trên là chính xác.
+              </p>
             </div>
-          </div>
-        </div>
+          </section>
+
+          <section class="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-5">
+            <div class="flex gap-3">
+              <span
+                class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-emerald-600 shadow-sm"
+              >
+                <ShieldCheck :size="21" />
+              </span>
+              <div>
+                <h3 class="font-black text-emerald-900">Thông tin đơn hàng được bảo vệ</h3>
+                <p class="mt-1 text-sm leading-5 text-emerald-800/75">
+                  Thông tin người nhận chỉ được dùng để xử lý và giao đơn hàng.
+                </p>
+              </div>
+            </div>
+          </section>
+        </aside>
       </div>
 
+      <!-- ADDRESS MODAL -->
       <Teleport to="body">
         <div
-          v-if="showAddressModal"
-          class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          v-if="showAddressModal && isLoggedIn"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          @click.self="showAddressModal = false"
         >
           <div
-            class="bg-white w-full max-w-[900px] rounded-[32px] p-8 shadow-2xl flex flex-col md:flex-row gap-8"
+            class="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-[30px] border border-white/70 bg-white shadow-2xl"
           >
-            <!-- Form Section -->
-            <div class="flex-1">
-              <h2 class="text-2xl font-bold text-gray-800 mb-6">
-                {{ editingAddress ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ mới' }}
-              </h2>
+            <div
+              class="flex items-center justify-between border-b border-slate-100 px-6 py-5 sm:px-8"
+            >
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.15em] text-indigo-600">
+                  Địa chỉ giao hàng
+                </p>
+                <h2 class="mt-1 text-2xl font-black text-slate-900">
+                  {{ editingAddress ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ mới' }}
+                </h2>
+              </div>
+              <button
+                type="button"
+                class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-red-50 hover:text-red-600"
+                @click="showAddressModal = false"
+              >
+                <X :size="20" />
+              </button>
+            </div>
 
-              <div class="space-y-4">
-                <div class="grid md:grid-cols-2 gap-5">
-                  <input
-                    v-model="addressForm.tenNguoiNhan"
-                    placeholder="Họ và tên"
-                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  />
-                  <input
-                    v-model="addressForm.soDienThoai"
-                    placeholder="Số điện thoại"
-                    class="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                  />
+            <div class="grid gap-7 p-6 sm:p-8 lg:grid-cols-[1fr_380px]">
+              <div class="space-y-5">
+                <div class="grid gap-5 md:grid-cols-2">
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-bold text-slate-700">Họ và tên</span>
+                    <input
+                      v-model.trim="addressForm.tenNguoiNhan"
+                      placeholder="Họ và tên người nhận"
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </label>
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-bold text-slate-700">Số điện thoại</span>
+                    <input
+                      v-model.trim="addressForm.soDienThoai"
+                      inputmode="numeric"
+                      maxlength="11"
+                      placeholder="09xxxxxxxx"
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </label>
                 </div>
-                <div class="space-y-4">
-                  <!-- Tỉnh -->
 
-                  <!-- Quận -->
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Tỉnh / Thành phố</span>
+                  <select
+                    v-model="selectedProvince"
+                    class="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    @change="onProvinceChange"
+                  >
+                    <option :value="null">Chọn tỉnh/thành phố</option>
+                    <option v-for="p in provinces" :key="p.ProvinceID" :value="p">
+                      {{ p.ProvinceName }}
+                    </option>
+                  </select>
+                </label>
 
-                  <!-- Phường -->
-                  <!-- Tỉnh / Thành phố -->
-                  <div>
-                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
-                      Tỉnh / Thành phố
-                    </label>
-
-                    <select
-                      v-model="selectedProvince"
-                      @change="onProvinceChange"
-                      class="w-full border rounded-xl p-3"
-                    >
-                      <option :value="null">Chọn tỉnh/thành phố</option>
-
-                      <option v-for="p in provinces" :key="p.ProvinceID" :value="p">
-                        {{ p.ProvinceName }}
-                      </option>
-                    </select>
-                  </div>
-
-                  <!-- Quận / Huyện -->
-                  <div>
-                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
-                      Quận / Huyện
-                    </label>
-
+                <div class="grid gap-5 md:grid-cols-2">
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-bold text-slate-700">Quận / Huyện</span>
                     <select
                       v-model="selectedDistrict"
+                      class="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                       @change="onDistrictChange"
-                      class="w-full border rounded-xl p-3"
                     >
                       <option :value="null">Chọn quận/huyện</option>
-
                       <option v-for="d in districts" :key="d.DistrictID" :value="d">
                         {{ d.DistrictName }}
                       </option>
                     </select>
-                  </div>
+                  </label>
 
-                  <!-- Phường / Xã -->
-                  <div>
-                    <label class="text-sm font-semibold text-gray-700 mb-2 block">
-                      Phường / Xã
-                    </label>
-
+                  <label class="block">
+                    <span class="mb-2 block text-sm font-bold text-slate-700">Phường / Xã</span>
                     <select
                       v-model="selectedWard"
+                      class="w-full rounded-xl border border-slate-300 p-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                       @change="onWardChange"
-                      class="w-full border rounded-xl p-3"
                     >
                       <option :value="null">Chọn phường/xã</option>
-
                       <option v-for="w in wards" :key="w.WardCode" :value="w">
                         {{ w.WardName }}
                       </option>
                     </select>
+                  </label>
+                </div>
+
+                <label class="block">
+                  <span class="mb-2 block text-sm font-bold text-slate-700">Địa chỉ cụ thể</span>
+                  <textarea
+                    v-model.trim="addressForm.diaChiCuThe"
+                    rows="3"
+                    placeholder="Số nhà, tên đường..."
+                    class="w-full resize-none rounded-xl border border-slate-300 p-4 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                  ></textarea>
+                </label>
+
+                <label
+                  class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <input
+                    v-model="addressForm.macDinh"
+                    type="checkbox"
+                    class="h-5 w-5 accent-indigo-600"
+                  />
+                  <span class="font-semibold text-slate-600">Đặt làm địa chỉ mặc định</span>
+                </label>
+              </div>
+
+              <div class="flex flex-col gap-4">
+                <div
+                  id="map"
+                  class="h-[320px] overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-100"
+                ></div>
+
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 px-4 py-3 font-bold text-indigo-700 transition hover:bg-indigo-100"
+                  @click="getCurrentLocation"
+                >
+                  <LoaderCircle v-if="loading" :size="18" class="animate-spin" />
+                  <Navigation v-else :size="18" />
+                  {{ loading ? 'Đang xác định...' : 'Dùng vị trí hiện tại' }}
+                </button>
+
+                <div class="mt-auto grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    class="rounded-xl border border-slate-200 px-5 py-3 font-bold text-slate-600 transition hover:bg-slate-50"
+                    @click="showAddressModal = false"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-xl bg-indigo-600 px-5 py-3 font-bold text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
+                    @click="saveAddress"
+                  >
+                    Lưu địa chỉ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+      <Teleport to="body">
+        <div
+          v-if="showVoucherModal"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          @click.self="showVoucherModal = false"
+        >
+          <div
+            class="w-full max-w-lg rounded-2xl bg-slate-50 overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+          >
+            <!-- Header -->
+            <div
+              class="flex items-center justify-between bg-white px-6 py-4 border-b border-slate-100"
+            >
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>🎁 Chọn Voucher Giảm Giá</span>
+              </h2>
+              <button
+                @click="showVoucherModal = false"
+                class="text-slate-400 hover:text-slate-600 text-xl font-light w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- Notification Banner -->
+            <div
+              class="bg-indigo-50/70 px-6 py-2.5 text-xs text-indigo-700 border-b border-indigo-100 flex items-center gap-1.5 font-medium shrink-0"
+            >
+              <span>💡 Nhấn vào voucher để chọn và áp dụng ngay cho đơn hàng</span>
+            </div>
+
+            <!-- Danh sách Voucher -->
+            <div
+              class="p-4 space-y-3 overflow-y-auto flex-1 max-h-[420px] overscroll-contain custom-scrollbar"
+            >
+              <div
+                v-for="v in sortedVouchers"
+                :key="v.id"
+                @click="
+                  subtotal >= v.giaTriDonHangToiThieu &&
+                  ((selectedVoucherId = v.id), (showVoucherModal = false))
+                "
+                :class="[
+                  'relative flex items-center bg-white rounded-xl border transition-all overflow-hidden p-3.5 gap-4',
+                  subtotal >= v.giaTriDonHangToiThieu
+                    ? 'cursor-pointer border-slate-200 hover:border-indigo-500 hover:shadow-md'
+                    : 'opacity-55 cursor-not-allowed border-slate-200 bg-slate-100/60',
+                ]"
+              >
+                <!-- Ô bên trái: Hiển thị mức giảm giá -->
+                <div
+                  :class="[
+                    'w-28 py-3 rounded-xl text-white flex flex-col items-center justify-center text-center shrink-0 shadow-md',
+                    subtotal >= v.giaTriDonHangToiThieu
+                      ? 'bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600'
+                      : 'bg-gradient-to-tr from-slate-400 to-slate-500',
+                  ]"
+                >
+                  <span class="text-[10px] uppercase tracking-wider opacity-90 font-medium"
+                    >Giảm</span
+                  >
+                  <span class="text-base font-black my-0.5 tracking-tight">
+                    {{
+                      v.loaiGiamGia === 'tien_mat'
+                        ? formatShortCurrency(v.giaTriGiam)
+                        : v.giaTriGiam + '%'
+                    }}
+                  </span>
+                </div>
+
+                <!-- Phần giữa & phải: Thông tin & Điều kiện -->
+                <div class="flex-1 flex flex-col justify-between">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 class="font-bold text-slate-800 text-sm line-clamp-1">
+                        {{ v.tenVoucher }}
+                      </h3>
+
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <p class="text-xs text-slate-400 font-mono">
+                          Mã: <span class="text-slate-600 font-semibold">{{ v.maVoucher }}</span>
+                        </p>
+
+                        <!-- Chuyển giảm tối đa sang bên phải ở đây -->
+                        <span
+                          v-if="v.loaiGiamGia === 'phan_tram' && v.giaTriGiamToiDa"
+                          class="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium"
+                        >
+                          Tối đa {{ formatShortCurrency(v.giaTriGiamToiDa) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Radio chọn -->
+                    <div class="shrink-0 pt-0.5">
+                      <input
+                        type="radio"
+                        :name="'voucher-selection'"
+                        :checked="selectedVoucherId === v.id"
+                        :disabled="subtotal < v.giaTriDonHangToiThieu"
+                        class="w-4 h-4 text-indigo-600 accent-indigo-600 cursor-pointer"
+                        @click.stop="
+                          subtotal >= v.giaTriDonHangToiThieu &&
+                          ((selectedVoucherId = v.id), (showVoucherModal = false))
+                        "
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Điều kiện đơn hàng tối thiểu -->
+                  <div
+                    class="mt-3 flex items-center justify-between text-xs pt-2 border-t border-dashed border-slate-100"
+                  >
+                    <span class="text-slate-500">
+                      Đơn tối thiểu:
+                      <strong class="text-slate-700">{{
+                        formatCurrency(v.giaTriDonHangToiThieu)
+                      }}</strong>
+                    </span>
+
+                    <span
+                      v-if="subtotal < v.giaTriDonHangToiThieu"
+                      class="text-rose-500 font-semibold"
+                    >
+                      Thiếu {{ formatCurrency(v.giaTriDonHangToiThieu - subtotal) }}
+                    </span>
+                    <span v-else class="text-emerald-600 font-semibold"> ✓ Đạt điều kiện </span>
                   </div>
                 </div>
-
-                <div>
-                  <label class="block text-sm font-semibold mb-2"> Địa chỉ cụ thể </label>
-
-                  <textarea
-                    rows="3"
-                    v-model="addressForm.diaChiCuThe"
-                    placeholder="Số nhà, tên đường..."
-                    class="w-full border rounded-xl p-3 resize-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-
-                <label class="flex items-center gap-3 cursor-pointer py-2">
-                  <input
-                    type="checkbox"
-                    v-model="addressForm.macDinh"
-                    class="w-5 h-5 accent-indigo-600"
-                  />
-                  <span class="text-gray-600">Đặt làm địa chỉ mặc định</span>
-                </label>
               </div>
             </div>
 
-            <!-- Map Section -->
-            <div class="w-full md:w-[350px] flex flex-col gap-4">
-              <div
-                id="map"
-                class="flex-1 rounded-2xl overflow-hidden border-2 border-gray-200 h-[300px]"
-              ></div>
-
+            <!-- Footer Modal -->
+            <div
+              class="bg-white px-6 py-3 border-t border-slate-100 flex items-center justify-end shrink-0"
+            >
               <button
-                type="button"
-                @click="getCurrentLocation"
-                class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                @click="showVoucherModal = false"
+                class="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition-colors"
               >
-                <span v-if="loading">Đang tải...</span>
-                <span v-else>📍 Xác định vị trí hiện tại</span>
+                Đóng
               </button>
-
-              <div class="flex justify-end gap-3">
-                <button
-                  class="px-6 py-3 text-gray-500 hover:text-gray-800 transition"
-                  @click="showAddressModal = false"
-                >
-                  Hủy
-                </button>
-                <button
-                  class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl shadow-lg shadow-indigo-200 transition font-medium"
-                  @click="saveAddress"
-                >
-                  Lưu địa chỉ
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -402,6 +1055,30 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ClipboardCheck,
+  CreditCard,
+  LoaderCircle,
+  MapPin,
+  MessageSquareText,
+  Navigation,
+  Package,
+  Pencil,
+  Phone,
+  Plus,
+  ReceiptText,
+  ShieldCheck,
+  Star,
+  TicketPercent,
+  Trash2,
+  Truck,
+  UserRound,
+  X,
+} from 'lucide-vue-next'
 import { useToast } from 'vue-toastification'
 import { getAllVoucher } from '@/service/VoucherService'
 import { getSanPhamChiTietById } from '@/service/SanPhamChiTiet'
@@ -410,7 +1087,6 @@ import stompClient from '@/socket'
 import { getProvinces, getDistricts, getWards, getShippingFee } from '@/service/GHNService'
 import {
   getAllDiaChi,
-  getDiaChiMacDinh,
   themDiaChi,
   capNhatDiaChi,
   xoaDiaChi,
@@ -424,14 +1100,45 @@ import 'leaflet/dist/leaflet.css'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import shadow from 'leaflet/dist/images/marker-shadow.png'
 
+// Sắp xếp voucher: Đưa voucher đủ điều kiện (true) lên trước, voucher không đủ (false) xuống sau
+const sortedVouchers = computed(() => {
+  return [...vouchers.value].sort((a, b) => {
+    const aValid = subtotal.value >= a.giaTriDonHangToiThieu
+    const bValid = subtotal.value >= b.giaTriDonHangToiThieu
+    return bValid === aValid ? 0 : bValid ? 1 : -1
+  })
+})
+const formatShortCurrency = (value) => {
+  if (!value) return '0đ'
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1) + 'tr'
+  }
+  if (value >= 1000) {
+    return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 0) + 'k'
+  }
+  return value + 'đ'
+}
+const showVoucherModal = ref(false)
+const selectedVoucher = computed(() => {
+  return vouchers.value.find((v) => v.id === selectedVoucherId.value) || null
+})
 const selectAddress = (id) => {
   selectedAddressId.value = id
   showAllAddresses.value = false
+}
+
+const formatCurrency = (value) => {
+  return Number(value || 0).toLocaleString('vi-VN') + 'đ'
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('vi-VN')
 }
 const showAllAddresses = ref(false)
 const provinces = ref([])
 const districts = ref([])
 const wards = ref([])
+
 // Cache toàn bộ phường theo tỉnh
 const wardCache = ref([])
 
@@ -505,15 +1212,6 @@ const loading = ref(false)
 let map = null
 let marker = null
 
-// Theo dõi biến showAddressModal để khởi tạo map khi modal hiện lên
-watch(showAddressModal, (val) => {
-  if (val) {
-    nextTick(() => {
-      initMap()
-      map.invalidateSize() // Quan trọng: fix lỗi render map trong modal
-    })
-  }
-})
 const getCurrentLocation = () => {
   loading.value = true
 
@@ -588,7 +1286,8 @@ const getCurrentLocation = () => {
 
         addressForm.value.quan = a.city_district || a.district || a.county || ''
 
-        addressForm.value.phuong = a.suburb || a.town || a.village || a.neighbourhood || ''
+        addressForm.value.phuong =
+          a.city_district || a.suburb || a.town || a.village || a.neighbourhood || ''
 
         // =========================
         // FIND PROVINCE GHN
@@ -728,22 +1427,25 @@ const selectedAddressId = ref(null)
 const toast = useToast()
 const route = useRoute()
 const router = useRouter()
+const authToken = sessionStorage.getItem('token')
+const isLoggedIn = Boolean(authToken)
 
 // Data
 const spctId = Number(route.query.spct)
 const quantity = ref(Number(route.query.qty) || 1)
 const product = ref(null)
+const checkoutItems = ref([])
+const isCartCheckout = ref(false)
 const vouchers = ref([])
 
 const loadAddresses = async () => {
+  if (!isLoggedIn) return
+
   try {
     addresses.value = await getAllDiaChi()
 
-    const defaultAddr = addresses.value.find((item) => item.macDinh)
-
-    if (defaultAddr) {
-      selectedAddressId.value = defaultAddr.id
-    }
+    const selected = addresses.value.find((item) => item.macDinh) || addresses.value[0]
+    selectedAddressId.value = selected?.id ?? null
   } catch (e) {
     console.error(e)
     toast.error('Không tải được địa chỉ')
@@ -758,14 +1460,36 @@ async function loadData() {
 
     toast.warning('Số lượng sản phẩm vừa được cập nhật.')
   }
-  vouchers.value = await getAllVoucher()
+  vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
 
   provinces.value = await getProvinces()
 
-  await loadAddresses()
+  if (isLoggedIn) {
+    await loadAddresses()
+  }
 }
 
 onMounted(async () => {
+  const checkout = sessionStorage.getItem('checkoutData')
+
+  if (checkout) {
+    isCartCheckout.value = true
+
+    checkoutItems.value = JSON.parse(checkout).items
+
+    vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+
+    provinces.value = await getProvinces()
+
+    if (isLoggedIn) {
+      await loadAddresses()
+    }
+
+    connectSocket()
+
+    return
+  }
+
   if (!spctId) {
     router.push('/')
     return
@@ -803,7 +1527,25 @@ function subscribeOrder() {
         break
 
       case 'VOUCHER_UPDATED':
-        vouchers.value = await getAllVoucher()
+        vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+
+        if (selectedVoucherId.value) {
+          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+
+          // Voucher bị xóa hoặc ngừng hoạt động
+          if (!latest || latest.trangThai !== 1) {
+            selectedVoucherId.value = null
+            toast.warning('Voucher không còn khả dụng.')
+            break
+          }
+
+          // Không còn đủ điều kiện áp dụng
+          if (subtotal.value < latest.giaTriDonHangToiThieu) {
+            selectedVoucherId.value = null
+            toast.warning('Voucher không còn đủ điều kiện áp dụng.')
+          }
+        }
+
         break
     }
   })
@@ -916,36 +1658,59 @@ const setDefault = async (id) => {
 }
 
 const onProvinceChange = async () => {
-  if (!selectedProvince.value) return
-
-  addressForm.value.thanhPho = selectedProvince.value.ProvinceName
-
-  districts.value = await getDistricts(selectedProvince.value.ProvinceID)
+  selectedDistrict.value = null
+  selectedWard.value = null
+  districts.value = []
+  wards.value = []
+  shippingFee.value = 0
 
   addressForm.value.quan = ''
   addressForm.value.phuong = ''
-
   addressForm.value.districtId = null
   addressForm.value.wardCode = ''
+
+  if (!selectedProvince.value) {
+    addressForm.value.thanhPho = ''
+    return
+  }
+
+  addressForm.value.thanhPho = selectedProvince.value.ProvinceName
+  districts.value = await getDistricts(selectedProvince.value.ProvinceID)
 }
+
 const onDistrictChange = async () => {
-  if (!selectedDistrict.value) return
-
-  addressForm.value.quan = selectedDistrict.value.DistrictName
-
-  addressForm.value.districtId = selectedDistrict.value.DistrictID
-
-  wards.value = await getWards(selectedDistrict.value.DistrictID)
-
+  selectedWard.value = null
+  wards.value = []
+  shippingFee.value = 0
   addressForm.value.phuong = ''
   addressForm.value.wardCode = ''
+
+  if (!selectedDistrict.value) {
+    addressForm.value.quan = ''
+    addressForm.value.districtId = null
+    return
+  }
+
+  addressForm.value.quan = selectedDistrict.value.DistrictName
+  addressForm.value.districtId = selectedDistrict.value.DistrictID
+  wards.value = await getWards(selectedDistrict.value.DistrictID)
 }
-const onWardChange = () => {
-  if (!selectedWard.value) return
+
+const onWardChange = async () => {
+  shippingFee.value = 0
+
+  if (!selectedWard.value) {
+    addressForm.value.phuong = ''
+    addressForm.value.wardCode = ''
+    return
+  }
 
   addressForm.value.phuong = selectedWard.value.WardName
-
   addressForm.value.wardCode = selectedWard.value.WardCode
+
+  if (!isLoggedIn) {
+    await calculateShipping(addressForm.value)
+  }
 }
 
 // Logic Đơn hàng
@@ -956,19 +1721,26 @@ const note = ref('')
 
 const stock = computed(() => product.value?.soLuongTon || 0)
 const subtotal = computed(() => {
+  if (isCartCheckout.value) {
+    return checkoutItems.value.reduce((sum, item) => sum + Number(item.thanhTien), 0)
+  }
+
   return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
 })
 const voucherDiscount = computed(() => {
   const v = vouchers.value.find((v) => v.id === selectedVoucherId.value)
   if (!v || subtotal.value < v.giaTriDonHangToiThieu) return 0
   return v.loaiGiamGia === 'phan_tram'
-    ? Math.min((subtotal.value * v.giaTriGiam) / 100, v.giaTriGiamToiDa)
+    ? Math.min((subtotal.value * v.giaTriGiam) / 100, v.giaTriGiamToiDa ?? Number.POSITIVE_INFINITY)
     : v.giaTriGiam
 })
 
 const total = computed(() =>
   Math.max(subtotal.value + shippingFee.value - voucherDiscount.value, 0),
 )
+
+const formatMoney = (value) => Number(value || 0).toLocaleString('vi-VN') + ' đ'
+const isPlacingOrder = ref(false)
 
 const increaseQty = () => {
   if (quantity.value < stock.value) quantity.value++
@@ -977,63 +1749,88 @@ const decreaseQty = () => {
   if (quantity.value > 1) quantity.value--
 }
 
+const validateGuestCheckout = () => {
+  if (!addressForm.value.tenNguoiNhan.trim()) {
+    toast.warning('Vui lòng nhập họ tên người nhận')
+    return false
+  }
+
+  if (!/^[0-9]{9,11}$/.test(addressForm.value.soDienThoai.trim())) {
+    toast.warning('Số điện thoại phải gồm 9 đến 11 chữ số')
+    return false
+  }
+
+  if (
+    !addressForm.value.thanhPho ||
+    !addressForm.value.quan ||
+    !addressForm.value.phuong ||
+    !addressForm.value.diaChiCuThe.trim()
+  ) {
+    toast.warning('Vui lòng nhập đầy đủ địa chỉ giao hàng')
+    return false
+  }
+
+  return true
+}
+
 const placeOrder = async () => {
-  if (!selectedAddressId.value) {
+  if (isPlacingOrder.value) return
+
+  if (isLoggedIn && !selectedAddressId.value) {
     toast.warning('Vui lòng chọn địa chỉ giao hàng')
     return
   }
+
+  if (!isLoggedIn && !validateGuestCheckout()) {
+    return
+  }
+
   const body = {
-    addressId: selectedAddressId.value, // Thêm trường này vào body gửi lên
+    addressId: isLoggedIn ? selectedAddressId.value : null,
+    tenNguoiNhan: isLoggedIn ? null : addressForm.value.tenNguoiNhan,
+    soDienThoaiNguoiNhan: isLoggedIn ? null : addressForm.value.soDienThoai,
+    thanhPho: isLoggedIn ? null : addressForm.value.thanhPho,
+    quan: isLoggedIn ? null : addressForm.value.quan,
+    phuong: isLoggedIn ? null : addressForm.value.phuong,
+    diaChiCuThe: isLoggedIn ? null : addressForm.value.diaChiCuThe,
+    districtId: isLoggedIn ? null : addressForm.value.districtId,
+    wardCode: isLoggedIn ? null : addressForm.value.wardCode,
     shippingFee: shippingFee.value,
     voucherId: selectedVoucherId.value,
     note: note.value,
-    items: [{ productDetailId: spctId, quantity: quantity.value }],
+    items: isCartCheckout.value
+      ? checkoutItems.value.map((item) => ({
+          productDetailId: item.productDetailId,
+          quantity: item.quantity,
+        }))
+      : [
+          {
+            productDetailId: spctId,
+            quantity: quantity.value,
+          },
+        ],
   }
+
   try {
-    const res = await taoHoaDonOnline(body, sessionStorage.getItem('token'))
-    toast.success('Đặt hàng thành công 🎉')
-    console.log('SAVE =', JSON.stringify(product.value))
+    isPlacingOrder.value = true
+
+    const res = await taoHoaDonOnline(body, authToken)
+    toast.success(`Đặt hàng thành công. Mã đơn: ${res.maHoaDon}`)
     sessionStorage.setItem('orderProduct', JSON.stringify(product.value))
-    console.log(product.value)
-    console.log(JSON.stringify(product.value))
+    sessionStorage.setItem('lastGuestOrderCode', res.maHoaDon)
+
     router.push({
       path: '/payment',
       query: { id: res.id, maHoaDon: res.maHoaDon, qrUrl: res.qrUrl },
     })
-  } catch {
-    toast.error('Đặt hàng thất bại ❌')
+  } catch (error) {
+    console.error(error)
+    toast.error(error.message || 'Đặt hàng thất bại ❌')
+  } finally {
+    isPlacingOrder.value = false
   }
 }
-watch(selectedAddressId, async (id) => {
-  if (!id) return
 
-  const address = addresses.value.find((a) => a.id === id)
-
-  if (!address) return
-
-  console.log('Địa chỉ tính ship:', address)
-
-  if (!address.thanhPho || !address.quan || !address.phuong) {
-    console.warn('Thiếu dữ liệu địa chỉ GHN', address)
-    shippingFee.value = 0
-    return
-  }
-
-  try {
-    shippingLoading.value = true
-
-    shippingFee.value = await getShippingFee({
-      thanhPho: address.thanhPho,
-      quan: address.quan,
-      phuong: address.phuong,
-    })
-  } catch (e) {
-    console.error('Lỗi tính ship:', e)
-    shippingFee.value = 0
-  } finally {
-    shippingLoading.value = false
-  }
-})
 // ... các khai báo hiện tại của bạn ...
 
 // Hàm khởi tạo map
@@ -1074,6 +1871,7 @@ watch(showAddressModal, (val) => {
   if (val) {
     nextTick(() => {
       initMap()
+      map?.invalidateSize()
     })
   } else {
     // Dọn dẹp khi đóng modal
@@ -1093,3 +1891,28 @@ watch(selectedAddressId, async (id) => {
   await calculateShipping(address)
 })
 </script>
+
+<style scoped>
+.checkout-page {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.72), rgba(248, 250, 252, 0.9)),
+    radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.12) 1px, transparent 0);
+  background-size:
+    auto,
+    24px 24px;
+}
+/* Tùy chỉnh thanh cuộn nhỏ gọn */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>

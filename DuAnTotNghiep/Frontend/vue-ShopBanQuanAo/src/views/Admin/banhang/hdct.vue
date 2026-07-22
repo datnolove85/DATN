@@ -227,10 +227,13 @@
               🚚 Địa điểm phân phối logistics
             </p>
             <p class="text-slate-600 leading-relaxed">
-              Địa chỉ đích đến:
-              <span class="font-bold text-slate-900 block mt-0.5">{{
-                invoice.address || 'Giao dịch trực tiếp tại quầy'
-              }}</span>
+              <span class="font-bold text-slate-900 block mt-0.5">
+                {{
+                  invoice.loaiHoaDon === 'online'
+                    ? invoice.address || 'Mua hàng online'
+                    : 'Tại quầy'
+                }}
+              </span>
             </p>
           </div>
           <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">

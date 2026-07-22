@@ -12,4 +12,5 @@ public interface GioHangService {
 
     List<GioHangOnlineResponse> layGioHang(Integer idTaiKhoan);
 
+    void xoaSanPham(Integer idTaiKhoan, Integer idGioHangChiTiet);
 }

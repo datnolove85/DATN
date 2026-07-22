@@ -194,6 +194,7 @@
               <input
                 type="text"
                 v-model="giaTriGiamDisplay"
+                @keydown="preventNegative"
                 class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
               />
             </div>
@@ -206,8 +207,9 @@
                 >Đơn tối thiểu</label
               >
               <input
-                type="number"
-                v-model.number="form.giaTriDonHangToiThieu"
+                type="text"
+                v-model="donToiThieuDisplay"
+                @keydown="preventNegative"
                 class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
               />
             </div>
@@ -216,10 +218,11 @@
                 >Giảm tối đa</label
               >
               <input
-                type="number"
-                v-model.number="form.giaTriGiamToiDa"
+                type="text"
+                v-model="giamToiDaDisplay"
+                @keydown="preventNegative"
                 class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
-                placeholder="VD: 50.000"
+                placeholder="VD: 100.000"
               />
             </div>
           </div>
@@ -230,9 +233,9 @@
               </label>
 
               <input
-                type="number"
-                min="1"
-                v-model.number="form.soLuong"
+                type="text"
+                v-model="form.soLuong"
+                @input="form.soLuong = parseMoneyInput($event.target.value)"
                 class="w-full h-9 rounded-lg border border-slate-200 px-3 text-sm outline-none"
               />
             </div>
@@ -742,11 +745,17 @@ const validateForm = () => {
 }
 const requestSaveVoucher = async () => {
   errorMessage.value = validateForm()
-  if (errorMessage.value) return
+
+  if (errorMessage.value) {
+    toast.warning(errorMessage.value)
+    return
+  }
+
   if (form.value.id) {
     openUpdateVoucherConfirm()
     return
   }
+
   await executeSaveVoucher()
 }
 
@@ -763,7 +772,11 @@ const executeSaveVoucher = async () => {
     closeForm()
     await fetchVouchers()
   } catch (e) {
-    errorMessage.value = e.message || 'Lưu phiếu giảm giá thất bại'
+    const message = e.message || 'Lưu phiếu giảm giá thất bại'
+
+    errorMessage.value = message
+
+    toast.error(message)
   } finally {
     saving.value = false
   }
@@ -866,7 +879,9 @@ const formatMoneyInput = (value) => {
 const parseMoneyInput = (value) => {
   if (!value) return 0
 
-  return Number(value.replace(/\./g, '').replace(/,/g, ''))
+  const onlyNumber = value.replace(/\D/g, '')
+
+  return Number(onlyNumber || 0)
 }
 const giaTriGiamDisplay = computed({
   get() {
@@ -875,6 +890,33 @@ const giaTriGiamDisplay = computed({
   set(value) {
     const parsed = parseMoneyInput(value)
     form.value.giaTriGiam = parsed
+  },
+})
+const onInputMoney = (e, field) => {
+  // Chỉ giữ lại số
+  const value = e.target.value.replace(/\D/g, '')
+
+  form.value[field] = Number(value || 0)
+
+  // Hiển thị lại đã format
+  e.target.value = formatMoneyInput(form.value[field])
+}
+const donToiThieuDisplay = computed({
+  get() {
+    return form.value.giaTriDonHangToiThieu === 0
+      ? ''
+      : formatMoneyInput(form.value.giaTriDonHangToiThieu)
+  },
+  set(value) {
+    form.value.giaTriDonHangToiThieu = parseMoneyInput(value)
+  },
+})
+const giamToiDaDisplay = computed({
+  get() {
+    return !form.value.giaTriGiamToiDa ? '' : formatMoneyInput(form.value.giaTriGiamToiDa)
+  },
+  set(value) {
+    form.value.giaTriGiamToiDa = parseMoneyInput(value)
   },
 })
 onMounted(fetchVouchers)

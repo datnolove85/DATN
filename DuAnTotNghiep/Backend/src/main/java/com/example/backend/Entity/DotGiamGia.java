@@ -1,5 +1,6 @@
 package com.example.backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,11 +64,8 @@ public class DotGiamGia {
     private String trangThai;
 
 
-    @OneToMany(
-            mappedBy = "dotGiamGia",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "dotGiamGia")
+    @JsonIgnore
     private List<SanPhamGiamGia> sanPhamGiamGias;
 
 }

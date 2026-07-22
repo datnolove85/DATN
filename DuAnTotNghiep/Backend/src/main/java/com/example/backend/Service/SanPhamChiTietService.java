@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -684,12 +685,35 @@ public class SanPhamChiTietService {
 
         return result;
     }
+    private String removeAccent(String text) {
+        if (text == null) return "";
+
+        String result = Normalizer.normalize(text, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        // Normalizer không xử lý Đ/đ
+        result = result.replace('Đ', 'D')
+                .replace('đ', 'd');
+
+        return result;
+    }
 
     private String generateSKU(String tenSP, String mau, String size, Integer id) {
 
-        String cleanSP = tenSP.replaceAll("\\s+", "-").toUpperCase();
-        String cleanMau = mau.replaceAll("\\s+", "-").toUpperCase();
-        String cleanSize = size.replaceAll("\\s+", "-").toUpperCase();
+        String cleanSP = removeAccent(tenSP)
+                .replaceAll("[^A-Za-z0-9]+", "-")
+                .replaceAll("^-|-$", "")
+                .toUpperCase();
+
+        String cleanMau = removeAccent(mau)
+                .replaceAll("[^A-Za-z0-9]+", "-")
+                .replaceAll("^-|-$", "")
+                .toUpperCase();
+
+        String cleanSize = removeAccent(size)
+                .replaceAll("[^A-Za-z0-9]+", "-")
+                .replaceAll("^-|-$", "")
+                .toUpperCase();
 
         return cleanSP + "-" + cleanMau + "-" + cleanSize + "-" + id;
     }
@@ -928,4 +952,5 @@ public class SanPhamChiTietService {
         );
 
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -73,5 +74,6 @@ public class SanPhamChiTiet {
     private Boolean trangThai;
 
     @OneToMany(mappedBy = "sanPhamChiTiet")
+    @JsonIgnore
     private List<SanPhamGiamGia> sanPhamGiamGias;
 }

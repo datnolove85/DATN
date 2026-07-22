@@ -10,6 +10,7 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/shop/login.vue'),
     },
+
     // ================= SHOP =================
     {
       path: '/',
@@ -26,7 +27,16 @@ const router = createRouter({
           name: 'home',
           component: () => import('@/views/shop/home.vue'),
         },
-
+        {
+          path: 'giohang',
+          name: 'giohang',
+          component: () => import('../views/shop/components/CarView.vue'),
+        },
+        {
+          path: 'donhang',
+          name: 'donhang',
+          component: () => import('../views/shop/views/donhang.vue'),
+        },
         {
           path: 'san-pham',
           name: 'sanPham',
@@ -190,11 +200,7 @@ const router = createRouter({
           name: 'thongke',
           component: () => import('../views/shop/views/thongke.vue'),
         },
-        {
-          path: 'giohang',
-          name: 'giohang',
-          component: () => import('../views/shop/components/CarView.vue'),
-        },
+
         {
           path: 'spgg/:id',
           name: 'spgg',

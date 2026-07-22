@@ -1,207 +1,267 @@
 <template>
-  <div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 font-sans">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex items-center gap-4 mb-8">
-        <RouterLink
-          to="/san-pham"
-          class="flex items-center text-gray-500 hover:text-indigo-600 transition gap-1 text-sm font-medium"
-        >
-          <ArrowLeft class="w-4 h-4" /> Tiếp tục mua sắm
-        </RouterLink>
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 ml-auto sm:ml-0">
-          Giỏ hàng của bạn
-        </h1>
-      </div>
-
+  <div
+    class="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-purple-50 py-10 px-4 font-sans"
+  >
+    <div class="max-w-6xl mx-auto">
+      <!-- Tiêu đề với trang trí nhỏ -->
       <div
-        v-if="cart.length === 0"
-        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center"
+        class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 rounded-3xl p-8 text-white mb-8 shadow-xl"
       >
-        <div
-          class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <ShoppingBag class="w-12 h-12 text-indigo-600" />
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-4xl font-black">🛒 Giỏ hàng của bạn</h1>
+
+            <p class="mt-2 text-indigo-100">Kiểm tra lại sản phẩm trước khi thanh toán.</p>
+          </div>
+
+          <div class="bg-white/20 backdrop-blur px-6 py-4 rounded-2xl text-center">
+            <div class="text-sm">Sản phẩm đã chọn</div>
+
+            <div class="text-3xl font-bold">
+              {{ totalQuantity }}
+            </div>
+          </div>
         </div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Giỏ hàng đang trống</h2>
-        <p class="text-gray-500 mb-8 max-w-md mx-auto">
-          Bạn chưa thêm sản phẩm nào vào giỏ hàng. Hãy quay lại cửa hàng để chọn cho mình những sản
-          phẩm ưng ý nhé!
-        </p>
-        <RouterLink
-          to="/san-pham"
-          class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition"
-        >
-          Mua sắm ngay
-        </RouterLink>
       </div>
 
-      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Danh sách sản phẩm -->
         <div class="lg:col-span-2 space-y-4">
-          <div
-            v-for="item in cart"
-            :key="item.id"
-            class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-5 items-start sm:items-center relative group"
-          >
-            <div
-              class="w-24 h-24 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100"
-            >
-              <img
-                v-if="item.anh"
-                :src="'http://localhost:8080' + item.anh"
-                class="w-full h-full object-cover"
-              />
-              <div
-                v-else
-                class="w-full h-full flex items-center justify-center text-2xl text-gray-300"
-              >
-                📦
-              </div>
-            </div>
+          <div class="bg-white rounded-2xl shadow p-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
 
-            <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-base text-gray-900 truncate pr-6">{{ item.tenSanPham }}</h3>
-
-              <p class="text-sm text-gray-500 mt-1">
-                Mã CTSP: <span class="font-medium">{{ item.maSanPhamChiTiet }}</span>
-              </p>
-
-              <div class="flex flex-wrap gap-2 mt-2">
-                <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800"
-                >
-                  Màu: {{ item.mauSac }}
-                </span>
-                <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700"
-                >
-                  Size: {{ item.kichCo }}
-                </span>
-              </div>
-
-              <div class="flex items-baseline gap-2 mt-3 sm:hidden">
-                <span class="font-bold text-gray-900"
-                  >{{ Number(item.thanhTien).toLocaleString('vi-VN') }}đ</span
-                >
-                <span class="text-xs text-gray-400"
-                  >({{ Number(item.giaBan).toLocaleString('vi-VN') }}đ / cái)</span
-                >
-              </div>
-            </div>
-
-            <div
-              class="flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0"
-            >
-              <div class="flex items-center border border-gray-200 rounded-lg p-1 bg-gray-50">
-                <button
-                  @click="updateQuantity(item, -1)"
-                  type="button"
-                  class="w-8 h-8 rounded-md flex items-center justify-center text-gray-500 hover:bg-white hover:text-indigo-600 transition shadow-none active:scale-95"
-                >
-                  <Minus class="w-4 h-4" />
-                </button>
-                <span class="w-10 text-center text-sm font-semibold text-gray-800 select-none">{{
-                  item.soLuong
-                }}</span>
-                <button
-                  @click="updateQuantity(item, 1)"
-                  type="button"
-                  class="w-8 h-8 rounded-md flex items-center justify-center text-gray-500 hover:bg-white hover:text-indigo-600 transition shadow-none active:scale-95"
-                >
-                  <Plus class="w-4 h-4" />
-                </button>
-              </div>
-
-              <div class="hidden sm:block text-right min-w-[120px]">
-                <p class="font-bold text-base text-indigo-600">
-                  {{ Number(item.thanhTien).toLocaleString('vi-VN') }}đ
-                </p>
-                <p class="text-xs text-gray-400 mt-0.5">
-                  {{ Number(item.giaBan).toLocaleString('vi-VN') }}đ / cái
-                </p>
-              </div>
+              <span class="font-semibold"> Chọn tất cả </span>
             </div>
 
             <button
-              @click="deleteItem(item.id)"
-              type="button"
-              class="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition"
-              title="Xóa khỏi giỏ hàng"
+              @click="deleteSelectedItems"
+              class="px-4 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50"
             >
-              <Trash2 class="w-4 h-4" />
+              Xóa đã chọn
             </button>
+          </div>
+
+          <div
+            v-for="item in cart"
+            :key="item.id"
+            class="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 p-6"
+          >
+            <div class="grid grid-cols-12 gap-6 items-center">
+              <!-- Checkbox -->
+              <div class="col-span-1 flex justify-center">
+                <input type="checkbox" v-model="item.selected" class="w-5 h-5 accent-indigo-600" />
+              </div>
+
+              <!-- Ảnh -->
+              <div class="col-span-2">
+                <div class="w-28 h-28 rounded-2xl overflow-hidden bg-slate-100 border">
+                  <img
+                    v-if="item.anh"
+                    :src="'http://localhost:8080' + item.anh"
+                    class="w-full h-full object-cover transition duration-500 hover:scale-110"
+                  />
+
+                  <div v-else class="w-full h-full flex items-center justify-center text-4xl">
+                    📦
+                  </div>
+                </div>
+              </div>
+
+              <!-- Thông tin -->
+              <div class="col-span-5">
+                <h3 class="text-xl font-bold text-slate-800 mb-3">
+                  {{ item.tenSanPham }}
+                </h3>
+
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">
+                    ✔ Còn hàng
+                  </span>
+
+                  <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs">
+                    ⭐ 4.9
+                  </span>
+
+                  <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs">
+                    🔥 Bán chạy
+                  </span>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-lg text-sm">
+                    Mã: {{ item.maSanPhamChiTiet }}
+                  </span>
+
+                  <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">
+                    {{ item.mauSac }}
+                  </span>
+
+                  <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-sm">
+                    Size {{ item.kichCo }}
+                  </span>
+                </div>
+
+                <div class="space-y-1 text-sm">
+                  <p class="text-slate-500">
+                    Thương hiệu:
+                    <span class="font-semibold text-slate-700"> Nike </span>
+                  </p>
+
+                  <p class="text-emerald-600">🚚 Miễn phí vận chuyển</p>
+                </div>
+              </div>
+
+              <!-- Giá -->
+              <!-- Giá + Số lượng -->
+              <div class="col-span-3">
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <div class="text-xs text-slate-400">Đơn giá</div>
+
+                  <div class="text-lg font-bold text-red-600 mb-4">
+                    {{ Number(item.giaBan).toLocaleString('vi-VN') }}đ
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-500"> SL </span>
+
+                    <div class="flex items-center bg-white rounded-lg border p-1">
+                      <button
+                        @click="updateQuantity(item, -1)"
+                        class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded"
+                      >
+                        <Minus class="w-3 h-3" />
+                      </button>
+
+                      <input
+                        v-model.number="item.soLuong"
+                        @change="changeQuantity(item)"
+                        class="w-8 text-center text-sm font-bold outline-none"
+                        type="number"
+                        min="1"
+                      />
+
+                      <button
+                        @click="updateQuantity(item, 1)"
+                        class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded"
+                      >
+                        <Plus class="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="border-t mt-4 pt-3">
+                    <div class="text-xs text-slate-400">Thành tiền</div>
+
+                    <div class="text-xl font-black text-red-600">
+                      {{ Number(item.thanhTien).toLocaleString('vi-VN') }}đ
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Xóa -->
+              <!-- Xóa -->
+              <div class="col-span-1 flex justify-center items-start pt-2">
+                <button
+                  @click="deleteItem(item.id)"
+                  class="w-11 h-11 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 flex items-center justify-center"
+                >
+                  <Trash2 class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
-          <h3 class="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">
-            Tóm tắt đơn hàng
-          </h3>
-
-          <div class="space-y-4">
-            <div class="flex justify-between text-sm text-gray-600">
-              <span>Tổng số lượng</span>
-              <span class="font-semibold text-gray-900">{{ totalQuantity }} sản phẩm</span>
-            </div>
-            <div class="flex justify-between text-sm text-gray-600">
-              <span>Tạm tính</span>
-              <span class="font-semibold text-gray-900"
-                >{{ totalAmount.toLocaleString('vi-VN') }}đ</span
-              >
-            </div>
-            <div class="flex justify-between text-sm text-gray-600">
-              <span>Phí vận chuyển</span>
-              <span class="text-green-600 font-medium">Miễn phí</span>
-            </div>
-
-            <div class="border-t border-gray-100 pt-4 flex justify-between items-baseline">
-              <span class="text-base font-bold text-gray-900">Tổng thanh toán</span>
-              <span class="text-2xl font-black text-indigo-600"
-                >{{ totalAmount.toLocaleString('vi-VN') }}đ</span
-              >
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="w-full text-center py-4 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition shadow-md hover:shadow-lg active:scale-[0.98]"
+        <!-- Sidebar Thanh toán -->
+        <div class="lg:col-span-1">
+          <div
+            class="bg-slate-900 text-white rounded-3xl p-8 sticky top-8 shadow-2xl shadow-indigo-200"
           >
-            Tiến hành thanh toán
-          </button>
+            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+              <ShoppingBag class="w-5 h-5" /> Tóm tắt hóa đơn
+            </h3>
+
+            <div class="space-y-4 text-slate-400">
+              <div class="flex justify-between">
+                <span>Tạm tính</span
+                ><span class="text-white font-semibold"
+                  >{{ totalAmount.toLocaleString('vi-VN') }}đ</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span>Phí vận chuyển</span
+                ><span class="text-emerald-400 font-semibold">Miễn phí</span>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-700 my-6"></div>
+
+            <div class="flex justify-between items-end mb-8">
+              <span>Tổng cộng</span>
+              <span class="text-3xl font-black text-white"
+                >{{ totalAmount.toLocaleString('vi-VN') }}đ</span
+              >
+            </div>
+
+            <button
+              @click="checkout"
+              class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-lg shadow-indigo-500/30"
+            >
+              Thanh toán ngay
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
-import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-vue-next'
 import axios from 'axios'
 import emitter from '@/utils/emitter'
 
+const router = useRouter()
 const cart = ref([])
 
 /**
  * Tính tổng thành tiền
  */
 const totalAmount = computed(() => {
-  return cart.value.reduce((sum, item) => sum + Number(item.thanhTien), 0)
+  return cart.value
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + Number(item.thanhTien), 0)
 })
+
+const allSelected = computed(() => {
+  return cart.value.length > 0 && cart.value.every((item) => item.selected)
+})
+
+const toggleSelectAll = (e) => {
+  const isChecked = e.target.checked
+  cart.value.forEach((item) => {
+    item.selected = isChecked
+  })
+}
 
 /**
  * Tính tổng số lượng
  */
 const totalQuantity = computed(() => {
-  return cart.value.reduce((sum, item) => sum + Number(item.soLuong), 0)
+  return cart.value
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + Number(item.soLuong), 0)
 })
 
 /**
- * Gọi API lấy dữ liệu
+ * Gọi API lấy dữ liệu giỏ hàng
  */
 const loadCart = async () => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     if (!token) {
       cart.value = []
       return
@@ -213,7 +273,13 @@ const loadCart = async () => {
       },
     })
 
-    cart.value = res.data || []
+    // Lưu lại trạng thái checkbox đang chọn để không bị mất khi load lại
+    const oldSelectedMap = new Map(cart.value.map((i) => [i.id, i.selected]))
+
+    cart.value = (res.data || []).map((item) => ({
+      ...item,
+      selected: oldSelectedMap.get(item.id) || false,
+    }))
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu giỏ hàng:', err)
     cart.value = []
@@ -221,7 +287,7 @@ const loadCart = async () => {
 }
 
 /**
- * Tăng / Giảm số lượng
+ * Xử lý Tăng / Giảm số lượng (ĐÃ SỬA ĐỂ NÚT TRỪ HOẠT ĐỘNG MƯỢT MÀ)
  */
 const updateQuantity = async (item, change) => {
   const newQty = item.soLuong + change
@@ -231,36 +297,137 @@ const updateQuantity = async (item, change) => {
     return
   }
 
+  // Cập nhật ngay lập tức trên giao diện (Optimistic UI) tránh bị giật lag
+  item.soLuong = newQty
+  item.thanhTien = item.soLuong * item.giaBan
+
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     await axios.put(
       `http://localhost:8080/giohang/update/${item.id}`,
       { soLuong: newQty },
       { headers: { Authorization: `Bearer ${token}` } },
     )
-    await loadCart()
-    emitter.emit('cart-updated') // Cập nhật lại số lượng trên thanh Header
+
+    // Phát sự kiện để cập nhật lại số lượng trên thanh Header chung
+    emitter.emit('cart-updated')
   } catch (err) {
     console.error('Lỗi khi cập nhật số lượng:', err)
+    // Nếu API lỗi, tải lại giỏ hàng cũ để đồng bộ dữ liệu
+    await loadCart()
   }
 }
 
 /**
- * Xóa sản phẩm
+ * Khi gõ trực tiếp số lượng vào ô input
+ */
+const changeQuantity = async (item) => {
+  if (item.soLuong <= 0 || isNaN(item.soLuong)) {
+    await deleteItem(item.id)
+    return
+  }
+
+  item.thanhTien = item.soLuong * item.giaBan
+
+  try {
+    const token = sessionStorage.getItem('token')
+    await axios.put(
+      `http://localhost:8080/giohang/update/${item.id}`,
+      { soLuong: item.soLuong },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    emitter.emit('cart-updated')
+  } catch (err) {
+    console.error('Lỗi khi cập nhật số lượng:', err)
+    await loadCart()
+  }
+}
+
+/**
+ * Xóa sản phẩm đơn lẻ
  */
 const deleteItem = async (id) => {
   if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?')) return
 
   try {
-    const token = localStorage.getItem('token')
-    await axios.delete(`http://localhost:8080/giohang/delete/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const token = sessionStorage.getItem('token')
+    await axios.delete(`http://localhost:8080/giohang/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
     await loadCart()
     emitter.emit('cart-updated')
   } catch (err) {
     console.error('Lỗi khi xóa sản phẩm:', err)
   }
+}
+
+/**
+ * Xóa các sản phẩm đã chọn
+ */
+const deleteSelectedItems = async () => {
+  const selectedItems = cart.value.filter((item) => item.selected)
+
+  if (selectedItems.length === 0) {
+    alert('Vui lòng chọn sản phẩm muốn xóa!')
+    return
+  }
+
+  if (!confirm(`Bạn có chắc muốn xóa ${selectedItems.length} sản phẩm đã chọn không?`)) {
+    return
+  }
+
+  try {
+    const token = sessionStorage.getItem('token')
+
+    for (const item of selectedItems) {
+      await axios.delete(`http://localhost:8080/giohang/${item.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    }
+
+    await loadCart()
+    emitter.emit('cart-updated')
+  } catch (err) {
+    console.error('Lỗi khi xóa sản phẩm đã chọn:', err)
+  }
+}
+
+/**
+ * Chuyển hướng sang trang xác nhận thanh toán
+ */
+const checkout = () => {
+  const selectedItems = cart.value.filter((item) => item.selected)
+
+  if (selectedItems.length === 0) {
+    alert('Vui lòng chọn ít nhất một sản phẩm!')
+    return
+  }
+
+  const checkoutData = {
+    items: selectedItems.map((item) => ({
+      productDetailId: item.idSanPhamChiTiet,
+      quantity: item.soLuong,
+      tenSanPham: item.tenSanPham,
+      maSanPhamChiTiet: item.maSanPhamChiTiet,
+      giaBan: item.giaBan,
+      thanhTien: item.thanhTien,
+      mauSac: item.mauSac,
+      kichCo: item.kichCo,
+      anh: item.anh,
+    })),
+  }
+
+  sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData))
+  router.push('/xacnhan')
 }
 
 onMounted(() => {

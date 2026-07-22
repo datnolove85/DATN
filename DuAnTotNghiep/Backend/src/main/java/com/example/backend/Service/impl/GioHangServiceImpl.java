@@ -156,4 +156,36 @@ public class GioHangServiceImpl implements GioHangService {
 
         }).toList();
     }
+
+    @Override
+    @Transactional
+    public void xoaSanPham(Integer idTaiKhoan, Integer idGioHangChiTiet) {
+
+        // Tìm khách hàng
+        KhachHang khachHang = khachHangRepository
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+
+        // Tìm giỏ hàng
+        GioHang gioHang = gioHangRepository
+                .findByIdKhachHang_Id(khachHang.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng"));
+
+        // Tìm sản phẩm trong giỏ
+        GioHangChiTiet chiTiet = gioHangChiTietRepository
+                .findById(idGioHangChiTiet)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ"));
+
+        // Kiểm tra sản phẩm có thuộc giỏ của người dùng không
+        if (!chiTiet.getGioHang().getId().equals(gioHang.getId())) {
+            throw new RuntimeException("Bạn không có quyền xóa sản phẩm này");
+        }
+
+        // Xóa
+        gioHangChiTietRepository.delete(chiTiet);
+
+        // Cập nhật thời gian
+        gioHang.setNgayCapNhat(LocalDateTime.now());
+        gioHangRepository.save(gioHang);
+    }
 }

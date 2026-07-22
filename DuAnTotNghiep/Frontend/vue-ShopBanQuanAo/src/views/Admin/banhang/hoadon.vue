@@ -193,7 +193,7 @@
           v-model="filters.loaiHoaDon"
           class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 outline-none transition-all cursor-pointer appearance-none"
         >
-          <option value="">Phân loại đơn</option>
+          <option value="" disabled hidden>Phân loại đơn</option>
           <option value="online">Hóa đơn Online</option>
           <option value="tai_quay">Mua tại quầy</option>
         </select>
@@ -222,8 +222,10 @@
         <div class="col-span-2">Mã hóa đơn</div>
         <div class="col-span-3">Khách hàng hồ sơ</div>
         <div class="col-span-2">Thời gian tạo</div>
+        <!-- Thêm cột Loại hóa đơn -->
+        <div class="col-span-1">Phân loại</div>
         <div class="col-span-2">Tổng thành tiền</div>
-        <div class="col-span-2 text-center">Trạng thái xử lý</div>
+        <div class="col-span-1 text-center">Trạng thái</div>
         <div class="col-span-1 text-center">Hành động</div>
       </div>
 
@@ -260,15 +262,29 @@
               </div>
             </div>
 
-            <div class="col-span-2 font-medium text-slate-500 font-mono">
+            <div class="col-span-2 font-medium text-slate-500 font-mono text-xs">
               {{ invoice.created }}
+            </div>
+
+            <!-- Thêm hiển thị loại hóa đơn -->
+            <div class="col-span-1">
+              <span
+                :class="[
+                  'px-2 py-1 rounded-md text-[10px] font-bold tracking-wide uppercase',
+                  invoice.type === 'tai_quay'
+                    ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                    : 'bg-amber-50 text-amber-600 border border-amber-100',
+                ]"
+              >
+                {{ invoice.type === 'tai_quay' ? 'Tại quầy' : 'Online' }}
+              </span>
             </div>
 
             <div class="col-span-2 font-extrabold text-slate-900 font-mono text-sm">
               {{ formatMoney(invoice.final) }}
             </div>
 
-            <div class="col-span-2 flex justify-start md:justify-center">
+            <div class="col-span-1 flex justify-start md:justify-center">
               <span :class="statusClassModern(invoice.status)">
                 <span
                   :class="[

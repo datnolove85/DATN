@@ -240,4 +240,20 @@ public class HoaDonController {
         return ResponseEntity.ok("Cập nhật trạng thái thành công");
     }
 
+    @PostMapping("/tao-qr/{hoaDonId}")
+    public ResponseEntity<?> taoQr(@PathVariable Integer hoaDonId) {
+
+        return ResponseEntity.ok(service.taoQr(hoaDonId));
+    }
+
+    @PutMapping("/cap-nhat-so-luong/{id}")
+    public ResponseEntity<?> capNhatSoLuong(
+            @PathVariable Integer id,
+            @RequestParam Integer soLuong) {
+
+        service.capNhatSoLuong(id, soLuong);
+
+        return ResponseEntity.ok("OK");
+    }
+
 }

@@ -4,6 +4,8 @@ import com.example.backend.Entity.Voucher;
 import com.example.backend.Repository.VoucherRepository;
 import com.example.backend.Request.VoucherRequest;
 import com.example.backend.Response.VoucherResponse;
+import com.example.backend.Service.CustomerSocketService;
+import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.PosSocketService;
 import com.example.backend.Service.VoucherService;
 import com.example.backend.websocket.PosEvent;
@@ -28,6 +30,9 @@ public class VoucherImpl implements VoucherService {
     @Autowired
     private PosSocketService posSocketService;
 
+    @Autowired
+    private HoaDonService hoaDonService;
+
     @Override
     @Transactional(readOnly = true)
     public Page<VoucherResponse> phanTrangVoucher(Integer pageNo, Integer pageSize) {
@@ -49,6 +54,7 @@ public class VoucherImpl implements VoucherService {
         return voucherRepository.detail(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher với ID: " + id));
     }
+
     private String generateVoucherCode() {
 
         Integer maxId = voucherRepository.getMaxId();
@@ -101,6 +107,14 @@ public class VoucherImpl implements VoucherService {
 
         Voucher updated = voucherRepository.save(voucher);
 
+
+// cập nhật lại các hóa đơn đang dùng voucher này
+        hoaDonService.capNhatHoaDonTheoVoucher(
+                updated.getId()
+        );
+
+
+// báo POS reload
         posSocketService.send(
                 new PosEvent(
                         "VOUCHER_UPDATED",
@@ -116,12 +130,29 @@ public class VoucherImpl implements VoucherService {
     @Override
     @Transactional
     public void deleteVoucher(Integer id) {
+
         requirePositiveId(id, "ID voucher");
-        Voucher voucher = voucherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher với ID: " + id));
+
+        Voucher voucher =
+                voucherRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Không tìm thấy voucher với ID: " + id
+                                )
+                        );
+
+
         voucher.setTrangThai(0);
         voucher.setNgayCapNhat(LocalDateTime.now());
+
         voucherRepository.save(voucher);
+
+
+        // cập nhật lại các hóa đơn đang sử dụng voucher
+        hoaDonService.capNhatHoaDonTheoVoucher(
+                voucher.getId()
+        );
+
 
         posSocketService.send(
                 new PosEvent(
@@ -164,7 +195,7 @@ public class VoucherImpl implements VoucherService {
             throw new RuntimeException("Tên voucher không được vượt quá 200 ký tự");
         }
 
-             String loaiGiamGia = request.getLoaiGiamGia() == null ? "" : request.getLoaiGiamGia().trim();
+        String loaiGiamGia = request.getLoaiGiamGia() == null ? "" : request.getLoaiGiamGia().trim();
         if (!LOAI_PHAN_TRAM.equals(loaiGiamGia) && !LOAI_TIEN_MAT.equals(loaiGiamGia)) {
             throw new RuntimeException("Loại giảm giá chỉ được là phan_tram hoặc tien_mat");
         }
@@ -244,7 +275,7 @@ public class VoucherImpl implements VoucherService {
     }
 
     @Override
-    public List<Voucher> getAll(){
+    public List<Voucher> getAll() {
         return voucherRepository.findAll();
     }
 

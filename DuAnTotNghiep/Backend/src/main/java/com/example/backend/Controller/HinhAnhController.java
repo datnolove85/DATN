@@ -48,4 +48,12 @@ public class HinhAnhController {
                 hinhanhService.getBySPCT(id)
         );
     }
+
+    @PatchMapping("/anh/{id}/main")
+    public ResponseEntity<?> setMainImage(@PathVariable Integer id) {
+
+        hinhanhService.datAnhChinh(id);
+
+        return ResponseEntity.ok("OK");
+    }
 }

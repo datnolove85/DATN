@@ -359,3 +359,30 @@ export const hoaDonService = {
     return await response.text() // backend trả "OK"
   },
 }
+export const taoQr = async (hoaDonId) => {
+  try {
+    const response = await fetch(`http://localhost:8080/hoadon/tao-qr/${hoaDonId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('taoQr error:', error)
+    throw error
+  }
+}
+export const capNhatSoLuong = async (idHoaDonChiTiet, soLuong) => {
+  try {
+    const response = await fetch(`${API}/cap-nhat-so-luong/${idHoaDonChiTiet}?soLuong=${soLuong}`, {
+      method: 'PUT',
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('capNhatSoLuong error:', error)
+    throw error
+  }
+}

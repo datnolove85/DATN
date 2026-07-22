@@ -25,4 +25,14 @@ WHERE ct.idHoaDon.id = :idHoaDon
 """)
     List<HoaDonChiTiet> findByHoaDon(@Param("idHoaDon") Integer idHoaDon);
 
+    Optional<HoaDonChiTiet> findByIdHoaDon_IdAndIdSanPhamChiTiet_Id(
+            Integer idHoaDon,
+            Integer idSanPhamChiTiet
+    );
+
+    List<HoaDonChiTiet> findByIdSanPhamChiTiet_Id(
+            Integer idSanPhamChiTiet
+    );
+
+
 }

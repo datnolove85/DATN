@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpecificationExecutor<HoaDon> {
@@ -112,4 +113,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
             AND h.ngayCapNhat <= :time
             """)
     List<HoaDon> findExpiredHoaDon(LocalDateTime time);
+
+    List<HoaDon> findByIdKhachHang_Id(Integer idKhachHang);
+
+
 }

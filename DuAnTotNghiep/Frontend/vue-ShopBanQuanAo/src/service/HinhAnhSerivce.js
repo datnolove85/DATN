@@ -42,3 +42,14 @@ export const getImagesBySPCT = async (idSpct) => {
 
   return await response.json()
 }
+export const setMainImage = async (idImage) => {
+  const response = await fetch(`${API_URL}/anh/${idImage}/main`, {
+    method: 'PATCH',
+  })
+
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+
+  return await response.text()
+}
