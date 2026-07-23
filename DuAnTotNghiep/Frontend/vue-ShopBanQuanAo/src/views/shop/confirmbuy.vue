@@ -619,13 +619,6 @@ const addToCart = async () => {
 }
 
 const buyNow = () => {
-  const token = sessionStorage.getItem('token')
-
-  if (!token) {
-    router.push('/login')
-    return
-  }
-
   if (!selectedVariant.value) return
 
   router.push({

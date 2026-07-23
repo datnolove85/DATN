@@ -12,6 +12,15 @@ public class CreateOnlineOrderRequest {
 
     private Integer addressId;
 
+    private String tenNguoiNhan;
+    private String soDienThoaiNguoiNhan;
+    private String thanhPho;
+    private String quan;
+    private String phuong;
+    private String diaChiCuThe;
+    private Integer districtId;
+    private String wardCode;
+
     private BigDecimal shippingFee;
 
     private Integer voucherId;

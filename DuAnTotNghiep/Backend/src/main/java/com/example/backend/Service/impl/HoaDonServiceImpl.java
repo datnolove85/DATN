@@ -1437,39 +1437,92 @@ public class HoaDonServiceImpl implements HoaDonService {
         // 2. khách hàng
         String auth = request.getHeader("Authorization");
 
-        if (auth == null || !auth.startsWith("Bearer ")) {
-            throw new RuntimeException("Thiếu token");
-        }
+        if (auth != null && auth.startsWith("Bearer ")) {
+            String token = auth.substring(7);
+            Integer idTaiKhoan = jwtService.extractId(token);
 
-        String token = auth.substring(7);
+            KhachHang khachHang = khachHangRepository
+                    .findByIdTaiKhoan_Id(idTaiKhoan)
+                    .orElseThrow(() ->
+                            new RuntimeException("Không tìm thấy khách hàng"));
 
-        Integer idTaiKhoan = jwtService.extractId(token);
+            ganKhachHang(hd.getId(), khachHang.getId());
 
-        KhachHang khachHang = khachHangRepository
-                .findByIdTaiKhoan_Id(idTaiKhoan)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+            DiaChiKhachHang diaChi;
 
-        ganKhachHang(
-                hd.getId(),
-                khachHang.getId()
-        );
-
-        DiaChiKhachHang diaChi =
-                diaChiKhachHangRepository.findByIdKhachHang_IdAndMacDinhTrue(khachHang.getId())
+            if (req.getAddressId() != null) {
+                diaChi = diaChiKhachHangRepository
+                        .findById(req.getAddressId())
+                        .filter(dc ->
+                                dc.getIdKhachHang()
+                                        .getId()
+                                        .equals(khachHang.getId()))
                         .orElseThrow(() ->
-                                new RuntimeException("Khách hàng chưa có địa chỉ"));
+                                new RuntimeException("Địa chỉ không hợp lệ"));
+            } else {
+                diaChi = diaChiKhachHangRepository
+                        .findByIdKhachHang_IdAndMacDinhTrue(
+                                khachHang.getId()
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Khách hàng chưa có địa chỉ"
+                                ));
+            }
 
-        String diaChiDayDu =
-                diaChi.getDiaChiCuThe()
-                        + ", "
-                        + diaChi.getPhuong()
-                        + ", "
-                        + diaChi.getQuan()
-                        + ", "
-                        + diaChi.getThanhPho();
+            hd.setDiaChiGiaoHang(
+                    diaChi.getDiaChiCuThe()
+                            + ", "
+                            + diaChi.getPhuong()
+                            + ", "
+                            + diaChi.getQuan()
+                            + ", "
+                            + diaChi.getThanhPho()
+            );
+        } else {
+            if (req.getTenNguoiNhan() == null
+                    || req.getTenNguoiNhan().isBlank()) {
+                throw new RuntimeException(
+                        "Thiếu tên người nhận"
+                );
+            }
 
-        hd.setDiaChiGiaoHang(diaChiDayDu);
+            if (req.getSoDienThoaiNguoiNhan() == null
+                    || !req.getSoDienThoaiNguoiNhan()
+                    .matches("^[0-9]{9,11}$")) {
+                throw new RuntimeException(
+                        "Số điện thoại người nhận không hợp lệ"
+                );
+            }
 
+            if (req.getThanhPho() == null
+                    || req.getQuan() == null
+                    || req.getPhuong() == null
+                    || req.getDiaChiCuThe() == null
+                    || req.getDiaChiCuThe().isBlank()) {
+                throw new RuntimeException(
+                        "Thiếu địa chỉ giao hàng"
+                );
+            }
+
+            hd.setTenNguoiNhan(
+                    req.getTenNguoiNhan().trim()
+            );
+
+            hd.setSoDienThoaiNguoiNhan(
+                    req.getSoDienThoaiNguoiNhan().trim()
+            );
+
+            hd.setDiaChiGiaoHang(
+                    req.getDiaChiCuThe().trim()
+                            + ", "
+                            + req.getPhuong()
+                            + ", "
+                            + req.getQuan()
+                            + ", "
+                            + req.getThanhPho()
+            );
+        }
         // 3. thêm toàn bộ sản phẩm
         for (CreateOnlineOrderRequest.Item item : req.getItems()) {
 

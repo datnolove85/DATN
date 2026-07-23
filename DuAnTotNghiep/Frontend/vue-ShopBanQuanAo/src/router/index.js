@@ -10,6 +10,16 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/shop/login.vue'),
     },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/views/shop/register.vue'),
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/shop/forgot-password.vue'),
+    },
 
     // ================= SHOP =================
     {

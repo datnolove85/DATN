@@ -143,7 +143,9 @@
                 <div
                   class="flex items-center justify-between text-xs text-[#d6b690] mt-5 px-1 font-medium"
                 >
-                  <a href="#" class="hover:text-white transition-colors"> Quên mật khẩu </a>
+                  <RouterLink to="/forgot-password" class="hover:text-white transition-colors">
+                    Quên mật khẩu
+                  </RouterLink>
                 </div>
 
                 <!-- SEPARATOR -->
@@ -193,12 +195,12 @@
                 <div class="text-center text-sm text-white/40 mt-8">
                   Bạn chưa có tài khoản?
 
-                  <a
-                    href="#"
+                  <RouterLink
+                    to="/register"
                     class="text-[#d6b690] font-semibold hover:text-white transition-colors ml-1"
                   >
                     Đăng ký ngay
-                  </a>
+                  </RouterLink>
                 </div>
               </div>
             </div>

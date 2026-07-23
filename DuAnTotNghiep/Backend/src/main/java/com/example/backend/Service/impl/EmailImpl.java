@@ -44,4 +44,13 @@ public class EmailImpl {
             System.err.println("=> Lỗi khi gửi mail: " + e.getMessage());
         }
     }
+    public void sendPasswordResetCode(String toEmail, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("nguyenvanan23096@gmail.com");
+        message.setTo(toEmail);
+        message.setSubject("MÃ XÁC NHẬN ĐẶT LẠI MẬT KHẨU");
+        message.setText("Mã xác nhận của bạn là: " + code + "\nMã có hiệu lực trong 10 phút.");
+        mailSender.send(message);
+    }
+
 }
