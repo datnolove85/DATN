@@ -23,4 +23,15 @@ set h.laAnhChinh = false
 where h.idSanPhamChiTiet.id = :idSPCT
 """)
     void boAnhChinh(@Param("idSPCT") Integer idSPCT);
+
+    @Query("""
+SELECT h
+FROM HinhAnh h
+JOIN h.idSanPhamChiTiet spct
+JOIN spct.idSanPham sp
+WHERE sp.id IN :ids
+AND h.laAnhChinh=true
+AND h.trangThai=true
+""")
+    List<HinhAnh> getMainImages(List<Integer> ids);
 }

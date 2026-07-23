@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -42,6 +43,6 @@ public class ThanhToan {
     private String trangThai;
 
     @Column(name = "ngay_thanh_toan")
-    private Instant ngayThanhToan;
+    private LocalDateTime ngayThanhToan;
 
 }

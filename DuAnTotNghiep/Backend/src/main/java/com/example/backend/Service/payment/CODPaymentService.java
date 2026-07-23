@@ -49,7 +49,7 @@ public class CODPaymentService implements PaymentService {
 
         thanhToan.setTrangThai("cho_thanh_toan");
 
-        thanhToan.setNgayThanhToan(Instant.now());
+        thanhToan.setNgayThanhToan(LocalDateTime.now());
 
         thanhToanRepository.save(thanhToan);
 

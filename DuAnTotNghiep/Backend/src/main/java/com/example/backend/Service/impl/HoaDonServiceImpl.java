@@ -380,7 +380,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 "da_thanh_toan");
 
         tt.setNgayThanhToan(
-                Instant.now());
+                LocalDateTime.now());
 
         ttRepo.save(tt);
 
@@ -525,7 +525,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 "da_thanh_toan");
 
         tt.setNgayThanhToan(
-                Instant.now());
+                LocalDateTime.now());
 
         ttRepo.save(tt);
 
@@ -845,14 +845,14 @@ public class HoaDonServiceImpl implements HoaDonService {
 
 
 
-        posSocketService.send(
-                new PosEvent(
-                        "PRODUCT_UPDATED",
-                        hoaDon.getId(),
-                        spct.getId(),
-                        spct.getSoLuongTon()
-                )
-        );
+//        posSocketService.send(
+//                new PosEvent(
+//                        "PRODUCT_UPDATED",
+//                        hoaDon.getId(),
+//                        spct.getId(),
+//                        spct.getSoLuongTon()
+//                )
+//        );
 
     }
     @Transactional

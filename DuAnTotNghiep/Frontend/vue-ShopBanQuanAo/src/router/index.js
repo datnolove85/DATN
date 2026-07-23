@@ -198,7 +198,7 @@ const router = createRouter({
         {
           path: 'thongke',
           name: 'thongke',
-          component: () => import('../views/shop/views/thongke.vue'),
+          component: () => import('../views/Admin/thongke/mainn.vue'),
         },
 
         {

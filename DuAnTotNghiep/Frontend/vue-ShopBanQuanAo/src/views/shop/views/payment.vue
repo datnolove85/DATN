@@ -487,41 +487,93 @@
               </span>
             </div>
 
-            <div class="mt-6 divide-y divide-slate-100">
+            <div class="mt-6 space-y-4">
               <article
                 v-for="item in orderItems"
                 :key="item.id"
-                class="grid grid-cols-[76px_1fr] gap-4 py-5 first:pt-0 last:pb-0 sm:grid-cols-[92px_1fr_auto] sm:items-center"
+                class="grid gap-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[132px_1fr] sm:p-5"
               >
+                <!-- Ảnh sản phẩm -->
                 <div
-                  class="h-[76px] w-[76px] overflow-hidden rounded-2xl border border-slate-100 bg-slate-100 sm:h-[92px] sm:w-[92px]"
+                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner"
                 >
                   <img
-                    :src="item.anh ? 'http://localhost:8080' + item.anh : '/no-image.png'"
+                    :src="
+                      item.anh
+                        ? item.anh.startsWith('http')
+                          ? item.anh
+                          : 'http://localhost:8080' + item.anh
+                        : '/no-image.png'
+                    "
                     :alt="item.tenSanPham || 'Sản phẩm'"
                     class="h-full w-full object-cover"
                   />
                 </div>
 
-                <div class="min-w-0">
-                  <h3 class="line-clamp-2 font-black text-slate-900">{{ item.tenSanPham }}</h3>
-                  <p class="mt-1 text-sm text-slate-500">
-                    {{ item.tenMauSac || 'Màu tiêu chuẩn' }}
-                    <span class="mx-1.5 text-slate-300">•</span>
-                    {{ item.tenKichThuoc || 'Kích thước tiêu chuẩn' }}
-                  </p>
-                  <span
-                    class="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
-                  >
-                    Số lượng: {{ item.soLuong }}
-                  </span>
-                </div>
+                <!-- Thông tin sản phẩm -->
+                <div class="flex min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <!-- Tên & Mã SPCT -->
+                    <div class="flex items-start justify-between gap-4">
+                      <h3 class="line-clamp-2 text-lg font-bold text-slate-900">
+                        {{ item.tenSanPham }}
+                      </h3>
+                      <span v-if="item.maSanPhamChiTiet" class="text-xs font-medium text-slate-400">
+                        #{{ item.maSanPhamChiTiet }}
+                      </span>
+                    </div>
 
-                <div class="col-start-2 mt-1 text-left sm:col-auto sm:mt-0 sm:text-right">
-                  <p class="text-xs font-semibold text-slate-400">Thành tiền</p>
-                  <p class="mt-1 text-lg font-black text-indigo-700">
-                    {{ formatMoney(item.thanhTien) }}
-                  </p>
+                    <!-- Thuộc tính (Màu sắc, Kích cỡ) -->
+                    <div class="mt-2.5 flex flex-wrap gap-2">
+                      <span
+                        v-if="item.tenMauSac"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        🎨 {{ item.tenMauSac }}
+                      </span>
+
+                      <span
+                        v-if="item.tenKichThuoc"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        📏 {{ item.tenKichThuoc }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Giá, Số lượng & Thành tiền -->
+                  <div
+                    class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <!-- Đơn giá & Số lượng -->
+                    <div class="flex items-center gap-4">
+                      <div>
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Đơn giá</p>
+                        <span class="text-base font-bold text-slate-900">
+                          {{ formatMoney(item.donGia || item.thanhTien / item.soLuong) }}
+                        </span>
+                      </div>
+
+                      <div class="h-6 w-px bg-slate-200"></div>
+
+                      <div>
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Số lượng</p>
+                        <span class="text-base font-bold text-slate-900">
+                          x{{ item.soLuong }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Thành tiền -->
+                    <div
+                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-3 sm:border-t-0 sm:pt-0 sm:justify-end sm:gap-2"
+                    >
+                      <span class="text-sm text-slate-500">Thành tiền:</span>
+                      <span class="text-xl font-extrabold text-red-600">
+                        {{ formatMoney(item.thanhTien) }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </article>
             </div>
@@ -898,7 +950,12 @@ const pay = async () => {
     const res = await thanhToan(body)
 
     clearQrSession()
+
+    // Xóa dữ liệu mua từ giỏ hàng sau khi thanh toán thành công
+    sessionStorage.removeItem('checkoutData')
+
     toast.success(res.message || 'Đã ghi nhận phương thức thanh toán')
+
     router.push('/san-pham')
   } catch (error) {
     console.error(error)

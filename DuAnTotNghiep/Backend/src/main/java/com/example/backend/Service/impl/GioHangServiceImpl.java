@@ -136,14 +136,19 @@ public class GioHangServiceImpl implements GioHangService {
 
             response.setTenSanPham(spct.getIdSanPham().getTenSanPham());
 
+            response.setThuongHieu(
+                    spct.getIdSanPham()
+                            .getIdThuongHieu()
+                            .getTenThuongHieu()
+            );
+
             response.setMauSac(spct.getIdMauSac().getTenMauSac());
 
             response.setKichCo(spct.getIdKichThuoc().getTenKichThuoc());
 
-//            // Nếu chưa có bảng ảnh thì tạm để null
-//            response.setAnh(null);
-
             response.setGiaBan(spct.getGiaBan());
+
+            response.setSoLuongTon(spct.getSoLuongTon());
 
             response.setSoLuong(item.getSoLuong());
 

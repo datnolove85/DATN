@@ -17,6 +17,6 @@ public class ThanhToanDTO {
 
     private String trangThai;
 
-    private Instant ngayThanhToan;
+    private LocalDateTime ngayThanhToan;
 
 }

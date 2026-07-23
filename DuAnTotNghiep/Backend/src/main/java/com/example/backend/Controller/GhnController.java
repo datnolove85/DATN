@@ -16,9 +16,6 @@ public class GhnController {
     @PostMapping("/fee")
     public Integer fee(@RequestBody ShippingFeeRequest request){
 
-        System.out.println("Thanh pho = " + request.getThanhPho());
-        System.out.println("Quan = " + request.getQuan());
-        System.out.println("Phuong = " + request.getPhuong());
         return ghnService.tinhPhiVanChuyen(
                 request.getThanhPho(),
                 request.getQuan(),

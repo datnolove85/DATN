@@ -2,6 +2,7 @@ package com.example.backend.Repository;
 
 import com.example.backend.Entity.*;
 import com.example.backend.Response.SanPhamChiTietResponse;
+import com.example.backend.Response.thongke.ProductExtraInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -197,4 +198,26 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             """)
     List<SanPhamChiTiet> findSanPhamChuaApDung();
 
+    Optional<SanPhamChiTiet> findFirstByIdSanPham_IdOrderByIdAsc(Integer idSanPham);
+
+    @Query("""
+SELECT new com.example.backend.Response.thongke.ProductExtraInfo(
+
+    sp.id,
+    MIN(spct.giaBan),
+    MIN(spct.giaNhap),
+    COUNT(spct.id),
+    SUM(spct.soLuongTon)
+
+)
+
+FROM SanPhamChiTiet spct
+
+JOIN spct.idSanPham sp
+
+WHERE sp.id IN :ids
+
+GROUP BY sp.id
+""")
+    List<ProductExtraInfo> getExtraInfo(List<Integer> ids);
 }

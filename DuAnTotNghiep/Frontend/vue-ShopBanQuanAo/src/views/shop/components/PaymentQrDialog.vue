@@ -104,7 +104,7 @@
           size="large"
           class="flex-1 rounded-xl !bg-blue-600 hover:!bg-blue-700 font-medium shadow-sm shadow-blue-500/20"
           :disabled="timeLeft === 0"
-          @click="emit('paid')"
+          @click="handlePaid"
         >
           Tôi đã chuyển khoản
         </el-button>
@@ -117,6 +117,10 @@
 import { ref, watch, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
+const handlePaid = () => {
+  clearInterval(timer)
+  emit('update:visible', false)
+}
 const props = defineProps({
   visible: {
     type: Boolean,

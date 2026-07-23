@@ -394,7 +394,10 @@
                   <h2 class="mt-1 text-2xl font-black tracking-tight">Sản phẩm đã chọn</h2>
                 </div>
               </div>
-              <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600">
+              <span
+                v-if="!isCartCheckout"
+                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600"
+              >
                 Kho: {{ stock }}
               </span>
             </div>
@@ -469,9 +472,27 @@
                       <div class="h-6 w-px bg-slate-200"></div>
 
                       <div
-                        class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                        class="flex items-center overflow-hidden rounded-lg border border-slate-200"
                       >
-                        SL: × {{ item.quantity }}
+                        <button
+                          type="button"
+                          class="h-9 w-9 hover:bg-slate-100"
+                          @click="decreaseCartQty(item)"
+                        >
+                          -
+                        </button>
+
+                        <span class="flex h-9 w-10 items-center justify-center font-bold">
+                          {{ item.quantity }}
+                        </span>
+
+                        <button
+                          type="button"
+                          class="h-9 w-9 hover:bg-slate-100"
+                          @click="increaseCartQty(item)"
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
 
@@ -481,7 +502,7 @@
                     >
                       <span class="text-sm text-slate-500">Thành tiền:</span>
                       <span class="text-xl font-extrabold text-red-600">
-                        {{ formatMoney(item.thanhTien) }}
+                        {{ formatMoney((item.giaSauGiam || item.giaBan) * item.quantity) }}
                       </span>
                     </div>
                   </div>
@@ -491,12 +512,12 @@
 
             <!-- Mua ngay -->
             <template v-else>
-              <!-- GIỮ NGUYÊN TOÀN BỘ ARTICLE CŨ CỦA BẠN -->
               <article
-                class="mt-6 grid gap-5 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 sm:grid-cols-[132px_1fr] sm:p-5"
+                class="mt-6 grid gap-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[132px_1fr] sm:p-5"
               >
+                <!-- Ảnh -->
                 <div
-                  class="h-32 w-32 overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
+                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner"
                 >
                   <img
                     :src="
@@ -504,67 +525,99 @@
                         ? 'http://localhost:8080' + product.images[0]
                         : '/no-image.png'
                     "
-                    :alt="product?.tenSanPham || 'Sản phẩm'"
+                    :alt="product?.tenSanPham"
                     class="h-full w-full object-cover"
                   />
                 </div>
 
-                <div class="min-w-0">
-                  <h3 class="text-xl font-black text-slate-900">{{ product?.tenSanPham }}</h3>
-                  <div class="mt-2 flex flex-wrap gap-2 text-sm">
-                    <span
-                      class="rounded-full bg-white px-3 py-1.5 font-semibold text-slate-600 shadow-sm"
-                    >
-                      Màu: <b class="text-slate-900">{{ product?.tenMauSac }}</b>
-                    </span>
-                    <span
-                      class="rounded-full bg-white px-3 py-1.5 font-semibold text-slate-600 shadow-sm"
-                    >
-                      Size: <b class="text-slate-900">{{ product?.tenKichThuoc }}</b>
-                    </span>
-                  </div>
+                <!-- Thông tin -->
+                <div class="flex min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <!-- Tên -->
+                    <div class="flex items-start justify-between gap-4">
+                      <h3 class="line-clamp-2 text-lg font-bold text-slate-900">
+                        {{ product?.tenSanPham }}
+                      </h3>
 
-                  <div class="mt-5 flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                      <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Đơn giá
-                      </p>
-                      <div
-                        v-if="product?.dangGiamGia"
-                        class="mt-1 flex flex-wrap items-center gap-2"
-                      >
-                        <span class="text-2xl font-black text-red-600">
-                          {{ formatMoney(product?.giaSauGiam) }}
-                        </span>
-                        <span class="text-sm font-semibold text-slate-400 line-through">
-                          {{ formatMoney(product?.giaBan) }}
-                        </span>
-                      </div>
-                      <span v-else class="mt-1 block text-2xl font-black text-indigo-700">
-                        {{ formatMoney(product?.giaBan) }}
+                      <span class="text-xs font-medium text-slate-400">
+                        #{{ product?.maSanPhamChiTiet }}
                       </span>
                     </div>
 
+                    <!-- Màu Size -->
+                    <div class="mt-2.5 flex flex-wrap gap-2">
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        🎨 {{ product?.tenMauSac }}
+                      </span>
+
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        📏 {{ product?.tenKichThuoc }}
+                      </span>
+                    </div>
+
+                    <!-- Kho -->
+                    <div class="mt-2">
+                      <span
+                        class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"
+                      >
+                        Kho: {{ product?.soLuongTon }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Giá - SL - Thành tiền -->
+                  <div
+                    class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div class="flex items-center gap-5">
+                      <!-- Giá -->
+                      <div>
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Đơn giá</p>
+
+                        <div v-if="product?.dangGiamGia" class="flex items-center gap-2">
+                          <span class="text-base font-bold text-red-600">
+                            {{ formatMoney(product?.giaSauGiam) }}
+                          </span>
+
+                          <span class="text-sm line-through text-slate-400">
+                            {{ formatMoney(product?.giaBan) }}
+                          </span>
+                        </div>
+
+                        <span v-else class="text-base font-bold text-slate-900">
+                          {{ formatMoney(product?.giaBan) }}
+                        </span>
+                      </div>
+
+                      <div class="h-6 w-px bg-slate-200"></div>
+
+                      <!-- Tăng giảm -->
+                      <div
+                        class="flex items-center overflow-hidden rounded-lg border border-slate-200"
+                      >
+                        <button class="h-9 w-9 hover:bg-slate-100" @click="decreaseQty">-</button>
+
+                        <span class="flex h-9 w-10 items-center justify-center font-bold">
+                          {{ quantity }}
+                        </span>
+
+                        <button class="h-9 w-9 hover:bg-slate-100" @click="increaseQty">+</button>
+                      </div>
+                    </div>
+
+                    <!-- Thành tiền -->
                     <div
-                      class="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-3 sm:border-none sm:pt-0 sm:gap-2"
                     >
-                      <button
-                        type="button"
-                        class="grid h-10 w-10 place-items-center rounded-lg text-lg font-black text-slate-600 transition hover:bg-slate-100"
-                        @click="decreaseQty"
-                      >
-                        −
-                      </button>
-                      <span class="min-w-12 text-center font-black text-slate-900">{{
-                        quantity
-                      }}</span>
-                      <button
-                        type="button"
-                        class="grid h-10 w-10 place-items-center rounded-lg text-lg font-black text-slate-600 transition hover:bg-slate-100"
-                        @click="increaseQty"
-                      >
-                        +
-                      </button>
+                      <span class="text-sm text-slate-500"> Thành tiền: </span>
+
+                      <span class="text-xl font-extrabold text-red-600">
+                        {{ formatMoney((product?.giaSauGiam || product?.giaBan || 0) * quantity) }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -937,6 +990,39 @@
             <div
               class="p-4 space-y-3 overflow-y-auto flex-1 max-h-[420px] overscroll-contain custom-scrollbar"
             >
+              <!-- Không sử dụng voucher -->
+              <div
+                @click="clearVoucher"
+                :class="[
+                  'flex items-center justify-between rounded-xl border p-3.5 cursor-pointer transition-all bg-white',
+                  selectedVoucherId === null
+                    ? 'border-emerald-500 ring-2 ring-emerald-100'
+                    : 'border-slate-200 hover:border-indigo-500 hover:shadow-md',
+                ]"
+              >
+                <div>
+                  <div class="font-semibold text-slate-800 flex items-center gap-2">
+                    Không sử dụng voucher
+
+                    <span
+                      v-if="selectedVoucherId === null"
+                      class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold"
+                    >
+                      ✓ Đang áp dụng
+                    </span>
+                  </div>
+
+                  <p class="text-xs text-slate-500 mt-1">Thanh toán theo giá gốc của đơn hàng</p>
+                </div>
+
+                <input
+                  type="radio"
+                  name="voucher-selection"
+                  :checked="selectedVoucherId === null"
+                  class="w-4 h-4 accent-indigo-600"
+                  @click.stop="clearVoucher"
+                />
+              </div>
               <div
                 v-for="v in sortedVouchers"
                 :key="v.id"
@@ -946,9 +1032,14 @@
                 "
                 :class="[
                   'relative flex items-center bg-white rounded-xl border transition-all overflow-hidden p-3.5 gap-4',
-                  subtotal >= v.giaTriDonHangToiThieu
-                    ? 'cursor-pointer border-slate-200 hover:border-indigo-500 hover:shadow-md'
-                    : 'opacity-55 cursor-not-allowed border-slate-200 bg-slate-100/60',
+
+                  selectedVoucherId === v.id
+                    ? 'border-emerald-500 ring-2 ring-emerald-100'
+                    : bestVoucher && bestVoucher.id === v.id
+                      ? 'border-amber-400 ring-2 ring-amber-100'
+                      : subtotal >= v.giaTriDonHangToiThieu
+                        ? 'border-slate-200 hover:border-indigo-500 hover:shadow-md'
+                        : 'opacity-55 cursor-not-allowed border-slate-200 bg-slate-100/60',
                 ]"
               >
                 <!-- Ô bên trái: Hiển thị mức giảm giá -->
@@ -976,13 +1067,34 @@
                 <div class="flex-1 flex flex-col justify-between">
                   <div class="flex items-start justify-between gap-2">
                     <div>
-                      <h3 class="font-bold text-slate-800 text-sm line-clamp-1">
-                        {{ v.tenVoucher }}
-                      </h3>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="font-bold text-slate-800 text-sm line-clamp-1">
+                          {{ v.tenVoucher }}
+                        </h3>
+
+                        <!-- Voucher đang dùng -->
+                        <span
+                          v-if="selectedVoucherId === v.id"
+                          class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold"
+                        >
+                          ✓ Đang áp dụng
+                        </span>
+
+                        <!-- Voucher đề xuất -->
+                        <span
+                          v-else-if="bestVoucher && bestVoucher.id === v.id"
+                          class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold"
+                        >
+                          ⭐ Đề xuất
+                        </span>
+                      </div>
 
                       <div class="flex items-center gap-2 mt-0.5">
                         <p class="text-xs text-slate-400 font-mono">
                           Mã: <span class="text-slate-600 font-semibold">{{ v.maVoucher }}</span>
+                        </p>
+                        <p class="text-xs text-emerald-600 font-semibold mt-1">
+                          Tiết kiệm {{ formatCurrency(getVoucherDiscount(v)) }}
                         </p>
 
                         <!-- Chuyển giảm tối đa sang bên phải ở đây -->
@@ -1103,10 +1215,47 @@ import shadow from 'leaflet/dist/images/marker-shadow.png'
 // Sắp xếp voucher: Đưa voucher đủ điều kiện (true) lên trước, voucher không đủ (false) xuống sau
 const sortedVouchers = computed(() => {
   return [...vouchers.value].sort((a, b) => {
+    // 1. Voucher đang dùng luôn lên đầu
+    if (a.id === selectedVoucherId.value) return -1
+    if (b.id === selectedVoucherId.value) return 1
+
+    // 2. Voucher đủ điều kiện đứng trước
     const aValid = subtotal.value >= a.giaTriDonHangToiThieu
     const bValid = subtotal.value >= b.giaTriDonHangToiThieu
-    return bValid === aValid ? 0 : bValid ? 1 : -1
+
+    if (aValid !== bValid) {
+      return bValid - aValid
+    }
+
+    // 3. Trong các voucher đủ điều kiện thì sắp theo số tiền giảm
+    return getVoucherDiscount(b) - getVoucherDiscount(a)
   })
+})
+
+const clearVoucher = () => {
+  selectedVoucherId.value = null
+  showVoucherModal.value = false
+}
+
+const getVoucherDiscount = (voucher) => {
+  if (!voucher || subtotal.value < voucher.giaTriDonHangToiThieu) return 0
+
+  if (voucher.loaiGiamGia === 'tien_mat') {
+    return Number(voucher.giaTriGiam)
+  }
+
+  let discount = (subtotal.value * Number(voucher.giaTriGiam)) / 100
+
+  if (voucher.giaTriGiamToiDa) {
+    discount = Math.min(discount, Number(voucher.giaTriGiamToiDa))
+  }
+
+  return discount
+}
+const bestVoucher = computed(() => {
+  return vouchers.value
+    .filter((v) => subtotal.value >= v.giaTriDonHangToiThieu)
+    .sort((a, b) => getVoucherDiscount(b) - getVoucherDiscount(a))[0]
 })
 const formatShortCurrency = (value) => {
   if (!value) return '0đ'
@@ -1431,12 +1580,44 @@ const authToken = sessionStorage.getItem('token')
 const isLoggedIn = Boolean(authToken)
 
 // Data
-const spctId = Number(route.query.spct)
+const spctId = computed(() => {
+  return route.query.spct ? Number(route.query.spct) : null
+})
+
 const quantity = ref(Number(route.query.qty) || 1)
 const product = ref(null)
 const checkoutItems = ref([])
 const isCartCheckout = ref(false)
 const vouchers = ref([])
+const displayItems = computed(() => {
+  if (isCartCheckout.value) {
+    return checkoutItems.value
+  }
+
+  if (!product.value) {
+    return []
+  }
+
+  return [
+    {
+      productDetailId: product.value.id,
+
+      tenSanPham: product.value.tenSanPham,
+      maSanPhamChiTiet: product.value.maSanPhamChiTiet,
+
+      giaBan: product.value.giaSauGiam || product.value.giaBan,
+
+      mauSac: product.value.tenMauSac,
+      kichCo: product.value.tenKichThuoc,
+
+      anh: product.value.images?.[0] ?? '',
+
+      soLuongTon: product.value.soLuongTon,
+
+      quantity: quantity.value,
+    },
+  ]
+})
 
 const loadAddresses = async () => {
   if (!isLoggedIn) return
@@ -1453,23 +1634,34 @@ const loadAddresses = async () => {
 }
 
 async function loadData() {
-  product.value = await getSanPhamChiTietById(spctId)
+  product.value = await getSanPhamChiTietById(spctId.value)
 
   if (quantity.value > product.value.soLuong) {
     quantity.value = product.value.soLuong
 
     toast.warning('Số lượng sản phẩm vừa được cập nhật.')
   }
+
   vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
-
-  provinces.value = await getProvinces()
-
   if (isLoggedIn) {
     await loadAddresses()
   }
+  provinces.value = await getProvinces()
 }
 
 onMounted(async () => {
+  // Ưu tiên mua ngay
+  if (spctId.value) {
+    isCartCheckout.value = false
+
+    await loadData()
+
+    connectSocket()
+
+    return
+  }
+
+  // Thanh toán từ giỏ
   const checkout = sessionStorage.getItem('checkoutData')
 
   if (checkout) {
@@ -1479,25 +1671,18 @@ onMounted(async () => {
 
     vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
 
-    provinces.value = await getProvinces()
-
     if (isLoggedIn) {
       await loadAddresses()
     }
+
+    provinces.value = await getProvinces()
 
     connectSocket()
 
     return
   }
 
-  if (!spctId) {
-    router.push('/')
-    return
-  }
-
-  await loadData()
-
-  connectSocket()
+  router.push('/')
 })
 
 function connectSocket() {
@@ -1519,12 +1704,12 @@ function subscribeOrder() {
 
     switch (event.type) {
       case 'DISCOUNT_UPDATED':
-        product.value = await getSanPhamChiTietById(spctId)
+        product.value = await getSanPhamChiTietById(spctId.value)
         break
 
-      case 'PRODUCT_UPDATED':
-        product.value = await getSanPhamChiTietById(spctId)
-        break
+      // case 'PRODUCT_UPDATED':
+      //   product.value = await getSanPhamChiTietById(spctId.value)
+      //   break
 
       case 'VOUCHER_UPDATED':
         vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
@@ -1722,7 +1907,7 @@ const note = ref('')
 const stock = computed(() => product.value?.soLuongTon || 0)
 const subtotal = computed(() => {
   if (isCartCheckout.value) {
-    return checkoutItems.value.reduce((sum, item) => sum + Number(item.thanhTien), 0)
+    return checkoutItems.value.reduce((sum, item) => sum + item.giaBan * item.quantity, 0)
   }
 
   return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
@@ -1748,7 +1933,22 @@ const increaseQty = () => {
 const decreaseQty = () => {
   if (quantity.value > 1) quantity.value--
 }
+const increaseCartQty = (item) => {
+  // Lấy kho từ soLuongTon hoặc soLuong, nếu không có thì mặc định lấy 9999
+  const maxStock = item.soLuongTon ?? item.soLuong ?? 9999
 
+  if (item.quantity < maxStock) {
+    item.quantity++
+  } else {
+    toast.warning('Số lượng đã đạt giới hạn tồn kho')
+  }
+}
+
+const decreaseCartQty = (item) => {
+  if (item.quantity > 1) {
+    item.quantity--
+  }
+}
 const validateGuestCheckout = () => {
   if (!addressForm.value.tenNguoiNhan.trim()) {
     toast.warning('Vui lòng nhập họ tên người nhận')
@@ -1805,7 +2005,7 @@ const placeOrder = async () => {
         }))
       : [
           {
-            productDetailId: spctId,
+            productDetailId: spctId.value,
             quantity: quantity.value,
           },
         ],
@@ -1816,6 +2016,9 @@ const placeOrder = async () => {
 
     const res = await taoHoaDonOnline(body, authToken)
     toast.success(`Đặt hàng thành công. Mã đơn: ${res.maHoaDon}`)
+    if (isCartCheckout.value) {
+      sessionStorage.removeItem('checkoutData')
+    }
     sessionStorage.setItem('orderProduct', JSON.stringify(product.value))
     sessionStorage.setItem('lastGuestOrderCode', res.maHoaDon)
 

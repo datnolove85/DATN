@@ -1,0 +1,177 @@
+package com.example.backend.Service.impl;
+
+import com.example.backend.Repository.*;
+import com.example.backend.Response.thongke.*;
+import com.example.backend.Service.ThongKeService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ThongKeServiceImpl implements ThongKeService {
+
+    private final HoaDonRepository hoaDonRepository;
+    private final KhachHangRepository khachHangRepository;
+    private final SanPhamRepository sanPhamRepository;
+    private final HoaDonChiTietRepository hoaDonChiTietRepository;
+    private final HinhAnhRepository hinhAnhRepository;
+    private final SanPhamChiTietRepository sanPhamChiTietRepository;
+    private final ThanhToanRepository thanhToanRepository;
+
+    @Override
+    public DashboardResponse dashboard(LocalDate from, LocalDate to, String loaiHoaDon) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59);
+
+        DashboardResponse response = new DashboardResponse();
+
+        BigDecimal doanhThu = hoaDonRepository.getTongDoanhThuTheoKhoang(start, end, loaiHoaDon);
+        BigDecimal giaVon = hoaDonRepository.getTongGiaVonTheoKhoang(start, end, loaiHoaDon);
+
+        response.setTongDoanhThu(doanhThu);
+        response.setDoanhThuTienMat(thanhToanRepository.tongTienMatTheoKhoang(start, end, loaiHoaDon));
+        response.setDoanhThuChuyenKhoan(thanhToanRepository.tongChuyenKhoanTheoKhoang(start, end, loaiHoaDon));
+
+        // Tính lợi nhuận gộp = Doanh thu - Giá vốn
+        response.setLoiNhuanGop(doanhThu.subtract(giaVon));
+
+        response.setTongDonHang(hoaDonRepository.countHoaDonTheoKhoang(start, end, loaiHoaDon));
+        response.setTongKhachHang(khachHangRepository.countKhachHang());
+        response.setTongSanPham(sanPhamRepository.countSanPhamDangBan());
+
+        return response;
+    }
+
+    @Override
+    public List<RevenueResponse> revenue(
+            LocalDate from,
+            LocalDate to,
+            String groupBy,
+            String loaiHoaDon
+    ) {
+        List<Object[]> rows;
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59);
+
+        switch (groupBy) {
+            case "month":
+                rows = hoaDonRepository.revenueByMonth(start, end, loaiHoaDon);
+                break;
+            case "year":
+                // Đã truyền thêm loaiHoaDon vào đây để đồng bộ với Repository
+                rows = hoaDonRepository.revenueByYear(loaiHoaDon);
+                break;
+            default:
+                rows = hoaDonRepository.revenueByDay(start, end, loaiHoaDon);
+        }
+
+        return rows.stream()
+                .map(r -> new RevenueResponse(
+                        r[0].toString(),
+                        (BigDecimal) r[1]
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<OrderStatusResponse> thongKeTrangThai(LocalDate from, LocalDate to, String loaiHoaDon) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59);
+        return hoaDonRepository.thongKeTrangThaiTheoKhoang(start, end, loaiHoaDon);
+    }
+
+    @Override
+    public List<TopProductResponse> topProducts(LocalDate from, LocalDate to, Integer limit, String loaiHoaDon) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59);
+
+        // Đã truyền thêm loaiHoaDon vào đây
+        List<TopProductStatistic> statistics =
+                hoaDonChiTietRepository.topProductsTheoKhoang(start, end, loaiHoaDon, PageRequest.of(0, limit));
+
+        if (statistics.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> ids = statistics.stream()
+                .map(TopProductStatistic::getProductId)
+                .toList();
+
+        Map<Integer, ProductExtraInfo> extraMap =
+                sanPhamChiTietRepository.getExtraInfo(ids)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                ProductExtraInfo::getProductId,
+                                Function.identity()
+                        ));
+
+        Map<Integer, String> imageMap =
+                hinhAnhRepository.getMainImages(ids)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                h -> h.getIdSanPhamChiTiet().getIdSanPham().getId(),
+                                h -> "/sanpham" + h.getLink(),
+                                (a, b) -> a
+                        ));
+
+        List<TopProductResponse> result = new ArrayList<>();
+
+        for (TopProductStatistic s : statistics) {
+            TopProductResponse dto = new TopProductResponse();
+
+            dto.setProductId(s.getProductId());
+            dto.setMaSanPham(s.getMaSanPham());
+            dto.setTenSanPham(s.getTenSanPham());
+
+            // Gán thêm thông tin thương hiệu và chất liệu
+            dto.setThuongHieu(s.getThuongHieu());
+            dto.setChatLieu(s.getChatLieu());
+
+            dto.setSoLuongBan(s.getSoLuongBan());
+            dto.setDoanhThu(s.getDoanhThu());
+
+            ProductExtraInfo extra = extraMap.get(s.getProductId());
+
+            if (extra != null) {
+                dto.setGiaBan(extra.getGiaBan());
+                dto.setTongTonKho(extra.getTongTonKho());
+                dto.setSoBienThe(extra.getSoBienThe());
+
+                dto.setLoiNhuan(
+                        extra.getGiaBan()
+                                .subtract(extra.getGiaNhap())
+                                .multiply(BigDecimal.valueOf(s.getSoLuongBan()))
+                );
+            }
+
+            dto.setAnh(imageMap.get(s.getProductId()));
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<TopCustomerResponse> topCustomers(LocalDate from, LocalDate to, Integer limit, String loaiHoaDon) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59);
+
+        return hoaDonRepository.topCustomersTheoKhoang(
+                start,
+                end,
+                PageRequest.of(0, limit),
+                loaiHoaDon
+        );
+    }
+}
