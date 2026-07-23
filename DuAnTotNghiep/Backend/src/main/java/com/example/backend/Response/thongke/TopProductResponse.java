@@ -1,36 +1,36 @@
-package com.example.backend.Response.thongke;
+    package com.example.backend.Response.thongke;
 
-import lombok.*;
+    import lombok.*;
 
-import java.math.BigDecimal;
+    import java.math.BigDecimal;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class TopProductResponse {
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public class TopProductResponse {
 
-    private Integer productId;
+        private Integer productId;
 
-    private String maSanPham;
+        private String maSanPham;
 
-    private String tenSanPham;
+        private String tenSanPham;
 
-    private String thuongHieu;
+        private String thuongHieu;
 
-    private String chatLieu;
+        private String chatLieu;
 
-    private String anh;
+        private String anh;
 
-    private BigDecimal giaBan;
+        private BigDecimal giaBan;
 
-    private Long soBienThe;
+        private Long soBienThe;
 
-    private Long tongTonKho;
+        private Long tongTonKho;
 
-    private Long soLuongBan;
+        private Long soLuongBan;
 
-    private BigDecimal doanhThu;
+        private BigDecimal doanhThu;
 
-    private BigDecimal loiNhuan;
+        private BigDecimal loiNhuan;
 
-}
+    }

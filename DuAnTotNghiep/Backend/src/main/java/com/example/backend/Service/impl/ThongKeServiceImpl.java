@@ -140,6 +140,9 @@ public class ThongKeServiceImpl implements ThongKeService {
 
             dto.setSoLuongBan(s.getSoLuongBan());
             dto.setDoanhThu(s.getDoanhThu());
+            dto.setLoiNhuan(
+                    s.getDoanhThu().subtract(s.getGiaVon())
+            );
 
             ProductExtraInfo extra = extraMap.get(s.getProductId());
 
@@ -147,12 +150,6 @@ public class ThongKeServiceImpl implements ThongKeService {
                 dto.setGiaBan(extra.getGiaBan());
                 dto.setTongTonKho(extra.getTongTonKho());
                 dto.setSoBienThe(extra.getSoBienThe());
-
-                dto.setLoiNhuan(
-                        extra.getGiaBan()
-                                .subtract(extra.getGiaNhap())
-                                .multiply(BigDecimal.valueOf(s.getSoLuongBan()))
-                );
             }
 
             dto.setAnh(imageMap.get(s.getProductId()));

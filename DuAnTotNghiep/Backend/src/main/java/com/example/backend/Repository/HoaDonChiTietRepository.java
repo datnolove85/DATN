@@ -39,19 +39,23 @@ WHERE ct.idHoaDon.id = :idHoaDon
     List<HoaDonChiTiet> findByIdSanPhamChiTiet_Id(
             Integer idSanPhamChiTiet
     );
-    // Bổ sung hoặc thay thế method topProducts:
+
     @Query("""
             SELECT new com.example.backend.Response.thongke.TopProductStatistic(
                 sp.id,
                 sp.maSanPham,
-                sp.tenSanPham,
                 th.tenThuongHieu,
                 cl.tenChatLieu,
+                sp.tenSanPham,
                 SUM(hct.soLuong),
-                SUM(hct.thanhTien)
+            SUM(hct.thanhTien),
+            SUM(hct.soLuong * sct.giaNhap)
             )
             FROM HoaDonChiTiet hct
             JOIN hct.idHoaDon hd
+            JOIN ThanhToan tt
+                ON hd.id = tt.idHoaDon.id
+                AND tt.trangThai = 'da_thanh_toan'
             JOIN hct.idSanPhamChiTiet sct
             JOIN sct.idSanPham sp
             LEFT JOIN sp.idThuongHieu th
@@ -59,7 +63,12 @@ WHERE ct.idHoaDon.id = :idHoaDon
             WHERE hd.trangThai = 'hoan_thanh'
             AND hd.ngayTao BETWEEN :from AND :to
             AND (:loaiHoaDon IS NULL OR :loaiHoaDon = '' OR hd.loaiHoaDon = :loaiHoaDon)
-            GROUP BY sp.id, sp.maSanPham, sp.tenSanPham, th.tenThuongHieu, cl.tenChatLieu
+            GROUP BY
+                sp.id,
+                sp.maSanPham,
+                th.tenThuongHieu,
+                cl.tenChatLieu,
+                sp.tenSanPham
             ORDER BY SUM(hct.soLuong) DESC
             """)
     List<TopProductStatistic> topProductsTheoKhoang(

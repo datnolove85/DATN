@@ -356,6 +356,36 @@ public class HoaDonServiceImpl implements HoaDonService {
         BigDecimal tongThanhToan =
                 hd.getTongThanhToan();
 
+
+// ================== PHÂN BỔ VOUCHER XUỐNG CHI TIẾT ==================
+        if (tongTienHang.compareTo(BigDecimal.ZERO) > 0
+                && tongTienHang.compareTo(tongThanhToan) > 0) {
+
+            BigDecimal tongDaPhanBo = BigDecimal.ZERO;
+
+            for (int i = 0; i < dsChiTiet.size(); i++) {
+
+                HoaDonChiTiet ct = dsChiTiet.get(i);
+
+                BigDecimal thanhTienMoi;
+
+                // Dòng cuối nhận phần chênh lệch do làm tròn
+                if (i == dsChiTiet.size() - 1) {
+                    thanhTienMoi = tongThanhToan.subtract(tongDaPhanBo);
+                } else {
+                    thanhTienMoi = ct.getThanhTien()
+                            .multiply(tongThanhToan)
+                            .divide(tongTienHang, 2, RoundingMode.HALF_UP);
+
+                    tongDaPhanBo = tongDaPhanBo.add(thanhTienMoi);
+                }
+
+                ct.setThanhTien(thanhTienMoi);
+            }
+
+            ctRepo.saveAll(dsChiTiet);
+        }
+
         // phương thức thanh toán
         PhuongThucThanhToan pt =
                 ptRepo.findById(
@@ -363,6 +393,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 ).orElseThrow(() ->
                         new RuntimeException(
                                 "Không tìm thấy phương thức"));
+
 
         // tạo thanh toán
         ThanhToan tt =
