@@ -1632,68 +1632,53 @@ public class HoaDonServiceImpl implements HoaDonService {
         );
     }
 
+    @Override
     @Transactional
     public void updateTrangThai(Integer id, String trangThaiMoi) {
 
+        // 1. Tìm hóa đơn theo ID
         HoaDon hoaDon = hoaDonRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
+        // 2. Chuyển đổi và kiểm tra trạng thái mới
         TrangThaiHoaDon newStatus;
         try {
-            newStatus = TrangThaiHoaDon.valueOf(trangThaiMoi.toUpperCase());
+            newStatus = TrangThaiHoaDon.fromValue(trangThaiMoi);
         } catch (Exception e) {
-            throw new RuntimeException("Trạng thái không hợp lệ");
+            throw new RuntimeException("Trạng thái mới không hợp lệ");
         }
 
-        String current = hoaDon.getTrangThai().toUpperCase();
-
-        if ("DA_HUY".equals(current)) {
-            throw new RuntimeException("Đơn đã huỷ không thể cập nhật");
+        // 3. Chuyển đổi và kiểm tra trạng thái hiện tại
+        TrangThaiHoaDon currentStatus;
+        try {
+            currentStatus = TrangThaiHoaDon.fromValue(hoaDon.getTrangThai());
+        } catch (Exception e) {
+            throw new RuntimeException("Trạng thái hiện tại của hóa đơn không hợp lệ");
         }
 
-        if (!isValidTransition(current, newStatus.name())) {
+        // 4. Kiểm tra nếu đơn hàng đã bị hủy
+        if (currentStatus == TrangThaiHoaDon.DA_HUY) {
+            throw new RuntimeException("Đơn đã hủy không thể cập nhật trạng thái khác");
+        }
+
+        // 5. Kiểm tra quy tắc chuyển trạng thái (State machine rule)
+        if (!TrangThaiRule.ALLOWED.containsKey(currentStatus) ||
+                !TrangThaiRule.ALLOWED.get(currentStatus).contains(newStatus)) {
+
             throw new RuntimeException(
-                    "Không thể chuyển từ " + current + " sang " + newStatus
+                    "Không thể chuyển trạng thái từ '"
+                            + currentStatus.getValue()
+                            + "' sang '"
+                            + newStatus.getValue() + "'"
             );
         }
 
-        hoaDon.setTrangThai(newStatus.name());
+        // 6. Cập nhật trạng thái mới và thời gian cập nhật vào Entity
+        hoaDon.setTrangThai(newStatus.getValue());
         hoaDon.setNgayCapNhat(LocalDateTime.now());
 
+        // 7. Lưu thay đổi xuống Database
         hoaDonRepo.save(hoaDon);
-    }
-
-    private static final Set<String> CHO_XAC_NHAN =
-            Set.of("DA_XAC_NHAN", "DA_HUY");
-
-    private static final Set<String> DA_XAC_NHAN =
-            Set.of("DANG_GIAO", "DA_HUY");
-
-    private static final Set<String> DANG_GIAO =
-            Set.of("HOAN_THANH");
-
-    private static final Set<String> DA_GIAO =
-            Set.of(); // hoặc bỏ luôn nếu không dùng
-
-    private boolean isValidTransition(String from, String to) {
-
-        from = from.toUpperCase();
-        to = to.toUpperCase();
-
-        return switch (from) {
-
-            case "CHO_XAC_NHAN" -> CHO_XAC_NHAN.contains(to);
-
-            case "DA_XAC_NHAN" -> DA_XAC_NHAN.contains(to);
-
-            case "DANG_GIAO" -> DANG_GIAO.contains(to);
-
-            case "DA_GIAO" -> DA_GIAO.contains(to);
-
-            case "HOAN_THANH", "DA_HUY" -> false;
-
-            default -> false;
-        };
     }
 
     private void kiemTraVoucherConHopLe(Integer idHoaDon) {

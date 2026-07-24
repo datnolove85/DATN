@@ -10,6 +10,9 @@ import com.example.backend.Request.PaymentRequest;
 import com.example.backend.Response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class BankPaymentService implements PaymentService {
     }
 
     @Override
+    @Transactional // Thêm Annotation để đảm bảo rollback nếu 1 trong 2 save bị lỗi
     public PaymentResponse pay(PaymentRequest request) {
 
         HoaDon hoaDon = hoaDonRepository.findById(request.getIdHoaDon())
@@ -32,25 +36,27 @@ public class BankPaymentService implements PaymentService {
 
         PhuongThucThanhToan pttt = phuongThucRepository
                 .findByMaPhuongThuc("BANK")
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phương thức BANK"));
 
+        // 1. Tạo lịch sử thanh toán -> trạng thái "da_thanh_toan"
         ThanhToan thanhToan = new ThanhToan();
-
         thanhToan.setIdHoaDon(hoaDon);
         thanhToan.setIdPhuongThucThanhToan(pttt);
-
         thanhToan.setSoTien(hoaDon.getTongThanhToan());
-
-        thanhToan.setTrangThai("cho_thanh_toan");
-
+        thanhToan.setTrangThai("da_thanh_toan"); // <--- Sửa thành "da_thanh_toan"
+        thanhToan.setNgayThanhToan(LocalDateTime.now());
         thanhToanRepository.save(thanhToan);
 
-        String paymentUrl =
-                "http://localhost:5173/payment/fake?paymentId=" + thanhToan.getId();
+        // 2. CẬP NHẬT TRẠNG THÁI HÓA ĐƠN -> "da_thanh_toan"
+        hoaDon.setTrangThaiThanhToan("da_thanh_toan"); // <--- Bổ sung dòng này
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+        hoaDonRepository.save(hoaDon); // <--- Bổ sung save hóa đơn
+
+        String paymentUrl = "http://localhost:5173/payment/fake?paymentId=" + thanhToan.getId();
 
         return new PaymentResponse(
                 true,
-                "Chuyển tới trang thanh toán",
+                "Thanh toán chuyển khoản thành công",
                 paymentUrl
         );
     }

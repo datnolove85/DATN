@@ -1,14 +1,16 @@
 const API_URL = 'http://localhost:8080/don-hang'
 
-const getToken = () => localStorage.getItem('token')
+// Lấy Token từ sessionStorage
+const getToken = () => sessionStorage.getItem('token')
 
+// Tạo Header dùng chung
 const getHeaders = () => ({
   'Content-Type': 'application/json',
   Authorization: `Bearer ${getToken()}`,
 })
 
 const donHangService = {
-  // Lấy danh sách đơn hàng
+  // 1. Lấy danh sách đơn hàng
   async layDanhSachDonHang() {
     const response = await fetch(API_URL, {
       method: 'GET',
@@ -22,7 +24,7 @@ const donHangService = {
     return await response.json()
   },
 
-  // Lấy chi tiết đơn hàng
+  // 2. Lấy chi tiết đơn hàng (Dùng chung cho cả Khách hàng và Admin)
   async layChiTietDonHang(idHoaDon) {
     const response = await fetch(`${API_URL}/${idHoaDon}`, {
       method: 'GET',

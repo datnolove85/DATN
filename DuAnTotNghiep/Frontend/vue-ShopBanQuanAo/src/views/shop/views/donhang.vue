@@ -23,8 +23,10 @@
         <el-tab-pane label="Tất cả" name="all" />
         <el-tab-pane label="Chờ xác nhận" name="cho_xac_nhan" />
         <el-tab-pane label="Đã xác nhận" name="da_xac_nhan" />
+        <el-tab-pane label="Chờ vận chuyển" name="cho_van_chuyen" />
         <el-tab-pane label="Đang giao" name="dang_giao" />
-        <el-tab-pane label="Đã giao" name="da_giao" />
+        <el-tab-pane label="Giao thành công" name="giao_thanh_cong" />
+        <el-tab-pane label="Giao thất bại" name="giao_that_bai" />
         <el-tab-pane label="Hoàn thành" name="hoan_thanh" />
         <el-tab-pane label="Đã hủy" name="da_huy" />
       </el-tabs>
@@ -91,15 +93,33 @@
           </div>
         </div>
 
-        <!-- TIMELINE -->
-        <div class="timeline-container">
-          <el-steps :active="getStep(order)" finish-status="success" align-center>
+        <!-- TIMELINE (Cập nhật 6 bước chuẩn) -->
+        <!-- TIMELINE (6 bước chuẩn luồng shop) -->
+        <div class="timeline-container" v-if="order.thongTinDonHang.trangThai !== 'da_huy'">
+          <el-steps
+            :active="getStep(order)"
+            :status="order.thongTinDonHang.trangThai === 'giao_that_bai' ? 'error' : 'finish'"
+            finish-status="success"
+            align-center
+          >
             <el-step title="Chờ xác nhận" />
             <el-step title="Đã xác nhận" />
+            <el-step title="Chuẩn bị hàng" />
+            <!-- Đã đổi tên chuẩn quy trình -->
             <el-step title="Đang giao" />
-            <el-step title="Đã giao" />
+            <el-step
+              :title="
+                order.thongTinDonHang.trangThai === 'giao_that_bai'
+                  ? 'Giao thất bại'
+                  : 'Giao thành công'
+              "
+            />
             <el-step title="Hoàn thành" />
           </el-steps>
+        </div>
+
+        <div class="cancel-banner" v-else>
+          <el-alert title="Đơn hàng này đã bị hủy" type="error" :closable="false" show-icon />
         </div>
 
         <!-- RETURN BOX -->
@@ -121,22 +141,34 @@
 
           <div class="action-buttons">
             <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
+
+            <!-- Nút Thanh toán ngay nếu chưa thanh toán -->
             <el-button
               type="primary"
-              v-if="order.thongTinDonHang.trangThaiThanhToan == 'chua_thanh_toan'"
+              v-if="
+                order.thongTinDonHang.trangThaiThanhToan === 'chua_thanh_toan' &&
+                order.thongTinDonHang.trangThai !== 'da_huy'
+              "
             >
               Thanh toán
             </el-button>
-            <el-button type="success" v-if="order.thongTinDonHang.trangThai == 'da_giao'">
-              Đã nhận hàng
+
+            <!-- Nút Xác nhận đã nhận hàng nếu đang ở giao_thanh_cong -->
+            <el-button
+              type="success"
+              v-if="order.thongTinDonHang.trangThai === 'giao_thanh_cong'"
+              @click="confirmReceived(order)"
+            >
+              Đã nhận được hàng
             </el-button>
+
             <el-button plain type="primary">Mua lại</el-button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ================= DETAIL DIALOG (GIAO DIỆN CHUẨN CHỈNH) ================= -->
+    <!-- ================= DETAIL DIALOG ================= -->
     <el-dialog
       v-model="dialogVisible"
       width="800px"
@@ -167,7 +199,6 @@
 
         <!-- THÔNG TIN GIAO HÀNG & CHUNG GRID -->
         <div class="detail-grid">
-          <!-- THÔNG TIN NGƯỜI NHẬN -->
           <div class="detail-section">
             <div class="section-title">
               <el-icon><Location /></el-icon>
@@ -184,7 +215,6 @@
             </div>
           </div>
 
-          <!-- THÔNG TIN ĐƠN HÀNG -->
           <div class="detail-section">
             <div class="section-title">
               <el-icon><InfoFilled /></el-icon>
@@ -200,7 +230,7 @@
                 <span>{{ formatDate(selectedOrder.thongTinDonHang.ngayTao) }}</span>
               </div>
               <div class="info-row">
-                <span>Hình thức thanh toán:</span>
+                <span>Thanh toán:</span>
                 <span>{{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}</span>
               </div>
             </div>
@@ -291,12 +321,6 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">Đóng</el-button>
-          <el-button
-            type="primary"
-            v-if="selectedOrder?.thongTinDonHang.trangThaiThanhToan == 'chua_thanh_toan'"
-          >
-            Thanh toán ngay
-          </el-button>
         </span>
       </template>
     </el-dialog>
@@ -397,7 +421,7 @@ const filteredOrders = computed(() => {
 })
 
 // ======================
-// TAG STATUS
+// TAG STATUS (Cập nhật chuẩn 8 trạng thái)
 // ======================
 function statusType(status) {
   const s = (status || '').toLowerCase()
@@ -406,11 +430,14 @@ function statusType(status) {
       return 'warning'
     case 'da_xac_nhan':
       return 'primary'
+    case 'cho_van_chuyen':
+      return 'info' // Sửa từ 'cyan' thành 'info'
     case 'dang_giao':
-      return 'info'
-    case 'da_giao':
+      return 'primary'
+    case 'giao_thanh_cong':
     case 'hoan_thanh':
       return 'success'
+    case 'giao_that_bai':
     case 'da_huy':
       return 'danger'
     default:
@@ -434,7 +461,7 @@ function paymentType(status) {
 }
 
 // ======================
-// STEP
+// STEP (Cập nhật khớp với 6 nút Timeline)
 // ======================
 function getStep(order) {
   const t = (order.thongTinDonHang.trangThai || '').toLowerCase()
@@ -443,12 +470,15 @@ function getStep(order) {
       return 1
     case 'da_xac_nhan':
       return 2
-    case 'dang_giao':
+    case 'cho_van_chuyen':
       return 3
-    case 'da_giao':
+    case 'dang_giao':
       return 4
-    case 'hoan_thanh':
+    case 'giao_thanh_cong':
+    case 'giao_that_bai':
       return 5
+    case 'hoan_thanh':
+      return 6
     default:
       return 1
   }
@@ -457,6 +487,27 @@ function getStep(order) {
 function openDetail(order) {
   selectedOrder.value = order
   dialogVisible.value = true
+}
+
+// Xử lý nút khách ấn Đã nhận được hàng
+async function confirmReceived(order) {
+  try {
+    const token = sessionStorage.getItem('token')
+    const res = await fetch(
+      `http://localhost:8080/don-hang/${order.thongTinDonHang.id}/trang-thai?trangThai=hoan_thanh`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+    if (!res.ok) throw new Error('Không thể cập nhật trạng thái')
+    ElMessage.success('Cảm ơn bạn đã xác nhận nhận hàng!')
+    loadOrders()
+  } catch (e) {
+    ElMessage.error(e.message)
+  }
 }
 
 onMounted(() => {

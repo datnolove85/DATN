@@ -946,7 +946,8 @@ const pay = async () => {
       idHoaDon: Number(orderId),
       method: paymentMethod.value,
     }
-
+    //  LOG DỮ LIỆU GỬI LÊN BE TẠI ĐÂY
+    console.log('=== DỮ LIỆU GỬI LÊN BACKEND ===', body)
     const res = await thanhToan(body)
 
     clearQrSession()

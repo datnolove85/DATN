@@ -1,6 +1,5 @@
 package com.example.backend.Service.impl;
 
-
 import com.example.backend.Entity.*;
 import com.example.backend.Repository.*;
 import com.example.backend.Response.*;
@@ -9,304 +8,155 @@ import com.example.backend.Service.DonHangService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 
 @Service
 @RequiredArgsConstructor
 public class DonHangServiceImpl implements DonHangService {
 
-
     private final KhachHangRepository khachHangRepository;
-
     private final HoaDonRepository hoaDonRepository;
-
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
-
     private final ThanhToanRepository thanhToanRepository;
-
     private final TraHangRepository traHangRepository;
-
     private final HinhAnhRepository hinhAnhRepository;
-
 
     @Override
     public List<DonHangResponse> layDanhSachDonHang(Integer idTaiKhoan) {
+        KhachHang khachHang = khachHangRepository
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
 
-
-        KhachHang khachHang =
-                khachHangRepository
-                        .findByIdTaiKhoan_Id(idTaiKhoan)
-                        .orElseThrow(
-                                () -> new RuntimeException("Không tìm thấy khách hàng")
-                        );
-
-
-        List<HoaDon> hoaDons =
-                hoaDonRepository
-                        .findByIdKhachHang_Id(
-                                khachHang.getId()
-                        );
-
+        List<HoaDon> hoaDons = hoaDonRepository
+                .findByIdKhachHang_Id(khachHang.getId());
 
         List<DonHangResponse> result = new ArrayList<>();
-
-
         for (HoaDon hoaDon : hoaDons) {
-
             result.add(convertDonHang(hoaDon));
-
         }
 
-
         return result;
-
     }
-
 
     @Override
     public DonHangResponse layChiTietDonHang(
             Integer idTaiKhoan,
             Integer idHoaDon
     ) {
+        KhachHang khachHang = khachHangRepository
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
 
+        HoaDon hoaDon = hoaDonRepository
+                .findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-        KhachHang khachHang =
-                khachHangRepository
-                        .findByIdTaiKhoan_Id(idTaiKhoan)
-                        .orElseThrow(
-                                () -> new RuntimeException("Không tìm thấy khách hàng")
-                        );
-
-
-        HoaDon hoaDon =
-                hoaDonRepository
-                        .findById(idHoaDon)
-                        .orElseThrow(
-                                () -> new RuntimeException("Không tìm thấy hóa đơn")
-                        );
-
-
-        if (
-                !hoaDon.getIdKhachHang()
-                        .getId()
-                        .equals(khachHang.getId())
-        ) {
-
-            throw new RuntimeException(
-                    "Đơn hàng không thuộc khách hàng"
-            );
-
+        if (!hoaDon.getIdKhachHang().getId().equals(khachHang.getId())) {
+            throw new RuntimeException("Đơn hàng không thuộc khách hàng");
         }
 
-
         return convertDonHang(hoaDon);
-
     }
 
-    private DonHangResponse convertDonHang(
-            HoaDon hoaDon
-    ) {
-        DonHangResponse response =
-                new DonHangResponse();
+    // ==================================================
+    // HÀM MỚI BỔ SUNG CHO ADMIN
+    // ==================================================
+    @Override
+    public DonHangResponse layChiTietDonHangChoAdmin(Integer idHoaDon) {
+        HoaDon hoaDon = hoaDonRepository
+                .findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        // Admin được phép xem mọi hóa đơn nên convert trực tiếp và trả về luôn
+        return convertDonHang(hoaDon);
+    }
+
+    private DonHangResponse convertDonHang(HoaDon hoaDon) {
+        DonHangResponse response = new DonHangResponse();
 
         /*
          * THÔNG TIN ĐƠN HÀNG
          */
-        DonHangInfoDTO info =
-                new DonHangInfoDTO();
-        info.setId(
-                hoaDon.getId()
-        );
-        info.setMaHoaDon(
-                hoaDon.getMaHoaDon()
-        );
-        info.setLoaiHoaDon(
-                hoaDon.getLoaiHoaDon()
-        );
-        info.setTrangThai(
-                hoaDon.getTrangThai()
-        );
-        info.setTrangThaiHienThi(
-                hienThiTrangThai(
-                        hoaDon.getTrangThai()
-                )
-        );
-        info.setTrangThaiThanhToan(
-                hoaDon.getTrangThaiThanhToan()
-        );
-        info.setTrangThaiThanhToanHienThi(
-                hienThiThanhToan(
-                        hoaDon.getTrangThaiThanhToan()
-                )
-        );
-        info.setTongTienHang(
-                hoaDon.getTongTienHang()
-        );
-        info.setTongGiamGia(
-                hoaDon.getTongGiamGia()
-        );
-        info.setPhiVanChuyen(
-                hoaDon.getPhiVanChuyen()
-        );
-        info.setTongThanhToan(
-                hoaDon.getTongThanhToan()
-        );
-        info.setGhiChu(
-                hoaDon.getGhiChu()
-        );
-        info.setNgayTao(
-                hoaDon.getNgayTao()
-        );
-        info.setNgayCapNhat(
-                hoaDon.getNgayCapNhat()
-        );
+        DonHangInfoDTO info = new DonHangInfoDTO();
+        info.setId(hoaDon.getId());
+        info.setMaHoaDon(hoaDon.getMaHoaDon());
+        info.setLoaiHoaDon(hoaDon.getLoaiHoaDon());
+        info.setTrangThai(hoaDon.getTrangThai());
+        info.setTrangThaiHienThi(hienThiTrangThai(hoaDon.getTrangThai()));
+        info.setTrangThaiThanhToan(hoaDon.getTrangThaiThanhToan());
+        info.setTrangThaiThanhToanHienThi(hienThiThanhToan(hoaDon.getTrangThaiThanhToan()));
+        info.setTongTienHang(hoaDon.getTongTienHang());
+        info.setTongGiamGia(hoaDon.getTongGiamGia());
+        info.setPhiVanChuyen(hoaDon.getPhiVanChuyen());
+        info.setTongThanhToan(hoaDon.getTongThanhToan());
+        info.setGhiChu(hoaDon.getGhiChu());
+        info.setNgayTao(hoaDon.getNgayTao());
+        info.setNgayCapNhat(hoaDon.getNgayCapNhat());
         response.setThongTinDonHang(info);
 
         /*
          * NGƯỜI NHẬN
          */
-        NguoiNhanDTO nguoiNhan =
-                new NguoiNhanDTO();
-        nguoiNhan.setTenNguoiNhan(
-                hoaDon.getTenNguoiNhan()
-        );
-        nguoiNhan.setSoDienThoai(
-                hoaDon.getSoDienThoaiNguoiNhan()
-        );
-        nguoiNhan.setDiaChi(
-                hoaDon.getDiaChiGiaoHang()
-        );
+        NguoiNhanDTO nguoiNhan = new NguoiNhanDTO();
+        nguoiNhan.setTenNguoiNhan(hoaDon.getTenNguoiNhan());
+        nguoiNhan.setSoDienThoai(hoaDon.getSoDienThoaiNguoiNhan());
+        nguoiNhan.setDiaChi(hoaDon.getDiaChiGiaoHang());
         response.setNguoiNhan(nguoiNhan);
+
         /*
          * THEO DÕI ĐƠN
          */
+        TheoDoiDonHangDTO theoDoi = new TheoDoiDonHangDTO();
+        String trangThai = hoaDon.getTrangThai() != null ? hoaDon.getTrangThai().toLowerCase() : "";
 
-
-        TheoDoiDonHangDTO theoDoi =
-                new TheoDoiDonHangDTO();
-
-
-        String trangThai =
-                hoaDon.getTrangThai();
-
-
-        theoDoi.setChoXacNhan(
-                "cho_xac_nhan".equals(trangThai)
-        );
-
-
-        theoDoi.setDaXacNhan(
-                "da_xac_nhan".equals(trangThai)
-        );
-
-
-        theoDoi.setDangGiao(
-                "dang_giao".equals(trangThai)
-        );
-
-
-        theoDoi.setDaGiao(
-                "da_giao".equals(trangThai)
-        );
-
-
-        theoDoi.setHoanThanh(
-                "hoan_thanh".equals(trangThai)
-        );
-
-
-        theoDoi.setDaHuy(
-                "da_huy".equals(trangThai)
-        );
-
-
+        if ("da_huy".equals(trangThai)) {
+            theoDoi.setDaHuy(true);
+        } else if ("giao_that_bai".equals(trangThai)) {
+            theoDoi.setChoXacNhan(true);
+            theoDoi.setDaXacNhan(true);
+            theoDoi.setChoVanChuyen(true);
+            theoDoi.setDangGiao(true);
+            theoDoi.setGiaoThatBai(true);
+        } else {
+            switch (trangThai) {
+                case "hoan_thanh":
+                    theoDoi.setHoanThanh(true);
+                case "giao_thanh_cong":
+                    theoDoi.setGiaoThanhCong(true);
+                case "dang_giao":
+                    theoDoi.setDangGiao(true);
+                case "cho_van_chuyen":
+                    theoDoi.setChoVanChuyen(true);
+                case "da_xac_nhan":
+                    theoDoi.setDaXacNhan(true);
+                case "cho_xac_nhan":
+                    theoDoi.setChoXacNhan(true);
+                    break;
+            }
+        }
         response.setTheoDoi(theoDoi);
-
-
-
-
 
         /*
          * SẢN PHẨM
          */
-
-
-        List<HoaDonChiTiet> chiTietList =
-                hoaDonChiTietRepository
-                        .findByIdHoaDon_Id(
-                                hoaDon.getId()
-                        );
-
-
-        List<DonHangChiTietDTO> sanPham =
-                new ArrayList<>();
-
+        List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByIdHoaDon_Id(hoaDon.getId());
+        List<DonHangChiTietDTO> sanPham = new ArrayList<>();
 
         for (HoaDonChiTiet ct : chiTietList) {
+            DonHangChiTietDTO dto = new DonHangChiTietDTO();
+            SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
 
-
-            DonHangChiTietDTO dto =
-                    new DonHangChiTietDTO();
-
-
-            SanPhamChiTiet spct =
-                    ct.getIdSanPhamChiTiet();
-
-
-            dto.setIdHoaDonChiTiet(
-                    ct.getId()
-            );
-
-
-            dto.setIdSanPhamChiTiet(
-                    spct.getId()
-            );
-
-
-            dto.setMaSanPham(
-                    spct.getMaSanPhamChiTiet()
-            );
-
-
-            dto.setTenSanPham(
-                    spct.getIdSanPham()
-                            .getTenSanPham()
-            );
-
-
-            dto.setMauSac(
-                    spct.getIdMauSac()
-                            .getTenMauSac()
-            );
-
-
-            dto.setKichThuoc(
-                    spct.getIdKichThuoc()
-                            .getTenKichThuoc()
-            );
-
-
-            dto.setSoLuong(
-                    ct.getSoLuong()
-            );
-
-
-            dto.setDonGia(
-                    ct.getDonGia()
-            );
-
-
-            dto.setThanhTien(
-                    ct.getThanhTien()
-            );
-
-
-
-
+            dto.setIdHoaDonChiTiet(ct.getId());
+            dto.setIdSanPhamChiTiet(spct.getId());
+            dto.setMaSanPham(spct.getMaSanPhamChiTiet());
+            dto.setTenSanPham(spct.getIdSanPham().getTenSanPham());
+            dto.setMauSac(spct.getIdMauSac().getTenMauSac());
+            dto.setKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
+            dto.setSoLuong(ct.getSoLuong());
+            dto.setDonGia(ct.getDonGia());
+            dto.setThanhTien(ct.getThanhTien());
             dto.setAnh(
                     hinhAnhRepository
                             .findFirstByIdSanPhamChiTiet_IdAndLaAnhChinhTrue(spct.getId())
@@ -315,148 +165,66 @@ public class DonHangServiceImpl implements DonHangService {
             );
 
             sanPham.add(dto);
-
         }
-
-
         response.setSanPham(sanPham);
-
-
-
-
 
         /*
          * THANH TOÁN
          */
-
-        Optional<ThanhToan> thanhToanOptional =
-                thanhToanRepository.findFirstByIdHoaDon_Id(
-                        hoaDon.getId()
-                );
-
+        Optional<ThanhToan> thanhToanOptional = thanhToanRepository.findFirstByIdHoaDon_Id(hoaDon.getId());
 
         if (thanhToanOptional.isPresent()) {
-
             ThanhToan thanhToan = thanhToanOptional.get();
-
             ThanhToanDTO dto = new ThanhToanDTO();
-
-            dto.setMaGiaoDich(
-                    thanhToan.getMaGiaoDich()
-            );
-
-            dto.setSoTien(
-                    thanhToan.getSoTien()
-            );
-
-            dto.setTrangThai(
-                    thanhToan.getTrangThai()
-            );
-
-            dto.setNgayThanhToan(
-                    thanhToan.getNgayThanhToan()
-            );
-
+            dto.setMaGiaoDich(thanhToan.getMaGiaoDich());
+            dto.setSoTien(thanhToan.getSoTien());
+            dto.setTrangThai(thanhToan.getTrangThai());
+            dto.setNgayThanhToan(thanhToan.getNgayThanhToan());
             response.setThanhToan(dto);
         }
+
         /*
          * TRẢ HÀNG
          */
-
-
-        List<TraHang> traHangs =
-                traHangRepository
-                        .findByHoaDonId(
-                                hoaDon.getId()
-                        );
-
-
-        TraHangDTO traHangDTO =
-                new TraHangDTO();
-
-
-        traHangDTO.setCoTraHang(
-                !traHangs.isEmpty()
-        );
-
+        List<TraHang> traHangs = traHangRepository.findByHoaDonId(hoaDon.getId());
+        TraHangDTO traHangDTO = new TraHangDTO();
+        traHangDTO.setCoTraHang(!traHangs.isEmpty());
 
         if (!traHangs.isEmpty()) {
-
-
-            TraHang traHang =
-                    traHangs.get(0);
-
-
-            traHangDTO.setMaTraHang(
-                    traHang.getMaTraHang()
-            );
-
-
-            traHangDTO.setTrangThai(
-                    traHang.getTrangThai()
-            );
-
-
-            traHangDTO.setTongTienHoan(
-                    traHang.getTongTienHoan()
-            );
-
-
-            traHangDTO.setLyDo(
-                    traHang.getLyDo()
-            );
-
+            TraHang traHang = traHangs.get(0);
+            traHangDTO.setMaTraHang(traHang.getMaTraHang());
+            traHangDTO.setTrangThai(traHang.getTrangThai());
+            traHangDTO.setTongTienHoan(traHang.getTongTienHoan());
+            traHangDTO.setLyDo(traHang.getLyDo());
         }
-
-
         response.setTraHang(traHangDTO);
 
-
         return response;
-
     }
-
 
     private String hienThiTrangThai(String trangThai) {
+        if (trangThai == null) return "";
 
-
-        return switch (trangThai) {
-
+        return switch (trangThai.toLowerCase()) {
             case "cho_xac_nhan" -> "Chờ xác nhận";
-
             case "da_xac_nhan" -> "Đã xác nhận";
-
+            case "cho_van_chuyen" -> "Chờ vận chuyển";
             case "dang_giao" -> "Đang giao";
-
-            case "da_giao" -> "Đã giao";
-
+            case "giao_thanh_cong" -> "Giao thành công";
+            case "giao_that_bai" -> "Giao thất bại";
             case "hoan_thanh" -> "Hoàn thành";
-
             case "da_huy" -> "Đã hủy";
-
-            default -> "";
-
+            default -> "Khác";
         };
-
     }
 
-
     private String hienThiThanhToan(String value) {
-
-
         if ("da_thanh_toan".equals(value)) {
             return "Đã thanh toán";
         }
-
-
         if ("hoan_tien".equals(value)) {
             return "Đã hoàn tiền";
         }
-
-
         return "Chưa thanh toán";
-
     }
-
-
 }
