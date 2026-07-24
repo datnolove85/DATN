@@ -1,7 +1,7 @@
-CREATE DATABASE hazz
+CREATE DATABASE db247
 GO
 
-USE hazz
+USE db247
 GO
 
 -- =========================
@@ -227,7 +227,6 @@ CREATE TABLE san_pham_chi_tiet (
     CONSTRAINT fk_spct_mau_sac FOREIGN KEY (id_mau_sac) REFERENCES mau_sac(id),
     CONSTRAINT fk_spct_kich_thuoc FOREIGN KEY (id_kich_thuoc) REFERENCES kich_thuoc(id)
 );
-GO
 
 -- =========================
 -- 13. hinh_anh
@@ -382,15 +381,29 @@ CREATE TABLE hoa_don (
 -- =========================
 CREATE TABLE hoa_don_chi_tiet (
     id INT IDENTITY(1,1) PRIMARY KEY,
+
     id_hoa_don INT NOT NULL,
+
     id_san_pham_chi_tiet INT NOT NULL,
+
     so_luong INT NOT NULL CHECK (so_luong > 0),
+
+    -- Snapshot giá vốn tại thời điểm bán
+    gia_nhap DECIMAL(18,2) NOT NULL CHECK (gia_nhap >= 0),
+
+    -- Giá bán tại thời điểm bán
     don_gia DECIMAL(18,2) NOT NULL CHECK (don_gia >= 0),
+
+    -- = don_gia * so_luong
     thanh_tien DECIMAL(18,2) NOT NULL CHECK (thanh_tien >= 0),
+
     CONSTRAINT fk_hdct_hoa_don
-        FOREIGN KEY (id_hoa_don) REFERENCES hoa_don(id),
+        FOREIGN KEY (id_hoa_don)
+        REFERENCES hoa_don(id),
+
     CONSTRAINT fk_hdct_spct
-        FOREIGN KEY (id_san_pham_chi_tiet) REFERENCES san_pham_chi_tiet(id)
+        FOREIGN KEY (id_san_pham_chi_tiet)
+        REFERENCES san_pham_chi_tiet(id)
 );
 
 -- =========================
@@ -547,15 +560,12 @@ CREATE TABLE tra_hang_chi_tiet (
         FOREIGN KEY (hoa_don_chi_tiet_id)
         REFERENCES hoa_don_chi_tiet(id)
 );
--- =========================
--- VAI TRO
--- =========================
+
 INSERT INTO vai_tro(ma_vai_tro, ten_vai_tro, trang_thai)
 VALUES 
 ('ADMIN', N'ADMIN', 1),
 ('NV', N'STAFF', 1),
 ('KH', N'USERS', 1);
-
 -- =========================
 -- TAI KHOAN
 -- =========================
@@ -589,16 +599,6 @@ VALUES
 (7,'KH005',N'Hoàng Minh Đức','0904444444','1998-09-18',N'Kim cương',N'Hồ Chí Minh',1),
 (8,'',N'Khách lẻ','','',N' ',N'',1);
 
-
-
--- =========================
--- DIA CHI KHACH HANG
--- =========================
-INSERT INTO dia_chi_khach_hang (ma_dia_chi, ten_nguoi_nhan, so_dien_thoai, thanh_pho, quan, phuong, dia_chi_cu_the, mac_dinh, trang_thai, id_khach_hang)
-VALUES 
-('DC001',N'Trần Thị B','0911111111', N'Hà Nội',N'Cầu Giấy',N'Dịch Vọng', N'123 Trần Thái Tông',1,1,1);
-
--- =========================
 -- DANH MUC
 -- =========================
 INSERT INTO danh_muc(ma_danh_muc, ten_danh_muc)
@@ -644,65 +644,6 @@ VALUES
 ('L','L'),
 ('XL','XL');
 
--- =========================
--- SAN PHAM
--- =========================
-INSERT INTO san_pham (id_danh_muc,id_thuong_hieu,id_chat_lieu, ma_san_pham,ten_san_pham,mo_ta, id_nhan_vien_tao,id_nhan_vien_cap_nhat)
-VALUES 
-(1,1,1,'SP001',N'Áo Thun Nike Basic', N'Áo thun cotton cao cấp',1,1),
-(2,2,1,'SP002',N'Áo Sơ Mi Adidas', N'Sơ mi nam công sở',1,1),
-(3,3,2,'SP003',N'Quần Jean Local', N'Jean form slimfit',1,1);
-
--- =========================
--- SAN PHAM CHI TIET
--- =========================
-INSERT INTO san_pham_chi_tiet (id_san_pham,id_mau_sac,id_kich_thuoc, ma_san_pham_chi_tiet, ten_san_pham_chi_tiet, gia_nhap,gia_ban,so_luong_ton)
-VALUES 
-(1,1,2,'SPCT001', N'Áo Thun Nike Trắng M', 150000,300000,50),
-(1,2,3,'SPCT002', N'Áo Thun Nike Đen L', 150000,300000,40),
-(2,1,2,'SPCT003', N'Áo Sơ Mi Adidas Trắng M', 200000,400000,30),
-(3,3,3,'SPCT004', N'Quần Jean Local Xanh L', 250000,500000,20);
-
--- =========================
-
-
--- =========================
--- GIO HANG
--- =========================
-INSERT INTO gio_hang(id_khach_hang)
-VALUES (1);
-
--- =========================
--- GIO HANG CHI TIET
--- =========================
-INSERT INTO gio_hang_chi_tiet (id_gio_hang,id_san_pham_chi_tiet,so_luong)
-VALUES 
-(1,1,2),
-(1,4,1);
-
--- =========================
--- VOUCHER
--- =========================
-INSERT INTO voucher (ma_voucher,ten_voucher,loai_giam_gia, gia_tri_giam,gia_tri_don_hang_toi_thieu, gia_tri_giam_toi_da,so_luong, ngay_bat_dau,ngay_ket_thuc)
-VALUES 
-('VC001',N'Giảm 10%', 'phan_tram',10,500000,100000,100, GETDATE(),DATEADD(MONTH,1,GETDATE()));
-
--- =========================
--- HOA DON
--- =========================
-INSERT INTO hoa_don (id_khach_hang,id_nhan_vien, ma_hoa_don, tong_tien_hang,tong_giam_gia, phi_van_chuyen,tong_thanh_toan, ten_nguoi_nhan, so_dien_thoai_nguoi_nhan, dia_chi_giao_hang, loai_hoa_don,trang_thai)
-VALUES 
-(1,1,'HD001', 1100000,100000, 30000,1030000, N'Trần Thị B', '0911111111', N'123 Trần Thái Tông, Hà Nội', 'online','da_giao');
-
--- =========================
--- HOA DON CHI TIET
--- =========================
-INSERT INTO hoa_don_chi_tiet (id_hoa_don,id_san_pham_chi_tiet, so_luong,don_gia,thanh_tien)
-VALUES 
-(1,1,2,300000,600000),
-(1,4,1,500000,500000);
-
--- =========================
 -- PHUONG THUC THANH TOAN
 -- =========================
 INSERT INTO phuong_thuc_thanh_toan
@@ -714,59 +655,3 @@ VALUES
 ('VNPAY',  N'VNPay'),
 ('MOMO',   N'Ví điện tử MoMo'),
 ('ZALOPAY',N'Ví điện tử ZaloPay');
--- =========================
--- THANH TOAN
--- =========================
-INSERT INTO thanh_toan (id_hoa_don,id_phuong_thuc_thanh_toan, ma_giao_dich,so_tien,trang_thai, ngay_thanh_toan)
-VALUES 
-(1,1,'GD001',1030000, 'da_thanh_toan',GETDATE());
-
--- =========================
--- HOA DON VOUCHER
--- =========================
-INSERT INTO hoa_don_voucher (id_hoa_don,id_voucher,so_tien_giam)
-VALUES 
-(1,1,100000);
-
--- =========================
--- DOT GIAM GIA
-INSERT INTO dot_giam_gia
-(
-    ma_dot_giam_gia,
-    ten_dot_giam_gia,
-    loai_giam_gia,
-    gia_tri_giam,
-    gia_tri_giam_toi_da,
-    ngay_bat_dau,
-    ngay_ket_thuc,
-    mo_ta,
-    trang_thai
-)
-VALUES
-(
-    'DGG001',
-    N'Summer Sale 2026',
-    'phan_tram',
-    30,
-    200000,
-    '2026-07-01',
-    '2026-07-31',
-    N'Chương trình giảm giá mùa hè',
-    'dang_dien_ra'
-),
-(
-    'DGG002',
-    N'Flash Sale Cuối Tuần',
-    'phan_tram',
-    50,
-    300000,
-    '2026-07-10',
-    '2026-07-12',
-    N'Giảm mạnh cuối tuần',
-    'sap_dien_ra'
-);
--- =========================
--- SAN PHAM GIAM GIA
--- =========================
-
-
