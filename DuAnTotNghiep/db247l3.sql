@@ -1,7 +1,7 @@
-CREATE DATABASE db247
+CREATE DATABASE db247l3
 GO
 
-USE db247
+USE db247l3
 GO
 
 -- =========================
@@ -340,13 +340,15 @@ CREATE TABLE hoa_don (
     trang_thai VARCHAR(30)
         CHECK (
             trang_thai IN (
-                'cho_xac_nhan',
-                'da_xac_nhan',
-                'dang_giao',
-                'da_giao',
-                'hoan_thanh',
-                'da_huy'
-            )
+        'cho_xac_nhan',
+        'da_xac_nhan',
+        'cho_van_chuyen',
+        'dang_giao',
+        'giao_thanh_cong',
+        'giao_that_bai',
+        'hoan_thanh',
+        'da_huy'
+    )
         ),
 
     -- =========================
@@ -560,12 +562,15 @@ CREATE TABLE tra_hang_chi_tiet (
         FOREIGN KEY (hoa_don_chi_tiet_id)
         REFERENCES hoa_don_chi_tiet(id)
 );
-
+-- =========================
+-- VAI TRO
+-- =========================
 INSERT INTO vai_tro(ma_vai_tro, ten_vai_tro, trang_thai)
 VALUES 
 ('ADMIN', N'ADMIN', 1),
 ('NV', N'STAFF', 1),
 ('KH', N'USERS', 1);
+
 -- =========================
 -- TAI KHOAN
 -- =========================
@@ -599,6 +604,16 @@ VALUES
 (7,'KH005',N'Hoàng Minh Đức','0904444444','1998-09-18',N'Kim cương',N'Hồ Chí Minh',1),
 (8,'',N'Khách lẻ','','',N' ',N'',1);
 
+
+
+-- =========================
+-- DIA CHI KHACH HANG
+-- =========================
+INSERT INTO dia_chi_khach_hang (ma_dia_chi, ten_nguoi_nhan, so_dien_thoai, thanh_pho, quan, phuong, dia_chi_cu_the, mac_dinh, trang_thai, id_khach_hang)
+VALUES 
+('DC001',N'Trần Thị B','0911111111', N'Hà Nội',N'Cầu Giấy',N'Dịch Vọng', N'123 Trần Thái Tông',1,1,1);
+
+-- =========================
 -- DANH MUC
 -- =========================
 INSERT INTO danh_muc(ma_danh_muc, ten_danh_muc)
@@ -644,14 +659,21 @@ VALUES
 ('L','L'),
 ('XL','XL');
 
--- PHUONG THUC THANH TOAN
 -- =========================
-INSERT INTO phuong_thuc_thanh_toan
-(ma_phuong_thuc, ten_phuong_thuc)
-VALUES
-('CASH',   N'Tiền mặt'),
-('COD',    N'Thanh toán khi nhận hàng'),
-('BANK',   N'Chuyển khoản VietQR'),
-('VNPAY',  N'VNPay'),
-('MOMO',   N'Ví điện tử MoMo'),
-('ZALOPAY',N'Ví điện tử ZaloPay');
+-- SAN PHAM
+-- =========================
+INSERT INTO san_pham (id_danh_muc,id_thuong_hieu,id_chat_lieu, ma_san_pham,ten_san_pham,mo_ta, id_nhan_vien_tao,id_nhan_vien_cap_nhat)
+VALUES 
+(1,1,1,'SP001',N'Áo Thun Nike Basic', N'Áo thun cotton cao cấp',1,1),
+(2,2,1,'SP002',N'Áo Sơ Mi Adidas', N'Sơ mi nam công sở',1,1),
+(3,3,2,'SP003',N'Quần Jean Local', N'Jean form slimfit',1,1);
+
+-- =========================
+-- SAN PHAM CHI TIET
+-- =========================
+INSERT INTO san_pham_chi_tiet (id_san_pham,id_mau_sac,id_kich_thuoc, ma_san_pham_chi_tiet, ten_san_pham_chi_tiet, gia_nhap,gia_ban,so_luong_ton)
+VALUES 
+(1,1,2,'SPCT001', N'Áo Thun Nike Trắng M', 150000,300000,50),
+(1,2,3,'SPCT002', N'Áo Thun Nike Đen L', 150000,300000,40),
+(2,1,2,'SPCT003', N'Áo Sơ Mi Adidas Trắng M', 200000,400000,30),
+(3,3,3,'SPCT004', N'Quần Jean Local Xanh L', 250000,500000,20);
