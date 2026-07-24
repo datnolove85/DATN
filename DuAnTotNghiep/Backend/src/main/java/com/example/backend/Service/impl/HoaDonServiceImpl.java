@@ -747,20 +747,8 @@ public class HoaDonServiceImpl implements HoaDonService {
 
 
 
-    /*
-        Không tìm theo giá nữa.
 
-        Trước đây:
-        SP + Giá
-        => giá thay đổi sẽ không tìm thấy
-        => tạo HoaDonChiTiet mới
 
-        Hiện tại:
-        Chỉ tìm:
-        Hóa đơn + Sản phẩm
-
-        => giá thay đổi sẽ update dòng cũ
-    */
         Optional<HoaDonChiTiet> hdctOpt =
                 ctRepo.findByIdHoaDon_IdAndIdSanPhamChiTiet_Id(
                         hoaDon.getId(),
@@ -832,7 +820,7 @@ public class HoaDonServiceImpl implements HoaDonService {
             hdct.setSoLuong(
                     request.getSoLuong()
             );
-
+            hdct.setGiaNhap(spct.getGiaNhap());
 
             hdct.setDonGia(
                     giaApDung

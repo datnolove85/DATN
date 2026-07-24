@@ -241,4 +241,37 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
             @Param("to") LocalDateTime to,
             @Param("loaiHoaDon") String loaiHoaDon
     );
+
+    @Query("""
+            SELECT COUNT(h)
+            FROM HoaDon h
+            WHERE h.trangThai='hoan_thanh'
+            AND h.loaiHoaDon='online'
+            AND h.ngayTao BETWEEN :from AND :to
+            """)
+    Long countHoaDonOnlineTheoKhoang(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
+    @Query("""
+            SELECT COUNT(h)
+            FROM HoaDon h
+            WHERE h.trangThai='hoan_thanh'
+            AND h.loaiHoaDon='tai_quay'
+            AND h.ngayTao BETWEEN :from AND :to
+            """)
+    Long countHoaDonTaiQuayTheoKhoang(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
+    @Query("""
+            SELECT COUNT(h)
+            FROM HoaDon h
+            WHERE h.trangThai='hoan_thanh'
+            AND h.idKhachHang IS NULL
+            AND h.ngayTao BETWEEN :from AND :to
+            """)
+    Long countKhachLeTheoKhoang(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
 }

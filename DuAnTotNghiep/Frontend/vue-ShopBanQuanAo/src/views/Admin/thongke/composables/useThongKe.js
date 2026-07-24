@@ -18,7 +18,12 @@ export function useThongKe() {
   // Hàm tính toán khoảng thời gian (from, to) dựa theo loại bộ lọc
   const getDateRange = (filterType, customStart, customEnd) => {
     const now = new Date()
-    const formatDate = (date) => date.toISOString().split('T')[0]
+    const formatDate = (date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
     let from,
       to,
       groupBy = 'day'

@@ -24,11 +24,11 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
     );
 
     @Query("""
-
-            SELECT ct
-FROM HoaDonChiTiet ct
-WHERE ct.idHoaDon.id = :idHoaDon
-""")
+            
+                        SELECT ct
+            FROM HoaDonChiTiet ct
+            WHERE ct.idHoaDon.id = :idHoaDon
+            """)
     List<HoaDonChiTiet> findByHoaDon(@Param("idHoaDon") Integer idHoaDon);
 
     Optional<HoaDonChiTiet> findByIdHoaDon_IdAndIdSanPhamChiTiet_Id(
@@ -77,4 +77,50 @@ WHERE ct.idHoaDon.id = :idHoaDon
             @Param("loaiHoaDon") String loaiHoaDon,
             Pageable pageable
     );
-   }
+
+    @Query("""
+                SELECT COALESCE(SUM(hct.soLuong * hct.giaNhap),0)
+                FROM HoaDonChiTiet hct
+                JOIN hct.idHoaDon hd
+                WHERE hd.trangThai = 'hoan_thanh'
+                AND hd.ngayTao BETWEEN :from AND :to
+                AND (:loaiHoaDon IS NULL
+                     OR :loaiHoaDon = ''
+                     OR hd.loaiHoaDon = :loaiHoaDon)
+            """)
+    BigDecimal tongGiaVonTheoKhoang(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to,
+            @Param("loaiHoaDon") String loaiHoaDon
+    );
+
+    @Query("""
+            SELECT COALESCE(SUM(hct.soLuong),0)
+            FROM HoaDonChiTiet hct
+            JOIN hct.idHoaDon hd
+            WHERE hd.trangThai='hoan_thanh'
+            AND hd.ngayTao BETWEEN :from AND :to
+            AND (:loaiHoaDon IS NULL
+                 OR :loaiHoaDon=''
+                 OR hd.loaiHoaDon=:loaiHoaDon)
+            """)
+    Long tongSoLuongBanTheoKhoang(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to,
+            @Param("loaiHoaDon") String loaiHoaDon);
+
+    @Query("""
+            SELECT COUNT(DISTINCT hct.idSanPhamChiTiet.id)
+            FROM HoaDonChiTiet hct
+            JOIN hct.idHoaDon hd
+            WHERE hd.trangThai='hoan_thanh'
+            AND hd.ngayTao BETWEEN :from AND :to
+            AND (:loaiHoaDon IS NULL
+                 OR :loaiHoaDon=''
+                 OR hd.loaiHoaDon=:loaiHoaDon)
+            """)
+    Long countSkuDaBanTheoKhoang(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to,
+            @Param("loaiHoaDon") String loaiHoaDon);
+}

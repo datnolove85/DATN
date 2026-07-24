@@ -31,24 +31,89 @@ public class ThongKeServiceImpl implements ThongKeService {
 
     @Override
     public DashboardResponse dashboard(LocalDate from, LocalDate to, String loaiHoaDon) {
+
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(23, 59, 59);
 
         DashboardResponse response = new DashboardResponse();
 
-        BigDecimal doanhThu = hoaDonRepository.getTongDoanhThuTheoKhoang(start, end, loaiHoaDon);
-        BigDecimal giaVon = hoaDonRepository.getTongGiaVonTheoKhoang(start, end, loaiHoaDon);
+        // ================== DOANH THU ==================
+        BigDecimal doanhThu =
+                hoaDonRepository.getTongDoanhThuTheoKhoang(start, end, loaiHoaDon);
 
         response.setTongDoanhThu(doanhThu);
-        response.setDoanhThuTienMat(thanhToanRepository.tongTienMatTheoKhoang(start, end, loaiHoaDon));
-        response.setDoanhThuChuyenKhoan(thanhToanRepository.tongChuyenKhoanTheoKhoang(start, end, loaiHoaDon));
 
-        // Tính lợi nhuận gộp = Doanh thu - Giá vốn
-        response.setLoiNhuanGop(doanhThu.subtract(giaVon));
+        response.setDoanhThuTienMat(
+                thanhToanRepository.tongTienMatTheoKhoang(start, end, loaiHoaDon));
 
-        response.setTongDonHang(hoaDonRepository.countHoaDonTheoKhoang(start, end, loaiHoaDon));
-        response.setTongKhachHang(khachHangRepository.countKhachHang());
-        response.setTongSanPham(sanPhamRepository.countSanPhamDangBan());
+        response.setDoanhThuChuyenKhoan(
+                thanhToanRepository.tongChuyenKhoanTheoKhoang(start, end, loaiHoaDon));
+
+        // ================== GIÁ VỐN ==================
+        BigDecimal giaVon =
+                hoaDonChiTietRepository.tongGiaVonTheoKhoang(start, end, loaiHoaDon);
+
+        response.setGiaVon(giaVon);
+
+        // ================== LỢI NHUẬN ==================
+        BigDecimal loiNhuan = doanhThu.subtract(giaVon);
+
+        response.setLoiNhuanGop(loiNhuan);
+
+        if (doanhThu.compareTo(BigDecimal.ZERO) > 0) {
+            response.setBienLoiNhuan(
+                    loiNhuan.multiply(BigDecimal.valueOf(100))
+                            .divide(doanhThu, 2, java.math.RoundingMode.HALF_UP)
+            );
+        } else {
+            response.setBienLoiNhuan(BigDecimal.ZERO);
+        }
+
+        // ================== ĐƠN HÀNG ==================
+        Long tongDon =
+                hoaDonRepository.countHoaDonTheoKhoang(start, end, loaiHoaDon);
+
+        response.setTongDonHang(tongDon);
+
+        response.setDonHangOnline(
+                hoaDonRepository.countHoaDonOnlineTheoKhoang(start, end));
+
+        response.setDonHangTaiQuay(
+                hoaDonRepository.countHoaDonTaiQuayTheoKhoang(start, end));
+
+        // ================== KHÁCH HÀNG ==================
+        response.setTongKhachHang(
+                khachHangRepository.countKhachHang());
+
+        response.setKhachThanhVien(
+                khachHangRepository.countKhachThanhVien());
+
+        response.setKhachLe(
+                hoaDonRepository.countKhachLeTheoKhoang(start, end));
+
+        // ================== SẢN PHẨM ==================
+        Long tongSoLuongBan =
+                hoaDonChiTietRepository.tongSoLuongBanTheoKhoang(
+                        start,
+                        end,
+                        loaiHoaDon);
+
+        response.setTongSanPham(tongSoLuongBan);
+
+        response.setSkuDaBan(
+                hoaDonChiTietRepository.countSkuDaBanTheoKhoang(
+                        start,
+                        end,
+                        loaiHoaDon));
+
+        if (tongDon > 0) {
+            response.setTrungBinhSpMoiDon(
+                    BigDecimal.valueOf(tongSoLuongBan)
+                            .divide(BigDecimal.valueOf(tongDon), 2, java.math.RoundingMode.HALF_UP)
+            );
+        } else {
+            response.setTrungBinhSpMoiDon(BigDecimal.ZERO);
+        }
 
         return response;
     }
@@ -121,7 +186,7 @@ public class ThongKeServiceImpl implements ThongKeService {
                         .stream()
                         .collect(Collectors.toMap(
                                 h -> h.getIdSanPhamChiTiet().getIdSanPham().getId(),
-                                h -> "/sanpham" + h.getLink(),
+                                h -> "/sanpham/" + h.getLink(),
                                 (a, b) -> a
                         ));
 

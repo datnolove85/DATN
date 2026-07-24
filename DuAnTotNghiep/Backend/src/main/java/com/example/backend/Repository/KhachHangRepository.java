@@ -107,4 +107,11 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer>, 
             FROM KhachHang k
             """)
     Long countKhachHang();
+
+    @Query("""
+SELECT COUNT(k)
+FROM KhachHang k
+WHERE k.trangThai=true
+""")
+    Long countKhachThanhVien();
 }
