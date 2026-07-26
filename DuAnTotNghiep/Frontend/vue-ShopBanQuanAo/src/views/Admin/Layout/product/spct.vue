@@ -2,6 +2,7 @@
   <div class="max-w-full mx-auto p-6 bg-slate-50 min-h-screen text-slate-800 font-sans">
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
       <div class="xl:col-span-9 space-y-6">
+        <!-- Banner Header -->
         <div
           class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm overflow-hidden"
         >
@@ -16,7 +17,7 @@
           </div>
           <button
             @click="openModal()"
-            class="flex items-center gap-2 px-5 py-3 bg-indigo-650 hover:bg-indigo-600 bg-indigo-600 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap"
+            class="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -32,6 +33,7 @@
           </button>
         </div>
 
+        <!-- Bộ lọc & Tìm kiếm -->
         <div
           class="bg-white border border-slate-100 p-4 rounded-3xl shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
         >
@@ -71,6 +73,7 @@
           </div>
         </div>
 
+        <!-- Danh sách Sản Phẩm Chi Tiết -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
             v-for="item in filteredProducts"
@@ -78,11 +81,22 @@
             class="bg-white border border-slate-100 rounded-3xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all relative group"
           >
             <div class="flex justify-between items-center mb-4">
-              <span
-                class="px-3 py-1 bg-indigo-50 text-indigo-600 font-bold font-mono text-[10px] rounded-xl border border-indigo-100"
-              >
-                #{{ item.maSanPhamChiTiet }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span
+                  class="px-3 py-1 bg-indigo-50 text-indigo-600 font-bold font-mono text-[10px] rounded-xl border border-indigo-100"
+                >
+                  #{{ item.maSanPhamChiTiet }}
+                </span>
+
+                <!-- 🔥 BADGE GIẢM GIÁ TRÊN DANH SÁCH -->
+                <span
+                  v-if="item.dangGiamGia"
+                  class="px-2 py-0.5 bg-rose-50 text-rose-600 font-bold text-[10px] rounded-lg border border-rose-100 flex items-center gap-1 animate-pulse"
+                >
+                  🔥 -{{ item.phanTramGiam }}%
+                </span>
+              </div>
+
               <span class="flex h-2 w-2 relative">
                 <span
                   :class="[
@@ -122,15 +136,29 @@
               </div>
             </div>
 
+            <!-- Khối thông tin giá & trạng thái -->
             <div class="grid grid-cols-2 gap-2 mb-4">
               <div class="bg-slate-50/80 border border-slate-100 p-2.5 rounded-xl text-left">
                 <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider"
                   >Giá Bán Lẻ</span
                 >
-                <span class="text-xs font-black text-slate-700 font-mono">{{
-                  formatCurrency(item.giaBan)
-                }}</span>
+
+                <!-- Hiển thị khi đang giảm giá -->
+                <div v-if="item.dangGiamGia" class="flex flex-col">
+                  <span class="text-xs font-black text-rose-600 font-mono">
+                    {{ formatCurrency(item.giaSauGiam) }}
+                  </span>
+                  <span class="text-[10px] font-semibold text-slate-400 font-mono line-through">
+                    {{ formatCurrency(item.giaBan) }}
+                  </span>
+                </div>
+
+                <!-- Hiển thị giá thường -->
+                <span v-else class="text-xs font-black text-slate-700 font-mono">
+                  {{ formatCurrency(item.giaBan) }}
+                </span>
               </div>
+
               <div class="bg-slate-50/80 border border-slate-100 p-2.5 rounded-xl text-left">
                 <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider"
                   >Trạng Thái</span
@@ -146,6 +174,7 @@
               </div>
             </div>
 
+            <!-- Thao tác -->
             <div class="flex justify-between items-center pt-2 border-t border-slate-50">
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
                 >Thao tác</span
@@ -208,6 +237,7 @@
               </div>
             </div>
 
+            <!-- Khối chi tiết mở rộng -->
             <div
               v-if="expandedIds.includes(item.id)"
               class="mt-3 pt-3 border-t border-dashed border-slate-200 text-[11px] space-y-3 text-slate-600 bg-slate-50 p-3 rounded-2xl animate-fade-in"
@@ -254,6 +284,7 @@
                   >
                 </p>
               </div>
+
               <div class="pt-1.5 border-t border-slate-200/60">
                 <p class="font-bold text-slate-400 uppercase text-[9px] tracking-wider mb-1">
                   Dữ liệu tài chính
@@ -265,12 +296,17 @@
                   }}</span>
                 </p>
                 <p>
-                  Giá bán:
+                  Giá bán niêm yết:
                   <span class="font-bold text-slate-700 font-mono">{{
                     formatCurrency(item.giaBan)
                   }}</span>
                 </p>
+                <p v-if="item.dangGiamGia" class="text-rose-600 font-medium">
+                  Giá sau giảm (-{{ item.phanTramGiam }}%):
+                  <span class="font-bold font-mono">{{ formatCurrency(item.giaSauGiam) }}</span>
+                </p>
               </div>
+
               <div
                 v-if="item.images && item.images.length > 1"
                 class="pt-1.5 border-t border-slate-200/60"
@@ -300,6 +336,7 @@
         </div>
       </div>
 
+      <!-- Cột thống kê bên phải -->
       <div class="xl:col-span-3 space-y-4">
         <div class="bg-white border border-slate-100 p-6 rounded-3xl space-y-4 shadow-sm">
           <div class="flex justify-between items-center mb-2">
@@ -345,13 +382,14 @@
             <span class="text-indigo-400">✦</span> Lưu ý vận hành
           </div>
           <p class="text-[11px] text-slate-400 leading-relaxed">
-            Mã định danh SKU của biến thể là duy nhất. Khi cập nhật hình ảnh thông qua URL, hãy đảm
-            bảo giao thức bảo mật mã hóa HTTPS hoạt động bình thường để tránh lỗi hiển thị.
+            Mã định danh SKU của biến thể là duy nhất. Giá bán sẽ bị vô hiệu hóa khi cập nhật để bảo
+            toàn các chiến dịch giảm giá đang diễn ra.
           </p>
         </div>
       </div>
     </div>
 
+    <!-- Toast Thông báo -->
     <Transition name="slide-fade">
       <div
         v-if="toast.show"
@@ -363,6 +401,7 @@
       </div>
     </Transition>
 
+    <!-- Modal Khởi tạo / Cập nhật -->
     <Transition name="fade">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
@@ -434,6 +473,7 @@
                 />
               </div>
 
+              <!-- 🚫 GIÁ BÁN - KHÓA KHI Ở CHẾ ĐỘ SỬA (isEditMode) -->
               <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1"
                   >Giá bán</label
@@ -441,9 +481,18 @@
                 <input
                   v-model="formData.giaBan"
                   type="number"
-                  class="w-full bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl text-sm outline-none font-mono focus:bg-white focus:border-indigo-500 transition-all"
+                  :disabled="isEditMode"
+                  :class="[
+                    'w-full px-4 py-2.5 rounded-2xl text-sm outline-none font-mono transition-all border border-slate-100',
+                    isEditMode
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed select-none'
+                      : 'bg-slate-50 focus:bg-white focus:border-indigo-500',
+                  ]"
                   required
                 />
+                <p v-if="isEditMode" class="text-[9px] font-medium text-amber-600 mt-1">
+                  🔒 Không thể sửa giá bán khi cập nhật
+                </p>
               </div>
 
               <div>
@@ -548,8 +597,8 @@ const route = useRoute()
 const productId = route.params.id
 
 // Các biến state
-const selectedFiles = ref([]) // Dùng để gửi lên server
-const previewImages = ref([]) // Dùng để hiển thị trong form
+const selectedFiles = ref([])
+const previewImages = ref([])
 const products = ref([])
 const expandedIds = ref([])
 const isModalOpen = ref(false)
@@ -563,10 +612,7 @@ const handleFileUpload = (event) => {
   const files = event.target.files
   if (!files) return
 
-  // 1. Cập nhật biến để gửi lên server
   selectedFiles.value = Array.from(files)
-
-  // 2. Cập nhật biến để preview ảnh
   previewImages.value = []
   Array.from(files).forEach((file) => {
     const reader = new FileReader()
@@ -612,17 +658,15 @@ const reloadData = async () => {
 const openModal = (item = null) => {
   isEditMode.value = !!item
   formData.value = item ? { ...item } : { trangThai: true, giaNhap: 0, giaBan: 0, soLuongTon: 0 }
-  previewImages.value = [] // Reset preview khi mở modal
-  selectedFiles.value = [] // Reset files khi mở modal
+  previewImages.value = []
+  selectedFiles.value = []
   isModalOpen.value = true
 }
 
 const saveData = async () => {
-  console.log('Payload chuẩn bị gửi:', formData.value)
   try {
     const payload = new FormData()
 
-    // Gán các trường từ form vào payload
     payload.append('idSanPham', formData.value.idSanPham || '')
     payload.append('idMauSac', formData.value.idMauSac || 0)
     payload.append('idKichThuoc', formData.value.idKichThuoc || 0)
@@ -633,14 +677,11 @@ const saveData = async () => {
     payload.append('soLuongTon', formData.value.soLuongTon || 0)
     payload.append('trangThai', formData.value.trangThai ?? true)
 
-    // Gán các file đã chọn vào payload
     selectedFiles.value.forEach((file) => {
       payload.append('files', file)
     })
 
     if (isEditMode.value) {
-      // Đảm bảo formData.value.id có giá trị ở đây
-      console.log('Đang gửi update cho ID:', formData.value.id)
       await updateSanPhamChiTiet(formData.value.id, payload)
       showToast('Cập nhật thành công!')
     } else {
@@ -703,6 +744,7 @@ const deleteItem = async (id) => {
 
 const formatCurrency = (val) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0)
+
 const handleImageError = (e) => {
   e.target.src = 'https://via.placeholder.com/150'
 }

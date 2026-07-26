@@ -1007,7 +1007,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     ){
 
         List<HoaDonChiTiet> list =
-                hdctRepo.findByIdSanPhamChiTiet_Id(idSanPhamChiTiet);
+                hdctRepo.findChoXacNhanBySpct(idSanPhamChiTiet);
 
 
         for(HoaDonChiTiet hdct : list){

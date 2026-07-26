@@ -2,6 +2,9 @@ package com.example.backend.Service.impl;
 
 import com.example.backend.Config.WebSocketConfig;
 import com.example.backend.Entity.*;
+import com.example.backend.Exception.ApiException;
+
+import com.example.backend.Service.CheckoutValidatorService;
 import com.example.backend.Service.PosSocketService;
 import com.example.backend.Service.TrangThaiRule;
 import com.example.backend.utils.VietQrUtil;
@@ -56,6 +59,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final DiaChiKhachHangRepository diaChiKhachHangRepository;
     private final SanPhamGiamGiaRepository sanPhamGiamGiaRepository;
 
+
     @Override
     public HoaDon taoHoaDonCho(TaoHoaDonRequest request) {
         NhanVien nhanVien = nhanVienRepo.findById(request.getIdNhanVien())
@@ -88,7 +92,7 @@ public class HoaDonServiceImpl implements HoaDonService {
         hoaDon.setTongThanhToan(BigDecimal.ZERO);
         hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setNgayCapNhat(LocalDateTime.now());
-
+        hoaDon.setTrangThaiThanhToan("chua_thanh_toan");
         return hoaDonRepo.save(hoaDon);
     }
 
@@ -311,65 +315,151 @@ public class HoaDonServiceImpl implements HoaDonService {
 
 
     @Override
-    @Transactional
-    public Object thanhToanHoaDon(
-            ThanhToanHoaDonRequest req
-    ) {
+    @Transactional(noRollbackFor = ApiException.class) // 🔴 BẮT BUỘC: Giúp DB lưu cập nhật số lượng/tiền dù có throw ApiException
+    public Object thanhToanHoaDon(ThanhToanHoaDonRequest req) {
 
-        HoaDon hd = hoaDonRepo.findById(
-                req.getIdHoaDon()
-        ).orElseThrow(() ->
-                new RuntimeException("Không tìm thấy hóa đơn"));
+        // ================== 1. KIỂM TRA HÓA ĐƠN TỒN TẠI & TRẠNG THÁI ==================
+        HoaDon hd = hoaDonRepo.findById(req.getIdHoaDon())
+                .orElseThrow(() -> new ApiException("Không tìm thấy hóa đơn!", "HOA_DON_NOT_FOUND"));
 
-        if (!"cho_xac_nhan".equals(
-                hd.getTrangThai())) {
-
-            throw new RuntimeException(
-                    "Hóa đơn đã được thanh toán");
+        if (!"cho_xac_nhan".equals(hd.getTrangThai())) {
+            throw new ApiException("Hóa đơn đã được thanh toán hoặc không hợp lệ!", "TRANG_THAI_INVALID");
         }
 
-        List<HoaDonChiTiet> dsChiTiet =
-                ctRepo.findByIdHoaDon_Id(
-                        hd.getId());
+        List<HoaDonChiTiet> dsChiTiet = ctRepo.findByIdHoaDon_Id(hd.getId());
 
         if (dsChiTiet.isEmpty()) {
-
-            throw new RuntimeException(
-                    "Hóa đơn chưa có sản phẩm");
+            throw new ApiException("Hóa đơn chưa có sản phẩm nào, không thể thanh toán!", "HOA_DON_EMPTY");
         }
 
-        // Tính lại toàn bộ tiền
-        recalculateHoaDon(
-                hd.getId());
+        // ================== 2. BƯỚC 1: TỰ ĐỘNG XÓA SẢN PHẨM NGƯNG KINH DOANH ==================
+        List<HoaDonChiTiet> listNgungKinhDoanh = new ArrayList<>();
+        List<String> tenSpNgungKinhDoanh = new ArrayList<>();
 
-        // lấy lại hóa đơn mới nhất
-        hd = hoaDonRepo.findById(
-                hd.getId()
-        ).orElseThrow();
+        for (HoaDonChiTiet ct : dsChiTiet) {
+            SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
 
-        BigDecimal tongTienHang =
-                hd.getTongTienHang();
+            if (spct == null) {
+                listNgungKinhDoanh.add(ct);
+                continue;
+            }
 
-        BigDecimal tongGiamGia =
-                hd.getTongGiamGia();
+            SanPham spCha = spct.getIdSanPham();
+            String tenSp = (spCha != null ? spCha.getTenSanPham() : "") + " (" + spct.getMaSanPhamChiTiet() + ")";
 
-        BigDecimal tongThanhToan =
-                hd.getTongThanhToan();
+            boolean spChaNgung = (spCha != null && Boolean.FALSE.equals(spCha.getTrangThai()));
+            boolean spctNgung = Boolean.FALSE.equals(spct.getTrangThai());
 
+            if (spChaNgung || spctNgung) {
+                listNgungKinhDoanh.add(ct);
+                tenSpNgungKinhDoanh.add(tenSp);
 
-// ================== PHÂN BỔ VOUCHER XUỐNG CHI TIẾT ==================
-        if (tongTienHang.compareTo(BigDecimal.ZERO) > 0
-                && tongTienHang.compareTo(tongThanhToan) > 0) {
+                // Trả lại số lượng tạm giữ
+                int soLuongMua = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+                int tamGiuHienTai = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+                spct.setSoLuongTamGiu(Math.max(0, tamGiuHienTai - soLuongMua));
+                spctRepo.save(spct);
+            }
+        }
 
+        // Nếu phát hiện có SP ngưng kinh doanh -> Xóa khỏi DB + Ném lỗi
+        if (!listNgungKinhDoanh.isEmpty()) {
+            ctRepo.deleteAll(listNgungKinhDoanh);
+            recalculateHoaDon(hd.getId());
+
+            String messageErr = "Sản phẩm ngưng kinh doanh đã tự động gỡ khỏi hóa đơn: " + String.join(", ", tenSpNgungKinhDoanh);
+            throw new ApiException(messageErr, "PRODUCT_DISABLED");
+        }
+
+        // ================== 3. BƯỚC 2: TỰ ĐỘNG ĐIỀU CHỈNH SỐ LƯỢNG KHI THIẾU TỒN KHO ==================
+        dsChiTiet = ctRepo.findByIdHoaDon_Id(hd.getId());
+        if (dsChiTiet.isEmpty()) {
+            throw new ApiException("Tất cả sản phẩm trong hóa đơn đã bị ngưng kinh doanh!", "HOA_DON_EMPTY");
+        }
+
+        List<String> msgDieuChinh = new ArrayList<>();
+        List<HoaDonChiTiet> listHetHangXoa = new ArrayList<>();
+        boolean coThayDoiSoLuong = false;
+
+        for (HoaDonChiTiet ct : dsChiTiet) {
+            SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
+            SanPham spCha = spct.getIdSanPham();
+            String tenSp = (spCha != null ? spCha.getTenSanPham() : "") + " (" + spct.getMaSanPhamChiTiet() + ")";
+
+            int soLuongMua = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+            int tonHienTai = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+
+            // Cập nhật đơn giá mới nhất
+            BigDecimal giaMoi = tinhGiaBanHienTai(spct);
+            ct.setDonGia(giaMoi);
+
+            // KIỂM TRA TỒN KHO
+            if (tonHienTai < soLuongMua) {
+                coThayDoiSoLuong = true;
+
+                if (tonHienTai <= 0) {
+                    // Trường hợp 1: Đã hoàn toàn hết hàng (Tồn = 0) -> Gỡ khỏi hóa đơn
+                    listHetHangXoa.add(ct);
+                    msgDieuChinh.add("[" + tenSp + "] đã hết hàng (đã gỡ khỏi hóa đơn)");
+                } else {
+                    // Trường hợp 2: Kho còn ít hơn số lượng mua (Ví dụ còn 2 mà mua 3)
+                    // -> SET VỀ SỐ LƯỢNG TỒN TỐI ĐA TRONG KHO (Là 2)
+                    ct.setSoLuong(tonHienTai);
+                    ct.setThanhTien(giaMoi.multiply(BigDecimal.valueOf(tonHienTai)));
+
+                    // Cập nhật lại tạm giữ theo số lượng mới
+                    spct.setSoLuongTamGiu(tonHienTai);
+                    spctRepo.save(spct);
+
+                    msgDieuChinh.add("[" + tenSp + "] điều chỉnh từ " + soLuongMua + " -> " + tonHienTai + " (kho chỉ còn " + tonHienTai + ")");
+                }
+            } else {
+                // Đủ tồn kho -> Tính lại thành tiền bình thường
+                ct.setThanhTien(giaMoi.multiply(BigDecimal.valueOf(soLuongMua)));
+            }
+        }
+
+        // Nếu có sản phẩm hết hàng -> Xóa khỏi DB
+        if (!listHetHangXoa.isEmpty()) {
+            ctRepo.deleteAll(listHetHangXoa);
+        }
+
+        // Lưu tất cả cập nhật (giá mới, số lượng đã điều chỉnh) vào DB
+        ctRepo.saveAll(dsChiTiet);
+
+        // Nếu có sự thay đổi về số lượng mua -> Tính lại tiền hóa đơn + Bắn lỗi báo về FE
+        if (coThayDoiSoLuong) {
+            recalculateHoaDon(hd.getId()); // Tính lại TongTienHang, TongGiamGia, TongThanhToan
+
+            String errorMsg = "Số lượng trong kho không đủ, đã cập nhật lại hóa đơn: " + String.join("; ", msgDieuChinh);
+            throw new ApiException(errorMsg, "QUANTITY_ADJUSTED");
+        }
+
+        // ================== 4. ĐỒNG BỘ HÓA ĐƠN & TÍNH LẠI VOUCHER ==================
+        recalculateHoaDon(hd.getId());
+
+        try {
+            kiemTraVoucherConHopLe(hd.getId());
+        } catch (Exception e) {
+            throw new ApiException("Voucher áp dụng không còn hợp lệ: " + e.getMessage(), "VOUCHER_INVALID");
+        }
+
+        // Lấy lại dữ liệu hóa đơn mới nhất từ DB
+        hd = hoaDonRepo.findById(hd.getId()).orElseThrow();
+        dsChiTiet = ctRepo.findByIdHoaDon_Id(hd.getId());
+
+        BigDecimal tongTienHang = hd.getTongTienHang();
+        BigDecimal tongGiamGia = hd.getTongGiamGia();
+        BigDecimal tongThanhToan = hd.getTongThanhToan();
+
+        // ================== 5. PHÂN BỔ VOUCHER XUỐNG CHI TIẾT ==================
+        if (tongTienHang.compareTo(BigDecimal.ZERO) > 0 && tongTienHang.compareTo(tongThanhToan) > 0) {
             BigDecimal tongDaPhanBo = BigDecimal.ZERO;
 
             for (int i = 0; i < dsChiTiet.size(); i++) {
-
                 HoaDonChiTiet ct = dsChiTiet.get(i);
-
                 BigDecimal thanhTienMoi;
 
-                // Dòng cuối nhận phần chênh lệch do làm tròn
                 if (i == dsChiTiet.size() - 1) {
                     thanhTienMoi = tongThanhToan.subtract(tongDaPhanBo);
                 } else {
@@ -379,84 +469,67 @@ public class HoaDonServiceImpl implements HoaDonService {
 
                     tongDaPhanBo = tongDaPhanBo.add(thanhTienMoi);
                 }
-
                 ct.setThanhTien(thanhTienMoi);
             }
-
             ctRepo.saveAll(dsChiTiet);
         }
 
-        // phương thức thanh toán
-        PhuongThucThanhToan pt =
-                ptRepo.findById(
-                        req.getIdPhuongThucThanhToan()
-                ).orElseThrow(() ->
-                        new RuntimeException(
-                                "Không tìm thấy phương thức"));
+        // ================== 6. TRỪ KHO THỰC & GIẢI PHÓNG TẠM GIỮ ==================
+        for (HoaDonChiTiet ct : dsChiTiet) {
+            SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
+            int soLuongMua = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
 
+            int tonHienTai = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+            int tamGiuHienTai = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
 
-        // tạo thanh toán
-        ThanhToan tt =
-                new ThanhToan();
+            spct.setSoLuongTon(Math.max(0, tonHienTai - soLuongMua));
+            spct.setSoLuongTamGiu(Math.max(0, tamGiuHienTai - soLuongMua));
 
-        tt.setIdHoaDon(hd);
+            spctRepo.save(spct);
 
-        tt.setIdPhuongThucThanhToan(
-                pt);
-
-        tt.setSoTien(
-                tongThanhToan);
-
-        tt.setTrangThai(
-                "da_thanh_toan");
-
-        tt.setNgayThanhToan(
-                LocalDateTime.now());
-
-        ttRepo.save(tt);
-
-        // tăng lượt dùng voucher
-        HoaDonVoucher hdVoucher =
-                hoaDonVoucherRepo
-                        .findByIdHoaDon_Id(
-                                hd.getId())
-                        .orElse(null);
-
-        if (hdVoucher != null) {
-
-            Voucher voucher = hdVoucher.getIdVoucher();
-
-            voucher.setSoLuongDaDung(
-                    Optional.ofNullable(voucher.getSoLuongDaDung()).orElse(0) + 1
-            );
-
-            voucher.setSoLuong(voucher.getSoLuong() - 1);
-
-            voucherRepo.save(voucher);
-
+            // Bắn Socket cập nhật UI POS
             posSocketService.send(
-                    new PosEvent(
-                            "VOUCHER_UPDATED",
-                            null,
-                            voucher.getId(),
-                            null
-                    )
+                    new PosEvent("PRODUCT_UPDATED", hd.getId(), spct.getId(), spct.getSoLuongTon())
             );
         }
 
-        // cập nhật hóa đơn
-        hd.setTrangThai(
-                "hoan_thanh");
+        // ================== 7. TẠO THANH TOÁN & TRỪ LƯỢT DÙNG VOUCHER ==================
+        PhuongThucThanhToan pt = ptRepo.findById(req.getIdPhuongThucThanhToan())
+                .orElseThrow(() -> new ApiException("Phương thức thanh toán không hợp lệ!", "PAYMENT_METHOD_NOT_FOUND"));
 
-        hd.setNgayCapNhat(
-                LocalDateTime.now());
+        ThanhToan tt = new ThanhToan();
+        tt.setIdHoaDon(hd);
+        tt.setIdPhuongThucThanhToan(pt);
+        tt.setSoTien(tongThanhToan);
+        tt.setTrangThai("da_thanh_toan");
+        tt.setNgayThanhToan(LocalDateTime.now());
+        ttRepo.save(tt);
 
-        hoaDonRepo.save(
-                hd);
+        HoaDonVoucher hdVoucher = hoaDonVoucherRepo.findByIdHoaDon_Id(hd.getId()).orElse(null);
+        if (hdVoucher != null) {
+            Voucher voucher = hdVoucher.getIdVoucher();
+            if (voucher.getSoLuong() <= 0) {
+                throw new ApiException("Voucher [" + voucher.getMaVoucher() + "] đã hết lượt sử dụng!", "VOUCHER_OUT_OF_STOCK");
+            }
 
-        Map<String, Object> res =
-                new HashMap<>();
+            voucher.setSoLuongDaDung(Optional.ofNullable(voucher.getSoLuongDaDung()).orElse(0) + 1);
+            voucher.setSoLuong(voucher.getSoLuong() - 1);
+            voucherRepo.save(voucher);
+
+            posSocketService.send(
+                    new PosEvent("VOUCHER_UPDATED", null, voucher.getId(), null)
+            );
+        }
+
+        // ================== 8. CHỐT TRẠNG THÁI HÓA ĐƠN ==================
+        hd.setTrangThai("hoan_thanh");
+        hd.setNgayCapNhat(LocalDateTime.now());
+        hoaDonRepo.save(hd);
+
+        // ================== 9. TRẢ VỀ DỮ LIỆU THÀNH CÔNG ==================
+        Map<String, Object> res = new HashMap<>();
         List<Map<String, Object>> sanPhams = new ArrayList<>();
+
         for (HoaDonChiTiet ct : dsChiTiet) {
             Map<String, Object> sp = new HashMap<>();
             sp.put("tenSanPham", ct.getIdSanPhamChiTiet().getIdSanPham().getTenSanPham());
@@ -465,10 +538,12 @@ public class HoaDonServiceImpl implements HoaDonService {
             sp.put("tenThuongHieu", ct.getIdSanPhamChiTiet().getIdSanPham().getIdThuongHieu().getTenThuongHieu());
             sp.put("soLuong", ct.getSoLuong());
             sp.put("donGia", ct.getDonGia());
+            sp.put("thanhTien", ct.getThanhTien());
             sp.put("tenMauSac", ct.getIdSanPhamChiTiet().getIdMauSac().getTenMauSac());
             sp.put("tenKichThuoc", ct.getIdSanPhamChiTiet().getIdKichThuoc().getTenKichThuoc());
             sanPhams.add(sp);
         }
+
         res.put("id", hd.getId());
         res.put("maHoaDon", hd.getMaHoaDon());
         res.put("tongTienHang", tongTienHang);
@@ -476,16 +551,40 @@ public class HoaDonServiceImpl implements HoaDonService {
         res.put("tongThanhToan", tongThanhToan);
         res.put("ngayTao", hd.getNgayTao());
         res.put("phuongThucThanhToan", pt.getTenPhuongThuc());
+
         if (hd.getIdKhachHang() != null) {
             res.put("tenKhachHang", hd.getIdKhachHang().getHoTen());
             res.put("soDienThoai", hd.getIdKhachHang().getSoDienThoai());
         }
+
         res.put("sanPhams", sanPhams);
         return res;
-
-
     }
+    // Helper tính giá khuyến mãi
+    private BigDecimal tinhGiaBanHienTai(SanPhamChiTiet spct) {
+        BigDecimal giaApDung = spct.getGiaBan();
+        Optional<SanPhamGiamGia> spggOpt = sanPhamGiamGiaRepository.findDangGiamGiaBySpctId(spct.getId());
 
+        if (spggOpt.isPresent()) {
+            DotGiamGia dot = spggOpt.get().getDotGiamGia();
+
+            if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+                BigDecimal tienGiam = giaApDung.multiply(dot.getGiaTriGiam())
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+                if (dot.getGiaTriGiamToiDa() != null && tienGiam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                    tienGiam = dot.getGiaTriGiamToiDa();
+                }
+                giaApDung = giaApDung.subtract(tienGiam);
+            } else {
+                giaApDung = giaApDung.subtract(dot.getGiaTriGiam());
+                if (giaApDung.compareTo(BigDecimal.ZERO) < 0) {
+                    giaApDung = BigDecimal.ZERO;
+                }
+            }
+        }
+        return giaApDung;
+    }
     @Override
     @Transactional
     public Object thanhToanHoaDonOnline(
@@ -552,8 +651,12 @@ public class HoaDonServiceImpl implements HoaDonService {
         tt.setSoTien(
                 tongThanhToan);
 
-        tt.setTrangThai(
-                "da_thanh_toan");
+        if ("COD".equals(pt.getMaPhuongThuc())) {
+            tt.setTrangThai("chua_thanh_toan");
+        } else {
+            tt.setTrangThai("da_thanh_toan");
+            tt.setNgayThanhToan(LocalDateTime.now());
+        }
 
         tt.setNgayThanhToan(
                 LocalDateTime.now());
@@ -580,14 +683,23 @@ public class HoaDonServiceImpl implements HoaDonService {
         }
 
         // cập nhật hóa đơn
-        hd.setTrangThai(
-                "cho_xac_nhan");
+        // cập nhật trạng thái hóa đơn
+        if ("COD".equals(pt.getMaPhuongThuc())) {
 
-        if (tt.getIdPhuongThucThanhToan().getMaPhuongThuc().equals("COD")) {
+            // COD: chờ shop xác nhận
+            hd.setTrangThai("cho_xac_nhan");
             hd.setTrangThaiThanhToan("chua_thanh_toan");
+
         } else {
+
+            // Chuyển khoản: đã thanh toán => xác nhận luôn
             hd.setTrangThaiThanhToan("da_thanh_toan");
+            hd.setTrangThai("da_xac_nhan");
+
         }
+
+        hd.setNgayCapNhat(LocalDateTime.now());
+        hoaDonRepo.save(hd);
         hd.setNgayCapNhat(
                 LocalDateTime.now());
 
@@ -652,7 +764,6 @@ public class HoaDonServiceImpl implements HoaDonService {
                 spct.getGiaBan();
 
 
-
         // Kiểm tra sản phẩm đang có đợt giảm giá không
         Optional<SanPhamGiamGia> spggOpt =
                 sanPhamGiamGiaRepository.findDangGiamGiaBySpctId(
@@ -662,16 +773,12 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         if (spggOpt.isPresent()) {
 
-
             DotGiamGia dot =
                     spggOpt.get()
                             .getDotGiamGia();
 
-
-
             // Giảm theo phần trăm
             if ("phan_tram".equals(dot.getLoaiGiamGia())) {
-
 
                 BigDecimal tienGiam =
                         giaApDung
@@ -682,8 +789,6 @@ public class HoaDonServiceImpl implements HoaDonService {
                                         BigDecimal.valueOf(100)
                                 );
 
-
-
                 // Có giới hạn giảm tối đa
                 if (dot.getGiaTriGiamToiDa() != null
                         &&
@@ -691,29 +796,24 @@ public class HoaDonServiceImpl implements HoaDonService {
                                 dot.getGiaTriGiamToiDa()
                         ) > 0) {
 
-
                     tienGiam =
                             dot.getGiaTriGiamToiDa();
 
                 }
-
 
                 giaApDung =
                         giaApDung.subtract(
                                 tienGiam
                         );
 
-
             }
             // Giảm tiền mặt
             else {
-
 
                 giaApDung =
                         giaApDung.subtract(
                                 dot.getGiaTriGiam()
                         );
-
 
                 if (giaApDung.compareTo(BigDecimal.ZERO) < 0) {
 
@@ -727,26 +827,22 @@ public class HoaDonServiceImpl implements HoaDonService {
         }
 
 
-
         hoaDon.setNgayCapNhat(
                 LocalDateTime.now()
         );
 
+
         hoaDonRepo.save(hoaDon);
 
 
+        // === 1. KIỂM TRA SỐ LƯỢNG KHẢ DỤNG ===
+        int ton = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+        int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+        int khaDung = ton - tamGiu;
 
-        // Kiểm tra tồn kho
-        if (spct.getSoLuongTon() < request.getSoLuong()) {
-
-            throw new RuntimeException(
-                    "Sản phẩm không đủ tồn kho"
-            );
-
+        if (khaDung < request.getSoLuong()) {
+            throw new RuntimeException("Sản phẩm không đủ số lượng khả dụng để bán");
         }
-
-
-
 
 
         Optional<HoaDonChiTiet> hdctOpt =
@@ -756,33 +852,20 @@ public class HoaDonServiceImpl implements HoaDonService {
                 );
 
 
-
         // Sản phẩm đã tồn tại trong hóa đơn
         if (hdctOpt.isPresent()) {
-
 
             HoaDonChiTiet hdct =
                     hdctOpt.get();
 
-
-
-            // cập nhật giá mới nhất
-            // ví dụ:
-            // đang giảm 200
-            // admin đóng giảm giá
-            // giá mới 300
             hdct.setDonGia(
                     giaApDung
             );
-
-
 
             hdct.setSoLuong(
                     hdct.getSoLuong()
                             + request.getSoLuong()
             );
-
-
 
             hdct.setThanhTien(
                     hdct.getDonGia()
@@ -793,29 +876,22 @@ public class HoaDonServiceImpl implements HoaDonService {
                             )
             );
 
-
             ctRepo.save(hdct);
-
-
 
         }
         // Chưa có trong hóa đơn
         else {
 
-
             HoaDonChiTiet hdct =
                     new HoaDonChiTiet();
-
 
             hdct.setIdHoaDon(
                     hoaDon
             );
 
-
             hdct.setIdSanPhamChiTiet(
                     spct
             );
-
 
             hdct.setSoLuong(
                     request.getSoLuong()
@@ -826,7 +902,6 @@ public class HoaDonServiceImpl implements HoaDonService {
                     giaApDung
             );
 
-
             hdct.setThanhTien(
                     giaApDung.multiply(
                             BigDecimal.valueOf(
@@ -835,22 +910,15 @@ public class HoaDonServiceImpl implements HoaDonService {
                     )
             );
 
-
             ctRepo.save(hdct);
 
         }
 
 
-
-        // Trừ kho
-        spct.setSoLuongTon(
-                spct.getSoLuongTon()
-                        - request.getSoLuong()
-        );
-
+        // === 2. TĂNG SỐ LƯỢNG TẠM GIỮ (KHO THỰC GIỮ NGUYÊN) ===
+        spct.setSoLuongTamGiu(tamGiu + request.getSoLuong());
 
         spctRepo.save(spct);
-
 
 
         recalculateHoaDon(
@@ -862,18 +930,8 @@ public class HoaDonServiceImpl implements HoaDonService {
                 hoaDon.getId()
         );
 
-
-
-//        posSocketService.send(
-//                new PosEvent(
-//                        "PRODUCT_UPDATED",
-//                        hoaDon.getId(),
-//                        spct.getId(),
-//                        spct.getSoLuongTon()
-//                )
-//        );
-
     }
+
     @Transactional
     @Override
     public void giamSoLuong(Integer idHoaDonChiTiet) {
@@ -894,20 +952,18 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         ctRepo.save(hdct);
 
-        // Trả tồn kho
+        // === GIẢM SỐ LƯỢNG TẠM GIỮ (KHO THỰC GIỮ NGUYÊN) ===
         SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
-
-        spct.setSoLuongTon(
-                spct.getSoLuongTon() + 1
-        );
+        int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+        spct.setSoLuongTamGiu(Math.max(0, tamGiu - 1));
 
         spctRepo.save(spct);
+
         HoaDon hoaDon = hdct.getIdHoaDon();
 
         hoaDon.setNgayCapNhat(LocalDateTime.now());
 
         hoaDonRepo.save(hoaDon);
-
 
         recalculateHoaDon(hdct.getIdHoaDon().getId());
 
@@ -924,20 +980,221 @@ public class HoaDonServiceImpl implements HoaDonService {
         );
     }
 
+    @Transactional
+    @Override
+    public void tangSoLuong(Integer idHoaDonChiTiet) {
+
+        HoaDonChiTiet hdct = ctRepo.findById(idHoaDonChiTiet)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
+
+        // === KIỂM TRA SỐ LƯỢNG KHẢ DỤNG ===
+        int ton = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+        int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+        int khaDung = ton - tamGiu;
+
+        if (khaDung <= 0) {
+            throw new RuntimeException("Sản phẩm không đủ số lượng khả dụng để bán");
+        }
+
+        // Tăng số lượng trong hóa đơn
+        hdct.setSoLuong(hdct.getSoLuong() + 1);
+
+        hdct.setThanhTien(
+                hdct.getDonGia()
+                        .multiply(BigDecimal.valueOf(hdct.getSoLuong()))
+        );
+
+        ctRepo.save(hdct);
+
+        // === TĂNG SỐ LƯỢNG TẠM GIỮ (KHO THỰC GIỮ NGUYÊN) ===
+        spct.setSoLuongTamGiu(tamGiu + 1);
+        spctRepo.save(spct);
+
+        recalculateHoaDon(hdct.getIdHoaDon().getId());
+        kiemTraVoucherConHopLe(hdct.getIdHoaDon().getId());
+
+        // Cập nhật tổng tiền hóa đơn
+        HoaDon hoaDon = hdct.getIdHoaDon();
+
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+
+        hoaDonRepo.save(hoaDon);
+
+        // Gửi WebSocket
+        posSocketService.send(
+                new PosEvent(
+                        "PRODUCT_UPDATED",
+                        hdct.getIdHoaDon().getId(),
+                        spct.getId(),
+                        spct.getSoLuongTon()
+                )
+        );
+    }
+
+    @Transactional
+    @Override
+    public void huyHoaDon(Integer idHoaDon) {
+        // 1. Lấy hóa đơn
+        HoaDon hoaDon = hoaDonRepo.findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        // 2. Chặn nếu đã thanh toán
+        if ("hoan_thanh".equalsIgnoreCase(hoaDon.getTrangThai())) {
+            throw new RuntimeException("Không thể hủy hóa đơn đã thanh toán");
+        }
+
+        // 3. Lấy danh sách chi tiết hóa đơn
+        List<HoaDonChiTiet> listCT =
+                ctRepo.findByIdHoaDon_Id(idHoaDon);
+
+        // 4. GIẢM TẠM GIỮ -> HOÀN KHẢ DỤNG (KHO THỰC GIỮ NGUYÊN)
+        for (HoaDonChiTiet hdct : listCT) {
+
+            SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
+
+            int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+            int soLuongCanGiaiPhong = hdct.getSoLuong() != null ? hdct.getSoLuong() : 0;
+
+            // Trừ lượng tạm giữ (không để âm)
+            spct.setSoLuongTamGiu(Math.max(0, tamGiu - soLuongCanGiaiPhong));
+
+            spctRepo.save(spct);
+        }
+
+        // 5. KHÔNG XÓA HDCT (giữ lịch sử)
+        // 6. CẬP NHẬT HÓA ĐƠN
+        hoaDon.setTrangThai("da_huy");
+
+        hoaDon.setTongThanhToan(BigDecimal.ZERO);
+        HoaDonVoucher hdVoucher =
+                hoaDonVoucherRepo.findByIdHoaDon_Id(idHoaDon)
+                        .orElse(null);
+        if (hdVoucher != null) {
+            hoaDonVoucherRepo.delete(hdVoucher);
+        }
+        hoaDonRepo.save(hoaDon);
+    }
+
+    @Transactional
+    @Override
+    public void xoaSanPhamKhoiHoaDon(Integer idHoaDonChiTiet) {
+
+        HoaDonChiTiet hdct =
+                ctRepo.findById(idHoaDonChiTiet)
+                        .orElseThrow(() ->
+                                new RuntimeException("Không tìm thấy sản phẩm"));
+
+        // === GIẢM SỐ LƯỢNG TẠM GIỮ (KHO THỰC GIỮ NGUYÊN) ===
+        SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
+        int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+        int soLuongXoa = hdct.getSoLuong() != null ? hdct.getSoLuong() : 0;
+
+        // Giảm số lượng tạm giữ, dùng Math.max để tránh âm
+        spct.setSoLuongTamGiu(Math.max(0, tamGiu - soLuongXoa));
+
+        spctRepo.save(spct);
+
+        Integer idHoaDon = hdct.getIdHoaDon().getId();
+
+        ctRepo.delete(hdct);
+        removeVoucherIfExists(
+                hdct.getIdHoaDon().getId()
+        );
+        recalculateHoaDon(idHoaDon);
+
+        // ===== Gửi WebSocket =====
+        posSocketService.send(
+                new PosEvent(
+                        "PRODUCT_UPDATED",
+                        idHoaDon,
+                        spct.getId(),
+                        spct.getSoLuongTon()
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public void capNhatSoLuong(Integer idHoaDonChiTiet, Integer soLuongMoi) {
+
+        System.out.println("\n========== BẮT ĐẦU CẬP NHẬT SỐ LƯỢNG ==========");
+
+        if (soLuongMoi == null || soLuongMoi <= 0) {
+            throw new RuntimeException("Số lượng phải lớn hơn 0");
+        }
+
+        HoaDonChiTiet hdct = ctRepo.findById(idHoaDonChiTiet)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
+
+        SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
+
+        int soLuongCu = hdct.getSoLuong();
+
+        if (soLuongMoi == soLuongCu) {
+            System.out.println("=> Không có thay đổi số lượng.");
+            return;
+        }
+
+        int chenhLech = soLuongMoi - soLuongCu;
+
+        int ton = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
+        int tamGiu = spct.getSoLuongTamGiu() == null ? 0 : spct.getSoLuongTamGiu();
+        int khaDung = ton - tamGiu;
+
+        System.out.println("Tồn: " + ton);
+        System.out.println("Tạm giữ trước: " + tamGiu);
+        System.out.println("Khả dụng: " + khaDung);
+        System.out.println("Số lượng cũ: " + soLuongCu);
+        System.out.println("Số lượng mới: " + soLuongMoi);
+        System.out.println("Chênh lệch: " + chenhLech);
+
+        // Nếu tăng số lượng thì kiểm tra tồn
+        if (chenhLech > 0 && khaDung < chenhLech) {
+            throw new RuntimeException("Số lượng khả dụng không đủ (Còn lại: " + khaDung + ")");
+        }
+
+        // Cập nhật số lượng hóa đơn
+        hdct.setSoLuong(soLuongMoi);
+        hdct.setThanhTien(
+                hdct.getDonGia().multiply(BigDecimal.valueOf(soLuongMoi))
+        );
+
+        // Cập nhật số lượng tạm giữ
+        spct.setSoLuongTamGiu(tamGiu + chenhLech);
+
+        System.out.println("Tạm giữ sau: " + spct.getSoLuongTamGiu());
+        System.out.println("Khả dụng sau: " + (ton - spct.getSoLuongTamGiu()));
+
+        ctRepo.save(hdct);
+        spctRepo.save(spct);
+
+        Integer idHoaDon = hdct.getIdHoaDon().getId();
+
+        recalculateHoaDon(idHoaDon);
+        kiemTraVoucherConHopLe(idHoaDon);
+
+        HoaDon hoaDon = hdct.getIdHoaDon();
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+        hoaDonRepo.save(hoaDon);
+
+        posSocketService.send(
+                new PosEvent(
+                        "PRODUCT_UPDATED",
+                        idHoaDon,
+                        spct.getId(),
+                        ton - spct.getSoLuongTamGiu()
+                )
+        );
+
+        System.out.println("========== KẾT THÚC ==========\n");
+    }
 
     @Override
     public List<GioHangResponse> getChiTietHoaDon(Integer idHoaDon) {
 
-
         List<HoaDonChiTiet> ds = ctRepo.findByIdHoaDon_Id(idHoaDon);
-
-        System.out.println("==========");
-        System.out.println(
-                ds.get(0)
-                        .getIdSanPhamChiTiet()
-                        .getSanPhamGiamGias()
-                        .size()
-        );
 
         for (SanPhamGiamGia x : ds.get(0).getIdSanPhamChiTiet().getSanPhamGiamGias()) {
             System.out.println(
@@ -971,164 +1228,6 @@ public class HoaDonServiceImpl implements HoaDonService {
                 .toList();
     }
 
-    @Transactional
-    @Override
-    public void xoaSanPhamKhoiHoaDon(Integer idHoaDonChiTiet) {
-
-        HoaDonChiTiet hdct =
-                ctRepo.findById(idHoaDonChiTiet)
-                        .orElseThrow(() ->
-                                new RuntimeException("Không tìm thấy sản phẩm"));
-
-        // Trả tồn kho
-        SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
-
-        spct.setSoLuongTon(
-                spct.getSoLuongTon() + hdct.getSoLuong()
-        );
-
-        spctRepo.save(spct);
-
-        Integer idHoaDon = hdct.getIdHoaDon().getId();
-
-        ctRepo.delete(hdct);
-        removeVoucherIfExists(
-                hdct.getIdHoaDon().getId()
-        );
-        recalculateHoaDon(idHoaDon);
-
-        // ===== Gửi WebSocket =====
-        posSocketService.send(
-                new PosEvent(
-                        "PRODUCT_UPDATED",
-                        idHoaDon,
-                        spct.getId(),
-                        spct.getSoLuongTon()
-                )
-        );
-    }
-
-    @Transactional
-    @Override
-    public void tangSoLuong(Integer idHoaDonChiTiet) {
-
-        HoaDonChiTiet hdct = ctRepo.findById(idHoaDonChiTiet)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-
-        SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
-
-        if (spct.getSoLuongTon() <= 0) {
-            throw new RuntimeException("Sản phẩm đã hết hàng");
-        }
-
-        // Tăng số lượng trong hóa đơn
-        hdct.setSoLuong(hdct.getSoLuong() + 1);
-
-        hdct.setThanhTien(
-                hdct.getDonGia()
-                        .multiply(BigDecimal.valueOf(hdct.getSoLuong()))
-        );
-
-        ctRepo.save(hdct);
-
-        // Trừ tồn kho
-        spct.setSoLuongTon(spct.getSoLuongTon() - 1);
-        spctRepo.save(spct);
-
-
-        recalculateHoaDon(hdct.getIdHoaDon().getId());
-        kiemTraVoucherConHopLe(hdct.getIdHoaDon().getId());
-        // Cập nhật tổng tiền hóa đơn
-
-        HoaDon hoaDon = hdct.getIdHoaDon();
-
-        hoaDon.setNgayCapNhat(LocalDateTime.now());
-
-        hoaDonRepo.save(hoaDon);
-
-        // Gửi WebSocket
-        posSocketService.send(
-                new PosEvent(
-                        "PRODUCT_UPDATED",
-                        hdct.getIdHoaDon().getId(),   // ✅ Không phải hoaDon.getId()
-                        spct.getId(),
-                        spct.getSoLuongTon()
-                )
-        );
-    }
-
-    @Override
-    @Transactional
-    public void capNhatSoLuong(Integer idHoaDonChiTiet, Integer soLuongMoi) {
-
-        if (soLuongMoi <= 0) {
-            throw new RuntimeException("Số lượng phải lớn hơn 0");
-        }
-
-        HoaDonChiTiet hdct = ctRepo.findById(idHoaDonChiTiet)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-
-        SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
-
-        int soLuongCu = hdct.getSoLuong();
-
-        if (soLuongMoi == soLuongCu) {
-            return;
-        }
-
-        int chenhLech = soLuongMoi - soLuongCu;
-
-        // tăng số lượng
-        if (chenhLech > 0) {
-
-            if (spct.getSoLuongTon() < chenhLech) {
-                throw new RuntimeException("Không đủ tồn kho");
-            }
-
-            spct.setSoLuongTon(
-                    spct.getSoLuongTon() - chenhLech
-            );
-
-        } else {
-
-            // giảm số lượng
-            spct.setSoLuongTon(
-                    spct.getSoLuongTon() + Math.abs(chenhLech)
-            );
-        }
-
-        hdct.setSoLuong(soLuongMoi);
-
-        hdct.setThanhTien(
-                hdct.getDonGia()
-                        .multiply(BigDecimal.valueOf(soLuongMoi))
-        );
-
-        ctRepo.save(hdct);
-
-        spctRepo.save(spct);
-
-        Integer idHoaDon = hdct.getIdHoaDon().getId();
-
-        recalculateHoaDon(idHoaDon);
-
-        kiemTraVoucherConHopLe(idHoaDon);
-
-        HoaDon hoaDon = hdct.getIdHoaDon();
-
-        hoaDon.setNgayCapNhat(LocalDateTime.now());
-
-        hoaDonRepo.save(hoaDon);
-
-        posSocketService.send(
-                new PosEvent(
-                        "PRODUCT_UPDATED",
-                        idHoaDon,
-                        spct.getId(),
-                        spct.getSoLuongTon()
-                )
-        );
-    }
 
     @Override
     @Transactional
@@ -1154,45 +1253,6 @@ public class HoaDonServiceImpl implements HoaDonService {
         hoaDonRepo.save(hoaDon);
     }
 
-    @Transactional
-    @Override
-    public void huyHoaDon(Integer idHoaDon) {
-        // 1. Lấy hóa đơn
-        HoaDon hoaDon = hoaDonRepo.findById(idHoaDon)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-        // 2. Chặn nếu đã thanh toán
-        if (hoaDon.getTrangThai().equalsIgnoreCase("hoan_thanh")) {
-            throw new RuntimeException("Không thể hủy hóa đơn đã thanh toán");
-        }
-        // 3. Lấy danh sách chi tiết hóa đơn
-        List<HoaDonChiTiet> listCT =
-                ctRepo.findByIdHoaDon_Id(idHoaDon);
-        // 4. HOÀN KHO (QUAN TRỌNG NHẤT)
-        for (HoaDonChiTiet hdct : listCT) {
-
-            SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
-
-            spct.setSoLuongTon(
-                    spct.getSoLuongTon() + hdct.getSoLuong()
-            );
-
-            spctRepo.save(spct);
-        }
-
-        // 5. KHÔNG XÓA HDCT (giữ lịch sử)
-        // 6. CẬP NHẬT HÓA ĐƠN
-        hoaDon.setTrangThai("da_huy");
-
-        // optional: clear dữ liệu nghiệp vụ (không bắt buộc)
-        hoaDon.setTongThanhToan(BigDecimal.ZERO);
-        HoaDonVoucher hdVoucher =
-                hoaDonVoucherRepo.findByIdHoaDon_Id(idHoaDon)
-                        .orElse(null);
-        if (hdVoucher != null) {
-            hoaDonVoucherRepo.delete(hdVoucher);
-        }
-        hoaDonRepo.save(hoaDon);
-    }
 
     private void removeVoucherIfExists(Integer idHoaDon) {
 
@@ -1591,41 +1651,53 @@ public class HoaDonServiceImpl implements HoaDonService {
         HoaDon hd = hoaDonRepo.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-        // Chỉ hủy khi chưa thanh toán
+        // Chỉ cho phép khách hủy khi đơn đang chờ xác nhận
         if (!"cho_xac_nhan".equals(hd.getTrangThai())) {
             throw new RuntimeException("Hóa đơn không thể hủy");
         }
 
-        List<HoaDonChiTiet> dsChiTiet =
-                ctRepo.findByIdHoaDon_Id(idHoaDon);
+        List<HoaDonChiTiet> dsChiTiet = ctRepo.findByIdHoaDon_Id(idHoaDon);
 
-        // Hoàn lại tồn kho
+        // Giải phóng số lượng tạm giữ
         for (HoaDonChiTiet ct : dsChiTiet) {
 
             SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
 
-            spct.setSoLuongTon(
-                    spct.getSoLuongTon() + ct.getSoLuong()
-            );
+            int tamGiuMoi = spct.getSoLuongTamGiu() - ct.getSoLuong();
+
+            if (tamGiuMoi < 0) {
+                tamGiuMoi = 0;
+            }
+
+            spct.setSoLuongTamGiu(tamGiuMoi);
 
             spctRepo.save(spct);
         }
 
-        // Nếu đã áp voucher thì trả lại lượt sử dụng (nếu có logic giữ trước)
-        HoaDonVoucher hdVoucher =
-                hoaDonVoucherRepo.findByIdHoaDon_Id(idHoaDon)
-                        .orElse(null);
+        // Hoàn lại lượt dùng voucher (nếu có)
+        HoaDonVoucher hdVoucher = hoaDonVoucherRepo
+                .findByIdHoaDon_Id(idHoaDon)
+                .orElse(null);
 
         if (hdVoucher != null) {
+
+            Voucher voucher = hdVoucher.getIdVoucher();
+
+            if (voucher != null && voucher.getSoLuongDaDung() > 0) {
+                voucher.setSoLuongDaDung(voucher.getSoLuongDaDung() - 1);
+                voucherRepo.save(voucher);
+            }
+
             hoaDonVoucherRepo.delete(hdVoucher);
         }
 
+        // Cập nhật trạng thái hóa đơn
         hd.setTrangThai("da_huy");
         hd.setNgayCapNhat(LocalDateTime.now());
 
         hoaDonRepo.save(hd);
 
-        // Cập nhật realtime nếu POS/Web đang mở
+        // Thông báo realtime
         messagingTemplate.convertAndSend(
                 "/topic/products",
                 "STOCK_CHANGED"
@@ -1673,9 +1745,100 @@ public class HoaDonServiceImpl implements HoaDonService {
             );
         }
 
+        // Lấy chi tiết hóa đơn
+        List<HoaDonChiTiet> dsChiTiet = ctRepo.findByIdHoaDon_Id(id);
+
+// =======================
+// HỦY ĐƠN
+// =======================
+        if (newStatus == TrangThaiHoaDon.DA_HUY) {
+
+            for (HoaDonChiTiet ct : dsChiTiet) {
+
+                SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
+
+                int tamGiuMoi = spct.getSoLuongTamGiu() - ct.getSoLuong();
+
+                if (tamGiuMoi < 0) {
+                    tamGiuMoi = 0;
+                }
+
+                spct.setSoLuongTamGiu(tamGiuMoi);
+
+                spctRepo.save(spct);
+            }
+
+            // Nếu đã dùng voucher thì trả lại lượt dùng
+            HoaDonVoucher hdVoucher = hoaDonVoucherRepo
+                    .findByIdHoaDon_Id(id)
+                    .orElse(null);
+
+            if (hdVoucher != null) {
+
+                Voucher voucher = hdVoucher.getIdVoucher();
+
+                if (voucher != null && voucher.getSoLuongDaDung() > 0) {
+                    voucher.setSoLuongDaDung(voucher.getSoLuongDaDung() - 1);
+                    voucherRepo.save(voucher);
+                }
+
+                hoaDonVoucherRepo.delete(hdVoucher);
+            }
+        }
+
+// =======================
+// HOÀN THÀNH ĐƠN
+// =======================
+        // =======================
+// HOÀN THÀNH ĐƠN
+// =======================
+        if (newStatus == TrangThaiHoaDon.GIAO_THANH_CONG) {
+
+            for (HoaDonChiTiet ct : dsChiTiet) {
+
+                SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
+
+                int tonMoi = spct.getSoLuongTon() - ct.getSoLuong();
+
+                if (tonMoi < 0) {
+                    throw new RuntimeException(
+                            "Sản phẩm "
+                                    + spct.getMaSanPhamChiTiet()
+                                    + " không đủ tồn kho."
+                    );
+                }
+
+                int tamGiuMoi = spct.getSoLuongTamGiu() - ct.getSoLuong();
+
+                if (tamGiuMoi < 0) {
+                    tamGiuMoi = 0;
+                }
+
+                spct.setSoLuongTon(tonMoi);
+                spct.setSoLuongTamGiu(tamGiuMoi);
+
+                spctRepo.save(spct);
+            }
+
+            // COD: giao thành công mới thu tiền
+            if ("chua_thanh_toan".equals(hoaDon.getTrangThaiThanhToan())) {
+
+                hoaDon.setTrangThaiThanhToan("da_thanh_toan");
+
+                ThanhToan thanhToan = ttRepo.findByIdHoaDon_Id(id);
+
+                if (thanhToan != null) {
+                    thanhToan.setTrangThai("da_thanh_toan");
+                    thanhToan.setNgayThanhToan(LocalDateTime.now());
+                    ttRepo.save(thanhToan);
+                }
+            }
+        }
+
         // 6. Cập nhật trạng thái mới và thời gian cập nhật vào Entity
         hoaDon.setTrangThai(newStatus.getValue());
         hoaDon.setNgayCapNhat(LocalDateTime.now());
+
 
         // 7. Lưu thay đổi xuống Database
         hoaDonRepo.save(hoaDon);
@@ -1804,13 +1967,13 @@ public class HoaDonServiceImpl implements HoaDonService {
 
     @Override
     @Transactional
-    public void capNhatHoaDonTheoVoucher(Integer idVoucher){
+    public void capNhatHoaDonTheoVoucher(Integer idVoucher) {
 
         List<HoaDonVoucher> list =
                 hoaDonVoucherRepo.findByIdVoucher_Id(idVoucher);
 
 
-        for(HoaDonVoucher hdv : list){
+        for (HoaDonVoucher hdv : list) {
 
 
             Integer idHoaDon =
@@ -1826,4 +1989,6 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         }
     }
+
+
 }

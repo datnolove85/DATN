@@ -50,6 +50,7 @@ public class BankPaymentService implements PaymentService {
         // 2. CẬP NHẬT TRẠNG THÁI HÓA ĐƠN -> "da_thanh_toan"
         hoaDon.setTrangThaiThanhToan("da_thanh_toan"); // <--- Bổ sung dòng này
         hoaDon.setNgayCapNhat(LocalDateTime.now());
+        hoaDon.setTrangThai("da_xac_nhan");
         hoaDonRepository.save(hoaDon); // <--- Bổ sung save hóa đơn
 
         String paymentUrl = "http://localhost:5173/payment/fake?paymentId=" + thanhToan.getId();

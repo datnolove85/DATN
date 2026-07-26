@@ -5,6 +5,7 @@ import com.example.backend.Repository.*;
 import com.example.backend.Request.SanPhamChiTietRequest;
 import com.example.backend.Request.SanPhamCreateVariantRequest;
 import com.example.backend.Response.*;
+import com.example.backend.websocket.PosEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.function.Function;
@@ -42,6 +44,81 @@ public class SanPhamChiTietService {
 
     @Autowired
     SanPhamGiamGiaRepository sanPhamGiamGiaRepository;
+
+    @Autowired
+    HoaDonChiTietRepository hoaDonChiTietRepository;
+    @Autowired
+    private PosSocketService posSocketService;
+
+
+    //Map
+    private SanPhamChiTietResponse mapToResponse(SanPhamChiTiet spct) {
+
+        SanPhamChiTietResponse res = new SanPhamChiTietResponse();
+
+        res.setId(spct.getId());
+
+        res.setIdSanPham(spct.getIdSanPham().getId());
+        res.setTenSanPham(spct.getIdSanPham().getTenSanPham());
+
+        res.setTenDanhMuc(
+                spct.getIdSanPham()
+                        .getIdDanhMuc()
+                        .getTenDanhMuc()
+        );
+
+        res.setTenThuongHieu(
+                spct.getIdSanPham()
+                        .getIdThuongHieu()
+                        .getTenThuongHieu()
+        );
+
+        res.setTenChatLieu(
+                spct.getIdSanPham()
+                        .getIdChatLieu()
+                        .getTenChatLieu()
+        );
+
+        res.setIdMauSac(spct.getIdMauSac().getId());
+        res.setTenMauSac(spct.getIdMauSac().getTenMauSac());
+
+        res.setIdKichThuoc(spct.getIdKichThuoc().getId());
+        res.setTenKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
+
+        res.setMaSanPhamChiTiet(spct.getMaSanPhamChiTiet());
+        res.setTenSanPhamChiTiet(spct.getTenSanPhamChiTiet());
+
+        res.setGiaNhap(spct.getGiaNhap());
+        res.setGiaBan(spct.getGiaBan());
+
+        // === 1. BỔ SUNG KHẢ DỤNG & TẠM GIỮ ===
+        int ton = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+        int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+
+        res.setSoLuongTon(ton);
+        res.setSoLuongTamGiu(tamGiu); // Gán nếu DTO có trường này
+        res.setSoLuongKhaDung(Math.max(0, ton - tamGiu)); // Tính số lượng thực tế có thể bán
+
+        res.setTrangThai(spct.getTrangThai());
+
+        // === 2. TỐI ƯU LOAD HÌNH ẢNH (Chỉ gọi DB 1 lần) ===
+        List<String> images = hinhAnhRepository
+                .findByIdSanPhamChiTiet_IdAndTrangThaiTrue(spct.getId())
+                .stream()
+                .map(img -> {
+                    String link = img.getLink();
+                    if (link != null && link.startsWith("/sanpham/")) {
+                        return link;
+                    }
+                    return "/sanpham/" + link;
+                })
+                .toList();
+
+        res.setImages(images);
+
+        return res;
+    }
+
 
     // ================= GET ALL PRODUCT =================
     public List<SanPhamResponse> getAllSanPham() {
@@ -116,21 +193,22 @@ public class SanPhamChiTietService {
 
         }).toList();
     }
-
-
+    //Get All Spct
     public List<SanPhamChiTietResponse> getAllSpct() {
 
         List<SanPhamChiTiet> spcts =
                 sanPhamChiTietRepository.findAllDangKinhDoanh();
 
         Map<Integer, String> imageMap = new HashMap<>();
-        List<SanPhamGiamGia> dsGG = sanPhamGiamGiaRepository.findAllDangGiamGia();
+
+        // 1. Tối ưu: Chỉ gọi DB 1 lần & xử lý chống crash khi trùng key
         Map<Integer, DotGiamGia> giamGiaMap =
                 sanPhamGiamGiaRepository.findAllDangGiamGia()
                         .stream()
                         .collect(Collectors.toMap(
                                 x -> x.getSanPhamChiTiet().getId(),
-                                x -> x.getDotGiamGia()
+                                SanPhamGiamGia::getDotGiamGia,
+                                (existing, replacement) -> existing // Nếu trùng thì lấy cái đầu tiên
                         ));
 
         for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
@@ -195,9 +273,9 @@ public class SanPhamChiTietService {
             );
 
             res.setGiaNhap(spct.getGiaNhap());
-
             res.setGiaBan(spct.getGiaBan());
 
+            // Tính giá giảm
             DotGiamGia dot = giamGiaMap.get(spct.getId());
 
             if (dot != null) {
@@ -230,17 +308,20 @@ public class SanPhamChiTietService {
 
                 res.setDangGiamGia(true);
 
-
             } else {
 
                 res.setGiaSauGiam(spct.getGiaBan());
-
                 res.setDangGiamGia(false);
 
             }
-            res.setSoLuongTon(
-                    spct.getSoLuongTon()
-            );
+
+            // === 2. BỔ SUNG SỐ LƯỢNG TẠM GIỮ & KHẢ DỤNG ===
+            int ton = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+            int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+
+            res.setSoLuongTon(ton);
+            res.setSoLuongTamGiu(tamGiu);
+            res.setSoLuongKhaDung(Math.max(0, ton - tamGiu));
 
             res.setTrangThai(
                     spct.getTrangThai()
@@ -280,19 +361,22 @@ public class SanPhamChiTietService {
         spct.setIdKichThuoc(kichThuoc);
 
         spct.setGiaNhap(request.getGiaNhap());
-
         spct.setGiaBan(request.getGiaBan());
 
+        // 1. Set số lượng tồn bằng số lượng đầu vào
         spct.setSoLuongTon(request.getSoLuongTon());
+
+        // 2. Mới thêm thì tạm giữ = 0 -> Khả dụng sẽ tự động = Số lượng tồn
+        spct.setSoLuongTamGiu(0);
+
         spct.setTrangThai(request.getTrangThai());
 
-
-        SanPhamChiTiet saved =
-                sanPhamChiTietRepository.save(spct);
+        SanPhamChiTiet saved = sanPhamChiTietRepository.save(spct);
 
         return mapToResponse(saved);
     }
 
+    @Transactional // 🔴 Giúp thao tác xóa/sửa HDCT và SPCT diễn ra đồng bộ trong 1 Transaction
     public SanPhamChiTietResponse update(
             Integer id,
             SanPhamChiTietRequest request,
@@ -310,19 +394,6 @@ public class SanPhamChiTietService {
         KichThuoc kichThuoc = kichThuocRepository.findById(request.getIdKichThuoc())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy kích thước"));
 
-        // Validate
-        if (request.getGiaNhap().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Giá nhập phải lớn hơn 0");
-        }
-
-        if (request.getGiaBan().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Giá bán phải lớn hơn 0");
-        }
-
-        if (request.getSoLuongTon() < 0) {
-            throw new RuntimeException("Số lượng tồn không được âm");
-        }
-
         // Kiểm tra trùng biến thể (trừ chính nó)
         Optional<SanPhamChiTiet> existed =
                 sanPhamChiTietRepository.findByIdSanPham_IdAndIdMauSac_IdAndIdKichThuoc_Id(
@@ -334,20 +405,59 @@ public class SanPhamChiTietService {
             throw new RuntimeException("Biến thể này đã tồn tại");
         }
 
-        // Update
+        // Update thông tin cơ bản
         spct.setIdSanPham(sanPham);
         spct.setIdMauSac(mauSac);
         spct.setIdKichThuoc(kichThuoc);
 
         spct.setGiaNhap(request.getGiaNhap());
         spct.setGiaBan(request.getGiaBan());
-
-        spct.setSoLuongTon(request.getSoLuongTon());
         spct.setTrangThai(request.getTrangThai());
 
+        if (spct.getSoLuongTamGiu() == null) {
+            spct.setSoLuongTamGiu(0);
+        }
+
+        // ================== XỬ LÝ TỒN KHO & ĐIỀU CHỈNH HÓA ĐƠN CHỜ ==================
+        Integer soLuongTonMoi = request.getSoLuongTon() != null ? request.getSoLuongTon() : 0;
+        Integer tamGiuHienTai = spct.getSoLuongTamGiu();
+
+        // Trường hợp Admin hạ Tồn kho nhỏ hơn số lượng đang Tạm giữ
+        if (soLuongTonMoi < tamGiuHienTai) {
+            int soLuongCanXen = tamGiuHienTai - soLuongTonMoi;
+
+            // Lấy danh sách HDCT của các hóa đơn "cho_xac_nhan" chứa SPCT này
+            List<HoaDonChiTiet> dsHdctCho = hoaDonChiTietRepository
+                    .findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThai(spct.getId(), "cho_xac_nhan");
+
+            for (HoaDonChiTiet ct : dsHdctCho) {
+                if (soLuongCanXen <= 0) break;
+
+                int soLuongMua = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+
+                if (soLuongMua <= soLuongCanXen) {
+                    // Xóa hẳn dòng sản phẩm này khỏi hóa đơn chờ
+                    soLuongCanXen -= soLuongMua;
+                    hoaDonChiTietRepository.delete(ct);
+                } else {
+                    // Giảm bớt số lượng mua trong hóa đơn chờ
+                    int soLuongConLai = soLuongMua - soLuongCanXen;
+                    ct.setSoLuong(soLuongConLai);
+                    ct.setThanhTien(ct.getDonGia().multiply(BigDecimal.valueOf(soLuongConLai)));
+                    SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
+                    soLuongCanXen = 0;
+                }
+            }
+
+            // Ép Tạm giữ bằng đúng Tồn mới (Khả dụng = 0)
+            spct.setSoLuongTamGiu(soLuongTonMoi);
+        }
+
+        // Cập nhật tồn kho mới
+        spct.setSoLuongTon(soLuongTonMoi);
 
         spct.setTenSanPhamChiTiet(
-                spct.getIdSanPham().getTenSanPham()
+                sanPham.getTenSanPham()
                         + " - "
                         + mauSac.getTenMauSac()
                         + " - "
@@ -356,10 +466,18 @@ public class SanPhamChiTietService {
 
         SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
 
+        // ================== BẮN SOCKET THÔNG BÁO TỚI POS ==================
+        try {
+            posSocketService.send(
+                    new PosEvent("STOCK_FORCE_ADJUSTED", null, updated.getId(), updated.getSoLuongTon())
+            );
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi Socket: " + e.getMessage());
+        }
+
+        // Xử lý upload ảnh (Giữ nguyên)
         if (files != null && files.length > 0) {
-
             try {
-
                 Path uploadPath = Paths.get("uploads/sanpham");
 
                 if (!Files.exists(uploadPath)) {
@@ -367,9 +485,7 @@ public class SanPhamChiTietService {
                 }
 
                 for (MultipartFile file : files) {
-
-                    String fileName = UUID.randomUUID()
-                            + "_" + file.getOriginalFilename();
+                    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
                     Files.copy(
                             file.getInputStream(),
@@ -377,7 +493,6 @@ public class SanPhamChiTietService {
                             StandardCopyOption.REPLACE_EXISTING);
 
                     HinhAnh img = new HinhAnh();
-
                     img.setIdSanPhamChiTiet(updated);
                     img.setTenAnh(file.getOriginalFilename());
                     img.setLink(fileName);
@@ -387,11 +502,11 @@ public class SanPhamChiTietService {
 
                     hinhAnhRepository.save(img);
                 }
-
             } catch (IOException e) {
                 throw new RuntimeException("Lỗi upload ảnh", e);
             }
         }
+
         capNhatTrangThaiSanPham(request.getIdSanPham());
 
         return mapToResponse(updated);
@@ -466,85 +581,6 @@ public class SanPhamChiTietService {
 
     }
 
-    private SanPhamChiTietResponse mapToResponse(SanPhamChiTiet spct) {
-
-        SanPhamChiTietResponse res =
-                new SanPhamChiTietResponse();
-
-        res.setId(spct.getId());
-
-        res.setIdSanPham(spct.getIdSanPham().getId());
-        res.setTenSanPham(
-                spct.getIdSanPham().getTenSanPham()
-        );
-
-        res.setTenDanhMuc(
-                spct.getIdSanPham()
-                        .getIdDanhMuc()
-                        .getTenDanhMuc()
-        );
-
-        res.setTenThuongHieu(
-                spct.getIdSanPham()
-                        .getIdThuongHieu()
-                        .getTenThuongHieu()
-        );
-
-        res.setTenChatLieu(
-                spct.getIdSanPham()
-                        .getIdChatLieu()
-                        .getTenChatLieu()
-        );
-
-        res.setIdMauSac(spct.getIdMauSac().getId());
-        res.setTenMauSac(
-                spct.getIdMauSac().getTenMauSac()
-        );
-
-        res.setIdKichThuoc(spct.getIdKichThuoc().getId());
-        res.setTenKichThuoc(
-                spct.getIdKichThuoc().getTenKichThuoc()
-        );
-
-        res.setMaSanPhamChiTiet(
-                spct.getMaSanPhamChiTiet()
-        );
-
-        res.setTenSanPhamChiTiet(
-                spct.getTenSanPhamChiTiet()
-        );
-
-        res.setGiaNhap(spct.getGiaNhap());
-        res.setGiaBan(spct.getGiaBan());
-
-        res.setSoLuongTon(spct.getSoLuongTon());
-        res.setTrangThai(spct.getTrangThai());
-
-        List<String> images =
-                hinhAnhRepository
-                        .findByIdSanPhamChiTiet_IdAndTrangThaiTrue(spct.getId())
-                        .stream()
-                        .map(HinhAnh::getLink)
-                        .toList();
-
-
-        res.setImages(
-                hinhAnhRepository
-                        .findByIdSanPhamChiTiet_IdAndTrangThaiTrue(spct.getId())
-                        .stream()
-                        .map(img -> {
-                            String link = img.getLink();
-
-                            if (link.startsWith("/sanpham/")) {
-                                return link;
-                            }
-
-                            return "/sanpham/" + link;
-                        })
-                        .toList()
-        );
-        return res;
-    }
 
     public List<SanPhamChiTietResponse> getByIdSP(Integer idSanPham) {
 
@@ -552,6 +588,15 @@ public class SanPhamChiTietService {
                 sanPhamChiTietRepository.findVariantsByProduct(idSanPham);
 
         Map<Integer, List<String>> imageMap = new HashMap<>();
+        // Lấy danh sách sản phẩm đang nằm trong đợt giảm giá
+        Map<Integer, DotGiamGia> giamGiaMap =
+                sanPhamGiamGiaRepository.findAllDangGiamGia()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                x -> x.getSanPhamChiTiet().getId(),
+                                SanPhamGiamGia::getDotGiamGia,
+                                (existing, replacement) -> existing
+                        ));
 
         for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
 
@@ -603,6 +648,52 @@ public class SanPhamChiTietService {
 
             res.setGiaNhap(spct.getGiaNhap());
             res.setGiaBan(spct.getGiaBan());
+            // ===================== THÔNG TIN GIẢM GIÁ =====================
+            DotGiamGia dot = giamGiaMap.get(spct.getId());
+
+            if (dot != null) {
+
+                if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+
+                    BigDecimal giam = spct.getGiaBan()
+                            .multiply(dot.getGiaTriGiam())
+                            .divide(BigDecimal.valueOf(100));
+
+                    if (dot.getGiaTriGiamToiDa() != null
+                            && giam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+
+                        giam = dot.getGiaTriGiamToiDa();
+                    }
+
+                    res.setGiaSauGiam(
+                            spct.getGiaBan().subtract(giam)
+                    );
+
+                    res.setPhanTramGiam(
+                            dot.getGiaTriGiam().intValue()
+                    );
+
+                } else {
+
+                    BigDecimal giam = dot.getGiaTriGiam();
+
+                    if (giam.compareTo(spct.getGiaBan()) > 0) {
+                        giam = spct.getGiaBan();
+                    }
+
+                    res.setGiaSauGiam(
+                            spct.getGiaBan().subtract(giam)
+                    );
+                }
+
+                res.setDangGiamGia(true);
+
+            } else {
+
+                res.setGiaSauGiam(spct.getGiaBan());
+
+                res.setDangGiamGia(false);
+            }
 
             res.setSoLuongTon(spct.getSoLuongTon());
             res.setTrangThai(spct.getTrangThai());
@@ -745,134 +836,127 @@ public class SanPhamChiTietService {
 
     public List<SanPhamChiTietResponse> getByIdSPOnline(Integer idSanPham) {
 
-        List<SanPhamChiTiet> list =
-                sanPhamChiTietRepository.findVariantsByProduct(idSanPham);
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findVariantsByProduct(idSanPham);
 
-        Map<Integer, DotGiamGia> giamGiaMap =
-                sanPhamGiamGiaRepository.findAllDangGiamGia()
-                        .stream()
-                        .collect(Collectors.toMap(
-                                x -> x.getSanPhamChiTiet().getId(),
-                                x -> x.getDotGiamGia()
-                        ));
+        // Map đợt giảm giá
+        Map<Integer, DotGiamGia> giamGiaMap = sanPhamGiamGiaRepository.findAllDangGiamGia()
+                .stream()
+                .collect(Collectors.toMap(
+                        x -> x.getSanPhamChiTiet().getId(),
+                        x -> x.getDotGiamGia(),
+                        (existing, replacement) -> existing // Tránh crash nếu trùng key
+                ));
+
+        // Map hình ảnh
         Map<Integer, List<String>> imageMap = new HashMap<>();
-
         for (Object[] obj : sanPhamChiTietRepository.getAllImagesForVariant()) {
-
             Integer spctId = (Integer) obj[0];
             String link = (String) obj[1];
 
-            imageMap.computeIfAbsent(
-                    spctId,
-                    k -> new ArrayList<>()
-            ).add(link);
+            imageMap.computeIfAbsent(spctId, k -> new ArrayList<>()).add(link);
         }
 
-        return list.stream().map(spct -> {
+        return list.stream()
+                // FIX 1: Lọc bỏ các biến thể đã bị ẩn/ngưng kinh doanh (trangThai = false)
+                .filter(spct -> Boolean.TRUE.equals(spct.getTrangThai()))
+                .map(spct -> {
 
-            SanPhamChiTietResponse res =
-                    new SanPhamChiTietResponse();
+                    SanPhamChiTietResponse res = new SanPhamChiTietResponse();
 
-            res.setId(spct.getId());
+                    res.setId(spct.getId());
+                    res.setIdSanPham(spct.getIdSanPham().getId());
+                    res.setTenSanPham(spct.getIdSanPham().getTenSanPham());
 
-            res.setIdSanPham(spct.getIdSanPham().getId());
-            res.setTenSanPham(spct.getIdSanPham().getTenSanPham());
+                    res.setTenDanhMuc(
+                            spct.getIdSanPham().getIdDanhMuc() != null
+                                    ? spct.getIdSanPham().getIdDanhMuc().getTenDanhMuc() : null
+                    );
+                    res.setTenThuongHieu(
+                            spct.getIdSanPham().getIdThuongHieu() != null
+                                    ? spct.getIdSanPham().getIdThuongHieu().getTenThuongHieu() : null
+                    );
+                    res.setTenChatLieu(
+                            spct.getIdSanPham().getIdChatLieu() != null
+                                    ? spct.getIdSanPham().getIdChatLieu().getTenChatLieu() : null
+                    );
 
-            res.setTenDanhMuc(
-                    spct.getIdSanPham()
-                            .getIdDanhMuc()
-                            .getTenDanhMuc()
-            );
+                    res.setIdMauSac(spct.getIdMauSac().getId());
+                    res.setTenMauSac(spct.getIdMauSac().getTenMauSac());
 
-            res.setTenThuongHieu(
-                    spct.getIdSanPham()
-                            .getIdThuongHieu()
-                            .getTenThuongHieu()
-            );
+                    res.setIdKichThuoc(spct.getIdKichThuoc().getId());
+                    res.setTenKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
 
-            res.setTenChatLieu(
-                    spct.getIdSanPham()
-                            .getIdChatLieu()
-                            .getTenChatLieu()
-            );
+                    res.setMaSanPhamChiTiet(spct.getMaSanPhamChiTiet());
+                    res.setTenSanPhamChiTiet(spct.getTenSanPhamChiTiet());
 
-            res.setIdMauSac(spct.getIdMauSac().getId());
-            res.setTenMauSac(spct.getIdMauSac().getTenMauSac());
+                    res.setGiaNhap(spct.getGiaNhap());
+                    res.setGiaBan(spct.getGiaBan());
 
-            res.setIdKichThuoc(spct.getIdKichThuoc().getId());
-            res.setTenKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
+                    // FIX 2: Bổ sung tính toán Số lượng tồn / Tạm giữ / Khả dụng
+                    Integer soLuongTon = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+                    // Nếu Entity SanPhamChiTiet có trường soLuongTamGiu thì lấy, không thì mặc định là 0
+                    Integer soLuongTamGiu = (spct.getSoLuongTamGiu() != null) ? spct.getSoLuongTamGiu() : 0;
+                    Integer soLuongKhaDung = soLuongTon - soLuongTamGiu;
 
-            res.setMaSanPhamChiTiet(spct.getMaSanPhamChiTiet());
-            res.setTenSanPhamChiTiet(spct.getTenSanPhamChiTiet());
+                    res.setSoLuongTon(soLuongTon);
+                    res.setSoLuongTamGiu(soLuongTamGiu);
+                    res.setSoLuongKhaDung(Math.max(0, soLuongKhaDung));
+                    res.setTrangThai(spct.getTrangThai());
 
-            res.setGiaNhap(spct.getGiaNhap());
-            res.setGiaBan(spct.getGiaBan());
-            DotGiamGia dot = giamGiaMap.get(spct.getId());
+                    // FIX 3: Xử lý giảm giá & tính phần trăm
+                    DotGiamGia dot = giamGiaMap.get(spct.getId());
 
-            if (dot != null) {
+                    if (dot != null) {
+                        if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+                            BigDecimal giam = spct.getGiaBan()
+                                    .multiply(dot.getGiaTriGiam())
+                                    .divide(BigDecimal.valueOf(100));
 
-                if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+                            if (dot.getGiaTriGiamToiDa() != null && giam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                                giam = dot.getGiaTriGiamToiDa();
+                            }
 
-                    BigDecimal giam = spct.getGiaBan()
-                            .multiply(dot.getGiaTriGiam())
-                            .divide(BigDecimal.valueOf(100));
+                            res.setGiaSauGiam(spct.getGiaBan().subtract(giam));
+                            res.setPhanTramGiam(dot.getGiaTriGiam().intValue());
 
-                    if (dot.getGiaTriGiamToiDa() != null &&
-                            giam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                        } else {
+                            // Giảm theo số tiền cố định
+                            BigDecimal giam = dot.getGiaTriGiam();
+                            if (giam.compareTo(spct.getGiaBan()) > 0) {
+                                giam = spct.getGiaBan();
+                            }
 
-                        giam = dot.getGiaTriGiamToiDa();
+                            res.setGiaSauGiam(spct.getGiaBan().subtract(giam));
+
+                            // Tự quy đổi sang % giảm tương ứng cho FE dễ hiển thị
+                            if (spct.getGiaBan() != null && spct.getGiaBan().compareTo(BigDecimal.ZERO) > 0) {
+                                int pt = giam.multiply(BigDecimal.valueOf(100))
+                                        .divide(spct.getGiaBan(), 0, RoundingMode.HALF_UP)
+                                        .intValue();
+                                res.setPhanTramGiam(pt);
+                            } else {
+                                res.setPhanTramGiam(0);
+                            }
+                        }
+                        res.setDangGiamGia(true);
+
+                    } else {
+                        res.setGiaSauGiam(spct.getGiaBan());
+                        res.setDangGiamGia(false);
+                        res.setPhanTramGiam(0); // Trả về 0 thay vì null để FE đỡ phải check null
                     }
 
-                    res.setGiaSauGiam(
-                            spct.getGiaBan().subtract(giam)
+                    // Xử lý đường dẫn Ảnh
+                    res.setImages(
+                            imageMap.getOrDefault(spct.getId(), new ArrayList<>())
+                                    .stream()
+                                    .map(link -> link.startsWith("/sanpham/") ? link : "/sanpham/" + link)
+                                    .toList()
                     );
 
-                    res.setPhanTramGiam(
-                            dot.getGiaTriGiam().intValue()
-                    );
+                    return res;
 
-                } else {
-
-                    BigDecimal giam = dot.getGiaTriGiam();
-
-                    if (giam.compareTo(spct.getGiaBan()) > 0) {
-                        giam = spct.getGiaBan();
-                    }
-
-                    res.setGiaSauGiam(
-                            spct.getGiaBan().subtract(giam)
-                    );
-
-                    // Nếu giảm theo tiền thì không có %
-                    res.setPhanTramGiam(null);
-                }
-
-                res.setDangGiamGia(true);
-
-            } else {
-
-                res.setGiaSauGiam(spct.getGiaBan());
-
-                res.setDangGiamGia(false);
-
-                res.setPhanTramGiam(null);
-            }
-
-            res.setSoLuongTon(spct.getSoLuongTon());
-            res.setTrangThai(spct.getTrangThai());
-
-            res.setImages(
-                    imageMap.getOrDefault(spct.getId(), new ArrayList<>())
-                            .stream()
-                            .map(link -> link.startsWith("/sanpham/")
-                                    ? link
-                                    : "/sanpham/" + link)
-                            .toList()
-            );
-
-            return res;
-
-        }).toList();
+                }).toList();
     }
 
     public ProductVariantResponse getVariantForShop(Integer productId) {

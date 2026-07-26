@@ -41,6 +41,14 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
     );
 
     @Query("""
+            SELECT hdct
+            FROM HoaDonChiTiet hdct
+            WHERE hdct.idSanPhamChiTiet.id = :spctId
+            AND hdct.idHoaDon.trangThai = 'cho_xac_nhan'
+            """)
+    List<HoaDonChiTiet> findChoXacNhanBySpct(Integer spctId);
+
+    @Query("""
             SELECT new com.example.backend.Response.thongke.TopProductStatistic(
                 sp.id,
                 sp.maSanPham,
@@ -123,4 +131,6 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
             @Param("loaiHoaDon") String loaiHoaDon);
+
+    List<HoaDonChiTiet> findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThai(Integer idSpct, String trangThai);
 }

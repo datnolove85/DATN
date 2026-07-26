@@ -478,8 +478,38 @@
                           <td class="px-4 py-3 text-right text-xs">
                             {{ formatCurrency(spct.giaNhap) }}
                           </td>
-                          <td class="px-4 py-3 text-right text-xs text-indigo-600 font-bold">
-                            {{ formatCurrency(spct.giaBan) }}
+                          <td class="px-4 py-3 text-right text-xs">
+                            <!-- Khi biến thể đang trong đợt giảm giá -->
+                            <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-1">
+                              <div class="flex items-center gap-1">
+                                <span
+                                  class="inline-flex items-center gap-1 bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-rose-100"
+                                >
+                                  🔥 -{{ spct.phanTramGiam }}%
+                                </span>
+                                <span
+                                  title="Không thể sửa giá vì sản phẩm đang trong đợt giảm giá"
+                                  class="text-slate-400 cursor-help"
+                                >
+                                  🔒
+                                </span>
+                              </div>
+
+                              <!-- Giá sau giảm -->
+                              <span class="text-indigo-600 font-bold">
+                                {{ formatCurrency(spct.giaSauGiam) }}
+                              </span>
+
+                              <!-- Giá gốc bị gạch ngang -->
+                              <span class="text-[10px] text-slate-400 line-through">
+                                {{ formatCurrency(spct.giaBan) }}
+                              </span>
+                            </div>
+
+                            <!-- Khi không giảm giá -->
+                            <div v-else class="text-indigo-600 font-bold">
+                              {{ formatCurrency(spct.giaBan) }}
+                            </div>
                           </td>
                           <td class="px-4 py-3 text-center">
                             <span
@@ -862,13 +892,25 @@
                 />
               </div>
 
-              <div class="bg-slate-50 rounded-2xl p-4 border">
-                <label class="text-xs font-bold uppercase text-slate-500"> Giá bán </label>
+              <!-- Ô nhập Giá bán trong Modal -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                  Giá bán
+                  <span v-if="formData.dangGiamGia" class="text-rose-500 font-normal">
+                    (🔒 Đang giảm giá - Không thể sửa)
+                  </span>
+                </label>
 
                 <input
-                  v-model.number="formData.giaBan"
+                  v-model="formData.giaBan"
                   type="number"
-                  class="mt-2 w-full border rounded-xl p-3 outline-none focus:ring-2 ring-indigo-300"
+                  :disabled="formData.dangGiamGia"
+                  :class="[
+                    'w-full px-3 py-2 border rounded-xl text-sm transition-all',
+                    formData.dangGiamGia
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200'
+                      : 'border-slate-300 focus:ring-2 focus:ring-indigo-500',
+                  ]"
                 />
               </div>
 
@@ -1852,11 +1894,17 @@ const editSPCT = (spct) => {
   isEditSPCT.value = true
   editingSPCTId.value = spct.id
 
+  // Copy toàn bộ dữ liệu biến thể vào formData (bao gồm cả dangGiamGia)
   formData.value = {
     ...spct,
   }
 
   previewImages.value = []
+
+  // Thông báo cho người dùng nếu sản phẩm đang trong đợt giảm giá
+  if (spct.dangGiamGia) {
+    toast.warning('Sản phẩm đang nằm trong đợt giảm giá! Giá bán sẽ bị khóa không thể sửa.')
+  }
 
   isSPCTModalOpen.value = true
 }

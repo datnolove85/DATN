@@ -31,4 +31,6 @@ public interface DonHangService {
      */
     DonHangResponse layChiTietDonHangChoAdmin(Integer idHoaDon);
 
+    void xacNhanDaNhan(Integer id);
+
 }

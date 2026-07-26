@@ -494,7 +494,7 @@ async function confirmReceived(order) {
   try {
     const token = sessionStorage.getItem('token')
     const res = await fetch(
-      `http://localhost:8080/don-hang/${order.thongTinDonHang.id}/trang-thai?trangThai=hoan_thanh`,
+      `http://localhost:8080/don-hang/${order.thongTinDonHang.id}/xac-nhan-da-nhan`,
       {
         method: 'PUT',
         headers: {

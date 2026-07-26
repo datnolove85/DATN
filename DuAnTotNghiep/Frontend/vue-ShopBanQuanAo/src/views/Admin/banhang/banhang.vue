@@ -134,45 +134,53 @@
           <div
             v-for="sp in sortedProducts"
             :key="sp.id"
-            @click="sp.soLuongTon > 0 && sp.trangThai ? addToCart(sp) : null"
+            @click="(sp.soLuongKhaDung ?? sp.soLuongTon) > 0 && sp.trangThai ? addToCart(sp) : null"
             :class="[
-              'bg-white rounded-2xl border p-3 flex flex-col justify-between transition-all group relative overflow-hidden select-none',
-              sp.soLuongTon > 0 && sp.trangThai
-                ? 'border-slate-200 hover:border-indigo-500 hover:shadow-lg cursor-pointer'
-                : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed',
+              'bg-white rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 group relative overflow-hidden select-none h-full',
+              (sp.soLuongKhaDung ?? sp.soLuongTon) > 0 && sp.trangThai
+                ? 'border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer'
+                : 'border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed',
             ]"
           >
-            <div v-if="sp.dangGiamGia" class="absolute top-0 right-3 z-20">
-              <div
-                class="bg-red-500 text-white text-[10px] font-bold w-10 text-center rounded-b-lg shadow-md py-1"
+            <!-- Tag Giảm Giá -->
+            <div v-if="sp.dangGiamGia" class="absolute top-2 right-2 z-20">
+              <span
+                class="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm"
               >
-                <div>-{{ sp.phanTramGiam }}%</div>
-                <div class="text-[8px] leading-none">SALE</div>
-              </div>
+                -{{ sp.phanTramGiam }}%
+              </span>
             </div>
 
-            <div class="aspect-square w-full rounded-xl bg-slate-100 overflow-hidden relative mb-3">
+            <!-- Khung Ảnh Sản Phẩm -->
+            <div
+              class="aspect-square w-full rounded-xl bg-slate-100 overflow-hidden relative mb-2.5"
+            >
               <img
                 :src="getProductImage(sp)"
-                alt="Product image"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-10"
+                :alt="sp.tenSanPham"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 @error="setDefaultImage"
               />
 
+              <!-- Overlay khi hết hàng / ngưng bán -->
               <div
-                v-if="sp.trangThai === false || sp.soLuongTon <= 0"
-                class="absolute inset-0 bg-black/40 flex items-center justify-center z-20"
-              >
-                <span class="bg-white text-rose-600 text-xs font-black px-3 py-1 rounded-lg">
-                  {{ sp.trangThai === false ? 'KHÔNG KHẢ DỤNG' : 'HẾT HÀNG' }}
-                </span>
-              </div>
-              <div
-                v-if="sp.soLuongTon > 0 && sp.trangThai"
-                class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center transition-all"
+                v-if="!sp.trangThai || (sp.soLuongKhaDung ?? sp.soLuongTon) <= 0"
+                class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center z-20"
               >
                 <span
-                  class="bg-indigo-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 shadow-md transform translate-y-2 group-hover:translate-y-0 transition-all"
+                  class="bg-white/90 text-rose-600 text-[11px] font-black px-2.5 py-1 rounded-lg shadow-sm"
+                >
+                  {{ !sp.trangThai ? 'NGỪNG BÁN' : 'HẾT HÀNG' }}
+                </span>
+              </div>
+
+              <!-- Nút Thêm Nhanh trên Hover -->
+              <div
+                v-if="(sp.soLuongKhaDung ?? sp.soLuongTon) > 0 && sp.trangThai"
+                class="absolute inset-0 bg-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10"
+              >
+                <span
+                  class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -192,89 +200,82 @@
               </div>
             </div>
 
+            <!-- Thông Tin Sản Phẩm -->
             <div class="flex-1 flex flex-col justify-between">
               <div>
-                <div class="flex items-center justify-between gap-1">
+                <!-- Mã & Thương hiệu -->
+                <div class="flex items-center justify-between gap-1 mb-1">
                   <span
-                    class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate"
+                    class="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-tight truncate"
                   >
-                    {{ sp.maSanPhamChiTiet }}
+                    #{{ sp.maSanPhamChiTiet }}
                   </span>
                   <span
-                    class="text-[9px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.2 rounded"
+                    class="text-[9px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"
                   >
                     {{ sp.tenThuongHieu }}
                   </span>
                 </div>
 
+                <!-- Tên sản phẩm -->
                 <h3
-                  class="text-xs font-bold text-slate-800 line-clamp-2 mt-1 group-hover:text-indigo-600 transition-colors"
+                  class="text-xs font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors"
                   :title="sp.tenSanPham"
                 >
                   {{ sp.tenSanPham }}
                 </h3>
 
-                <div class="flex gap-1 mt-2 flex-wrap">
+                <!-- Thuộc tính (Màu, Size) -->
+                <div class="flex gap-1 mt-1.5 flex-wrap">
                   <span
-                    class="text-[9px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"
+                    class="text-[9px] font-medium bg-slate-50 text-slate-600 border border-slate-100 px-1.5 py-0.5 rounded-md"
                   >
                     🎨 {{ sp.tenMauSac }}
                   </span>
                   <span
-                    class="text-[9px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"
+                    class="text-[9px] font-medium bg-slate-50 text-slate-600 border border-slate-100 px-1.5 py-0.5 rounded-md"
                   >
                     📏 Size {{ sp.tenKichThuoc }}
-                  </span>
-                  <span
-                    v-if="sp.tenChatLieu"
-                    class="text-[9px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"
-                  >
-                    🧵 {{ sp.tenChatLieu }}
                   </span>
                 </div>
               </div>
 
-              <div class="mt-3 pt-2 border-t border-slate-100 flex items-end justify-between">
-                <!-- Giá -->
+              <!-- Giá & Số lượng khả dụng -->
+              <div class="mt-3 pt-2 border-t border-slate-100 flex items-end justify-between gap-1">
                 <div>
                   <template v-if="sp.dangGiamGia">
-                    <p class="text-[11px] text-slate-400 line-through font-medium">
+                    <p
+                      class="text-[10px] text-slate-400 line-through font-medium leading-none mb-0.5"
+                    >
                       {{ formatPrice(sp.giaBan) }}
                     </p>
-
-                    <p class="text-lg font-black text-red-600 leading-none">
+                    <p class="text-sm font-black text-rose-600 leading-none">
                       {{ formatPrice(sp.giaSauGiam) }}
-                    </p>
-
-                    <p class="text-[10px] text-green-600 font-semibold mt-1">
-                      Tiết kiệm {{ formatPrice(sp.giaBan - sp.giaSauGiam) }}
                     </p>
                   </template>
 
                   <template v-else>
-                    <p class="text-lg font-black text-indigo-600 leading-none">
+                    <p class="text-sm font-black text-indigo-600 leading-none">
                       {{ formatPrice(sp.giaBan) }}
                     </p>
                   </template>
                 </div>
 
-                <!-- Tồn kho -->
+                <!-- Tag Số lượng khả dụng -->
                 <span
                   :class="[
-                    'text-[10px] px-2 py-1 rounded-lg font-bold',
-                    sp.soLuongTon <= 0 || !sp.trangThai
+                    'text-[9px] px-1.5 py-0.5 rounded-md font-bold flex-shrink-0',
+                    (sp.soLuongKhaDung ?? sp.soLuongTon) <= 0 || !sp.trangThai
                       ? 'bg-rose-50 text-rose-600'
-                      : sp.soLuongTon <= 10
-                        ? 'bg-amber-50 text-amber-700'
-                        : 'bg-slate-100 text-slate-600',
+                      : (sp.soLuongKhaDung ?? sp.soLuongTon) <= 10
+                        ? 'bg-amber-50 text-amber-600'
+                        : 'bg-emerald-50 text-emerald-600',
                   ]"
                 >
                   {{
-                    !sp.trangThai
-                      ? 'Không khả dụng'
-                      : sp.soLuongTon <= 0
-                        ? 'Hết hàng'
-                        : 'Kho: ' + sp.soLuongTon
+                    (sp.soLuongKhaDung ?? sp.soLuongTon) <= 0
+                      ? 'Hết hàng'
+                      : 'Khả dụng: ' + (sp.soLuongKhaDung ?? sp.soLuongTon)
                   }}
                 </span>
               </div>
@@ -401,22 +402,28 @@
               </div>
 
               <div class="flex items-center bg-slate-100 rounded-lg p-1">
+                <!-- Nút Giảm (-) -->
                 <button
                   @click="decreaseQty(item)"
-                  class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold"
+                  :disabled="item.soLuong <= 1"
+                  class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed select-none"
                 >
                   -
                 </button>
+
+                <!-- Ô Input Nhập Số Lượng -->
                 <input
                   type="number"
                   min="1"
                   v-model.number="item.soLuong"
                   @input="debounceChangeQty(item)"
-                  class="w-10 h-6 text-center text-xs font-bold text-slate-800 bg-white rounded border border-slate-200 outline-none"
+                  class="w-10 h-6 text-center text-xs font-bold text-slate-800 bg-white rounded border border-slate-200 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
+
+                <!-- Nút Tăng (+) -->
                 <button
                   @click="increaseQty(item)"
-                  class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold"
+                  class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold select-none"
                 >
                   +
                 </button>
@@ -771,22 +778,6 @@ import PaymentQrDialog from '@/views/shop/components/PaymentQrDialog.vue'
 
 import { debounce } from 'lodash-es'
 
-const debounceChangeQty = debounce(async (item) => {
-  if (!Number.isInteger(item.soLuong) || item.soLuong <= 0) {
-    toast.warning('Số lượng phải lớn hơn 0')
-    await loadChiTietHoaDon(currentOrder.value.id)
-    return
-  }
-
-  try {
-    await capNhatSoLuong(item.id, item.soLuong)
-    await loadChiTietHoaDon(currentOrder.value.id)
-  } catch (error) {
-    toast.error(error.message)
-    await loadChiTietHoaDon(currentOrder.value.id)
-  }
-}, 1000)
-
 // --- 2. KHỞI TẠO BIẾN CƠ BẢN ---
 const toast = useToast()
 const API_KHACH_HANG = 'http://localhost:8080/khachhang'
@@ -952,62 +943,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
-const changeQty = async (item) => {
-  let newQty = Number(item.soLuong)
 
-  if (!newQty || newQty < 1) {
-    await removeFromCart(currentOrder.value.cart.indexOf(item))
-
-    return
-  }
-
-  let diff = newQty - oldQty.value
-
-  // không đổi
-  if (diff === 0) {
-    return
-  }
-
-  // tăng
-  if (diff > 0) {
-    const sp = products.value.find((p) => (p.idSanPhamChiTiet || p.id) === item.product.id)
-
-    if (!sp) return
-
-    if (diff > sp.soLuongTon) {
-      toast.error('Không đủ số lượng tồn')
-
-      item.soLuong = oldQty.value
-
-      return
-    }
-
-    for (let i = 0; i < diff; i++) {
-      await tangSoLuongSanPham(item.id)
-    }
-
-    updateProductStockUI(item.product.id, -diff)
-
-    sp.soLuongTon -= diff
-  }
-
-  // giảm
-  else {
-    let amount = Math.abs(diff)
-
-    for (let i = 0; i < amount; i++) {
-      await giamSoLuongSanPham(item.id)
-    }
-
-    const sp = products.value.find((p) => (p.idSanPhamChiTiet || p.id) === item.product.id)
-
-    if (sp) {
-      sp.soLuongTon += amount
-    }
-  }
-
-  oldQty.value = newQty
-}
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
 })
@@ -1223,6 +1159,7 @@ function connectSocket() {
     }
   }
 }
+
 function subscribePos() {
   stompClient.subscribe('/topic/pos', async (msg) => {
     const event = JSON.parse(msg.body)
@@ -1284,6 +1221,19 @@ function subscribePos() {
         }
 
         await loadChiTietHoaDon(currentOrder.value.id)
+
+        break
+      case 'ORDER_CANCELLED':
+        await removeOrderFromUI(event.orderId)
+
+        await loadProducts()
+
+        ElNotification({
+          title: 'Hóa đơn đã hủy',
+          message: event.message,
+          type: 'warning',
+          duration: 5000,
+        })
 
         break
     }
@@ -1390,59 +1340,6 @@ const selectVoucher = async (voucher) => {
   }
 }
 
-// const applyVoucher = async () => {
-//   const code = (voucherQuery.value || voucherCode.value).trim().toUpperCase()
-
-//   const foundVoucher = vouchers.value.find((v) => v.maVoucher?.toUpperCase() === code)
-
-//   if (!foundVoucher) {
-//     toast.error('Mã giảm giá không hợp lệ!')
-//     return
-//   }
-
-//   const now = new Date()
-
-//   if (foundVoucher.trangThai !== 1) {
-//     toast.error('Voucher đang bị khóa!')
-//     return
-//   }
-
-//   if (foundVoucher.ngayBatDau && new Date(foundVoucher.ngayBatDau) > now) {
-//     toast.error('Voucher chưa đến thời gian áp dụng!')
-//     return
-//   }
-
-//   if (foundVoucher.ngayKetThuc && new Date(foundVoucher.ngayKetThuc) < now) {
-//     toast.error('Voucher đã hết hạn!')
-//     return
-//   }
-
-//   if (foundVoucher.soLuongDaDung >= foundVoucher.soLuong) {
-//     toast.error('Voucher đã hết lượt sử dụng!')
-//     return
-//   }
-
-//   if (totalCartPrice.value < foundVoucher.giaTriDonHangToiThieu) {
-//     toast.warning(
-//       `Đơn hàng tối thiểu ${formatPrice(foundVoucher.giaTriDonHangToiThieu)} mới được áp dụng voucher`,
-//     )
-//     return
-//   }
-//   try {
-//     await apVoucher(currentOrder.value.id, foundVoucher.id)
-
-//     // reload lại từ server
-//     await loadChiTietHoaDon(currentOrder.value.id)
-
-//     selectedVoucher.value = foundVoucher
-//     voucherQuery.value = foundVoucher.maVoucher
-
-//     toast.success('Áp dụng voucher thành công')
-//   } catch (error) {
-//     toast.error(error.message)
-//   }
-// }
-
 const removeVoucher = async () => {
   try {
     await boVoucher(currentOrder.value.id)
@@ -1536,16 +1433,23 @@ const addToCart = async (product) => {
 
     await themSanPhamVaoHoaDon(payload)
 
-    // 1. update cart từ DB
+    // 1. Update cart từ DB
     await loadChiTietHoaDon(currentOrder.value.id)
 
-    // 2. 🔥 GIẢM TỒN KHO NGAY TRÊN UI (QUAN TRỌNG)
+    // 2. 🔥 GIẢM SỐ LƯỢNG KHẢ DỤNG NGAY TRÊN UI
     const sp = products.value.find(
       (p) => (p.idSanPhamChiTiet || p.id) === (product.idSanPhamChiTiet || product.id),
     )
 
-    if (sp && sp.soLuongTon > 0) {
-      sp.soLuongTon -= 1
+    if (sp) {
+      // Khởi tạo soLuongKhaDung nếu dữ liệu từ API chưa có sẵn field này
+      if (sp.soLuongKhaDung === undefined || sp.soLuongKhaDung === null) {
+        sp.soLuongKhaDung = sp.soLuongTon
+      }
+
+      if (sp.soLuongKhaDung > 0) {
+        sp.soLuongKhaDung -= 1
+      }
     }
 
     toast.success('Đã thêm sản phẩm')
@@ -1554,7 +1458,6 @@ const addToCart = async (product) => {
     toast.error(error?.message || 'Không thể thêm sản phẩm')
   }
 }
-
 const updateProductStockUI = (productId, change) => {
   const index = products.value.findIndex((p) => (p.idSanPhamChiTiet || p.id) === productId)
 
@@ -1570,17 +1473,20 @@ const updateProductStockUI = (productId, change) => {
 
   products.value.splice(index, 1, updated)
 }
+
+// --- HÀM TĂNG SỐ LƯỢNG ---
 const increaseQty = async (item) => {
   try {
     await tangSoLuongSanPham(item.id)
 
     await loadChiTietHoaDon(currentOrder.value.id)
-    await loadProducts()
+    await loadProducts() // 🔄 Cập nhật lại danh sách kho
   } catch (e) {
     toast.error(e.message)
   }
 }
 
+// --- HÀM GIẢM SỐ LƯỢNG ---
 const decreaseQty = async (item) => {
   try {
     if (item.soLuong <= 1) {
@@ -1591,36 +1497,57 @@ const decreaseQty = async (item) => {
     await giamSoLuongSanPham(item.id)
 
     await loadChiTietHoaDon(currentOrder.value.id)
-    await loadProducts()
+    await loadProducts() // 🔄 Cập nhật lại danh sách kho
   } catch (e) {
     toast.error(e.message)
   }
 }
-const removeFromCart = async (index) => {
-  try {
-    const item = currentOrder.value.cart[index]
-    if (!item) return
 
-    await xoaSanPhamKhoiHoaDon(item.id)
+const debounceChangeQty = debounce(async (item) => {
+  let newQty = Number(item.soLuong)
 
-    // 🔥 UPDATE UI NGAY
-    currentOrder.value.cart = currentOrder.value.cart.filter((_, i) => i !== index)
-
-    // 🔥 HOÀN TRẢ TỒN KHO (GIỐNG increase/decrease logic)
-    const sp = products.value.find(
-      (p) => (p.idSanPhamChiTiet || p.id) === (item.product.idSanPhamChiTiet || item.product.id),
-    )
-
-    if (sp) {
-      sp.soLuongTon += item.soLuong
-    }
-
-    toast.success('Đã xóa sản phẩm')
-  } catch (error) {
-    console.error(error)
-    toast.error('Xóa thất bại')
+  // 1. Kiểm tra số nhập vào phải hợp lệ
+  if (!newQty || newQty <= 0 || !Number.isInteger(newQty)) {
+    toast.warning('Số lượng phải là số nguyên lớn hơn 0')
+    await loadChiTietHoaDon(currentOrder.value.id)
+    return
   }
-}
+
+  // 2. Tìm sản phẩm trong danh sách để kiểm tra soLuongKhaDung
+  const sp = products.value.find(
+    (p) => (p.idSanPhamChiTiet || p.id) === (item.product.idSanPhamChiTiet || item.product.id),
+  )
+
+  // Nếu tìm thấy SP, kiểm tra nhanh ở FE trước khi gửi API
+  if (sp) {
+    const khaDungHienTai = sp.soLuongKhaDung ?? 0
+    const soLuongCuTrongGio = editingQty[item.id] || 0
+    const tongKhaDungCoTheDung = khaDungHienTai + soLuongCuTrongGio
+
+    if (newQty > tongKhaDungCoTheDung) {
+      toast.error(`Số lượng khả dụng không đủ! (Tối đa còn lại: ${tongKhaDungCoTheDung})`)
+      await loadChiTietHoaDon(currentOrder.value.id)
+      return
+    }
+  }
+
+  try {
+    // 3. Gọi API cập nhật (Backend sẽ tự trừ/cộng soLuongKhaDung)
+    await capNhatSoLuong(item.id, newQty)
+
+    // 4. 🔥 Tải lại giỏ hàng & tải lại danh sách SP để làm mới soLuongKhaDung trên UI
+    await Promise.all([
+      loadChiTietHoaDon(currentOrder.value.id),
+      loadProducts(), // 👈 Gọi lại API này để cập nhật soLuongKhaDung mới nhất
+    ])
+  } catch (error) {
+    toast.error(error?.response?.data || error?.message || 'Không thể cập nhật số lượng')
+
+    // Nếu BE báo lỗi (ví dụ hết soLuongKhaDung), reload lại để trả UI về số cũ
+    await loadChiTietHoaDon(currentOrder.value.id)
+    await loadProducts()
+  }
+}, 600)
 
 const max_oder_waiting = 6
 const user = JSON.parse(sessionStorage.getItem('user'))
@@ -1674,19 +1601,19 @@ const removeOrder = async (index) => {
     await huyHoaDon(order.id)
 
     // 2. Xóa tab khỏi mảng
-    allOrders.value.splice(index, 1)
+    // allOrders.value.splice(index, 1)
 
-    // 3. LÀM SẠCH GIỎ HÀNG (Cực kỳ quan trọng)
-    // Nếu tab bị xóa là tab đang mở, ta phải clear cart ngay
-    if (index === currentOrderIndex.value) {
-      currentOrder.value.cart = []
-    }
+    // // 3. LÀM SẠCH GIỎ HÀNG (Cực kỳ quan trọng)
+    // // Nếu tab bị xóa là tab đang mở, ta phải clear cart ngay
+    // if (index === currentOrderIndex.value) {
+    //   currentOrder.value.cart = []
+    // }
 
-    // 4. Load lại dữ liệu tồn kho để đồng bộ
-    await loadAllDataFromAPI()
-    if (index <= currentOrderIndex.value) {
-      currentOrderIndex.value--
-    }
+    // // 4. Load lại dữ liệu tồn kho để đồng bộ
+    // await loadAllDataFromAPI()
+    // if (index <= currentOrderIndex.value) {
+    //   currentOrderIndex.value--
+    // }
     // 5. Chuyển tab hoặc reset
     if (allOrders.value.length > 0) {
       // Điều chỉnh chỉ số nếu cần
@@ -1704,6 +1631,34 @@ const removeOrder = async (index) => {
   } catch (error) {
     console.error(error)
     toast.error(error.message || 'Hủy hóa đơn thất bại')
+  }
+}
+const removeOrderFromUI = async (orderId) => {
+  const index = allOrders.value.findIndex((o) => o.id === orderId)
+
+  if (index === -1) return
+
+  const isCurrent = currentOrder.value?.id === orderId
+
+  // Xóa tab
+  allOrders.value.splice(index, 1)
+
+  // Không còn hóa đơn
+  if (allOrders.value.length === 0) {
+    resetPOSState()
+    return
+  }
+
+  // Nếu tab bị xóa đang được mở
+  if (isCurrent) {
+    currentOrderIndex.value = Math.min(index, allOrders.value.length - 1)
+
+    await loadChiTietHoaDon(allOrders.value[currentOrderIndex.value].id)
+  } else {
+    // Nếu xóa tab đứng trước tab hiện tại
+    if (index < currentOrderIndex.value) {
+      currentOrderIndex.value--
+    }
   }
 }
 
@@ -1787,8 +1742,9 @@ const finalPaymentPrice = computed(() => {
 
 // --- 8. HÀM GỬI THANH TOÁN ---
 // ================= THANH TOAN =================
+// ================= THANH TOÁN =================
 const submitCheckout = async () => {
-  if (!currentOrder.value.id) return toast.error('Hóa đơn không hợp lệ!')
+  if (!currentOrder.value?.id) return toast.error('Hóa đơn không hợp lệ!')
 
   if (!phuongThucThanhToan.value) {
     return toast.error('Vui lòng chọn phương thức thanh toán!')
@@ -1801,25 +1757,41 @@ const submitCheckout = async () => {
   }
 
   try {
+    // 1. Gọi API thanh toán
     const result = await thanhToanHoaDon(payload)
-    console.log(result)
+
+    // 2. Xử lý khi THÀNH CÔNG
     hoaDonPrint.value = result
     showInvoiceModal.value = true
 
-    // Xóa hóa đơn đã thanh toán
+    // Xóa hóa đơn đã thanh toán khỏi danh sách tab chờ
     allOrders.value = allOrders.value.filter((o) => o.id !== currentOrder.value.id)
 
-    // Nếu vẫn còn hóa đơn, chọn tab đầu tiên
+    // Chuyển tab hóa đơn khác nếu còn
     if (allOrders.value.length > 0) {
       currentOrderIndex.value = 0
       await loadChiTietHoaDon(allOrders.value[0].id)
     } else {
-      // Nếu không còn hóa đơn, reset index về -1 hoặc giá trị mặc định để UI không chọn tab nào
       currentOrderIndex.value = -1
       toast.info('Đã hết hóa đơn chờ')
     }
   } catch (error) {
-    toast.error('Thanh toán thất bại: ' + error.message)
+    // 3. Xử lý khi THẤT BẠI (Backend ném ApiException)
+    // Hiển thị câu lỗi chính xác từ Java backend quăng ra
+    toast.error(error.message)
+
+    // 4. TỰ ĐỘNG ĐỒNG BỘ LẠI MÀN HÌNH POS
+    // Khi bị lỗi (SP ngừng bán, hết hàng, sai giá, voucher hết hạn...),
+    // reload lại dữ liệu để UI cập nhật theo DB
+    try {
+      await loadProducts() // Cập nhật lại tồn kho sản phẩm bên danh sách
+      if (currentOrder.value?.id) {
+        await loadChiTietHoaDon(currentOrder.value.id) // Cập nhật lại giỏ hàng/đơn giá
+      }
+      vouchers.value = await getAllVoucher() // Cập nhật lại danh sách Voucher
+    } catch (syncErr) {
+      console.error('Lỗi khi đồng bộ lại dữ liệu POS:', syncErr)
+    }
   }
 }
 

@@ -61,6 +61,17 @@ public class SanPhamChiTiet {
     @Column(name = "so_luong_ton", nullable = false)
     private Integer soLuongTon;
 
+    // === BỔ SUNG 1: Số lượng tạm giữ ===
+    @NotNull
+    @ColumnDefault("0")
+    @Column(name = "so_luong_tam_giu", nullable = false)
+    private Integer soLuongTamGiu = 0;
+
+    // === BỔ SUNG 2: Số lượng khả dụng (Cột tự động tính trong DB) ===
+    // insertable = false, updatable = false giúp JPA chỉ ĐỌC cột này, không gửi lệnh INSERT/UPDATE gây lỗi SQL
+    @Column(name = "so_luong_kha_dung", insertable = false, updatable = false)
+    private Integer soLuongKhaDung;
+
     @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
     private Instant ngayTao;

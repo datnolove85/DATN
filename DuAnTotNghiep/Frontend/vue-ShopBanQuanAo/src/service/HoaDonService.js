@@ -5,8 +5,15 @@ const handleResponse = async (response) => {
   const data = await response.json().catch(() => null)
 
   if (!response.ok) {
-    const message = data?.message || `HTTP Error: ${response.status}`
-    throw new Error(message)
+    // 1. Ưu tiên lấy message từ backend (ApiException)
+    const message = data?.message || `Lỗi hệ thống (${response.status})`
+    const error = new Error(message)
+
+    // 2. Gán thêm code lỗi (ví dụ: OUT_OF_STOCK, PRODUCT_DISABLED) để FE linh hoạt xử lý nếu cần
+    error.code = data?.code || 'UNKNOWN_ERROR'
+    error.data = data
+
+    throw error
   }
 
   return data
@@ -58,7 +65,6 @@ export const thanhToanHoaDon = async (payload) => {
 
     return await handleResponse(response)
   } catch (error) {
-    console.error('thanhToanHoaDon error:', error)
     throw error
   }
 }

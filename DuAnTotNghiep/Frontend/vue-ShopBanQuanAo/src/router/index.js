@@ -38,6 +38,12 @@ const router = createRouter({
           component: () => import('@/views/shop/home.vue'),
         },
         {
+          path: 'thu-do', // Đường dẫn truy cập sẽ là: http://localhost:5173/thu-do
+          name: 'thu-do',
+          component: () => import('@/components/VirtualTryOn.vue'),
+          // ⚠️ Lưu ý: Nếu bạn lưu file VirtualTryOn.vue ở thư mục khác, hãy chỉnh đường dẫn import cho đúng nhé!
+        },
+        {
           path: 'giohang',
           name: 'giohang',
           component: () => import('../views/shop/components/CarView.vue'),

@@ -47,4 +47,6 @@ public interface ThanhToanRepository extends JpaRepository<ThanhToan, Integer> {
             """)
     BigDecimal tongChuyenKhoanTheoKhoang(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("loaiHoaDon") String loaiHoaDon);
 
+    ThanhToan findByIdHoaDon_Id(Integer idHoaDon);
+
 }

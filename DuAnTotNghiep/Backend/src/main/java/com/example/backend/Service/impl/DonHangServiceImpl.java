@@ -7,7 +7,9 @@ import com.example.backend.Service.DonHangService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -226,5 +228,22 @@ public class DonHangServiceImpl implements DonHangService {
             return "Đã hoàn tiền";
         }
         return "Chưa thanh toán";
+    }
+
+    @Override
+    @Transactional
+    public void xacNhanDaNhan(Integer id) {
+
+        HoaDon hoaDon = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        if (!"giao_thanh_cong".equals(hoaDon.getTrangThai())) {
+            throw new RuntimeException("Đơn hàng chưa thể xác nhận hoàn thành.");
+        }
+
+        hoaDon.setTrangThai("hoan_thanh");
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+
+        hoaDonRepository.save(hoaDon);
     }
 }

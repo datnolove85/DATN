@@ -21,7 +21,7 @@ public class GioHangOnlineResponse {
 
     private String maSanPhamChiTiet;
 
-    private String thuongHieu;     // thêm
+    private String thuongHieu;
 
     private String mauSac;
 
@@ -31,9 +31,11 @@ public class GioHangOnlineResponse {
 
     private BigDecimal giaBan;
 
-    private Integer soLuong;       // số lượng trong giỏ
+    private Integer soLuong;          // Số lượng trong giỏ
 
-    private Integer soLuongTon;    // thêm
+    private Integer soLuongTon;       // Số lượng tồn kho tổng
+
+    private Integer soLuongKhaDung;   // Số lượng khả dụng (có thể bán)
 
     private BigDecimal thanhTien;
 }

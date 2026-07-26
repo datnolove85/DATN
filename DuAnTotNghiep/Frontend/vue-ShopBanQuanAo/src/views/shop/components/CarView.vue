@@ -145,7 +145,7 @@
                         : 'bg-red-50 text-red-600',
                     ]"
                   >
-                    {{ item.soLuongTon > 0 ? `Kho: ${item.soLuongTon}` : 'Hết hàng' }}
+                    {{ item.soLuongTon > 0 ? `Khả dụng: ${item.soLuongKhaDung}` : 'Hết hàng' }}
                   </span>
                 </div>
 
@@ -410,6 +410,7 @@ const checkout = () => {
       anh: item.anh,
       soLuongTon: item.soLuongTon,
       thanhTien: item.giaBan * item.soLuong,
+      soLuongKhaDung: item.soLuongKhaDung,
     })),
   }
 

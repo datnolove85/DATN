@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,6 +37,11 @@ public class SanPhamChiTietResponse {
     private BigDecimal giaBan;
 
     private Integer soLuongTon;
+
+    // === BỔ SUNG 2 TRƯỜNG MỚI ===
+    private Integer soLuongTamGiu;
+
+    private Integer soLuongKhaDung;
 
     private Boolean trangThai;
 

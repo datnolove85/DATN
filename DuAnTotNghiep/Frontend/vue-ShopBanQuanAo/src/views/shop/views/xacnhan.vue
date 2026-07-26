@@ -394,23 +394,27 @@
                   <h2 class="mt-1 text-2xl font-black tracking-tight">Sản phẩm đã chọn</h2>
                 </div>
               </div>
-              <span
-                v-if="!isCartCheckout"
-                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600"
-              >
-                Kho: {{ stock }}
-              </span>
+
+              <!-- Chỉ hiển thị Khả dụng tổng quan (Mua Ngay) -->
+              <!-- <div v-if="!isCartCheckout" class="flex flex-wrap gap-2">
+                <span
+                  class="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700"
+                >
+                  Khả dụng: {{ product?.soLuongKhaDung ?? product?.soLuongTon ?? 0 }}
+                </span>
+              </div> -->
             </div>
-            <!-- Checkout từ giỏ hàng -->
+
+            <!-- ==================== CHECKOUT TỪ GIỎ HÀNG ==================== -->
             <template v-if="isCartCheckout">
               <article
                 v-for="item in checkoutItems"
                 :key="item.productDetailId"
-                class="mt-6 grid gap-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[132px_1fr] sm:p-5"
+                class="mt-4 grid gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[120px_1fr] sm:gap-5 sm:p-5"
               >
                 <!-- Ảnh sản phẩm -->
                 <div
-                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner"
+                  class="h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 shadow-inner sm:h-30 sm:w-30"
                 >
                   <img
                     :src="
@@ -421,7 +425,7 @@
                         : '/no-image.png'
                     "
                     :alt="item.tenSanPham"
-                    class="h-full w-full object-cover"
+                    class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                   />
                 </div>
 
@@ -429,66 +433,95 @@
                 <div class="flex min-w-0 flex-1 flex-col justify-between">
                   <div>
                     <!-- Tên & Mã -->
-                    <div class="flex items-start justify-between gap-4">
-                      <h3 class="line-clamp-2 text-lg font-bold text-slate-900">
+                    <div class="flex items-start justify-between gap-3">
+                      <h3 class="line-clamp-2 text-base font-bold text-slate-900 sm:text-lg">
                         {{ item.tenSanPham }}
                       </h3>
-                      <span class="text-xs font-medium text-slate-400">
+                      <span
+                        class="inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500"
+                      >
                         #{{ item.maSanPhamChiTiet }}
                       </span>
                     </div>
 
-                    <!-- Thuộc tính (Màu sắc, Kích cỡ) -->
-                    <div class="mt-2.5 flex flex-wrap gap-2">
+                    <!-- Thuộc tính (Màu sắc, Kích cỡ) & Khả dụng -->
+                    <div class="mt-2.5 flex flex-wrap items-center gap-2">
                       <span
                         v-if="item.mauSac"
-                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
                       >
                         🎨 {{ item.mauSac }}
                       </span>
 
                       <span
                         v-if="item.kichCo"
-                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
                       >
                         📏 {{ item.kichCo }}
+                      </span>
+
+                      <!-- Thẻ Khả dụng ở vị trí đồng bộ -->
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/60"
+                      >
+                        📦 Khả dụng: {{ item.soLuongKhaDung ?? 0 }}
                       </span>
                     </div>
                   </div>
 
                   <!-- Giá, Số lượng & Thành tiền -->
                   <div
-                    class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                    class="mt-4 flex flex-col gap-3 pt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <!-- Đơn giá & Số lượng -->
-                    <div class="flex items-center gap-4">
+                    <!-- Đơn giá & Tăng giảm số lượng -->
+                    <div class="flex items-center justify-between gap-4 sm:justify-start">
+                      <!-- Đơn giá -->
                       <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-400">Đơn giá</p>
-                        <span class="text-base font-bold text-slate-900">
-                          {{ formatMoney(item.giaBan) }}
-                        </span>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                          Đơn giá
+                        </p>
+                        <div class="flex items-baseline gap-1.5">
+                          <span class="text-base font-bold text-slate-900">
+                            {{ formatMoney(item.giaSauGiam || item.giaBan) }}
+                          </span>
+                          <span
+                            v-if="item.giaSauGiam && item.giaSauGiam < item.giaBan"
+                            class="text-xs text-slate-400 line-through"
+                          >
+                            {{ formatMoney(item.giaBan) }}
+                          </span>
+                        </div>
                       </div>
 
-                      <div class="h-6 w-px bg-slate-200"></div>
+                      <div class="h-7 w-px bg-slate-200 hidden sm:block"></div>
 
+                      <!-- Bộ tăng giảm số lượng -->
                       <div
-                        class="flex items-center overflow-hidden rounded-lg border border-slate-200"
+                        class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50"
                       >
                         <button
                           type="button"
-                          class="h-9 w-9 hover:bg-slate-100"
+                          class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
+                          :disabled="item.quantity <= 1"
                           @click="decreaseCartQty(item)"
                         >
                           -
                         </button>
 
-                        <span class="flex h-9 w-10 items-center justify-center font-bold">
-                          {{ item.quantity }}
-                        </span>
+                        <input
+                          type="number"
+                          v-model.number="item.quantity"
+                          @input="validateCartQty(item)"
+                          @blur="onCartQtyBlur(item)"
+                          min="1"
+                          :max="item.soLuongKhaDung ?? item.soLuongTon ?? 1"
+                          class="h-8 w-11 border-x border-slate-200 bg-white text-center text-sm font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
 
                         <button
                           type="button"
-                          class="h-9 w-9 hover:bg-slate-100"
+                          class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
+                          :disabled="item.quantity >= (item.soLuongKhaDung ?? item.soLuongTon ?? 1)"
                           @click="increaseCartQty(item)"
                         >
                           +
@@ -498,11 +531,11 @@
 
                     <!-- Thành tiền -->
                     <div
-                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-3 sm:border-t-0 sm:pt-0 sm:justify-end sm:gap-2"
+                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-2.5 sm:border-none sm:pt-0 sm:justify-end sm:gap-2"
                     >
-                      <span class="text-sm text-slate-500">Thành tiền:</span>
-                      <span class="text-xl font-extrabold text-red-600">
-                        {{ formatMoney((item.giaSauGiam || item.giaBan) * item.quantity) }}
+                      <span class="text-xs font-medium text-slate-500">Thành tiền:</span>
+                      <span class="text-lg sm:text-xl font-extrabold text-rose-600">
+                        {{ formatMoney((item.giaSauGiam || item.giaBan) * (item.quantity || 0)) }}
                       </span>
                     </div>
                   </div>
@@ -510,14 +543,14 @@
               </article>
             </template>
 
-            <!-- Mua ngay -->
+            <!-- ==================== MUA NGAY ==================== -->
             <template v-else>
               <article
-                class="mt-6 grid gap-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[132px_1fr] sm:p-5"
+                class="mt-4 grid gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[120px_1fr] sm:gap-5 sm:p-5"
               >
-                <!-- Ảnh -->
+                <!-- Ảnh sản phẩm -->
                 <div
-                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner"
+                  class="h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 shadow-inner sm:h-30 sm:w-30"
                 >
                   <img
                     :src="
@@ -526,97 +559,124 @@
                         : '/no-image.png'
                     "
                     :alt="product?.tenSanPham"
-                    class="h-full w-full object-cover"
+                    class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                   />
                 </div>
 
-                <!-- Thông tin -->
+                <!-- Thông tin sản phẩm -->
                 <div class="flex min-w-0 flex-1 flex-col justify-between">
                   <div>
-                    <!-- Tên -->
-                    <div class="flex items-start justify-between gap-4">
-                      <h3 class="line-clamp-2 text-lg font-bold text-slate-900">
+                    <!-- Tên & Mã -->
+                    <div class="flex items-start justify-between gap-3">
+                      <h3 class="line-clamp-2 text-base font-bold text-slate-900 sm:text-lg">
                         {{ product?.tenSanPham }}
                       </h3>
-
-                      <span class="text-xs font-medium text-slate-400">
+                      <span
+                        class="inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500"
+                      >
                         #{{ product?.maSanPhamChiTiet }}
                       </span>
                     </div>
 
-                    <!-- Màu Size -->
-                    <div class="mt-2.5 flex flex-wrap gap-2">
+                    <!-- Thuộc tính (Màu sắc, Kích cỡ) & Khả dụng -->
+                    <div class="mt-2.5 flex flex-wrap items-center gap-2">
                       <span
-                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                        v-if="product?.tenMauSac"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
                       >
                         🎨 {{ product?.tenMauSac }}
                       </span>
 
                       <span
-                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                        v-if="product?.tenKichThuoc"
+                        class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
                       >
                         📏 {{ product?.tenKichThuoc }}
                       </span>
-                    </div>
 
-                    <!-- Kho -->
-                    <div class="mt-2">
+                      <!-- Thẻ Khả dụng ở vị trí đồng bộ -->
                       <span
-                        class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"
+                        class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/60"
                       >
-                        Kho: {{ product?.soLuongTon }}
+                        📦 Khả dụng: {{ maxAvailable }}
                       </span>
                     </div>
                   </div>
 
-                  <!-- Giá - SL - Thành tiền -->
+                  <!-- Giá, Số lượng & Thành tiền -->
                   <div
-                    class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                    class="mt-4 flex flex-col gap-3 pt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div class="flex items-center gap-5">
-                      <!-- Giá -->
+                    <!-- Đơn giá & Tăng giảm số lượng -->
+                    <div class="flex items-center justify-between gap-4 sm:justify-start">
+                      <!-- Đơn giá -->
                       <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-400">Đơn giá</p>
-
-                        <div v-if="product?.dangGiamGia" class="flex items-center gap-2">
-                          <span class="text-base font-bold text-red-600">
-                            {{ formatMoney(product?.giaSauGiam) }}
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                          Đơn giá
+                        </p>
+                        <div class="flex items-baseline gap-1.5">
+                          <span class="text-base font-bold text-slate-900">
+                            {{ formatMoney(product?.giaSauGiam || product?.giaBan) }}
                           </span>
-
-                          <span class="text-sm line-through text-slate-400">
+                          <span
+                            v-if="
+                              product?.dangGiamGia ||
+                              (product?.giaSauGiam && product?.giaSauGiam < product?.giaBan)
+                            "
+                            class="text-xs text-slate-400 line-through"
+                          >
                             {{ formatMoney(product?.giaBan) }}
                           </span>
                         </div>
-
-                        <span v-else class="text-base font-bold text-slate-900">
-                          {{ formatMoney(product?.giaBan) }}
-                        </span>
                       </div>
 
-                      <div class="h-6 w-px bg-slate-200"></div>
+                      <div class="h-7 w-px bg-slate-200 hidden sm:block"></div>
 
-                      <!-- Tăng giảm -->
+                      <!-- Bộ tăng giảm số lượng Mua Ngay -->
                       <div
-                        class="flex items-center overflow-hidden rounded-lg border border-slate-200"
+                        class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50"
                       >
-                        <button class="h-9 w-9 hover:bg-slate-100" @click="decreaseQty">-</button>
+                        <button
+                          type="button"
+                          class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
+                          :disabled="quantity <= 1"
+                          @click="decreaseQty"
+                        >
+                          -
+                        </button>
 
-                        <span class="flex h-9 w-10 items-center justify-center font-bold">
-                          {{ quantity }}
-                        </span>
+                        <input
+                          type="number"
+                          v-model.number="quantity"
+                          @input="validateQty"
+                          @blur="onQtyBlur"
+                          min="1"
+                          :max="maxAvailable"
+                          class="h-8 w-11 border-x border-slate-200 bg-white text-center text-sm font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
 
-                        <button class="h-9 w-9 hover:bg-slate-100" @click="increaseQty">+</button>
+                        <button
+                          type="button"
+                          class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
+                          :disabled="quantity >= maxAvailable"
+                          @click="increaseQty"
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
 
                     <!-- Thành tiền -->
                     <div
-                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-3 sm:border-none sm:pt-0 sm:gap-2"
+                      class="flex items-center justify-between border-t border-dashed border-slate-200 pt-2.5 sm:border-none sm:pt-0 sm:justify-end sm:gap-2"
                     >
-                      <span class="text-sm text-slate-500"> Thành tiền: </span>
-
-                      <span class="text-xl font-extrabold text-red-600">
-                        {{ formatMoney((product?.giaSauGiam || product?.giaBan || 0) * quantity) }}
+                      <span class="text-xs font-medium text-slate-500">Thành tiền:</span>
+                      <span class="text-lg sm:text-xl font-extrabold text-rose-600">
+                        {{
+                          formatMoney(
+                            (product?.giaSauGiam || product?.giaBan || 0) * (quantity || 0),
+                          )
+                        }}
                       </span>
                     </div>
                   </div>
@@ -1212,6 +1272,74 @@ import 'leaflet/dist/leaflet.css'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import shadow from 'leaflet/dist/images/marker-shadow.png'
 
+// 1. Tính số lượng khả dụng tối đa cho "Mua Ngay"
+const maxAvailable = computed(() => {
+  if (!product.value) return 1
+  return product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 1
+})
+
+// ================= LOGIC MUA NGAY =================
+const increaseQty = () => {
+  if (quantity.value < maxAvailable.value) {
+    quantity.value++
+  } else {
+    toast.warning(`Số lượng tối đa có thể mua là ${maxAvailable.value}`)
+  }
+}
+
+const decreaseQty = () => {
+  if (quantity.value > 1) quantity.value--
+}
+
+// Hàm kiểm tra khi nhập từ bàn phím (Mua ngay)
+const validateQty = () => {
+  if (quantity.value > maxAvailable.value) {
+    quantity.value = maxAvailable.value
+    toast.warning(`Số lượng vượt quá số lượng khả dụng (${maxAvailable.value})`)
+  }
+}
+
+// Hàm xử lý khi rời ô nhập nếu để trống hoặc <= 0 (Mua ngay)
+const onQtyBlur = () => {
+  if (!quantity.value || quantity.value < 1) {
+    quantity.value = 1
+  }
+}
+
+// ================= LOGIC GIỎ HÀNG =================
+const increaseCartQty = (item) => {
+  // Lấy giới hạn từ soLuongKhaDung (fallback về soLuongTon)
+  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 1
+
+  if (item.quantity < max) {
+    item.quantity++
+  } else {
+    toast.warning(`Sản phẩm này chỉ còn ${max} sản phẩm khả dụng`)
+  }
+}
+
+const decreaseCartQty = (item) => {
+  if (item.quantity > 1) {
+    item.quantity--
+  }
+}
+
+// Hàm kiểm tra khi nhập từ bàn phím (Giỏ hàng)
+const validateCartQty = (item) => {
+  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 1
+  if (item.quantity > max) {
+    item.quantity = max
+    toast.warning(`Số lượng vượt quá số lượng khả dụng (${max})`)
+  }
+}
+
+// Hàm xử lý khi rời ô nhập nếu để trống hoặc <= 0 (Giỏ hàng)
+const onCartQtyBlur = (item) => {
+  if (!item.quantity || item.quantity < 1) {
+    item.quantity = 1
+  }
+}
+
 // Sắp xếp voucher: Đưa voucher đủ điều kiện (true) lên trước, voucher không đủ (false) xuống sau
 const sortedVouchers = computed(() => {
   return [...vouchers.value].sort((a, b) => {
@@ -1291,18 +1419,6 @@ const wards = ref([])
 // Cache toàn bộ phường theo tỉnh
 const wardCache = ref([])
 
-const getWardsCached = async (districtId) => {
-  if (wardCache[districtId]) {
-    return wardCache[districtId]
-  }
-
-  const data = await getWards(districtId)
-
-  wardCache[districtId] = data
-
-  return data
-}
-
 const selectedProvince = ref(null)
 const selectedDistrict = ref(null)
 const selectedWard = ref(null)
@@ -1339,6 +1455,325 @@ const calculateShipping = async (address) => {
   }
 }
 
+const center = ref({ lat: 21.0285, lng: 105.8542 }) // Mặc định Hà Nội
+const markerPosition = ref(null)
+const loading = ref(false)
+let map = null
+let marker = null
+
+const addresses = ref([])
+const selectedAddressId = ref(null)
+const toast = useToast()
+const route = useRoute()
+const router = useRouter()
+const authToken = sessionStorage.getItem('token')
+const isLoggedIn = Boolean(authToken)
+
+// Data
+const spctId = computed(() => {
+  return route.query.spct ? Number(route.query.spct) : null
+})
+
+const quantity = ref(Number(route.query.qty) || 1)
+const product = ref(null)
+const checkoutItems = ref([])
+const isCartCheckout = ref(false)
+const vouchers = ref([])
+
+const displayItems = computed(() => {
+  if (isCartCheckout.value) {
+    return checkoutItems.value
+  }
+
+  if (!product.value) {
+    return []
+  }
+
+  return [
+    {
+      productDetailId: product.value.id,
+
+      tenSanPham: product.value.tenSanPham,
+      maSanPhamChiTiet: product.value.maSanPhamChiTiet,
+
+      giaBan: product.value.giaSauGiam || product.value.giaBan,
+
+      mauSac: product.value.tenMauSac,
+      kichCo: product.value.tenKichThuoc,
+
+      anh: product.value.images?.[0] ?? '',
+
+      // ✅ FIX: Lấy đúng số lượng khả dụng & số lượng tồn từ BE
+      soLuongKhaDung: product.value.soLuongKhaDung ?? 0,
+      soLuongTon: product.value.soLuongTon ?? 0,
+
+      quantity: quantity.value,
+    },
+  ]
+})
+
+async function loadData() {
+  product.value = await getSanPhamChiTietById(spctId.value)
+
+  // ✅ FIX: Dùng soLuongKhaDung (hoặc soLuongTon) thay vì soLuong
+  const maxAvailable = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
+
+  if (quantity.value > maxAvailable) {
+    quantity.value = maxAvailable > 0 ? maxAvailable : 1
+
+    toast.warning('Số lượng sản phẩm vượt quá hàng sẵn có, đã tự động điều chỉnh.')
+  }
+
+  vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+  if (isLoggedIn) {
+    await loadAddresses()
+  }
+  provinces.value = await getProvinces()
+}
+
+onMounted(async () => {
+  // Ưu tiên mua ngay
+  if (spctId.value) {
+    isCartCheckout.value = false
+
+    await loadData()
+
+    connectSocket()
+
+    return
+  }
+
+  // Thanh toán từ giỏ
+  const checkout = sessionStorage.getItem('checkoutData')
+
+  if (checkout) {
+    isCartCheckout.value = true
+
+    checkoutItems.value = JSON.parse(checkout).items
+
+    vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+
+    if (isLoggedIn) {
+      await loadAddresses()
+    }
+
+    provinces.value = await getProvinces()
+
+    connectSocket()
+
+    return
+  }
+
+  router.push('/')
+})
+
+function connectSocket() {
+  if (stompClient.connected) {
+    subscribeOrder()
+  } else {
+    stompClient.onConnect = () => {
+      console.log('✅ Connected')
+
+      subscribeOrder()
+    }
+  }
+}
+function subscribeOrder() {
+  stompClient.subscribe('/topic/pos', async (msg) => {
+    const event = JSON.parse(msg.body)
+
+    console.log(event)
+
+    switch (event.type) {
+      case 'DISCOUNT_UPDATED':
+        product.value = await getSanPhamChiTietById(spctId.value)
+        break
+
+      case 'VOUCHER_UPDATED':
+        vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+
+        if (selectedVoucherId.value) {
+          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+
+          // Voucher bị xóa hoặc ngừng hoạt động
+          if (!latest || latest.trangThai !== 1) {
+            selectedVoucherId.value = null
+            toast.warning('Voucher không còn khả dụng.')
+            break
+          }
+
+          // Không còn đủ điều kiện áp dụng
+          if (subtotal.value < latest.giaTriDonHangToiThieu) {
+            selectedVoucherId.value = null
+            toast.warning('Voucher không còn đủ điều kiện áp dụng.')
+          }
+        }
+
+        break
+    }
+  })
+}
+
+// Logic Đơn hàng
+const shippingFee = ref(0)
+const shippingLoading = ref(false)
+const selectedVoucherId = ref(null)
+const note = ref('')
+
+const stock = computed(() => product.value?.soLuongTon || 0)
+const subtotal = computed(() => {
+  if (isCartCheckout.value) {
+    return checkoutItems.value.reduce((sum, item) => sum + item.giaBan * item.quantity, 0)
+  }
+
+  return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
+})
+const voucherDiscount = computed(() => {
+  const v = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+  if (!v || subtotal.value < v.giaTriDonHangToiThieu) return 0
+  return v.loaiGiamGia === 'phan_tram'
+    ? Math.min((subtotal.value * v.giaTriGiam) / 100, v.giaTriGiamToiDa ?? Number.POSITIVE_INFINITY)
+    : v.giaTriGiam
+})
+
+const total = computed(() =>
+  Math.max(subtotal.value + shippingFee.value - voucherDiscount.value, 0),
+)
+
+const formatMoney = (value) => Number(value || 0).toLocaleString('vi-VN') + ' đ'
+const isPlacingOrder = ref(false)
+
+const validateGuestCheckout = () => {
+  if (!addressForm.value.tenNguoiNhan.trim()) {
+    toast.warning('Vui lòng nhập họ tên người nhận')
+    return false
+  }
+
+  if (!/^[0-9]{9,11}$/.test(addressForm.value.soDienThoai.trim())) {
+    toast.warning('Số điện thoại phải gồm 9 đến 11 chữ số')
+    return false
+  }
+
+  if (
+    !addressForm.value.thanhPho ||
+    !addressForm.value.quan ||
+    !addressForm.value.phuong ||
+    !addressForm.value.diaChiCuThe.trim()
+  ) {
+    toast.warning('Vui lòng nhập đầy đủ địa chỉ giao hàng')
+    return false
+  }
+
+  return true
+}
+
+const placeOrder = async () => {
+  if (isPlacingOrder.value) return
+
+  if (isLoggedIn && !selectedAddressId.value) {
+    toast.warning('Vui lòng chọn địa chỉ giao hàng')
+    return
+  }
+
+  if (!isLoggedIn && !validateGuestCheckout()) {
+    return
+  }
+
+  const body = {
+    addressId: isLoggedIn ? selectedAddressId.value : null,
+    tenNguoiNhan: isLoggedIn ? null : addressForm.value.tenNguoiNhan,
+    soDienThoaiNguoiNhan: isLoggedIn ? null : addressForm.value.soDienThoai,
+    thanhPho: isLoggedIn ? null : addressForm.value.thanhPho,
+    quan: isLoggedIn ? null : addressForm.value.quan,
+    phuong: isLoggedIn ? null : addressForm.value.phuong,
+    diaChiCuThe: isLoggedIn ? null : addressForm.value.diaChiCuThe,
+    districtId: isLoggedIn ? null : addressForm.value.districtId,
+    wardCode: isLoggedIn ? null : addressForm.value.wardCode,
+    shippingFee: shippingFee.value,
+    voucherId: selectedVoucherId.value,
+    note: note.value,
+    items: isCartCheckout.value
+      ? checkoutItems.value.map((item) => ({
+          productDetailId: item.productDetailId,
+          quantity: item.quantity,
+        }))
+      : [
+          {
+            productDetailId: spctId.value,
+            quantity: quantity.value,
+          },
+        ],
+  }
+
+  try {
+    isPlacingOrder.value = true
+
+    const res = await taoHoaDonOnline(body, authToken)
+    toast.success(`Đặt hàng thành công. Mã đơn: ${res.maHoaDon}`)
+    if (isCartCheckout.value) {
+      sessionStorage.removeItem('checkoutData')
+    }
+    sessionStorage.setItem('orderProduct', JSON.stringify(product.value))
+    sessionStorage.setItem('lastGuestOrderCode', res.maHoaDon)
+
+    router.push({
+      path: '/payment',
+      query: { id: res.id, maHoaDon: res.maHoaDon, qrUrl: res.qrUrl },
+    })
+  } catch (error) {
+    console.error(error)
+    toast.error(error.message || 'Đặt hàng thất bại ❌')
+  } finally {
+    isPlacingOrder.value = false
+  }
+}
+
+// Logic Map
+const initMap = () => {
+  // Nếu đã tồn tại map, xóa nó trước khi tạo mới để tránh lỗi
+  if (map) {
+    map.remove()
+    map = null
+  }
+
+  map = L.map('map').setView([21.0285, 105.8542], 13)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+  }).addTo(map)
+
+  // Nếu đang sửa địa chỉ, thêm lại marker cũ vào map mới
+  if (editingAddress.value && editingAddress.value.latitude) {
+    addMarker(editingAddress.value.latitude, editingAddress.value.longitude)
+  }
+}
+
+// Hàm hỗ trợ vẽ marker
+const addMarker = (lat, lng) => {
+  if (marker) map.removeLayer(marker)
+  marker = L.marker([lat, lng], {
+    icon: L.icon({
+      iconUrl: icon,
+      shadowUrl: shadow,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+    }),
+  }).addTo(map)
+  map.setView([lat, lng], 16)
+}
+
+//Logic địa chỉ
+const getWardsCached = async (districtId) => {
+  if (wardCache[districtId]) {
+    return wardCache[districtId]
+  }
+
+  const data = await getWards(districtId)
+
+  wardCache[districtId] = data
+
+  return data
+}
+
 const addressForm = ref({
   tenNguoiNhan: '',
   soDienThoai: '',
@@ -1354,12 +1789,6 @@ const addressForm = ref({
 
   macDinh: false,
 })
-
-const center = ref({ lat: 21.0285, lng: 105.8542 }) // Mặc định Hà Nội
-const markerPosition = ref(null)
-const loading = ref(false)
-let map = null
-let marker = null
 
 const getCurrentLocation = () => {
   loading.value = true
@@ -1571,54 +2000,6 @@ const resetAddressForm = () => {
   editingAddress.value = null
 }
 
-const addresses = ref([])
-const selectedAddressId = ref(null)
-const toast = useToast()
-const route = useRoute()
-const router = useRouter()
-const authToken = sessionStorage.getItem('token')
-const isLoggedIn = Boolean(authToken)
-
-// Data
-const spctId = computed(() => {
-  return route.query.spct ? Number(route.query.spct) : null
-})
-
-const quantity = ref(Number(route.query.qty) || 1)
-const product = ref(null)
-const checkoutItems = ref([])
-const isCartCheckout = ref(false)
-const vouchers = ref([])
-const displayItems = computed(() => {
-  if (isCartCheckout.value) {
-    return checkoutItems.value
-  }
-
-  if (!product.value) {
-    return []
-  }
-
-  return [
-    {
-      productDetailId: product.value.id,
-
-      tenSanPham: product.value.tenSanPham,
-      maSanPhamChiTiet: product.value.maSanPhamChiTiet,
-
-      giaBan: product.value.giaSauGiam || product.value.giaBan,
-
-      mauSac: product.value.tenMauSac,
-      kichCo: product.value.tenKichThuoc,
-
-      anh: product.value.images?.[0] ?? '',
-
-      soLuongTon: product.value.soLuongTon,
-
-      quantity: quantity.value,
-    },
-  ]
-})
-
 const loadAddresses = async () => {
   if (!isLoggedIn) return
 
@@ -1631,109 +2012,6 @@ const loadAddresses = async () => {
     console.error(e)
     toast.error('Không tải được địa chỉ')
   }
-}
-
-async function loadData() {
-  product.value = await getSanPhamChiTietById(spctId.value)
-
-  if (quantity.value > product.value.soLuong) {
-    quantity.value = product.value.soLuong
-
-    toast.warning('Số lượng sản phẩm vừa được cập nhật.')
-  }
-
-  vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
-  if (isLoggedIn) {
-    await loadAddresses()
-  }
-  provinces.value = await getProvinces()
-}
-
-onMounted(async () => {
-  // Ưu tiên mua ngay
-  if (spctId.value) {
-    isCartCheckout.value = false
-
-    await loadData()
-
-    connectSocket()
-
-    return
-  }
-
-  // Thanh toán từ giỏ
-  const checkout = sessionStorage.getItem('checkoutData')
-
-  if (checkout) {
-    isCartCheckout.value = true
-
-    checkoutItems.value = JSON.parse(checkout).items
-
-    vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
-
-    if (isLoggedIn) {
-      await loadAddresses()
-    }
-
-    provinces.value = await getProvinces()
-
-    connectSocket()
-
-    return
-  }
-
-  router.push('/')
-})
-
-function connectSocket() {
-  if (stompClient.connected) {
-    subscribeOrder()
-  } else {
-    stompClient.onConnect = () => {
-      console.log('✅ Connected')
-
-      subscribeOrder()
-    }
-  }
-}
-function subscribeOrder() {
-  stompClient.subscribe('/topic/pos', async (msg) => {
-    const event = JSON.parse(msg.body)
-
-    console.log(event)
-
-    switch (event.type) {
-      case 'DISCOUNT_UPDATED':
-        product.value = await getSanPhamChiTietById(spctId.value)
-        break
-
-      // case 'PRODUCT_UPDATED':
-      //   product.value = await getSanPhamChiTietById(spctId.value)
-      //   break
-
-      case 'VOUCHER_UPDATED':
-        vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
-
-        if (selectedVoucherId.value) {
-          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
-
-          // Voucher bị xóa hoặc ngừng hoạt động
-          if (!latest || latest.trangThai !== 1) {
-            selectedVoucherId.value = null
-            toast.warning('Voucher không còn khả dụng.')
-            break
-          }
-
-          // Không còn đủ điều kiện áp dụng
-          if (subtotal.value < latest.giaTriDonHangToiThieu) {
-            selectedVoucherId.value = null
-            toast.warning('Voucher không còn đủ điều kiện áp dụng.')
-          }
-        }
-
-        break
-    }
-  })
 }
 
 const openAddAddress = () => {
@@ -1897,178 +2175,6 @@ const onWardChange = async () => {
     await calculateShipping(addressForm.value)
   }
 }
-
-// Logic Đơn hàng
-const shippingFee = ref(0)
-const shippingLoading = ref(false)
-const selectedVoucherId = ref(null)
-const note = ref('')
-
-const stock = computed(() => product.value?.soLuongTon || 0)
-const subtotal = computed(() => {
-  if (isCartCheckout.value) {
-    return checkoutItems.value.reduce((sum, item) => sum + item.giaBan * item.quantity, 0)
-  }
-
-  return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
-})
-const voucherDiscount = computed(() => {
-  const v = vouchers.value.find((v) => v.id === selectedVoucherId.value)
-  if (!v || subtotal.value < v.giaTriDonHangToiThieu) return 0
-  return v.loaiGiamGia === 'phan_tram'
-    ? Math.min((subtotal.value * v.giaTriGiam) / 100, v.giaTriGiamToiDa ?? Number.POSITIVE_INFINITY)
-    : v.giaTriGiam
-})
-
-const total = computed(() =>
-  Math.max(subtotal.value + shippingFee.value - voucherDiscount.value, 0),
-)
-
-const formatMoney = (value) => Number(value || 0).toLocaleString('vi-VN') + ' đ'
-const isPlacingOrder = ref(false)
-
-const increaseQty = () => {
-  if (quantity.value < stock.value) quantity.value++
-}
-const decreaseQty = () => {
-  if (quantity.value > 1) quantity.value--
-}
-const increaseCartQty = (item) => {
-  // Lấy kho từ soLuongTon hoặc soLuong, nếu không có thì mặc định lấy 9999
-  const maxStock = item.soLuongTon ?? item.soLuong ?? 9999
-
-  if (item.quantity < maxStock) {
-    item.quantity++
-  } else {
-    toast.warning('Số lượng đã đạt giới hạn tồn kho')
-  }
-}
-
-const decreaseCartQty = (item) => {
-  if (item.quantity > 1) {
-    item.quantity--
-  }
-}
-const validateGuestCheckout = () => {
-  if (!addressForm.value.tenNguoiNhan.trim()) {
-    toast.warning('Vui lòng nhập họ tên người nhận')
-    return false
-  }
-
-  if (!/^[0-9]{9,11}$/.test(addressForm.value.soDienThoai.trim())) {
-    toast.warning('Số điện thoại phải gồm 9 đến 11 chữ số')
-    return false
-  }
-
-  if (
-    !addressForm.value.thanhPho ||
-    !addressForm.value.quan ||
-    !addressForm.value.phuong ||
-    !addressForm.value.diaChiCuThe.trim()
-  ) {
-    toast.warning('Vui lòng nhập đầy đủ địa chỉ giao hàng')
-    return false
-  }
-
-  return true
-}
-
-const placeOrder = async () => {
-  if (isPlacingOrder.value) return
-
-  if (isLoggedIn && !selectedAddressId.value) {
-    toast.warning('Vui lòng chọn địa chỉ giao hàng')
-    return
-  }
-
-  if (!isLoggedIn && !validateGuestCheckout()) {
-    return
-  }
-
-  const body = {
-    addressId: isLoggedIn ? selectedAddressId.value : null,
-    tenNguoiNhan: isLoggedIn ? null : addressForm.value.tenNguoiNhan,
-    soDienThoaiNguoiNhan: isLoggedIn ? null : addressForm.value.soDienThoai,
-    thanhPho: isLoggedIn ? null : addressForm.value.thanhPho,
-    quan: isLoggedIn ? null : addressForm.value.quan,
-    phuong: isLoggedIn ? null : addressForm.value.phuong,
-    diaChiCuThe: isLoggedIn ? null : addressForm.value.diaChiCuThe,
-    districtId: isLoggedIn ? null : addressForm.value.districtId,
-    wardCode: isLoggedIn ? null : addressForm.value.wardCode,
-    shippingFee: shippingFee.value,
-    voucherId: selectedVoucherId.value,
-    note: note.value,
-    items: isCartCheckout.value
-      ? checkoutItems.value.map((item) => ({
-          productDetailId: item.productDetailId,
-          quantity: item.quantity,
-        }))
-      : [
-          {
-            productDetailId: spctId.value,
-            quantity: quantity.value,
-          },
-        ],
-  }
-
-  try {
-    isPlacingOrder.value = true
-
-    const res = await taoHoaDonOnline(body, authToken)
-    toast.success(`Đặt hàng thành công. Mã đơn: ${res.maHoaDon}`)
-    if (isCartCheckout.value) {
-      sessionStorage.removeItem('checkoutData')
-    }
-    sessionStorage.setItem('orderProduct', JSON.stringify(product.value))
-    sessionStorage.setItem('lastGuestOrderCode', res.maHoaDon)
-
-    router.push({
-      path: '/payment',
-      query: { id: res.id, maHoaDon: res.maHoaDon, qrUrl: res.qrUrl },
-    })
-  } catch (error) {
-    console.error(error)
-    toast.error(error.message || 'Đặt hàng thất bại ❌')
-  } finally {
-    isPlacingOrder.value = false
-  }
-}
-
-// ... các khai báo hiện tại của bạn ...
-
-// Hàm khởi tạo map
-const initMap = () => {
-  // Nếu đã tồn tại map, xóa nó trước khi tạo mới để tránh lỗi
-  if (map) {
-    map.remove()
-    map = null
-  }
-
-  map = L.map('map').setView([21.0285, 105.8542], 13)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap',
-  }).addTo(map)
-
-  // Nếu đang sửa địa chỉ, thêm lại marker cũ vào map mới
-  if (editingAddress.value && editingAddress.value.latitude) {
-    addMarker(editingAddress.value.latitude, editingAddress.value.longitude)
-  }
-}
-
-// Hàm hỗ trợ vẽ marker
-const addMarker = (lat, lng) => {
-  if (marker) map.removeLayer(marker)
-  marker = L.marker([lat, lng], {
-    icon: L.icon({
-      iconUrl: icon,
-      shadowUrl: shadow,
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-    }),
-  }).addTo(map)
-  map.setView([lat, lng], 16)
-}
-
 // Watch để khởi tạo map
 watch(showAddressModal, (val) => {
   if (val) {
@@ -2084,6 +2190,7 @@ watch(showAddressModal, (val) => {
     }
   }
 })
+
 watch(selectedAddressId, async (id) => {
   if (!id) return
 

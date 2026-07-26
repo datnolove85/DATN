@@ -48,7 +48,7 @@ public class CODPaymentService implements PaymentService {
         thanhToanRepository.save(thanhToan);
 
         // 2. CẬP NHẬT HÓA ĐƠN -> "cho_thanh_toan"
-        hoaDon.setTrangThaiThanhToan("cho_thanh_toan"); // <--- Bổ sung cập nhật trạng thái hóa đơn
+        hoaDon.setTrangThaiThanhToan("chua_thanh_toan"); // <--- Bổ sung cập nhật trạng thái hóa đơn
         hoaDon.setNgayCapNhat(LocalDateTime.now());
         hoaDonRepository.save(hoaDon); // <--- Bổ sung save hóa đơn
 

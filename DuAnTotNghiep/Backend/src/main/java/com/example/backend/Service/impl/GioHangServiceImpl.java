@@ -150,6 +150,8 @@ public class GioHangServiceImpl implements GioHangService {
 
             response.setSoLuongTon(spct.getSoLuongTon());
 
+            response.setSoLuongKhaDung(spct.getSoLuongKhaDung());
+
             response.setSoLuong(item.getSoLuong());
 
             response.setThanhTien(

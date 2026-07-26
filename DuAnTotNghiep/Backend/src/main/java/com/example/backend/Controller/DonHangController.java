@@ -95,4 +95,12 @@ public class DonHangController {
         );
     }
 
+    @PutMapping("/{id}/xac-nhan-da-nhan")
+    public ResponseEntity<?> xacNhanDaNhan(@PathVariable Integer id) {
+
+        donHangService.xacNhanDaNhan(id);
+
+        return ResponseEntity.ok("Đã xác nhận nhận hàng");
+    }
+
 }

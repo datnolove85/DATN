@@ -233,6 +233,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 
+import { ElMessage } from 'element-plus'
+
 import {
   ShoppingBag as ShoppingBagIcon,
   QrCode as QrCodeIcon,
@@ -275,7 +277,11 @@ const handleLogin = async () => {
     sessionStorage.setItem('token', data.token)
     sessionStorage.setItem('user', JSON.stringify(data))
 
-    alert('Đăng nhập thành công 🎉')
+    ElMessage({
+      message: 'Đăng nhập thành công!',
+      type: 'success',
+      duration: 2000,
+    })
 
     switch (data.vaiTro) {
       case 'ADMIN':
@@ -291,13 +297,21 @@ const handleLogin = async () => {
         break
 
       default:
-        alert('Tài khoản không có quyền truy cập')
+        ElMessage({
+          message: 'Tài khoản không có quyền truy cập',
+          type: 'warning',
+          duration: 3000,
+        })
         sessionStorage.clear()
         break
     }
   } catch (err) {
     console.error(err)
-    alert('Sai tài khoản hoặc mật khẩu')
+    ElMessage({
+      message: 'Sai tài khoản hoặc mật khẩu',
+      type: 'error',
+      duration: 3000,
+    })
   } finally {
     isLoading.value = false
   }

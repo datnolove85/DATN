@@ -10,8 +10,9 @@
       <!-- CỘT TRÁI: HÌNH ẢNH -->
       <div class="relative group">
         <div class="absolute top-5 left-5 z-10 flex flex-col gap-2">
+          <!-- FIX: Dùng soLuongKhaDung thay vì soLuongTon -->
           <span
-            v-if="selectedVariant?.soLuongTon > 0"
+            v-if="availableStock > 0"
             class="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold"
             >Còn hàng</span
           >
@@ -19,7 +20,7 @@
             >Hết hàng</span
           >
           <span
-            v-if="selectedVariant?.phanTramGiam"
+            v-if="selectedVariant?.dangGiamGia && selectedVariant?.phanTramGiam > 0"
             class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold"
             >-{{ selectedVariant.phanTramGiam }}%</span
           >
@@ -61,11 +62,11 @@
                   (selectedVariant?.giaSauGiam || selectedVariant?.giaBan)?.toLocaleString('vi-VN')
                 }}đ</span
               >
-              <span v-if="selectedVariant?.giaSauGiam" class="line-through text-gray-400"
+              <span v-if="selectedVariant?.dangGiamGia" class="line-through text-gray-400 text-xl"
                 >{{ selectedVariant?.giaBan?.toLocaleString('vi-VN') }}đ</span
               >
             </div>
-            <p v-if="selectedVariant?.giaSauGiam" class="text-green-600 mt-2">
+            <p v-if="selectedVariant?.dangGiamGia" class="text-green-600 font-medium mt-2">
               Tiết kiệm
               {{ (selectedVariant.giaBan - selectedVariant.giaSauGiam).toLocaleString('vi-VN') }}đ
             </p>
@@ -108,11 +109,11 @@
                 <button
                   v-for="variant in selectedColor?.variants"
                   :key="variant.id"
-                  @click="variant.soLuongTon > 0 && selectVariant(variant)"
-                  :disabled="variant.soLuongTon === 0"
+                  @click="getVariantStock(variant) > 0 && selectVariant(variant)"
+                  :disabled="getVariantStock(variant) === 0"
                   class="w-12 h-12 rounded-xl text-sm font-medium border-2 flex items-center justify-center transition-all"
                   :class="[
-                    variant.soLuongTon === 0
+                    getVariantStock(variant) === 0
                       ? 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed line-through'
                       : selectedVariant?.id === variant.id
                         ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200'
@@ -132,15 +133,15 @@
               <button
                 @click="decreaseQty"
                 :disabled="quantity <= 1"
-                class="w-12 h-12 hover:bg-gray-100"
+                class="w-12 h-12 hover:bg-gray-100 flex items-center justify-center font-bold disabled:text-gray-300"
               >
                 -
               </button>
               <div class="w-14 text-center font-semibold">{{ quantity }}</div>
               <button
                 @click="increaseQty"
-                :disabled="!selectedVariant || quantity >= selectedVariant.soLuongTon"
-                class="w-12 h-12 hover:bg-gray-100"
+                :disabled="!selectedVariant || quantity >= availableStock"
+                class="w-12 h-12 hover:bg-gray-100 flex items-center justify-center font-bold disabled:text-gray-300"
               >
                 +
               </button>
@@ -148,21 +149,18 @@
           </div>
 
           <!-- Nút Hành Động -->
-          <!-- Nút Hành Động đã đổi sang tone màu xanh dương -->
           <div class="grid grid-cols-2 gap-4 mt-8">
-            <!-- Nút Thêm vào giỏ: Viền xanh, chữ xanh -->
             <button
               @click="addToCart"
-              :disabled="!selectedVariant || selectedVariant.soLuongTon === 0"
-              class="w-full py-4 rounded-2xl border-2 font-semibold transition-all border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white disabled:bg-gray-100 disabled:border-gray-200"
+              :disabled="!selectedVariant || availableStock === 0"
+              class="w-full py-4 rounded-2xl border-2 font-semibold transition-all border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white disabled:bg-gray-100 disabled:border-gray-200 disabled:text-gray-400"
             >
               🛒 Thêm vào giỏ
             </button>
 
-            <!-- Nút Mua ngay: Nền xanh đậm -->
             <button
               @click="buyNow"
-              :disabled="!selectedVariant || selectedVariant.soLuongTon === 0"
+              :disabled="!selectedVariant || availableStock === 0"
               class="w-full py-4 rounded-2xl font-bold text-lg transition-all bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500"
             >
               Mua ngay
@@ -172,11 +170,13 @@
 
         <!-- Thông tin hỗ trợ -->
         <div class="mt-8 bg-green-50 border border-green-100 rounded-2xl p-5 space-y-3 text-sm">
-          <div class="flex items-center gap-2 text-green-600">
-            ✔ Còn {{ selectedVariant?.soLuongTon }} sản phẩm
+          <div class="flex items-center gap-2 text-green-700 font-medium">
+            ✔ Khả dụng: {{ availableStock }} sản phẩm
           </div>
-          <div class="flex items-center gap-2">🚚 Miễn phí giao hàng từ 500.000đ</div>
-          <div class="flex items-center gap-2">🔄 Đổi trả trong 7 ngày</div>
+          <div class="flex items-center gap-2 text-slate-600">
+            🚚 Miễn phí giao hàng từ 500.000đ
+          </div>
+          <div class="flex items-center gap-2 text-slate-600">🔄 Đổi trả trong 7 ngày</div>
         </div>
       </div>
     </div>
@@ -186,19 +186,20 @@
       <h4 class="font-bold text-gray-900 mb-4">Chi tiết sản phẩm</h4>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 text-sm">
         <div class="flex justify-between py-2 border-b border-gray-100">
-          <span class="text-gray-500">Mã SP</span
-          ><span class="font-medium">{{ selectedVariant?.maSanPhamChiTiet }}</span>
+          <span class="text-gray-500">Mã SP</span>
+          <span class="font-medium">{{ selectedVariant?.maSanPhamChiTiet }}</span>
         </div>
         <div class="flex justify-between py-2 border-b border-gray-100">
-          <span class="text-gray-500">Danh mục</span><span>{{ selectedVariant?.tenDanhMuc }}</span>
+          <span class="text-gray-500">Danh mục</span>
+          <span>{{ selectedVariant?.tenDanhMuc }}</span>
         </div>
         <div class="flex justify-between py-2 border-b border-gray-100">
-          <span class="text-gray-500">Thương hiệu</span
-          ><span>{{ selectedVariant?.tenThuongHieu }}</span>
+          <span class="text-gray-500">Thương hiệu</span>
+          <span>{{ selectedVariant?.tenThuongHieu }}</span>
         </div>
         <div class="flex justify-between py-2 border-b border-gray-100">
-          <span class="text-gray-500">Chất liệu</span
-          ><span>{{ selectedVariant?.tenChatLieu }}</span>
+          <span class="text-gray-500">Chất liệu</span>
+          <span>{{ selectedVariant?.tenChatLieu }}</span>
         </div>
       </div>
     </div>
@@ -207,7 +208,6 @@
     <div class="mt-16">
       <div class="flex justify-between items-center mb-5">
         <h2 class="text-xl font-bold text-slate-800">Sản phẩm khác của shop</h2>
-
         <RouterLink to="/san-pham" class="text-sm font-semibold text-blue-600 hover:underline">
           Xem tất cả →
         </RouterLink>
@@ -216,7 +216,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         <div
           v-for="item in shopProducts"
-          :key="item.id"
+          :key="item.idSanPham"
           @click="$router.push({ name: 'confirmbuy', params: { id: item.idSanPham } })"
           class="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-blue-500 hover:shadow-2xl transition-all duration-300 cursor-pointer"
         >
@@ -228,7 +228,6 @@
             />
 
             <!-- Badge -->
-
             <div
               v-if="item.dangGiamGia"
               class="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold"
@@ -249,7 +248,6 @@
             </div>
           </div>
 
-          <!-- Nội dung -->
           <!-- Nội dung -->
           <div class="p-4 flex flex-col h-[360px]">
             <h3 class="font-semibold text-[15px] text-slate-800 line-clamp-2 h-11">
@@ -290,30 +288,23 @@
             <div class="mt-3 space-y-2">
               <div class="flex justify-between text-sm">
                 <span class="text-gray-400">Danh mục</span>
-                <span class="font-medium">
-                  {{ item.tenDanhMuc }}
-                </span>
+                <span class="font-medium">{{ item.tenDanhMuc }}</span>
               </div>
 
               <div class="flex justify-between text-sm">
                 <span class="text-gray-400">Thương hiệu</span>
-                <span class="font-medium">
-                  {{ item.tenThuongHieu }}
-                </span>
+                <span class="font-medium">{{ item.tenThuongHieu }}</span>
               </div>
 
               <div class="flex justify-between text-sm">
                 <span class="text-gray-400">Chất liệu</span>
-                <span class="font-medium">
-                  {{ item.tenChatLieu }}
-                </span>
+                <span class="font-medium">{{ item.tenChatLieu }}</span>
               </div>
             </div>
 
             <div class="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center">
               <div>
                 <div class="text-xs text-gray-400">Tồn kho</div>
-
                 <div class="font-bold text-green-600">{{ item.tongSoLuong }} sản phẩm</div>
               </div>
 
@@ -332,51 +323,46 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-
-import { useRoute } from 'vue-router'
-
-import { getAllSanpham } from '@/service/SanphamService'
-
-import { useRouter } from 'vue-router'
-
-import { getShopVariantsByProductId } from '@/service/SanPhamChiTiet'
-
-import { getAllSanPhamChiTiet } from '@/service/SanPhamChiTiet'
-
+import { useRoute, useRouter } from 'vue-router'
+import { getShopVariantsByProductId, getAllSanPhamChiTiet } from '@/service/SanPhamChiTiet'
 import axios from 'axios'
-
 import stompClient from '@/socket'
-
 import emitter from '@/utils/emitter'
-const route = useRoute()
 
+const route = useRoute()
 const router = useRouter()
 
 const product = ref(null)
-
 const selectedColor = ref(null)
-
 const selectedVariant = ref(null)
-
 const loading = ref(true)
-
 const mainImage = ref('')
-
 const quantity = ref(1)
-
 const shopVariants = ref([])
 
 const API_URL = 'http://localhost:8080'
-
 const placeholder = 'https://via.placeholder.com/300'
 
-const loadShopProducts = async () => {
-  const data = await getAllSanPhamChiTiet()
-
-  shopVariants.value = data.filter(
-    (item) => item.trangThai && item.idSanPham !== Number(route.params.id),
-  )
+// Helper lấy số lượng khả dụng ưu tiên soLuongKhaDung từ BE
+const getVariantStock = (variant) => {
+  if (!variant) return 0
+  return variant.soLuongKhaDung !== undefined ? variant.soLuongKhaDung : (variant.soLuongTon ?? 0)
 }
+
+// Computed tính số lượng hàng khả dụng cho biến thể đang chọn
+const availableStock = computed(() => getVariantStock(selectedVariant.value))
+
+const loadShopProducts = async () => {
+  try {
+    const data = await getAllSanPhamChiTiet()
+    shopVariants.value = data.filter(
+      (item) => item.trangThai && item.idSanPham !== Number(route.params.id),
+    )
+  } catch (e) {
+    console.error('Lỗi tải danh sách sản phẩm khác:', e)
+  }
+}
+
 const shopProducts = computed(() => {
   const groups = {}
 
@@ -386,50 +372,32 @@ const shopProducts = computed(() => {
     if (!groups[item.idSanPham]) {
       groups[item.idSanPham] = {
         idSanPham: item.idSanPham,
-
         tenSanPham: item.tenSanPham,
         tenDanhMuc: item.tenDanhMuc,
         tenThuongHieu: item.tenThuongHieu,
         tenChatLieu: item.tenChatLieu,
-
         giaBan: item.giaBan,
         giaSauGiam: item.giaSauGiam ?? item.giaBan,
-
         dangGiamGia: item.dangGiamGia,
         phanTramGiam: item.phanTramGiam ?? 0,
-
         tongSoLuong: 0,
-
         image: item.images?.[0] ?? '',
-
         colors: [],
       }
     }
 
     const p = groups[item.idSanPham]
+    p.tongSoLuong += getVariantStock(item)
 
-    // Tổng tồn
-    p.tongSoLuong += item.soLuongTon
-
-    // Giá bán thấp nhất
-    if (item.giaBan < p.giaBan) {
-      p.giaBan = item.giaBan
-    }
-
-    // Giá sau giảm thấp nhất
+    if (item.giaBan < p.giaBan) p.giaBan = item.giaBan
     const currentPrice = item.giaSauGiam ?? item.giaBan
+    if (currentPrice < p.giaSauGiam) p.giaSauGiam = currentPrice
 
-    if (currentPrice < p.giaSauGiam) {
-      p.giaSauGiam = currentPrice
-    }
-
-    // Lấy mức giảm lớn nhất
     if (item.dangGiamGia && (item.phanTramGiam ?? 0) > p.phanTramGiam) {
       p.phanTramGiam = item.phanTramGiam
       p.dangGiamGia = true
     }
 
-    // Màu
     if (!p.colors.includes(item.tenMauSac)) {
       p.colors.push(item.tenMauSac)
     }
@@ -437,25 +405,21 @@ const shopProducts = computed(() => {
 
   return Object.values(groups).slice(0, 8)
 })
+
 const loadProduct = async () => {
   loading.value = true
-
   try {
     const data = await getShopVariantsByProductId(route.params.id)
-
     product.value = data
 
-    if (data.colors.length) {
+    if (data.colors?.length) {
       selectedColor.value = data.colors[0]
-
-      if (data.colors[0].variants.length) {
+      if (data.colors[0].variants?.length) {
         selectedVariant.value = data.colors[0].variants[0]
       }
     }
-
-    quantity.value = 1
   } catch (e) {
-    console.log(e)
+    console.error('Lỗi tải sản phẩm chi tiết:', e)
   } finally {
     loading.value = false
   }
@@ -463,8 +427,7 @@ const loadProduct = async () => {
 
 const increaseQty = () => {
   if (!selectedVariant.value) return
-
-  if (quantity.value < selectedVariant.value.soLuongTon) {
+  if (quantity.value < availableStock.value) {
     quantity.value++
   }
 }
@@ -476,89 +439,68 @@ const decreaseQty = () => {
 }
 
 const galleryImages = computed(() => {
-  if (!product.value) return []
-
+  if (!product.value?.gallery) return []
   return product.value.gallery.map((item) => ({
     ...item,
-    url: `http://localhost:8080${item.image}`,
+    url: item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`,
   }))
 })
 
-watch(selectedVariant, (variant) => {
-  if (!variant || !product.value) return
+// Single Watcher duy nhất cho selectedVariant
+watch(
+  selectedVariant,
+  (variant) => {
+    if (!variant || !product.value) return
 
-  const firstImage = product.value.gallery.find((g) => g.spctId === variant.id)
+    // Cập nhật ảnh chính theo spctId
+    const firstImage = product.value.gallery?.find((g) => g.spctId === variant.id)
+    if (firstImage) {
+      mainImage.value = firstImage.image.startsWith('http')
+        ? firstImage.image
+        : `${API_URL}${firstImage.image}`
+    } else {
+      mainImage.value = ''
+    }
 
-  mainImage.value = firstImage ? `http://localhost:8080${firstImage.image}` : ''
-})
+    // Cập nhật lại số lượng chọn mua
+    const stock = getVariantStock(variant)
+    quantity.value = stock > 0 ? 1 : 0
+  },
+  { immediate: true },
+)
+
 const selectImage = (img) => {
   mainImage.value = img.url
-
-  for (const color of product.value.colors) {
-    const variant = color.variants.find((v) => v.id === img.spctId)
-
+  for (const color of product.value?.colors || []) {
+    const variant = color.variants?.find((v) => v.id === img.spctId)
     if (variant) {
       selectedColor.value = color
       selectedVariant.value = variant
-      quantity.value = variant.soLuongTon > 0 ? 1 : 0
       break
     }
   }
 }
-watch(selectedVariant, (variant) => {
-  if (!variant) return
-
-  if (variant.soLuongTon === 0) {
-    quantity.value = 0
-  } else {
-    quantity.value = 1
-  }
-})
 
 const selectColor = (color) => {
   selectedColor.value = color
-
   selectedVariant.value = color.variants?.[0] ?? null
-
-  quantity.value = 1
 }
 
 const selectVariant = (variant) => {
   selectedVariant.value = variant
-
-  quantity.value = 1
 }
 
 onMounted(async () => {
-  try {
-    const data = await getShopVariantsByProductId(route.params.id)
-
-    await loadShopProducts()
-    await loadProduct()
-
-    product.value = data
-
-    if (data.colors.length) {
-      selectedColor.value = data.colors[0]
-
-      if (data.colors[0].variants.length) {
-        selectedVariant.value = data.colors[0].variants[0]
-      }
-    }
-  } catch (e) {
-    console.log(e)
-  } finally {
-    loading.value = false
-  }
+  await loadProduct()
+  await loadShopProducts()
   connectSocket()
 })
+
 function connectSocket() {
   if (stompClient.connected) {
     subscribeDetail()
   } else {
     stompClient.onConnect = () => {
-      console.log('✅ Connected')
-
       subscribeDetail()
     }
   }
@@ -567,23 +509,15 @@ function connectSocket() {
 function subscribeDetail() {
   stompClient.subscribe('/topic/pos', async (msg) => {
     const event = JSON.parse(msg.body)
-
-    switch (event.type) {
-      case 'DISCOUNT_UPDATED':
-        await loadShopProducts()
-        await loadProduct()
-        break
-
-      case 'PRODUCT_UPDATED':
-        await loadShopProducts()
-        await loadProduct()
-        break
+    if (['DISCOUNT_UPDATED', 'PRODUCT_UPDATED'].includes(event.type)) {
+      await loadShopProducts()
+      await loadProduct()
     }
   })
 }
+
 const addToCart = async () => {
   const token = sessionStorage.getItem('token')
-
   if (!token) {
     alert('Bạn cần đăng nhập')
     router.push('/login')
@@ -596,31 +530,26 @@ const addToCart = async () => {
   }
 
   try {
-    const res = await axios.post(
-      'http://localhost:8080/giohang/them',
+    await axios.post(
+      `${API_URL}/giohang/them`,
       {
         idSanPhamChiTiet: selectedVariant.value.id,
         soLuong: quantity.value,
       },
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       },
     )
-
-    console.log('Emit cart-updated')
-    // Báo Header tải lại giỏ hàng
     emitter.emit('cart-updated')
+    alert('Đã thêm sản phẩm vào giỏ hàng!')
   } catch (err) {
-    console.log(err)
+    console.error(err)
     alert(err?.response?.data || 'Lỗi thêm giỏ hàng')
   }
 }
 
 const buyNow = () => {
   if (!selectedVariant.value) return
-
   router.push({
     path: '/xacnhan',
     query: {
@@ -635,11 +564,7 @@ watch(
   async () => {
     await loadProduct()
     await loadShopProducts()
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   },
 )
 </script>
