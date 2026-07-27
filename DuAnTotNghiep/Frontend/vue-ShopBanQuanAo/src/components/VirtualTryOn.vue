@@ -1,14 +1,13 @@
 <template>
-  <!-- Wrapper hỗ trợ cả dạng Modal Popup lẫn Trang độc lập -->
   <div :class="['tryon-wrapper', { 'is-modal': isModal }]">
     <div class="tryon-card">
-      <!-- Nút đóng nếu dùng dạng Modal -->
-      <button v-if="isModal" class="btn-close" @click="$emit('close')">✕</button>
+      <button v-if="isModal" class="btn-close" type="button" @click="$emit('close')">✕</button>
 
-      <h2 class="title">✨ Thử Đồ AI (Virtual Try-On Pro)</h2>
-      <p class="subtitle">Tải ảnh toàn thân và trải nghiệm trang phục ngay lập tức</p>
+      <h2 class="title">✨ Thử đồ AI</h2>
+      <p class="subtitle">
+        Ảnh người thử được gửi tới backend; token Hugging Face không nằm trên trình duyệt.
+      </p>
 
-      <!-- Chọn loại trang phục -->
       <div class="category-selector">
         <label>Phân loại mặc:</label>
         <select v-model="selectedCategory">
@@ -18,15 +17,13 @@
         </select>
       </div>
 
-      <!-- Khu vực Upload Ảnh -->
       <div class="upload-grid">
-        <!-- 1. Ảnh Khách Hàng -->
         <div class="upload-item">
-          <span class="label">1. Ảnh người mẫu/bản thân</span>
-          <div class="preview-box" @click="triggerFileInput('human')">
-            <img v-if="humanPreview" :src="humanPreview" class="img-preview" />
+          <span class="label">1. Ảnh toàn thân của bạn</span>
+          <div class="preview-box" @click="triggerHumanInput">
+            <img v-if="humanPreview" :src="humanPreview" class="img-preview" alt="Ảnh người thử" />
             <div v-else class="upload-placeholder">
-              <span>📷 Tải ảnh người lên</span>
+              <span>📷 Chọn ảnh người thử</span>
             </div>
           </div>
           <input
@@ -34,55 +31,50 @@
             type="file"
             accept="image/*"
             class="hidden-input"
-            @change="(e) => handleFileChange(e, 'human')"
+            @change="handleHumanFileChange"
           />
         </div>
 
-        <!-- 2. Ảnh Trang Phục -->
         <div class="upload-item">
-          <span class="label">2. Ảnh mẫu trang phục</span>
-          <div class="preview-box" @click="triggerFileInput('garment')">
-            <img v-if="garmentPreview" :src="garmentPreview" class="img-preview" />
+          <span class="label">2. Trang phục lấy từ sản phẩm đang chọn</span>
+          <div class="preview-box garment-box">
+            <img
+              v-if="defaultGarmentUrl"
+              :src="defaultGarmentUrl"
+              class="img-preview"
+              alt="Ảnh sản phẩm"
+            />
             <div v-else class="upload-placeholder">
-              <span>👕 Tải ảnh áo/quần lên</span>
+              <span>👕 Hãy chọn biến thể có ảnh</span>
             </div>
           </div>
-          <input
-            ref="garmentInput"
-            type="file"
-            accept="image/*"
-            class="hidden-input"
-            @change="(e) => handleFileChange(e, 'garment')"
-          />
+          <p class="garment-note">Backend sẽ tự lấy ảnh theo SPCT #{{ effectiveSpctId || '—' }}</p>
         </div>
       </div>
 
-      <!-- Thanh Tiến Trình Giả Lập khi AI đang xử lý -->
       <div v-if="loading" class="progress-container">
         <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        <span class="progress-text">AI đang ghép đồ... {{ progress }}%</span>
+        <span class="progress-text">AI đang xử lý... {{ progress }}%</span>
       </div>
 
-      <!-- Nút Bắt Đầu -->
       <button
-        :disabled="loading || !humanFile || !garmentFile"
-        @click="startTryOn"
+        :disabled="loading || !humanFile || !effectiveSpctId"
+        type="button"
         class="btn-primary"
+        @click="startTryOn"
       >
-        <span v-if="loading">⏳ Đang tính toán ánh sáng & phom dáng...</span>
-        <span v-else>🚀 Bắt Đầu Thử Đồ</span>
+        <span v-if="loading">⏳ Đang tạo ảnh thử đồ...</span>
+        <span v-else>🚀 Bắt đầu thử đồ</span>
       </button>
 
-      <!-- Thông báo trạng thái / Báo lỗi nếu có -->
       <p v-if="statusMessage" class="status-msg">{{ statusMessage }}</p>
       <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-      <!-- Kết Quả Trả Về -->
       <div v-if="resultImg" class="result-box">
         <div class="result-header">
-          <h3>Kết Quả Thử Đồ:</h3>
-          <button class="btn-retry" @click="startTryOn" :disabled="loading">
-            🔄 Thử lại mẫu khác
+          <h3>Kết quả thử đồ</h3>
+          <button class="btn-retry" type="button" :disabled="loading" @click="startTryOn">
+            🔄 Thử lại
           </button>
         </div>
         <div class="result-image-wrapper">
@@ -94,27 +86,23 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted, watch } from 'vue'
-import { Client } from '@gradio/client'
+import { computed, onUnmounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { createVirtualTryOn } from '@/service/VirtualTryOnService'
 
-// Khai báo Props để hỗ trợ dùng làm Modal
 const props = defineProps({
   isModal: { type: Boolean, default: false },
+  spctId: { type: [Number, String], default: null },
   defaultGarmentUrl: { type: String, default: '' },
   defaultCategory: { type: String, default: 'upper_body' },
 })
 
 defineEmits(['close'])
 
-// Quản lý DOM & State
+const route = useRoute()
 const humanInput = ref(null)
-const garmentInput = ref(null)
-
 const humanFile = ref(null)
-const garmentFile = ref(null)
 const humanPreview = ref('')
-const garmentPreview = ref('')
-
 const selectedCategory = ref(props.defaultCategory)
 const resultImg = ref('')
 const loading = ref(false)
@@ -123,144 +111,121 @@ const errorMessage = ref('')
 const statusMessage = ref('')
 let progressTimer = null
 
-const HF_TOKEN = import.meta.env.VITE_HF_TOKEN
+const effectiveSpctId = computed(() => {
+  const raw = props.spctId ?? route.query.spct
+  const id = Number(raw)
+  return Number.isInteger(id) && id > 0 ? id : null
+})
 
-// Tự động nạp ảnh trang phục nếu truyền từ trang chi tiết sản phẩm
 watch(
-  () => props.defaultGarmentUrl,
-  async (newUrl) => {
-    if (newUrl) {
-      try {
-        const res = await fetch(newUrl)
-        const blob = await res.blob()
-        const file = new File([blob], 'garment.jpg', { type: blob.type })
-        garmentFile.value = await processImageCanvas(file)
-        garmentPreview.value = URL.createObjectURL(garmentFile.value)
-      } catch (e) {
-        console.error('Lỗi tự động tải ảnh trang phục:', e)
-      }
-    }
+  () => props.defaultCategory,
+  (value) => {
+    if (value) selectedCategory.value = value
   },
-  { immediate: true },
 )
 
-// Trigger click chọn file
-const triggerFileInput = (type) => {
-  if (type === 'human') humanInput.value.click()
-  else garmentInput.value.click()
+const revokeObjectUrl = (url) => {
+  if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
 }
 
-// Xử lý Canvas: Ép tỷ lệ chuẩn AI 3:4 (768x1024) & chèn nền trắng
-const processImageCanvas = (file) => {
-  return new Promise((resolve) => {
+const triggerHumanInput = () => humanInput.value?.click()
+
+const processImageCanvas = (file) =>
+  new Promise((resolve, reject) => {
     const img = new Image()
+    const sourceUrl = URL.createObjectURL(file)
+
     img.onload = () => {
       const canvas = document.createElement('canvas')
       canvas.width = 768
       canvas.height = 1024
       const ctx = canvas.getContext('2d')
-
       ctx.fillStyle = '#FFFFFF'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       const scale = Math.min(canvas.width / img.width, canvas.height / img.height)
       const x = (canvas.width - img.width * scale) / 2
       const y = (canvas.height - img.height * scale) / 2
-
       ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
 
       canvas.toBlob(
         (blob) => {
-          resolve(new File([blob], file.name, { type: 'image/jpeg' }))
+          URL.revokeObjectURL(sourceUrl)
+          if (!blob) {
+            reject(new Error('Không xử lý được ảnh đã chọn'))
+            return
+          }
+          resolve(new File([blob], 'person.jpg', { type: 'image/jpeg' }))
         },
         'image/jpeg',
-        0.95,
+        0.92,
       )
     }
-    img.src = URL.createObjectURL(file)
-  })
-}
 
-// Xử lý khi chọn File ảnh
-const handleFileChange = async (e, type) => {
-  const file = e.target.files[0]
+    img.onerror = () => {
+      URL.revokeObjectURL(sourceUrl)
+      reject(new Error('Ảnh đã chọn không hợp lệ'))
+    }
+    img.src = sourceUrl
+  })
+
+const handleHumanFileChange = async (event) => {
+  const file = event.target.files?.[0]
   if (!file) return
 
-  const processed = await processImageCanvas(file)
-  if (type === 'human') {
+  errorMessage.value = ''
+  try {
+    const processed = await processImageCanvas(file)
+    revokeObjectUrl(humanPreview.value)
     humanFile.value = processed
     humanPreview.value = URL.createObjectURL(processed)
-  } else {
-    garmentFile.value = processed
-    garmentPreview.value = URL.createObjectURL(processed)
+  } catch (error) {
+    errorMessage.value = error.message || 'Không thể đọc ảnh đã chọn'
   }
 }
 
-// Thanh tiến trình chạy mượt từ 0 -> 95%
 const startProgressBar = () => {
   progress.value = 0
   clearInterval(progressTimer)
   progressTimer = setInterval(() => {
-    if (progress.value < 95) {
-      progress.value += 1
-    }
-  }, 100)
+    if (progress.value < 94) progress.value += 1
+  }, 350)
 }
 
-console.log(HF_TOKEN)
-// HÀM CHÍNH: Xử lý Thử Đồ AI (Có tích hợp tự động Fallback Demo)
 const startTryOn = async () => {
-  if (!humanFile.value || !garmentFile.value) return
+  if (!humanFile.value || !effectiveSpctId.value) return
 
   loading.value = true
   errorMessage.value = ''
-  statusMessage.value = ''
+  statusMessage.value = 'Backend đang lấy ảnh sản phẩm và gửi hai ảnh lên dịch vụ AI...'
+  revokeObjectUrl(resultImg.value)
   resultImg.value = ''
   startProgressBar()
 
   try {
-    // 1. Thử gọi API Hugging Face
-    const client = await Client.connect('yisol/IDM-VTON', {
-      hf_token: HF_TOKEN || undefined,
+    const resultBlob = await createVirtualTryOn({
+      spctId: effectiveSpctId.value,
+      personImage: humanFile.value,
+      category: selectedCategory.value,
     })
-
-    const randomSeed = Math.floor(Math.random() * 1000000)
-
-    const res = await client.predict('/tryon', {
-      dict: { background: humanFile.value, layers: [], composite: null },
-      garm_img: garmentFile.value,
-      garment_des:
-        selectedCategory.value === 'upper_body' ? 'clothing jacket shirt' : 'garment item',
-      is_checked: true,
-      is_checked_crop: true,
-      denoise_steps: 20,
-      seed: randomSeed,
-    })
-
-    if (res && res.data && res.data[0]) {
-      progress.value = 100
-      resultImg.value = typeof res.data[0] === 'string' ? res.data[0] : res.data[0].url
-    } else {
-      throw new Error('API không trả về kết quả ảnh!')
-    }
-  } catch (err) {
-    console.warn('API Server AI gặp sự cố/quá tải Quota. Chuyển sang chế độ Demo UI...', err)
-
-    // 2. Chế độ FALLBACK (Giả lập UI thành công khi Server AI bị giới hạn/sập)
-    statusMessage.value = '⚡ Đang tải kết quả ở chế độ Xem Trước Giao Diện (Demo Mode)...'
-
-    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     progress.value = 100
-    // Trả về ảnh người làm kết quả xem trước để giao diện luôn chạy đẹp
-    resultImg.value = humanPreview.value
+    resultImg.value = URL.createObjectURL(resultBlob)
+    statusMessage.value = 'Tạo ảnh thử đồ thành công.'
+  } catch (error) {
+    statusMessage.value = ''
+    errorMessage.value = error.message || 'Không thể tạo ảnh thử đồ lúc này'
   } finally {
     clearInterval(progressTimer)
     loading.value = false
   }
 }
 
-onUnmounted(() => clearInterval(progressTimer))
+onUnmounted(() => {
+  clearInterval(progressTimer)
+  revokeObjectUrl(humanPreview.value)
+  revokeObjectUrl(resultImg.value)
+})
 </script>
 
 <style scoped>
@@ -270,187 +235,199 @@ onUnmounted(() => clearInterval(progressTimer))
   padding: 20px;
   font-family: 'Segoe UI', Roboto, sans-serif;
 }
-
-/* Kiểu hiển thị dạng Modal Popup */
 .tryon-wrapper.is-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.65);
+  inset: 0;
   z-index: 9999;
-  align-items: center;
+  align-items: flex-start;
   overflow-y: auto;
+  background: rgba(15, 23, 42, 0.72);
+  padding-top: 42px;
 }
-
 .tryon-card {
-  background: #ffffff;
-  width: 100%;
-  max-width: 650px;
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   position: relative;
+  width: 100%;
+  max-width: 720px;
+  padding: 26px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.22);
 }
-
 .btn-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  border: none;
-  background: #f3f4f6;
-  width: 32px;
-  height: 32px;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
   border-radius: 50%;
+  background: #f1f5f9;
   cursor: pointer;
-  font-weight: bold;
 }
-
 .title {
-  margin: 0 0 5px 0;
-  color: #111827;
-  font-size: 22px;
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 800;
 }
 .subtitle {
-  color: #6b7280;
+  margin: 0 40px 20px 0;
+  color: #64748b;
   font-size: 14px;
-  margin-bottom: 20px;
 }
-
 .category-selector {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   font-size: 14px;
 }
 .category-selector select {
   margin-left: 8px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
 }
-
 .upload-grid {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-.upload-item {
-  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 .label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
 }
-
 .preview-box {
-  height: 220px;
-  border: 2px dashed #d1d5db;
-  border-radius: 10px;
+  height: 270px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  background: #f9fafb;
   overflow: hidden;
-  transition: border-color 0.2s;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  cursor: pointer;
 }
 .preview-box:hover {
-  border-color: #6366f1;
+  border-color: #2563eb;
+}
+.garment-box {
+  cursor: default;
+  border-style: solid;
 }
 .img-preview {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background: #fff;
 }
 .upload-placeholder {
-  color: #9ca3af;
-  font-size: 13px;
+  color: #64748b;
+  font-size: 14px;
   text-align: center;
 }
 .hidden-input {
   display: none;
 }
-
-/* Progress Bar CSS */
+.garment-note {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
 .progress-container {
-  height: 20px;
-  background: #e5e7eb;
-  border-radius: 10px;
-  overflow: hidden;
   position: relative;
-  margin-bottom: 15px;
+  height: 28px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
 }
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #a855f7);
-  transition: width 0.15s ease;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  transition: width 0.25s;
 }
 .progress-text {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  color: #ffffff;
-  font-weight: bold;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
 }
-
 .btn-primary {
   width: 100%;
-  padding: 12px;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 15px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 0;
+  border-radius: 13px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
   cursor: pointer;
 }
 .btn-primary:disabled {
-  background: #9ca3af;
+  background: #94a3b8;
   cursor: not-allowed;
 }
-
+.status-msg {
+  margin-top: 12px;
+  color: #0369a1;
+  font-size: 14px;
+}
+.error-msg {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+}
 .result-box {
-  margin-top: 25px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 15px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
 }
 .result-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.result-header h3 {
+  margin: 0;
 }
 .btn-retry {
-  background: #10b981;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
   cursor: pointer;
 }
+.result-image-wrapper {
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: center;
+}
 .result-image-wrapper img {
-  width: 100%;
-  border-radius: 10px;
-  margin-top: 10px;
+  max-width: 100%;
+  max-height: 720px;
+  object-fit: contain;
 }
-.status-msg {
-  color: #4f46e5;
-  font-size: 13px;
-  margin-top: 10px;
-  font-style: italic;
-}
-.error-msg {
-  color: #ef4444;
-  font-size: 13px;
-  margin-top: 10px;
+@media (max-width: 640px) {
+  .tryon-wrapper.is-modal {
+    padding: 12px;
+  }
+  .tryon-card {
+    padding: 20px 15px;
+  }
+  .upload-grid {
+    grid-template-columns: 1fr;
+  }
+  .preview-box {
+    height: 240px;
+  }
 }
 </style>

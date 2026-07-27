@@ -16,6 +16,14 @@ public interface HinhAnhRepository extends JpaRepository<HinhAnh, Integer> {
 
     Optional<HinhAnh> findFirstByIdSanPhamChiTiet_IdAndLaAnhChinhTrue(Integer idSanPhamChiTiet);
 
+    Optional<HinhAnh> findFirstByIdSanPhamChiTiet_IdAndLaAnhChinhTrueAndTrangThaiTrue(
+            Integer idSanPhamChiTiet
+    );
+
+    Optional<HinhAnh> findFirstByIdSanPhamChiTiet_IdAndTrangThaiTrueOrderByIdAsc(
+            Integer idSanPhamChiTiet
+    );
+
     @Modifying
     @Query("""
 update HinhAnh h

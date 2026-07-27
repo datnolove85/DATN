@@ -165,6 +165,14 @@
             >
               Mua ngay
             </button>
+            <button
+              type="button"
+              :disabled="!selectedVariant"
+              class="mt-4 w-full py-4 rounded-2xl font-bold text-lg transition-all bg-violet-600 text-white hover:bg-violet-700 disabled:bg-gray-300 disabled:text-gray-500"
+              @click="showTryOn = true"
+            >
+              ✨ Thử đồ bằng AI
+            </button>
           </div>
         </div>
 
@@ -319,18 +327,28 @@
       </div>
     </div>
   </div>
+  <VirtualTryOn
+    v-if="showTryOn && selectedVariant"
+    is-modal
+    :spct-id="selectedVariant.id"
+    :default-garment-url="mainImage"
+    :default-category="tryOnCategory"
+    @close="showTryOn = false"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getShopVariantsByProductId, getAllSanPhamChiTiet } from '@/service/SanPhamChiTiet'
+import VirtualTryOn from '@/components/VirtualTryOn.vue'
 import axios from 'axios'
 import stompClient from '@/socket'
 import emitter from '@/utils/emitter'
 
 const route = useRoute()
 const router = useRouter()
+const showTryOn = ref(false)
 
 const product = ref(null)
 const selectedColor = ref(null)
@@ -351,6 +369,30 @@ const getVariantStock = (variant) => {
 
 // Computed tính số lượng hàng khả dụng cho biến thể đang chọn
 const availableStock = computed(() => getVariantStock(selectedVariant.value))
+const tryOnCategory = computed(() => {
+  const text = `${product.value?.productName || ''} ` + `${selectedVariant.value?.tenDanhMuc || ''}`
+
+  const normalized = text.toLowerCase()
+
+  if (
+    normalized.includes('đầm') ||
+    normalized.includes('váy liền') ||
+    normalized.includes('dress')
+  ) {
+    return 'dresses'
+  }
+
+  if (
+    normalized.includes('quần') ||
+    normalized.includes('chân váy') ||
+    normalized.includes('pants') ||
+    normalized.includes('trouser')
+  ) {
+    return 'lower_body'
+  }
+
+  return 'upper_body'
+})
 
 const loadShopProducts = async () => {
   try {
