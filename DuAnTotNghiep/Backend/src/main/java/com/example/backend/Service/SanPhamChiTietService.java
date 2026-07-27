@@ -5,10 +5,13 @@ import com.example.backend.Repository.*;
 import com.example.backend.Request.SanPhamChiTietRequest;
 import com.example.backend.Request.SanPhamCreateVariantRequest;
 import com.example.backend.Response.*;
+import com.example.backend.websocket.PosAlertEvent;
 import com.example.backend.websocket.PosEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -49,6 +52,9 @@ public class SanPhamChiTietService {
     HoaDonChiTietRepository hoaDonChiTietRepository;
     @Autowired
     private PosSocketService posSocketService;
+
+    @Autowired
+    HoaDonRepository hoaDonRepository;
 
 
     //Map
@@ -193,6 +199,7 @@ public class SanPhamChiTietService {
 
         }).toList();
     }
+
     //Get All Spct
     public List<SanPhamChiTietResponse> getAllSpct() {
 
@@ -376,12 +383,14 @@ public class SanPhamChiTietService {
         return mapToResponse(saved);
     }
 
-    @Transactional // 🔴 Giúp thao tác xóa/sửa HDCT và SPCT diễn ra đồng bộ trong 1 Transaction
-    public SanPhamChiTietResponse update(
+
+    @Transactional
+    public Map<String, Object> update(
             Integer id,
             SanPhamChiTietRequest request,
             MultipartFile[] files) {
 
+        // 1. Tìm kiếm các đối tượng liên quan
         SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
 
@@ -394,7 +403,7 @@ public class SanPhamChiTietService {
         KichThuoc kichThuoc = kichThuocRepository.findById(request.getIdKichThuoc())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy kích thước"));
 
-        // Kiểm tra trùng biến thể (trừ chính nó)
+        // 2. Kiểm tra trùng biến thể (trừ chính nó)
         Optional<SanPhamChiTiet> existed =
                 sanPhamChiTietRepository.findByIdSanPham_IdAndIdMauSac_IdAndIdKichThuoc_Id(
                         request.getIdSanPham(),
@@ -405,7 +414,10 @@ public class SanPhamChiTietService {
             throw new RuntimeException("Biến thể này đã tồn tại");
         }
 
-        // Update thông tin cơ bản
+        // Lưu lại giá bán cũ để so sánh
+        BigDecimal giaBanCu = spct.getGiaBan();
+
+        // 3. Update thông tin cơ bản
         spct.setIdSanPham(sanPham);
         spct.setIdMauSac(mauSac);
         spct.setIdKichThuoc(kichThuoc);
@@ -414,46 +426,177 @@ public class SanPhamChiTietService {
         spct.setGiaBan(request.getGiaBan());
         spct.setTrangThai(request.getTrangThai());
 
-        if (spct.getSoLuongTamGiu() == null) {
-            spct.setSoLuongTamGiu(0);
+        // ================== 3.1. CẬP NHẬT ĐƠN GIÁ CHO HÓA ĐƠN CHỜ TẠI QUẦY (POS) ==================
+        // Đơn Online giữ nguyên giá lúc đặt. Đơn TẠI QUẦY (chờ) sẽ tự động cập nhật theo giá bán mới.
+        BigDecimal giaBanMoi = request.getGiaBan();
+        if (giaBanMoi != null && (giaBanCu == null || giaBanCu.compareTo(giaBanMoi) != 0)) {
+            List<HoaDonChiTiet> dsHdctChoTaiQuay = hoaDonChiTietRepository
+                    .findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThaiAndIdHoaDon_LoaiHoaDon(
+                            spct.getId(), "cho_xac_nhan", "TAI_QUAY");
+
+            if (!dsHdctChoTaiQuay.isEmpty()) {
+                Set<HoaDon> dsHoaDonCanCapNhat = new HashSet<>();
+
+                for (HoaDonChiTiet ct : dsHdctChoTaiQuay) {
+                    ct.setDonGia(giaBanMoi);
+                    int sl = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+                    ct.setThanhTien(giaBanMoi.multiply(BigDecimal.valueOf(sl)));
+                    hoaDonChiTietRepository.save(ct);
+
+                    dsHoaDonCanCapNhat.add(ct.getIdHoaDon());
+                }
+
+                // Tính toán lại tổng tiền các hóa đơn POS bị ảnh hưởng
+                for (HoaDon hd : dsHoaDonCanCapNhat) {
+                    List<HoaDonChiTiet> ctConLai = hoaDonChiTietRepository.findByIdHoaDon_Id(hd.getId());
+
+                    BigDecimal tongTienHangMoi = ctConLai.stream()
+                            .map(HoaDonChiTiet::getThanhTien)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    hd.setTongTienHang(tongTienHangMoi);
+                    BigDecimal tongGiamGia = hd.getTongGiamGia() != null ? hd.getTongGiamGia() : BigDecimal.ZERO;
+                    hd.setTongThanhToan(tongTienHangMoi.subtract(tongGiamGia).max(BigDecimal.ZERO));
+
+                    hoaDonRepository.save(hd);
+                }
+            }
         }
 
-        // ================== XỬ LÝ TỒN KHO & ĐIỀU CHỈNH HÓA ĐƠN CHỜ ==================
+        // ================== 3.5. XỬ LÝ KHI CHUYỂN SANG NGỪNG KINH DOANH ==================
+        boolean isNgungKinhDoanh = Boolean.FALSE.equals(request.getTrangThai())
+                || "false".equalsIgnoreCase(String.valueOf(request.getTrangThai()).trim());
+
+        if (isNgungKinhDoanh) {
+            // 🔴 CHỈ XÓA các chi tiết hóa đơn chờ THUỘC KÊNH TẠI QUẦY. Đơn online được giữ nguyên!
+            List<HoaDonChiTiet> dsHdctChoTaiQuay = hoaDonChiTietRepository
+                    .findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThaiAndIdHoaDon_LoaiHoaDon(
+                            spct.getId(), "cho_xac_nhan", "TAI_QUAY");
+
+            if (!dsHdctChoTaiQuay.isEmpty()) {
+                Set<HoaDon> dsHoaDonCanCapNhat = new HashSet<>();
+
+                for (HoaDonChiTiet ct : dsHdctChoTaiQuay) {
+                    HoaDon hd = ct.getIdHoaDon();
+                    dsHoaDonCanCapNhat.add(hd);
+
+                    hoaDonChiTietRepository.delete(ct);
+                }
+
+                hoaDonChiTietRepository.flush();
+
+                // Tính toán lại tổng tiền Hóa đơn tại quầy bị ảnh hưởng
+                for (HoaDon hd : dsHoaDonCanCapNhat) {
+                    List<HoaDonChiTiet> ctConLai = hoaDonChiTietRepository.findByIdHoaDon_Id(hd.getId());
+
+                    BigDecimal tongTienHangMoi = ctConLai.stream()
+                            .map(HoaDonChiTiet::getThanhTien)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    hd.setTongTienHang(tongTienHangMoi);
+                    BigDecimal tongGiamGia = hd.getTongGiamGia() != null ? hd.getTongGiamGia() : BigDecimal.ZERO;
+                    hd.setTongThanhToan(tongTienHangMoi.subtract(tongGiamGia).max(BigDecimal.ZERO));
+
+                    hoaDonRepository.save(hd);
+                }
+            }
+        }
+
+        // ================== 4. XỬ LÝ TỒN KHO & XÉN ĐƠN CHỜ TẠI QUẦY ==================
         Integer soLuongTonMoi = request.getSoLuongTon() != null ? request.getSoLuongTon() : 0;
-        Integer tamGiuHienTai = spct.getSoLuongTamGiu();
 
-        // Trường hợp Admin hạ Tồn kho nhỏ hơn số lượng đang Tạm giữ
-        if (soLuongTonMoi < tamGiuHienTai) {
-            int soLuongCanXen = tamGiuHienTai - soLuongTonMoi;
+        // STEP 4.1: TÍNH SỐ LƯỢNG BẤT XÂM PHẠM (Đã xác nhận, đang giao, VÀ CẢ ĐƠN CHỜ ONLINE)
+        List<String> trangThaiKhongThuongLuong = List.of(
+                "da_xac_nhan",
+                "cho_van_chuyen",
+                "dang_giao"
+        );
+        Integer soLuongDaXacNhanHoacGiao = hoaDonChiTietRepository
+                .sumSoLuongBySpctAndTrangThaiIn(spct.getId(), trangThaiKhongThuongLuong);
+        if (soLuongDaXacNhanHoacGiao == null) soLuongDaXacNhanHoacGiao = 0;
 
-            // Lấy danh sách HDCT của các hóa đơn "cho_xac_nhan" chứa SPCT này
-            List<HoaDonChiTiet> dsHdctCho = hoaDonChiTietRepository
-                    .findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThai(spct.getId(), "cho_xac_nhan");
+        // Nhóm Đơn Online chờ xác nhận
+        Integer soLuongChoOnline = hoaDonChiTietRepository
+                .sumSoLuongBySpctAndTrangThaiAndLoaiHoaDon(spct.getId(), "cho_xac_nhan", "ONLINE");
+        if (soLuongChoOnline == null) soLuongChoOnline = 0;
 
-            for (HoaDonChiTiet ct : dsHdctCho) {
+        // TỔNG SỐ LƯỢNG KHÔNG THỂ XÉN
+        int soLuongKhongTheXen = soLuongDaXacNhanHoacGiao + soLuongChoOnline;
+
+        // BÁO LỖI CHI TIẾT NẾU TỒN MỚI NHỎ HƠN MỨC AN TOÀN
+        if (soLuongTonMoi < soLuongKhongTheXen) {
+            throw new RuntimeException(String.format(
+                    "Không thể giảm tồn kho về %d! Đang có %d sản phẩm bị khóa (Gồm: %d sp trong đơn ĐÃ XÁC NHẬN/ĐANG GIAO và %d sp trong ĐƠN ONLINE CHỜ XÁC NHẬN).",
+                    soLuongTonMoi,
+                    soLuongKhongTheXen,
+                    soLuongDaXacNhanHoacGiao,
+                    soLuongChoOnline
+            ));
+        }
+
+        // STEP 4.2: TÍNH SỐ LƯỢNG ĐANG NẰM TRONG CÁC ĐƠN CHỜ TẠI QUẦY (Được phép xén)
+        Integer soLuongChoXacNhanTaiQuay = hoaDonChiTietRepository
+                .sumSoLuongBySpctAndTrangThaiAndLoaiHoaDon(spct.getId(), "cho_xac_nhan", "TAI_QUAY");
+        if (soLuongChoXacNhanTaiQuay == null) soLuongChoXacNhanTaiQuay = 0;
+
+        // TỔNG TẠM GIỮ THỰC TẾ TRONG DATABASE
+        int tongSoLuongTamGiuThucTe = soLuongKhongTheXen + soLuongChoXacNhanTaiQuay;
+        int soLuongBiXenInNotification = 0;
+
+        // STEP 4.3: NẾU TỒN MỚI HẠ THẤP HƠN TỔNG SỐ LƯỢNG ĐANG TẠM GIỮ -> XÉN ĐƠN TẠI QUẦY
+        if (soLuongTonMoi < tongSoLuongTamGiuThucTe) {
+
+            int soLuongCanXen = tongSoLuongTamGiuThucTe - soLuongTonMoi;
+            soLuongBiXenInNotification = soLuongCanXen;
+
+            // 🔴 CHỈ LẤY DANH SÁCH ĐƠN CHỜ TẠI QUẦY ĐỂ XÉN (Chuẩn hóa chữ hoa "TAI_QUAY")
+            List<HoaDonChiTiet> dsHdctChoTaiQuay = hoaDonChiTietRepository
+                    .findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThaiAndIdHoaDon_LoaiHoaDon(
+                            spct.getId(), "cho_xac_nhan", "TAI_QUAY");
+
+            Set<HoaDon> dsHoaDonCanCapNhat = new HashSet<>();
+
+            for (HoaDonChiTiet ct : dsHdctChoTaiQuay) {
                 if (soLuongCanXen <= 0) break;
 
+                dsHoaDonCanCapNhat.add(ct.getIdHoaDon());
                 int soLuongMua = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
 
                 if (soLuongMua <= soLuongCanXen) {
-                    // Xóa hẳn dòng sản phẩm này khỏi hóa đơn chờ
                     soLuongCanXen -= soLuongMua;
                     hoaDonChiTietRepository.delete(ct);
                 } else {
-                    // Giảm bớt số lượng mua trong hóa đơn chờ
                     int soLuongConLai = soLuongMua - soLuongCanXen;
                     ct.setSoLuong(soLuongConLai);
                     ct.setThanhTien(ct.getDonGia().multiply(BigDecimal.valueOf(soLuongConLai)));
-                    SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
+                    hoaDonChiTietRepository.save(ct);
                     soLuongCanXen = 0;
                 }
             }
 
-            // Ép Tạm giữ bằng đúng Tồn mới (Khả dụng = 0)
-            spct.setSoLuongTamGiu(soLuongTonMoi);
+            // Cập nhật lại tổng tiền hóa đơn tại quầy bị xén
+            for (HoaDon hd : dsHoaDonCanCapNhat) {
+                List<HoaDonChiTiet> ctConLai = hoaDonChiTietRepository.findByIdHoaDon_Id(hd.getId());
+
+                BigDecimal tongTienHangMoi = ctConLai.stream()
+                        .map(HoaDonChiTiet::getThanhTien)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                hd.setTongTienHang(tongTienHangMoi);
+                BigDecimal tongGiamGia = hd.getTongGiamGia() != null ? hd.getTongGiamGia() : BigDecimal.ZERO;
+                hd.setTongThanhToan(tongTienHangMoi.subtract(tongGiamGia).max(BigDecimal.ZERO));
+
+                hoaDonRepository.save(hd);
+            }
+
+            tongSoLuongTamGiuThucTe = soLuongTonMoi;
         }
 
-        // Cập nhật tồn kho mới
+        // ĐỒNG BỘ CẢ 2 TRƯỜNG VÀO DATABASE
+        spct.setSoLuongTamGiu(tongSoLuongTamGiuThucTe);
         spct.setSoLuongTon(soLuongTonMoi);
 
         spct.setTenSanPhamChiTiet(
@@ -466,16 +609,31 @@ public class SanPhamChiTietService {
 
         SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
 
-        // ================== BẮN SOCKET THÔNG BÁO TỚI POS ==================
-        try {
-            posSocketService.send(
-                    new PosEvent("STOCK_FORCE_ADJUSTED", null, updated.getId(), updated.getSoLuongTon())
-            );
-        } catch (Exception e) {
-            System.err.println("Lỗi gửi Socket: " + e.getMessage());
+        // ================== 5. TẠO CÂU THÔNG BÁO CHI TIẾT ==================
+        final String thongBao;
+        if (isNgungKinhDoanh) {
+            thongBao = "Sản phẩm đã chuyển sang NGỪNG KINH DOANH và tự động xóa khỏi các hóa đơn chờ tại quầy!";
+        } else if (soLuongBiXenInNotification > 0) {
+            thongBao = "Cập nhật thành công! Tồn kho về " + soLuongTonMoi + " (Đã tự động giảm/xóa " + soLuongBiXenInNotification + " sản phẩm ở đơn chờ tại quầy)!";
+        } else {
+            thongBao = "Cập nhật sản phẩm chi tiết thành công!";
         }
 
-        // Xử lý upload ảnh (Giữ nguyên)
+        // ================== 6. BẮN SOCKET THÔNG BÁO TỚI POS ==================
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    posSocketService.send(
+                            new PosAlertEvent("STOCK_FORCE_ADJUSTED", thongBao, updated.getId(), updated.getSoLuongTon())
+                    );
+                } catch (Exception e) {
+                    System.err.println("Lỗi gửi Socket: " + e.getMessage());
+                }
+            }
+        });
+
+        // ================== 7. XỬ LÝ UPLOAD ẢNH ==================
         if (files != null && files.length > 0) {
             try {
                 Path uploadPath = Paths.get("uploads/sanpham");
@@ -509,7 +667,12 @@ public class SanPhamChiTietService {
 
         capNhatTrangThaiSanPham(request.getIdSanPham());
 
-        return mapToResponse(updated);
+        // ================== 8. ĐÓNG GÓI KẾT QUẢ TRẢ VỀ ==================
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", mapToResponse(updated));
+        response.put("message", thongBao);
+
+        return response;
     }
 
     public SanPhamChiTietResponse getById(Integer id) {
@@ -567,18 +730,109 @@ public class SanPhamChiTietService {
         return res;
     }
 
+
     @Transactional
-    public void delete(Integer id) {
+    public Map<String, Object> delete(Integer id) {
 
+        // 1. Tìm kiếm sản phẩm chi tiết
         SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy SPCT"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết"));
 
-        spct.setTrangThai(false);
+        int soLuongChiTietHDBiXoa = 0;
 
-        sanPhamChiTietRepository.save(spct);
-        Integer idSanPham = spct.getIdSanPham().getId();
-        capNhatTrangThaiSanPham(idSanPham);
+        // ================== 1. XÓA SPCT KHỎI CÁC HÓA ĐƠN CHỜ TẠI QUẦY (TAI_QUAY) ==================
+        List<HoaDonChiTiet> dsHdctChoTaiQuay = hoaDonChiTietRepository
+                .findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThaiAndIdHoaDon_LoaiHoaDon(
+                        spct.getId(), "cho_xac_nhan", "TAI_QUAY");
 
+        if (!dsHdctChoTaiQuay.isEmpty()) {
+            Set<HoaDon> dsHoaDonCanCapNhat = new HashSet<>();
+
+            for (HoaDonChiTiet ct : dsHdctChoTaiQuay) {
+                HoaDon hd = ct.getIdHoaDon();
+                dsHoaDonCanCapNhat.add(hd);
+
+                hoaDonChiTietRepository.delete(ct);
+                soLuongChiTietHDBiXoa++;
+            }
+
+            hoaDonChiTietRepository.flush();
+
+            // Cập nhật lại tổng tiền cho các Hóa đơn tại quầy bị ảnh hưởng
+            for (HoaDon hd : dsHoaDonCanCapNhat) {
+                List<HoaDonChiTiet> ctConLai = hoaDonChiTietRepository.findByIdHoaDon_Id(hd.getId());
+
+                BigDecimal tongTienHangMoi = ctConLai.stream()
+                        .map(HoaDonChiTiet::getThanhTien)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                hd.setTongTienHang(tongTienHangMoi);
+                BigDecimal tongGiamGia = hd.getTongGiamGia() != null ? hd.getTongGiamGia() : BigDecimal.ZERO;
+                hd.setTongThanhToan(tongTienHangMoi.subtract(tongGiamGia).max(BigDecimal.ZERO));
+
+                hoaDonRepository.save(hd);
+            }
+        }
+
+        // ================== 2. CHUYỂN TRẠNG THÁI NGỪNG KINH DOANH & BẢO VỆ TỒN ĐƠN ONLINE ==================
+        spct.setTrangThai(false); // Chuyển sang Ngừng kinh doanh
+
+        List<String> trangThaiKhongThuongLuong = List.of(
+                "da_xac_nhan",
+                "cho_van_chuyen",
+                "dang_giao"
+        );
+        Integer soLuongDaXacNhanHoacGiao = hoaDonChiTietRepository
+                .sumSoLuongBySpctAndTrangThaiIn(spct.getId(), trangThaiKhongThuongLuong);
+        if (soLuongDaXacNhanHoacGiao == null) soLuongDaXacNhanHoacGiao = 0;
+
+        Integer soLuongChoOnline = hoaDonChiTietRepository
+                .sumSoLuongBySpctAndTrangThaiAndLoaiHoaDon(spct.getId(), "cho_xac_nhan", "ONLINE");
+        if (soLuongChoOnline == null) soLuongChoOnline = 0;
+
+        spct.setSoLuongTamGiu(soLuongDaXacNhanHoacGiao + soLuongChoOnline);
+
+        SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
+
+        if (spct.getIdSanPham() != null) {
+            capNhatTrangThaiSanPham(spct.getIdSanPham().getId());
+        }
+
+        // ================== 3. TẠO THÔNG BÁO ==================
+        final String thongBao = (soLuongChiTietHDBiXoa > 0)
+                ? "Đã chuyển sản phẩm sang NGỪNG KINH DOANH và tự động xóa khỏi các hóa đơn chờ tại quầy!"
+                : "Đã chuyển sản phẩm sang NGỪNG KINH DOANH!";
+
+        // ================== 4. BẮN SOCKET VỚI EVENT "STOCK_FORCE_ADJUSTED" ==================
+        PosAlertEvent alertEvent = new PosAlertEvent("STOCK_FORCE_ADJUSTED", thongBao, updated.getId(), 0);
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        posSocketService.send(alertEvent);
+                    } catch (Exception e) {
+                        System.err.println("Lỗi gửi Socket tới POS: " + e.getMessage());
+                    }
+                }
+            });
+        } else {
+            // Fallback gửi trực tiếp nếu Transaction Synchronization chưa được bật
+            try {
+                posSocketService.send(alertEvent);
+            } catch (Exception e) {
+                System.err.println("Lỗi gửi Socket trực tiếp tới POS: " + e.getMessage());
+            }
+        }
+
+        // ================== 5. TRẢ VỀ KẾT QUẢ ==================
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", mapToResponse(updated));
+        response.put("message", thongBao);
+
+        return response;
     }
 
 
@@ -776,6 +1030,7 @@ public class SanPhamChiTietService {
 
         return result;
     }
+
     private String removeAccent(String text) {
         if (text == null) return "";
 

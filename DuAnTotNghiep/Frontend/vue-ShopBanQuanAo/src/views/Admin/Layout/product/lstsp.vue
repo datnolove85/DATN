@@ -1831,14 +1831,15 @@ const isDuplicateVariant = () => {
       item.id !== editingSPCTId.value,
   )
 }
-
 const submitSPCT = async () => {
+  // 1. Kiểm tra Validate (Đảm bảo bên trong validateSPCT đã có toast.warning nếu lỗi)
   if (!validateSPCT()) return
 
   if (isDuplicateVariant()) {
     toast.error('Màu sắc và kích thước đã tồn tại')
     return
   }
+
   try {
     const payload = new FormData()
 
@@ -1854,25 +1855,26 @@ const submitSPCT = async () => {
 
     selectedFiles.value.forEach((f) => payload.append('files', f))
 
-    try {
-      if (isEditSPCT.value) {
-        await updateSanPhamChiTiet(editingSPCTId.value, payload)
-        toast.success('Cập nhật SPCT thành công')
-      } else {
-        await createSanPhamChiTiet(payload)
-        toast.success('Thêm SPCT thành công')
-      }
-    } catch (e) {
-      console.error(e)
-      toast.error('Có lỗi xảy ra')
+    let responseData
+
+    // 🔴 THỰC HIỆN GỌI API
+    if (isEditSPCT.value) {
+      responseData = await updateSanPhamChiTiet(editingSPCTId.value, payload)
+    } else {
+      responseData = await createSanPhamChiTiet(payload)
     }
 
-    // reload SPCT list
-    await loadSPCT(formData.value.idSanPham)
+    // 🟢 LẤY CÂU THÔNG BÁO CHI TIẾT TỪ BACKEND (VD: "Cập nhật thành công! Đã tự động giảm 2 sp...")
+    const successMessage = responseData?.message || 'Cập nhật SPCT thành công!'
+    toast.success(successMessage)
 
+    // =========================================================================
+    // Reload data & Đóng Modal
+    // =========================================================================
+    await loadSPCT(formData.value.idSanPham)
     await loadData()
 
-    // reset form
+    // Reset form & Đóng modal
     selectedFiles.value = []
     previewImages.value = []
     isEditSPCT.value = false
@@ -1886,10 +1888,12 @@ const submitSPCT = async () => {
       trangThai: true,
     })
   } catch (e) {
-    console.error(e)
+    console.error('Lỗi khi lưu SPCT:', e)
+
+    // 🔴 e.message BÂY GIỜ ĐÃ CHỨA ĐÚNG CÂU BÁO LỖI CHI TIẾT TỪ BACKEND
+    toast.error(e.message || 'Có lỗi xảy ra khi cập nhật!')
   }
 }
-
 const editSPCT = (spct) => {
   isEditSPCT.value = true
   editingSPCTId.value = spct.id
@@ -2133,8 +2137,10 @@ const confirmDelete = async () => {
       method: 'DELETE',
     })
     await loadData()
-    await loadSPCT(selectedProduct.value.id)
 
+    if (selectedProduct.value) {
+      await loadSPCT(selectedProduct.value.id)
+    }
     toast.success('🗑️ Xóa sản phẩm thành công')
   } catch (err) {
     console.error(err)

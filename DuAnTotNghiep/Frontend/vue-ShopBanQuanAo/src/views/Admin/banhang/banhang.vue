@@ -1164,9 +1164,30 @@ function subscribePos() {
   stompClient.subscribe('/topic/pos', async (msg) => {
     const event = JSON.parse(msg.body)
 
-    console.log(event)
+    console.log('POS Event received:', event)
 
     switch (event.type) {
+      case 'STOCK_FORCE_ADJUSTED':
+        // 1. Giảm delay xuống 100ms vì Backend đã bắn Socket ở phase afterCommit() (DB đã ghi xong)
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
+        // 2. Cập nhật lại danh sách sản phẩm ở ô chọn hàng
+        await loadProducts()
+
+        // 3. 🟢 LẤY TRỰC TIẾP THÔNG BÁO TỪ BACKEND GỬI QUA (event.message)
+        ElNotification({
+          title: 'Cập nhật tồn kho',
+          message: event.message || 'Tồn kho vừa được Admin điều chỉnh!',
+          type: 'warning',
+          duration: 5000,
+        })
+
+        // 4. Nếu đang mở một hóa đơn chờ bất kỳ -> Load lại chi tiết để cập nhật giỏ hàng & tổng tiền
+        if (currentOrder.value?.id) {
+          await loadChiTietHoaDon(currentOrder.value.id)
+        }
+        break
+
       case 'PRODUCT_UPDATED':
         await loadProducts()
 
@@ -1182,6 +1203,7 @@ function subscribePos() {
           await loadChiTietHoaDon(currentOrder.value.id)
         }
         break
+
       case 'VOUCHER_UPDATED':
         vouchers.value = await getAllVoucher()
 
@@ -1191,7 +1213,7 @@ function subscribePos() {
 
         ElNotification({
           title: 'Voucher đã cập nhật',
-          message: 'Voucher trong hóa đơn đã được cập nhật theo thay đổi mới',
+          message: event.message || 'Voucher trong hóa đơn đã được cập nhật theo thay đổi mới',
           type: 'warning',
           duration: 5000,
         })
@@ -1201,7 +1223,7 @@ function subscribePos() {
       case 'DISCOUNT_UPDATED':
         ElNotification({
           title: 'Cập nhật giảm giá',
-          message: 'Đợt giảm giá đã có thay đổi, giá sản phẩm đã được cập nhật.',
+          message: event.message || 'Đợt giảm giá đã có thay đổi, giá sản phẩm đã được cập nhật.',
           type: 'warning',
           duration: 5000,
         })
@@ -1213,16 +1235,18 @@ function subscribePos() {
         }
 
         break
+
       case 'VOUCHER_REMOVED':
         console.log('VOUCHER_REMOVED event received:', event)
 
-        if (event.orderId === currentOrder.value.id) {
-          toast.warning('Voucher đã được gỡ vì không còn đủ điều kiện áp dụng.')
+        // 🟢 Thêm optional chaining currentOrder.value?.id để tránh lỗi crash nếu chưa chọn hóa đơn
+        if (currentOrder.value?.id && event.orderId === currentOrder.value.id) {
+          toast.warning(event.message || 'Voucher đã được gỡ vì không còn đủ điều kiện áp dụng.')
+          await loadChiTietHoaDon(currentOrder.value.id)
         }
 
-        await loadChiTietHoaDon(currentOrder.value.id)
-
         break
+
       case 'ORDER_CANCELLED':
         await removeOrderFromUI(event.orderId)
 
@@ -1230,7 +1254,7 @@ function subscribePos() {
 
         ElNotification({
           title: 'Hóa đơn đã hủy',
-          message: event.message,
+          message: event.message || 'Hóa đơn đã bị hủy',
           type: 'warning',
           duration: 5000,
         })
@@ -1588,6 +1612,7 @@ const switchOrder = async (index) => {
   appliedVoucher.value = order.appliedVoucher
   voucherQuery.value = order.voucherQuery
 }
+
 const removeOrder = async (index) => {
   const order = allOrders.value[index]
 
@@ -1600,6 +1625,11 @@ const removeOrder = async (index) => {
     // 1. Gọi backend hủy hóa đơn
     await huyHoaDon(order.id)
 
+    await removeOrderFromUI(order.id)
+
+    await loadProducts()
+
+    toast.success('Đã hủy hóa đơn')
     // 2. Xóa tab khỏi mảng
     // allOrders.value.splice(index, 1)
 
@@ -1776,13 +1806,14 @@ const submitCheckout = async () => {
       toast.info('Đã hết hóa đơn chờ')
     }
   } catch (error) {
-    // 3. Xử lý khi THẤT BẠI (Backend ném ApiException)
-    // Hiển thị câu lỗi chính xác từ Java backend quăng ra
-    toast.error(error.message)
+    // 3. Xử lý khi THẤT BẠI
+    // Lấy câu message từ Backend (Java) trả về, nếu không có mới lấy error.message mặc định
+    const errorMessage = error.response?.data?.message || error.message || 'Thanh toán thất bại!'
+
+    // Hiển thị toast thông báo cho thu ngân
+    toast.error(errorMessage)
 
     // 4. TỰ ĐỘNG ĐỒNG BỘ LẠI MÀN HÌNH POS
-    // Khi bị lỗi (SP ngừng bán, hết hàng, sai giá, voucher hết hạn...),
-    // reload lại dữ liệu để UI cập nhật theo DB
     try {
       await loadProducts() // Cập nhật lại tồn kho sản phẩm bên danh sách
       if (currentOrder.value?.id) {

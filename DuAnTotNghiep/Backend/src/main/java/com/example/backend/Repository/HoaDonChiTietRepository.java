@@ -6,8 +6,10 @@ import com.example.backend.Response.thongke.TopProductResponse;
 import com.example.backend.Response.thongke.TopProductStatistic;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -133,4 +135,34 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             @Param("loaiHoaDon") String loaiHoaDon);
 
     List<HoaDonChiTiet> findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThai(Integer idSpct, String trangThai);
+
+    @Query("SELECT SUM(h.soLuong) FROM HoaDonChiTiet h " +
+            "WHERE h.idSanPhamChiTiet.id = :spctId " +
+            "AND h.idHoaDon.trangThai IN :trangThais")
+    Integer sumSoLuongBySpctAndTrangThaiIn(
+            @Param("spctId") Integer spctId,
+            @Param("trangThais") List<String> trangThais);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM HoaDonChiTiet ct " +
+            "WHERE ct.idSanPhamChiTiet.id = :spctId " +
+            "AND ct.idHoaDon.trangThai = :trangThai")
+    void deleteBySpctIdAndTrangThaiHoaDon(
+            @Param("spctId") Integer spctId,
+            @Param("trangThai") String trangThai
+    );
+
+    // 1. Lấy danh sách chi tiết hóa đơn theo SPCT, trạng thái và loại hóa đơn (dùng cho xóa khi ngừng kinh doanh hoặc xén đơn tại quầy)
+    List<HoaDonChiTiet> findByIdSanPhamChiTiet_IdAndIdHoaDon_TrangThaiAndIdHoaDon_LoaiHoaDon(
+            Integer idSpct, String trangThai, String loaiHoaDon
+    );
+
+    // 2. Tính tổng số lượng của SPCT theo trạng thái và loại hóa đơn (dùng để cộng dồn vào nhóm bất xâm phạm cho đơn online)
+    @Query("SELECT SUM(ct.soLuong) FROM HoaDonChiTiet ct WHERE ct.idSanPhamChiTiet.id = :idSpct AND ct.idHoaDon.trangThai = :trangThai AND ct.idHoaDon.loaiHoaDon = :loaiHoaDon")
+    Integer sumSoLuongBySpctAndTrangThaiAndLoaiHoaDon(
+            @Param("idSpct") Integer idSpct,
+            @Param("trangThai") String trangThai,
+            @Param("loaiHoaDon") String loaiHoaDon
+    );
 }

@@ -38,7 +38,7 @@
     </div>
 
     <!-- ================= EMPTY ================= -->
-    <el-empty v-else-if="filteredOrders.length == 0" description="Không có đơn hàng nào" />
+    <el-empty v-else-if="filteredOrders.length === 0" description="Không có đơn hàng nào" />
 
     <!-- ================= LIST ================= -->
     <div v-else class="order-list">
@@ -66,35 +66,54 @@
         </div>
 
         <!-- PRODUCTS -->
+        <!-- PRODUCTS -->
+        <!-- PRODUCTS -->
         <div class="product-list-container">
-          <div class="product-item" v-for="sp in order.sanPham" :key="sp.idHoaDonChiTiet">
-            <img
-              :src="imageUrl(sp.anh)"
-              :alt="sp.tenSanPham"
-              class="product-image"
-              @error="$event.target.src = 'https://placehold.co/80x80?text=No+Image'"
-            />
+          <!-- Thanh Chọn tất cả sản phẩm trong hóa đơn này -->
+          <div class="select-all-bar">
+            <el-checkbox
+              :model-value="isAllSelected(order)"
+              :indeterminate="isIndeterminate(order)"
+              @change="(val) => toggleSelectAll(val, order)"
+            >
+              <span class="select-all-label"
+                >Chọn tất cả sản phẩm ({{ order.sanPham.length }})</span
+              >
+            </el-checkbox>
+          </div>
 
-            <div class="product-info">
-              <h4>{{ sp.tenSanPham }}</h4>
+          <!-- Checkbox group từng sản phẩm -->
+          <el-checkbox-group v-model="selectedProductsMap[order.thongTinDonHang.id]">
+            <div class="product-item" v-for="sp in order.sanPham" :key="sp.idHoaDonChiTiet">
+              <el-checkbox :value="sp.idSanPham" class="product-checkbox" />
 
-              <div class="product-meta">
-                <span>Mã: {{ sp.maSanPham }}</span>
-                <span>Màu: {{ sp.mauSac }}</span>
-                <span>Size: {{ sp.kichThuoc }}</span>
+              <img
+                :src="imageUrl(sp.anh)"
+                :alt="sp.tenSanPham"
+                class="product-image cursor-pointer hover:opacity-80 transition"
+                @click="goToProductDetail(sp.idSanPham)"
+                @error="$event.target.src = 'https://placehold.co/80x80?text=No+Image'"
+              />
+
+              <div class="product-info">
+                <h4>{{ sp.tenSanPham }}</h4>
+                <div class="product-meta">
+                  <span>Mã: {{ sp.maSanPham }}</span>
+                  <span>Màu: {{ sp.mauSac }}</span>
+                  <span>Size: {{ sp.kichThuoc }}</span>
+                </div>
+              </div>
+
+              <div class="product-price">
+                <span class="unit-price">{{ money(sp.donGia) }}</span>
+                <span class="quantity">x{{ sp.soLuong }}</span>
+                <strong class="total-price">{{ money(sp.thanhTien) }}</strong>
               </div>
             </div>
-
-            <div class="product-price">
-              <span class="unit-price">{{ money(sp.donGia) }}</span>
-              <span class="quantity">x{{ sp.soLuong }}</span>
-              <strong class="total-price">{{ money(sp.thanhTien) }}</strong>
-            </div>
-          </div>
+          </el-checkbox-group>
         </div>
 
-        <!-- TIMELINE (Cập nhật 6 bước chuẩn) -->
-        <!-- TIMELINE (6 bước chuẩn luồng shop) -->
+        <!-- TIMELINE (6 bước chuẩn) -->
         <div class="timeline-container" v-if="order.thongTinDonHang.trangThai !== 'da_huy'">
           <el-steps
             :active="getStep(order)"
@@ -105,7 +124,6 @@
             <el-step title="Chờ xác nhận" />
             <el-step title="Đã xác nhận" />
             <el-step title="Chuẩn bị hàng" />
-            <!-- Đã đổi tên chuẩn quy trình -->
             <el-step title="Đang giao" />
             <el-step
               :title="
@@ -142,15 +160,17 @@
           <div class="action-buttons">
             <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
 
-            <!-- Nút Thanh toán ngay nếu chưa thanh toán -->
+            <!-- Nút Hủy đơn hàng (Cho phép hủy khi Đơn đang Chờ xác nhận hoặc Đã xác nhận) -->
             <el-button
-              type="primary"
+              type="danger"
+              plain
               v-if="
-                order.thongTinDonHang.trangThaiThanhToan === 'chua_thanh_toan' &&
-                order.thongTinDonHang.trangThai !== 'da_huy'
+                order.thongTinDonHang.trangThai === 'cho_xac_nhan' ||
+                order.thongTinDonHang.trangThai === 'da_xac_nhan'
               "
+              @click="openCancelDialog(order)"
             >
-              Thanh toán
+              Hủy đơn
             </el-button>
 
             <!-- Nút Xác nhận đã nhận hàng nếu đang ở giao_thanh_cong -->
@@ -162,7 +182,7 @@
               Đã nhận được hàng
             </el-button>
 
-            <el-button plain type="primary">Mua lại</el-button>
+            <el-button plain type="primary" @click="handleRebuy(order)"> Mua lại </el-button>
           </div>
         </div>
       </div>
@@ -324,12 +344,90 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- ================= DIALOG HỦY ĐƠN HÀNG ================= -->
+    <el-dialog
+      v-model="cancelDialogVisible"
+      title="Xác nhận hủy đơn hàng"
+      width="500px"
+      destroy-on-close
+    >
+      <div v-if="orderToCancel" class="cancel-dialog-content">
+        <p class="cancel-subtitle">
+          Vui lòng chọn lý do bạn muốn hủy đơn hàng
+          <b>{{ orderToCancel.thongTinDonHang.maHoaDon }}</b
+          >:
+        </p>
+
+        <!-- COMBO LÝ DO HỦY -->
+        <el-radio-group v-model="selectedCancelReason" class="cancel-reasons-list">
+          <el-radio
+            label="Thay đổi địa chỉ nhận hàng"
+            value="Thay đổi địa chỉ nhận hàng"
+            size="large"
+          >
+            Thay đổi địa chỉ nhận hàng
+          </el-radio>
+          <el-radio
+            label="Muốn thay đổi sản phẩm (màu sắc, size, số lượng)"
+            value="Muốn thay đổi sản phẩm (màu sắc, size, số lượng)"
+            size="large"
+          >
+            Muốn thay đổi sản phẩm (màu sắc, size, số lượng)
+          </el-radio>
+          <el-radio
+            label="Tìm thấy sản phẩm giá tốt hơn"
+            value="Tìm thấy sản phẩm giá tốt hơn"
+            size="large"
+          >
+            Tìm thấy sản phẩm giá tốt hơn ở nơi khác
+          </el-radio>
+          <el-radio
+            label="Đặt trùng / đặt nhầm đơn hàng"
+            value="Đặt trùng / đặt nhầm đơn hàng"
+            size="large"
+          >
+            Đặt trùng / đặt nhầm đơn hàng
+          </el-radio>
+          <el-radio
+            label="Thủ tục thanh toán quá rắc rối"
+            value="Thủ tục thanh toán quá rắc rối"
+            size="large"
+          >
+            Thủ tục thanh toán quá rắc rối
+          </el-radio>
+          <el-radio label="Khác" value="Khác" size="large"> Lý do khác... </el-radio>
+        </el-radio-group>
+
+        <!-- Ô NHẬP LÝ DO RIÊNG NẾU CHỌN KHÁC -->
+        <div v-if="selectedCancelReason === 'Khác'" class="custom-reason-input">
+          <el-input
+            v-model="customCancelReason"
+            type="textarea"
+            :rows="3"
+            placeholder="Mời bạn nhập lý do chi tiết..."
+            maxlength="200"
+            show-word-limit
+          />
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="cancelDialogVisible = false">Quay lại</el-button>
+          <el-button type="danger" :loading="canceling" @click="handleHuyDonHang">
+            Xác nhận hủy
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 import {
   Refresh,
   ShoppingBag,
@@ -339,48 +437,147 @@ import {
   Warning,
   Goods,
 } from '@element-plus/icons-vue'
+// Import service xử lý API đơn hàng
+import donHangService from '@/service/DonHangService' // Điều chỉnh lại đường dẫn file cho khớp với project của bạn
+const router = useRouter()
 
+// State lưu danh sách idSanPham được chọn cho từng đơn hàng: { [idHoaDon]: [id1, id2] }
+const selectedProductsMap = ref({})
 // ======================
 // STATE
 // ======================
 const loading = ref(false)
 const activeTab = ref('all')
 const orders = ref([])
+
+// Chi tiết đơn
 const dialogVisible = ref(false)
 const selectedOrder = ref(null)
 
+// Hủy đơn
+const cancelDialogVisible = ref(false)
+const orderToCancel = ref(null)
+const selectedCancelReason = ref('Thay đổi địa chỉ nhận hàng')
+const customCancelReason = ref('')
+const canceling = ref(false)
+
 const imageUrl = (path) => {
   if (!path) return 'https://placehold.co/80x80?text=No+Image'
+  if (path.startsWith('http')) return path
   return `http://localhost:8080${path}`
 }
 
 // ======================
-// API
+// LOAD DANH SÁCH ĐƠN HÀNG
 // ======================
-const API = 'http://localhost:8080/don-hang'
-
+// ======================
+// LOAD DANH SÁCH ĐƠN HÀNG
+// ======================
 async function loadOrders() {
   loading.value = true
   try {
-    const token = sessionStorage.getItem('token')
-    const response = await fetch(API, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    const data = await response.json()
-    if (!response.ok) {
-      throw new Error('Không lấy được danh sách đơn hàng')
-    }
+    const data = await donHangService.layDanhSachDonHang()
     orders.value = data
+
+    // MẶC ĐỊNH: Không chọn sản phẩm nào (mảng rỗng [])
+    data.forEach((order) => {
+      const orderId = order.thongTinDonHang.id
+      selectedProductsMap.value[orderId] = []
+    })
   } catch (e) {
     console.error(e)
-    ElMessage.error(e.message)
+    ElMessage.error(e.message || 'Không lấy được danh sách đơn hàng')
   } finally {
     loading.value = false
   }
 }
 
+// ======================
+// LOGIC CHỌN TẤT CẢ (SELECT ALL)
+// ======================
+// Kiểm tra xem đơn hàng đã được chọn hết tất cả SP chưa
+function isAllSelected(order) {
+  const orderId = order.thongTinDonHang.id
+  const selected = selectedProductsMap.value[orderId] || []
+  return selected.length > 0 && selected.length === order.sanPham.length
+}
+
+// Kiểm tra xem có đang chọn dở dang (chọn 1 vài SP chứ chưa chọn hết)
+function isIndeterminate(order) {
+  const orderId = order.thongTinDonHang.id
+  const selected = selectedProductsMap.value[orderId] || []
+  return selected.length > 0 && selected.length < order.sanPham.length
+}
+
+// Xử lý khi bấm nút "Chọn tất cả" của 1 đơn hàng
+function toggleSelectAll(val, order) {
+  const orderId = order.thongTinDonHang.id
+  if (val) {
+    // Tick chọn tất cả sản phẩm
+    selectedProductsMap.value[orderId] = order.sanPham.map((sp) => sp.idSanPham)
+  } else {
+    // Bỏ chọn tất cả
+    selectedProductsMap.value[orderId] = []
+  }
+}
+
+// ======================
+// XỬ LÝ MUA LẠI
+// ======================
+const handleRebuy = (order) => {
+  const orderId = order.thongTinDonHang.id
+  // Lấy danh sách idSanPham người dùng đã tích chọn bằng checkbox
+  const selectedIds = selectedProductsMap.value[orderId] || []
+
+  // 1. Kiểm tra nếu chưa tick chọn sản phẩm nào
+  if (selectedIds.length === 0) {
+    ElMessage.warning('Vui lòng chọn ít nhất một sản phẩm để mua lại!')
+    return
+  }
+
+  // 2. Lọc danh sách các sản phẩm được tick chọn từ order.sanPham
+  const selectedItems = order.sanPham.filter((sp) => selectedIds.includes(sp.idSanPham))
+
+  // 3. Đóng gói dữ liệu chuẩn 100% theo cấu trúc checkoutData của Giỏ Hàng
+  const checkoutData = {
+    items: selectedItems.map((sp) => {
+      const gia = Number(sp.donGia || sp.giaBan || 0)
+      const qty = Number(sp.soLuong || 1)
+
+      return {
+        productDetailId: sp.idChiTietSanPham || sp.idSanPhamChiTiet || sp.idSanPham,
+        quantity: qty,
+        tenSanPham: sp.tenSanPham,
+        maSanPhamChiTiet: sp.maSanPhamChiTiet || sp.maSanPham || '',
+        giaBan: gia,
+        mauSac: sp.mauSac || '',
+        kichCo: sp.kichCo || sp.kichThuoc || '', // Map kichThuoc sang kichCo cho khớp giỏ hàng
+        anh: sp.anh || '',
+        soLuongTon: sp.soLuongTon ?? 99, // Fallback nếu API đơn hàng không trả về tồn kho
+        thanhTien: gia * qty,
+        soLuongKhaDung: sp.soLuongKhaDung ?? 1,
+      }
+    }),
+  }
+
+  // 4. Lưu vào sessionStorage với key 'checkoutData'
+  sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData))
+
+  // 5. Chuyển hướng sang trang xác nhận thanh toán
+  router.push('/xacnhan')
+}
+
+// Hàm chuyển hướng sang trang chi tiết sản phẩm
+function goToProductDetail(id) {
+  if (!id) return
+
+  router.push({
+    name: 'confirmbuy',
+    params: {
+      id: id, // Truyền idSanPham (hoặc sp.idChiTietSanPham tùy trang SPCT của bạn cần)
+    },
+  })
+}
 // ======================
 // HELPERS
 // ======================
@@ -401,7 +598,7 @@ function formatDate(date) {
 }
 
 // ======================
-// FILTER
+// FILTER & SORT
 // ======================
 const filteredOrders = computed(() => {
   let list = orders.value
@@ -421,7 +618,7 @@ const filteredOrders = computed(() => {
 })
 
 // ======================
-// TAG STATUS (Cập nhật chuẩn 8 trạng thái)
+// TAG STATUS
 // ======================
 function statusType(status) {
   const s = (status || '').toLowerCase()
@@ -431,7 +628,7 @@ function statusType(status) {
     case 'da_xac_nhan':
       return 'primary'
     case 'cho_van_chuyen':
-      return 'info' // Sửa từ 'cyan' thành 'info'
+      return 'info'
     case 'dang_giao':
       return 'primary'
     case 'giao_thanh_cong':
@@ -445,9 +642,6 @@ function statusType(status) {
   }
 }
 
-// ======================
-// PAYMENT TAG
-// ======================
 function paymentType(status) {
   const s = (status || '').toLowerCase()
   switch (s) {
@@ -460,9 +654,6 @@ function paymentType(status) {
   }
 }
 
-// ======================
-// STEP (Cập nhật khớp với 6 nút Timeline)
-// ======================
 function getStep(order) {
   const t = (order.thongTinDonHang.trangThai || '').toLowerCase()
   switch (t) {
@@ -484,29 +675,69 @@ function getStep(order) {
   }
 }
 
+// ======================
+// ACTION HANDLERS
+// ======================
 function openDetail(order) {
   selectedOrder.value = order
   dialogVisible.value = true
 }
 
-// Xử lý nút khách ấn Đã nhận được hàng
+// 1. Xác nhận nhận hàng
 async function confirmReceived(order) {
   try {
-    const token = sessionStorage.getItem('token')
-    const res = await fetch(
-      `http://localhost:8080/don-hang/${order.thongTinDonHang.id}/xac-nhan-da-nhan`,
+    await ElMessageBox.confirm(
+      'Bạn xác nhận đã nhận đủ hàng và sản phẩm không có vấn đề gì chứ?',
+      'Xác nhận nhận hàng',
       {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        confirmButtonText: 'Đã nhận đủ',
+        cancelButtonText: 'Hủy',
+        type: 'success',
       },
     )
-    if (!res.ok) throw new Error('Không thể cập nhật trạng thái')
+
+    await donHangService.xacNhanDaNhan(order.thongTinDonHang.id)
     ElMessage.success('Cảm ơn bạn đã xác nhận nhận hàng!')
     loadOrders()
   } catch (e) {
-    ElMessage.error(e.message)
+    if (e !== 'cancel') {
+      ElMessage.error(e.message || 'Không thể cập nhật trạng thái')
+    }
+  }
+}
+
+// 2. Mở dialog hủy đơn
+function openCancelDialog(order) {
+  orderToCancel.value = order
+  selectedCancelReason.value = 'Thay đổi địa chỉ nhận hàng'
+  customCancelReason.value = ''
+  cancelDialogVisible.value = true
+}
+
+// 3. Xử lý gửi yêu cầu Hủy đơn
+async function handleHuyDonHang() {
+  let lyDoFinal = selectedCancelReason.value
+
+  if (lyDoFinal === 'Khác') {
+    if (!customCancelReason.value.trim()) {
+      ElMessage.warning('Vui lòng nhập lý do hủy chi tiết!')
+      return
+    }
+    lyDoFinal = customCancelReason.value.trim()
+  }
+
+  canceling.value = true
+  try {
+    const idHoaDon = orderToCancel.value.thongTinDonHang.id
+    await donHangService.huyDonHang(idHoaDon, lyDoFinal)
+
+    ElMessage.success('Hủy đơn hàng thành công!')
+    cancelDialogVisible.value = false
+    loadOrders() // Tải lại danh sách sau khi hủy
+  } catch (e) {
+    ElMessage.error(e.message || 'Hủy đơn hàng thất bại!')
+  } finally {
+    canceling.value = false
   }
 }
 
@@ -514,18 +745,65 @@ onMounted(() => {
   loadOrders()
 })
 </script>
-
 <style scoped>
 /* ===========================
-   LAYOUT & CONTAINER
+   CSS VARIABLES & DESIGN TOKENS
 =========================== */
+.product-list-container {
+  margin-top: 12px;
+}
+
+.select-all-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid #ebedf0;
+}
+
+.select-all-label {
+  font-weight: 600;
+  color: #303133;
+  font-size: 13px;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.product-checkbox {
+  margin-right: 4px;
+}
+
+.el-checkbox-group {
+  width: 100%;
+}
 .order-page {
-  background: #f8fafc;
+  --primary-color: #0284c7;
+  --primary-hover: #0369a1;
+  --primary-bg: #e0f2fe;
+  --text-main: #0f172a;
+  --text-sub: #475569;
+  --text-muted: #94a3b8;
+  --bg-main: #f8fafc;
+  --border-color: #e2e8f0;
+  --danger-color: #ef4444;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+
+  background: var(--bg-main);
   min-height: 100vh;
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
 }
 
 /* ===========================
@@ -547,41 +825,45 @@ onMounted(() => {
 .header-icon {
   width: 48px;
   height: 48px;
-  background: #e0f2fe;
-  color: #0284c7;
+  background: var(--primary-bg);
+  color: var(--primary-color);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  flex-shrink: 0;
 }
 
 .page-header h2 {
   margin: 0;
-  font-size: 24px;
-  color: #0f172a;
+  font-size: 22px;
+  color: var(--text-main);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .page-header p {
   margin: 4px 0 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
 .refresh-btn {
   border-radius: 8px;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 /* ===========================
-   TABS
+   TABS STYLING
 =========================== */
 .tabs-wrapper {
   background: #ffffff;
-  padding: 0 16px;
+  padding: 4px 16px 0 16px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   margin-bottom: 20px;
 }
 
@@ -591,21 +873,41 @@ onMounted(() => {
 
 :deep(.el-tabs__nav-wrap::after) {
   height: 1px;
-  background-color: #f1f5f9;
+  background-color: var(--border-color);
+}
+
+:deep(.el-tabs__item) {
+  font-weight: 500;
+  color: var(--text-sub);
+  font-size: 14px;
+  transition: color 0.2s ease;
+  height: 48px;
+  line-height: 48px;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+:deep(.el-tabs__active-bar) {
+  background-color: var(--primary-color);
+  border-radius: 2px;
+  height: 3px;
 }
 
 /* ===========================
-   LOADING & EMPTY
+   LOADING & EMPTY STATE
 =========================== */
 .loading-box {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
 }
 
 /* ===========================
-   ORDER CARD
+   ORDER LIST & CARD
 =========================== */
 .order-list {
   display: flex;
@@ -616,14 +918,14 @@ onMounted(() => {
 .order-card {
   background: #ffffff;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease;
+  transition: all 0.25s ease-in-out;
   overflow: hidden;
 }
 
 .order-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
   border-color: #cbd5e1;
 }
 
@@ -634,9 +936,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 14px 20px;
   background: #f8fafc;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .order-code-date {
@@ -646,30 +948,36 @@ onMounted(() => {
 }
 
 .order-code {
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  color: var(--text-main);
   font-size: 15px;
+  letter-spacing: 0.3px;
 }
 
 .dot {
-  color: #cbd5e1;
+  color: var(--text-muted);
 }
 
 .date {
-  color: #64748b;
+  color: var(--text-sub);
   font-size: 13px;
 }
 
 .status-group {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
 /* ===========================
-   PRODUCTS CONTAINER
+   PRODUCTS CONTAINER & CHECKBOX
 =========================== */
 .product-list-container {
   padding: 0 20px;
+}
+
+.el-checkbox-group {
+  width: 100%;
 }
 
 .product-item {
@@ -684,37 +992,74 @@ onMounted(() => {
   border-bottom: none;
 }
 
+/* Tối ưu căn chỉnh Checkbox */
+.product-checkbox {
+  margin-right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.product-checkbox .el-checkbox__label) {
+  display: none; /* Ẩn khoảng trống thừa của label checkbox */
+}
+
 .product-image {
   width: 72px;
   height: 72px;
   border-radius: 8px;
   object-fit: cover;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
+  background-color: #f1f5f9;
+  flex-shrink: 0;
 }
 
 .product-info {
   flex: 1;
+  min-width: 0; /* Giúp ellipsis hoạt động nếu tên dài */
 }
 
 .product-info h4 {
   margin: 0 0 6px;
   font-size: 15px;
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 600;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-meta {
   display: flex;
-  gap: 16px;
-  color: #64748b;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-sub);
   font-size: 13px;
 }
 
+/* ===========================
+   FIX LỖI ĐÈ CHỮ Ở PHẦN GIÁ
+=========================== */
 .product-price {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center;
+  gap: 4px !important;
+  height: auto !important;
+  flex-shrink: 0;
+}
+
+/* Reset lại position & line-height cho các dòng giá */
+.product-price .unit-price,
+.product-price .quantity,
+.product-price .total-price {
+  position: static !important; /* Khôi phục vị trí chuẩn, chống đè position: absolute */
+  display: block !important;
+  margin: 0 !important;
+  line-height: 1.4 !important; /* Tạo khoảng cách dòng chuẩn */
+  height: auto !important;
 }
 
 .unit-price {
@@ -731,17 +1076,27 @@ onMounted(() => {
 .total-price {
   color: #ef4444;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ===========================
-   TIMELINE & RETURN
+   TIMELINE & RETURN BANNER
 =========================== */
 .timeline-container {
   padding: 20px;
   background: #fafafa;
   border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #f1f5f9;
+}
+
+:deep(.el-step__title) {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cancel-banner {
+  padding: 12px 20px;
+  background: #fef2f2;
 }
 
 .return-box {
@@ -761,17 +1116,19 @@ onMounted(() => {
 
 .order-summary-mini {
   font-size: 14px;
-  color: #475569;
+  color: var(--text-sub);
 }
 
 .highlight-total {
-  color: #ef4444;
+  color: var(--danger-color);
   font-size: 18px;
   font-weight: 700;
+  margin-left: 4px;
 }
 
 .action-buttons {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
@@ -782,12 +1139,29 @@ onMounted(() => {
 }
 
 /* ===========================
-   DIALOG STYLING (NEW & POLISHED)
+   DIALOG STYLING & POLISH
 =========================== */
+.custom-dialog :deep(.el-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.custom-dialog :deep(.el-dialog__header) {
+  margin-right: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.custom-dialog :deep(.el-dialog__title) {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
 .custom-dialog :deep(.el-dialog__body) {
   padding: 20px;
-  background: #f8fafc;
-  max-height: 75vh;
+  background: var(--bg-main);
+  max-height: 70vh;
   overflow-y: auto;
 }
 
@@ -801,7 +1175,7 @@ onMounted(() => {
   background: #ffffff;
   padding: 14px 18px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -812,11 +1186,11 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-sub);
 }
 
 .banner-left .code {
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 700;
   font-size: 16px;
 }
@@ -836,7 +1210,7 @@ onMounted(() => {
   background: #ffffff;
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .section-title {
@@ -846,18 +1220,18 @@ onMounted(() => {
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid #f1f5f9;
-  color: #0284c7;
+  color: var(--primary-color);
 }
 
 .section-title h4 {
   margin: 0;
   font-size: 14px;
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 600;
 }
 
 .warning-title {
-  color: #eab308;
+  color: var(--warning-color);
 }
 
 .receiver-info {
@@ -865,12 +1239,12 @@ onMounted(() => {
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  color: #475569;
+  color: var(--text-sub);
 }
 
 .receiver-name {
   margin: 0;
-  color: #0f172a;
+  color: var(--text-main);
   font-size: 14px;
 }
 
@@ -883,7 +1257,7 @@ onMounted(() => {
 
 .receiver-address {
   margin: 0;
-  color: #64748b;
+  color: var(--text-sub);
   line-height: 1.4;
 }
 
@@ -897,7 +1271,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #475569;
+  color: var(--text-sub);
 }
 
 .return-detail-section {
@@ -906,10 +1280,11 @@ onMounted(() => {
 }
 
 .text-danger {
-  color: #ef4444;
+  color: var(--danger-color);
   font-weight: 500;
 }
 
+/* LIST ITEM IN DIALOG */
 .dialog-product-list {
   display: flex;
   flex-direction: column;
@@ -930,11 +1305,12 @@ onMounted(() => {
 }
 
 .dialog-image {
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 6px;
   object-fit: cover;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .dialog-info {
@@ -944,7 +1320,7 @@ onMounted(() => {
 .dialog-info h5 {
   margin: 0 0 6px;
   font-size: 14px;
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 600;
 }
 
@@ -956,8 +1332,8 @@ onMounted(() => {
 
 .tag-badge {
   background: #f1f5f9;
-  color: #64748b;
-  padding: 2px 6px;
+  color: var(--text-sub);
+  padding: 2px 8px;
   border-radius: 4px;
   font-size: 11px;
 }
@@ -971,12 +1347,12 @@ onMounted(() => {
 
 .dialog-price .calc {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .dialog-price .subtotal {
-  font-size: 15px;
-  color: #ef4444;
+  font-size: 14px;
+  color: var(--danger-color);
   font-weight: 600;
 }
 
@@ -989,18 +1365,69 @@ onMounted(() => {
   justify-content: space-between;
   margin-bottom: 8px;
   font-size: 13px;
-  color: #475569;
+  color: var(--text-sub);
 }
 
 .payment-summary-box .discount {
-  color: #10b981;
+  color: var(--success-color);
   font-weight: 500;
 }
 
 .total-row {
   font-size: 15px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-main);
+}
+
+/* ===========================
+   CANCEL DIALOG CUSTOM
+=========================== */
+.cancel-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cancel-subtitle {
+  font-size: 14px;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+}
+
+.cancel-reasons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Tạo giao diện dạng Card cho Radio Lý Do Hủy */
+.cancel-reasons-list .el-radio {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+  margin-right: 0;
+  white-space: normal;
+  height: auto;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.cancel-reasons-list .el-radio:hover {
+  border-color: var(--primary-color);
+  background-color: #f0f9ff;
+}
+
+.cancel-reasons-list .el-radio.is-checked {
+  border-color: var(--primary-color);
+  background-color: #f0f9ff;
+}
+
+.custom-reason-input {
+  margin-top: 8px;
 }
 
 /* ===========================
@@ -1023,18 +1450,37 @@ onMounted(() => {
     gap: 10px;
   }
 
+  .product-item {
+    align-items: flex-start;
+  }
+
+  .product-price {
+    text-align: left;
+    margin-top: 4px;
+  }
+
   .order-footer {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
 
+  .order-summary-mini {
+    text-align: right;
+  }
+
   .action-buttons {
     justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .timeline-container {
+    padding: 12px 8px;
+    overflow-x: auto;
   }
 }
 </style>

@@ -152,6 +152,7 @@ public class DonHangServiceImpl implements DonHangService {
 
             dto.setIdHoaDonChiTiet(ct.getId());
             dto.setIdSanPhamChiTiet(spct.getId());
+            dto.setIdSanPham(spct.getIdSanPham().getId());
             dto.setMaSanPham(spct.getMaSanPhamChiTiet());
             dto.setTenSanPham(spct.getIdSanPham().getTenSanPham());
             dto.setMauSac(spct.getIdMauSac().getTenMauSac());
@@ -159,6 +160,7 @@ public class DonHangServiceImpl implements DonHangService {
             dto.setSoLuong(ct.getSoLuong());
             dto.setDonGia(ct.getDonGia());
             dto.setThanhTien(ct.getThanhTien());
+            dto.setSoLuongKhaDung(spct.getSoLuongKhaDung());
             dto.setAnh(
                     hinhAnhRepository
                             .findFirstByIdSanPhamChiTiet_IdAndLaAnhChinhTrue(spct.getId())
@@ -243,6 +245,60 @@ public class DonHangServiceImpl implements DonHangService {
 
         hoaDon.setTrangThai("hoan_thanh");
         hoaDon.setNgayCapNhat(LocalDateTime.now());
+
+        hoaDonRepository.save(hoaDon);
+    }
+
+
+
+    @Transactional
+    public void huyDonHang(Integer idTaiKhoan, Integer idHoaDon, String lyDoHuy) {
+        // 1. Kiểm tra tài khoản khách hàng
+        KhachHang khachHang = khachHangRepository
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng"));
+
+        // 2. Tìm hóa đơn
+        HoaDon hoaDon = hoaDonRepository
+                .findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        // 3. Kiểm tra hóa đơn có đúng của khách hàng này không
+        if (hoaDon.getIdKhachHang() == null || !hoaDon.getIdKhachHang().getId().equals(khachHang.getId())) {
+            throw new RuntimeException("Bạn không có quyền hủy đơn hàng này!");
+        }
+
+        // 4. Kiểm tra điều kiện trạng thái cho phép hủy
+        String trangThai = hoaDon.getTrangThai() != null ? hoaDon.getTrangThai().toLowerCase() : "";
+        if (!"cho_xac_nhan".equals(trangThai) && !"da_xac_nhan".equals(trangThai)) {
+            throw new RuntimeException("Đơn hàng đang giao hoặc đã hoàn tất, không thể hủy!");
+        }
+
+        // 5. Cập nhật trạng thái hóa đơn sang "da_huy"
+        hoaDon.setTrangThai("da_huy");
+        hoaDon.setGhiChu(lyDoHuy != null && !lyDoHuy.trim().isEmpty()
+                ? "Khách hủy: " + lyDoHuy
+                : "Khách tự hủy đơn hàng");
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+
+        // 6. Hoàn lại số lượng tồn/tạm giữ cho kho (Xử lý hoàn kho)
+        List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByIdHoaDon_Id(hoaDon.getId());
+        for (HoaDonChiTiet ct : chiTietList) {
+            SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
+            if (spct != null) {
+                int soLuongTra = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+
+                // Trừ số lượng tạm giữ
+                int tamGiuHienTai = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
+                spct.setSoLuongTamGiu(Math.max(0, tamGiuHienTai - soLuongTra));
+
+                // Nếu đơn hàng đã xác nhận (đã trừ kho thật), cộng lại vào soLuongTon
+                if ("da_xac_nhan".equals(trangThai)) {
+                    int tonHienTai = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+                    spct.setSoLuongTon(tonHienTai + soLuongTra);
+                }
+            }
+        }
 
         hoaDonRepository.save(hoaDon);
     }

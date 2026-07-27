@@ -33,6 +33,7 @@ public class CreateOnlineOrderRequest {
     public static class Item {
         private Integer productDetailId;
         private Integer quantity;
+        private BigDecimal price;
     }
 
 }

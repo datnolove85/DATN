@@ -1701,6 +1701,7 @@ const placeOrder = async () => {
           {
             productDetailId: spctId.value,
             quantity: quantity.value,
+            price: product.value?.giaBan,
           },
         ],
   }
@@ -1708,6 +1709,7 @@ const placeOrder = async () => {
   try {
     isPlacingOrder.value = true
 
+    console.log('Body object:', body)
     const res = await taoHoaDonOnline(body, authToken)
     toast.success(`Đặt hàng thành công. Mã đơn: ${res.maHoaDon}`)
     if (isCartCheckout.value) {
@@ -1721,8 +1723,13 @@ const placeOrder = async () => {
       query: { id: res.id, maHoaDon: res.maHoaDon, qrUrl: res.qrUrl },
     })
   } catch (error) {
-    console.error(error)
     toast.error(error.message || 'Đặt hàng thất bại ❌')
+
+    // ⏳ Đợi 2 giây cho khách đọc xong thông báo lỗi rồi tự động reload lại trang
+    setTimeout(() => {
+      window.location.reload()
+      // Hoặc dùng: router.go(0)
+    }, 2000)
   } finally {
     isPlacingOrder.value = false
   }

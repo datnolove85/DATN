@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,14 +56,25 @@ public interface SanPhamGiamGiaRepository
     List<SanPhamGiamGia> findAllDangGiamGia();
 
     @Query("""
-        SELECT spgg
-        FROM SanPhamGiamGia spgg
-        JOIN FETCH spgg.dotGiamGia dgg
-        WHERE spgg.sanPhamChiTiet.id = :idSpct
-        AND dgg.trangThai = 'dang_dien_ra'
-        AND CURRENT_TIMESTAMP BETWEEN dgg.ngayBatDau AND dgg.ngayKetThuc
-    """)
+                SELECT spgg
+                FROM SanPhamGiamGia spgg
+                JOIN FETCH spgg.dotGiamGia dgg
+                WHERE spgg.sanPhamChiTiet.id = :idSpct
+                AND dgg.trangThai = 'dang_dien_ra'
+                AND CURRENT_TIMESTAMP BETWEEN dgg.ngayBatDau AND dgg.ngayKetThuc
+            """)
     Optional<SanPhamGiamGia> findDangGiamGiaBySpctId(
             @Param("idSpct") Integer idSpct
+    );
+
+    @Query("SELECT spgg FROM SanPhamGiamGia spgg " +
+            "JOIN spgg.dotGiamGia dgg " +
+            "WHERE spgg.sanPhamChiTiet.id = :idSpct " +
+            "AND dgg.trangThai = 'HOAT_DONG' " +
+            "AND :now BETWEEN dgg.ngayBatDau AND dgg.ngayKetThuc " +
+            "ORDER BY dgg.id DESC LIMIT 1")
+    Optional<SanPhamGiamGia> findActiveBySanPhamChiTietId(
+            @Param("idSpct") Integer idSpct,
+            @Param("now") Instant now
     );
 }

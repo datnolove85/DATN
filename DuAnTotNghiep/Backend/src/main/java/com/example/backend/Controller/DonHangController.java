@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 
+import com.example.backend.Request.HuyDonRequest;
 import com.example.backend.Service.DonHangService;
 import com.example.backend.secutity.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +21,6 @@ public class DonHangController {
     private final JwtService jwtService;
 
 
-
     // ==================================================
     // LẤY DANH SÁCH ĐƠN HÀNG CỦA KHÁCH HÀNG
     // ==================================================
@@ -28,12 +28,12 @@ public class DonHangController {
     @GetMapping
     public ResponseEntity<?> layDanhSachDonHang(
             HttpServletRequest request
-    ){
+    ) {
 
         String authHeader = request.getHeader("Authorization");
 
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 
             return ResponseEntity
                     .badRequest()
@@ -46,7 +46,6 @@ public class DonHangController {
 
 
         Integer idTaiKhoan = jwtService.extractId(token);
-
 
 
         return ResponseEntity.ok(
@@ -66,10 +65,10 @@ public class DonHangController {
     public ResponseEntity<?> chiTietDonHang(
             @PathVariable Integer idHoaDon,
             HttpServletRequest request
-    ){
+    ) {
         String authHeader = request.getHeader("Authorization");
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity
                     .badRequest()
                     .body("Thiếu token");
@@ -103,4 +102,33 @@ public class DonHangController {
         return ResponseEntity.ok("Đã xác nhận nhận hàng");
     }
 
+    // ==================================================
+    // KHÁCH HÀNG HỦY ĐƠN HÀNG
+    // ==================================================
+    @PutMapping("/{idHoaDon}/huy-don")
+    public ResponseEntity<?> huyDonHang(
+            @PathVariable Integer idHoaDon,
+            @RequestBody(required = false) HuyDonRequest request,
+            HttpServletRequest servletRequest
+    ) {
+        String authHeader = servletRequest.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Thiếu token");
+        }
+
+        String token = authHeader.substring(7);
+        Integer idTaiKhoan = jwtService.extractId(token);
+
+        String lyDoHuy = (request != null) ? request.getLyDoHuy() : null;
+
+        try {
+            donHangService.huyDonHang(idTaiKhoan, idHoaDon, lyDoHuy);
+            return ResponseEntity.ok("Hủy đơn hàng thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

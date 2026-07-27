@@ -10,7 +10,7 @@ const getHeaders = () => ({
 })
 
 const donHangService = {
-  // 1. Lấy danh sách đơn hàng
+  // 1. Lấy danh sách đơn hàng của khách
   async layDanhSachDonHang() {
     const response = await fetch(API_URL, {
       method: 'GET',
@@ -36,6 +36,35 @@ const donHangService = {
     }
 
     return await response.json()
+  },
+
+  // 3. Khách hàng xác nhận đã nhận hàng
+  async xacNhanDaNhan(idHoaDon) {
+    const response = await fetch(`${API_URL}/${idHoaDon}/xac-nhan-da-nhan`, {
+      method: 'PUT',
+      headers: getHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error(await response.text())
+    }
+
+    return await response.text()
+  },
+
+  // 4. Khách hàng tự hủy đơn hàng
+  async huyDonHang(idHoaDon, lyDoHuy = '') {
+    const response = await fetch(`${API_URL}/${idHoaDon}/huy-don`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ lyDoHuy }),
+    })
+
+    if (!response.ok) {
+      throw new Error(await response.text())
+    }
+
+    return await response.text()
   },
 }
 

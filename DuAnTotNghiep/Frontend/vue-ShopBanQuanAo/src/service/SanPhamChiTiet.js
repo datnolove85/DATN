@@ -51,15 +51,19 @@ export const createSanPhamChiTiet = async (formData) => {
 // ================= UPDATE =================
 export const updateSanPhamChiTiet = async (id, formData) => {
   const res = await fetch(`${API}/update/${id}`, {
-    method: 'PUT', // Hoặc POST tùy vào controller của bạn
+    method: 'PUT', // ⚠️ Kiểm tra Backend bạn dùng @PutMapping hay @PostMapping nhé
     body: formData,
   })
 
+  // Đọc dữ liệu JSON trả về từ Backend (chứa data và message)
+  const data = await res.json()
+
   if (!res.ok) {
-    throw new Error('Lỗi cập nhật SPCT')
+    // 🔴 Ném câu thông báo lỗi từ Backend ra ngoài khối catch
+    throw new Error(data.message || data || 'Lỗi cập nhật SPCT')
   }
 
-  return await res.json()
+  return data // Trả về object { data: ..., message: "..." }
 }
 // ================= DELETE =================
 export const deleteSanPhamChiTiet = async (id) => {

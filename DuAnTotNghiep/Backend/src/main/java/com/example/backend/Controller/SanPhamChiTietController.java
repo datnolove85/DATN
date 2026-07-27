@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -39,23 +40,30 @@ public class SanPhamChiTietController {
         return sanPhamChiTietService.add(req);
     }
 
+    // ================= UPDATE =================
     @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SanPhamChiTietResponse update(
+    public ResponseEntity<?> update(
             @PathVariable Integer id,
             @ModelAttribute SanPhamChiTietRequest req,
             @RequestParam(value = "files", required = false) MultipartFile[] files) {
 
-        return sanPhamChiTietService.update(id, req, files);
+        // Service trả về Map<String, Object> chứa cả "data" (SPCT) và "message" (thông báo chi tiết)
+        Map<String, Object> result = sanPhamChiTietService.update(id, req, files);
+
+        return ResponseEntity.ok(result);
     }
 
     // ================= DELETE =================
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         try {
-            sanPhamChiTietService.delete(id);
-            return ResponseEntity.ok("OK");
+            // Service giờ trả về Map<String, Object> (bao gồm cả "data" và "message")
+            Map<String, Object> result = sanPhamChiTietService.delete(id);
+
+            // Trả về trực tiếp result để FE nhận đủ cả { "data": {...}, "message": "..." }
+            return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 

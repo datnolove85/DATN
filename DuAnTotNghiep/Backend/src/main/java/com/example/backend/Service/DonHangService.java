@@ -33,4 +33,6 @@ public interface DonHangService {
 
     void xacNhanDaNhan(Integer id);
 
+    void huyDonHang(Integer idTaiKhoan, Integer idHoaDon, String lyDoHuy);
+
 }

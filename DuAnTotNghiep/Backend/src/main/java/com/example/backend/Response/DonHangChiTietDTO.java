@@ -11,6 +11,8 @@ public class DonHangChiTietDTO {
 
     private Integer idSanPhamChiTiet;
 
+    private Integer idSanPham;
+
     private String maSanPham;
 
     private String tenSanPham;
@@ -26,5 +28,7 @@ public class DonHangChiTietDTO {
     private BigDecimal donGia;
 
     private BigDecimal thanhTien;
+
+    private Integer soLuongKhaDung;
 
 }

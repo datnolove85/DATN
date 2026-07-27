@@ -33,10 +33,10 @@ public class HoaDonScheduler {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 60000)
     public void autoCancelHoaDon() {
 
-        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(1);
+        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(10);
 
         List<HoaDon> hoaDons = hoaDonRepo.findExpiredHoaDon(expiredTime);
 
