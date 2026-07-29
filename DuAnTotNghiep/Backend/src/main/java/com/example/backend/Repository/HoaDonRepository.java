@@ -274,4 +274,18 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
     Long countKhachLeTheoKhoang(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
+
+    @Query("SELECT DISTINCT hd FROM HoaDonChiTiet hdct " +
+            "JOIN hdct.idHoaDon hd " +
+            "JOIN hdct.idSanPhamChiTiet spct " +
+            "JOIN spct.idSanPham sp " +
+            "WHERE (LOWER(spct.maSanPhamChiTiet) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "   OR LOWER(spct.tenSanPhamChiTiet) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "   OR LOWER(sp.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "   OR LOWER(sp.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND hd.trangThai NOT IN ('da_huy', 'hoan_thanh', 'giao_thanh_cong')")
+    Page<HoaDon> findDonHangChuaGiaoBySanPhamKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    // Tìm các hóa đơn theo danh sách Integer ID
+    List<HoaDon> findByIdIn(List<Integer> ids);
 }

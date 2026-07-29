@@ -78,6 +78,11 @@ const router = createRouter({
           name: 'payment',
           component: () => import('@/views/shop/views/payment.vue'),
         },
+        {
+          path: 'payment-result',
+          name: 'paymentResult',
+          component: () => import('@/views/shop/views/PaymentResult.vue'),
+        },
       ],
     },
     // ================= QUẢN TRỊ ADMIN (GOM VÀO LAYOUT) =================

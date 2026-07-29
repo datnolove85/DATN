@@ -7,7 +7,7 @@
         class="h-16 flex items-center justify-center border-b border-slate-800 text-lg font-bold tracking-wider text-indigo-400 gap-2 shrink-0"
       >
         <a href="#" class="text-2xl font-extrabold tracking-tight">
-          Vel<span class="text-amber-500">o</span>ra
+          K-<span class="text-amber-500">Zo</span>ne
         </a>
       </div>
 
@@ -63,50 +63,15 @@
           Đơn hàng Online
         </router-link>
 
-        <div class="space-y-1">
-          <button
-            @click="isOpenHoaDon = !isOpenHoaDon"
-            class="w-full flex items-center justify-between px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
-            :class="[
-              isOpenHoaDon ? 'bg-slate-800/50 text-white' : '',
-              activeHoaDon
-                ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20'
-                : '',
-            ]"
-          >
-            <div class="flex items-center">
-              <span class="mr-3 text-base w-5 text-center">🧾</span>
-              <span>Quản lý Hóa đơn</span>
-            </div>
-
-            <span
-              class="text-[10px] transition-transform duration-200"
-              :class="{ 'rotate-180': isOpenHoaDon }"
-            >
-              ▼
-            </span>
-          </button>
-
-          <div v-show="isOpenHoaDon" class="pl-4 space-y-1">
-            <router-link
-              to="/admin/hoadon"
-              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
-              active-class="text-indigo-400 font-medium bg-slate-800/60"
-            >
-              <span class="mr-3 text-xs w-5 text-center">📄</span>
-              Hóa đơn
-            </router-link>
-
-            <router-link
-              to="/admin/hdct"
-              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
-              active-class="text-indigo-400 font-medium bg-slate-800/60"
-            >
-              <span class="mr-3 text-xs w-5 text-center">📑</span>
-              Chi tiết hóa đơn
-            </router-link>
-          </div>
-        </div>
+        <!-- 🟢 Đã sửa: Hóa đơn dạng link đơn, không có submenu/chi tiết hóa đơn -->
+        <router-link
+          to="/admin/hoadon"
+          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
+        >
+          <span class="mr-3 text-base w-5 text-center">🧾</span>
+          Hóa đơn
+        </router-link>
 
         <router-link
           to="/admin/khachhang"
@@ -234,17 +199,9 @@
               <span class="mr-3 text-xs w-5 text-center">📄</span>
               Danh sách sản phẩm
             </router-link>
-
-            <!-- <router-link
-              to="/admin/spct"
-              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
-              active-class="text-indigo-400 font-medium bg-slate-800/60"
-            >
-              <span class="mr-3 text-xs w-5 text-center">📑</span>
-              Biến thể sản phẩm
-            </router-link> -->
           </div>
         </div>
+
         <div class="space-y-1">
           <button
             @click="isOpenAttribute = !isOpenAttribute"
@@ -311,13 +268,12 @@
     </div>
   </aside>
 </template>
+
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-
-const activeHoaDon = computed(() => ['/admin/hoadon', '/admin/hdct'].includes(route.path))
 
 const activeDiscount = computed(() => ['/admin/sales', '/admin/voucher'].includes(route.path))
 
@@ -329,12 +285,12 @@ const activeAttribute = computed(() =>
   ['/admin/mausac', '/admin/sizes', '/admin/materials', '/admin/brands'].includes(route.path),
 )
 
-const isOpenHoaDon = ref(activeHoaDon.value)
 const isOpenDiscount = ref(activeDiscount.value)
 const isOpenCategory = ref(activeCategory.value)
 const isOpenProduct = ref(activeProduct.value)
 const isOpenAttribute = ref(activeAttribute.value)
 </script>
+
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;

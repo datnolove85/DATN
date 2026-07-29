@@ -241,9 +241,11 @@ public class HoaDonController {
     }
 
     @PostMapping("/tao-qr/{hoaDonId}")
-    public ResponseEntity<?> taoQr(@PathVariable Integer hoaDonId) {
-
-        return ResponseEntity.ok(service.taoQr(hoaDonId));
+    public ResponseEntity<?> taoQr(
+            @PathVariable Integer hoaDonId,
+            @RequestParam(required = false) Long amount
+    ) {
+        return ResponseEntity.ok(service.taoQr(hoaDonId, amount));
     }
 
     @PutMapping("/cap-nhat-so-luong/{id}")

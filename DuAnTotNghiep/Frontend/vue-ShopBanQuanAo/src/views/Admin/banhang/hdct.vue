@@ -28,27 +28,31 @@
         >
           🔄 TRẢ HÀNG
         </button>
-        <button
-          @click="openPreview"
-          :disabled="!rawInvoice"
-          class="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-md shadow-indigo-950/20"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2.5"
-            stroke="currentColor"
-            class="w-4 h-4"
+        <div>
+          <button
+            @click="openPreview"
+            :disabled="!rawInvoice"
+            class="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-md shadow-indigo-950/20"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.617 0-1.11-.51-1.07-1.122L6.34 18m11.32 0h-11.32M9 11V5.25A2.25 2.25 0 0 1 11.25 3h1.5A2.25 2.25 0 0 1 15 5.25V11m-6 0h6a2.25 2.25 0 0 1 2.25 2.25v1.875c0 .621-.504 1.125-1.125 1.125H6.875A1.125 1.125 0 0 1 5.625 16.25V13.25A2.25 2.25 0 0 1 7.875 11h.25Z"
-            />
-          </svg>
-          XUẤT HÓA ĐƠN
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2.5"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.617 0-1.11-.51-1.07-1.122L6.34 18m11.32 0h-11.32M9 11V5.25A2.25 2.25 0 0 1 11.25 3h1.5A2.25 2.25 0 0 1 15 5.25V11m-6 0h6a2.25 2.25 0 0 1 2.25 2.25v1.875c0 .621-.504 1.125-1.125 1.125H6.875A1.125 1.125 0 0 1 5.625 16.25V13.25A2.25 2.25 0 0 1 7.875 11h.25Z"
+              />
+            </svg>
+            XUẤT HÓA ĐƠN
+          </button>
+          <!-- Component Modal Hóa Đơn -->
+          <InvoiceModal v-if="isPreviewOpen" :hoa-don="rawInvoice" @close="closePreview" />
+        </div>
 
         <button
           @click="goBack"
@@ -224,15 +228,11 @@
             <p
               class="font-extrabold uppercase text-[10px] mb-2 tracking-wider text-indigo-950 flex items-center gap-1.5"
             >
-              🚚 Địa điểm phân phối logistics
+              🚚 Địa điểm phân phối
             </p>
             <p class="text-slate-600 leading-relaxed">
               <span class="font-bold text-slate-900 block mt-0.5">
-                {{
-                  invoice.loaiHoaDon === 'online'
-                    ? invoice.address || 'Mua hàng online'
-                    : 'Tại quầy'
-                }}
+                {{ invoice.address }}
               </span>
             </p>
           </div>
@@ -254,7 +254,7 @@
             <p
               class="font-extrabold uppercase text-[10px] mb-2 tracking-wider text-indigo-950 flex items-center gap-1.5"
             >
-              📝 Biên bản ghi chú hành chính
+              📝 Biên bản ghi chú
             </p>
             <p
               class="text-slate-500 italic bg-white p-2.5 rounded-lg border border-slate-200 min-h-[50px] leading-relaxed"
@@ -304,7 +304,7 @@
       </div>
     </div>
 
-    <Teleport to="body">
+    <!-- <Teleport to="body">
       <div
         v-if="isPreviewOpen && rawInvoice"
         class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in"
@@ -403,7 +403,7 @@
           </div>
         </div>
       </div>
-    </Teleport>
+    </Teleport> -->
     <Teleport to="body">
       <div
         v-if="showTraHang"
@@ -507,6 +507,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getHoadonById } from '@/service/HoaDonService'
 import { useToast } from 'vue-toastification'
 import { getTraHangByHoaDon, submitTraHang } from '@/service/HoaDonService'
+import InvoiceModal from './InvoiceModal.vue'
 const route = useRoute()
 const router = useRouter()
 const rawInvoice = ref(null)
@@ -623,7 +624,7 @@ const invoice = computed(() => {
           return `${day}/${month}/${year}`
         })()
       : 'N/A',
-    address: rawInvoice.value.loaiHoaDon,
+    address: rawInvoice.value.diaChiGiaoHang,
     paymentMethod: rawInvoice.value.phuongThucThanhToan,
     note: rawInvoice.value.ghiChu,
     totalOriginal: rawInvoice.value.tongTienHang,

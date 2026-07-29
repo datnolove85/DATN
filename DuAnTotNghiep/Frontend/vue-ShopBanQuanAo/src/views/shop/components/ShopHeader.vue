@@ -10,7 +10,7 @@
 
       <div class="w-56 flex-shrink-0">
         <RouterLink to="/home" class="text-3xl font-black tracking-tight select-none">
-          Vel<span class="text-indigo-600">ora</span>
+          K-<span class="text-indigo-600">Zone</span>
         </RouterLink>
       </div>
 

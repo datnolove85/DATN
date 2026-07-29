@@ -186,7 +186,8 @@
               </div>
             </div>
 
-            <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <div class="mt-6 grid gap-4 md:grid-cols-3">
+              <!-- Nút COD -->
               <button
                 type="button"
                 :disabled="qrStarted || orderCancelled"
@@ -200,36 +201,19 @@
               >
                 <div class="flex items-start gap-4">
                   <span
-                    class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl"
-                    :class="
-                      paymentMethod === 'COD'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-amber-50 text-amber-600'
-                    "
-                  >
-                    <Truck :size="23" />
-                  </span>
-
+                    class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-50 text-amber-600"
+                    ><Truck :size="23"
+                  /></span>
                   <span class="min-w-0 flex-1">
-                    <span class="block font-black text-slate-900">Thanh toán khi nhận hàng</span>
-                    <span class="mt-1 block text-sm leading-5 text-slate-500">
-                      Nhận hàng trước, thanh toán trực tiếp cho đơn vị vận chuyển.
-                    </span>
-                  </span>
-
-                  <span
-                    class="grid h-6 w-6 shrink-0 place-items-center rounded-full border-2"
-                    :class="
-                      paymentMethod === 'COD'
-                        ? 'border-indigo-600 bg-indigo-600 text-white'
-                        : 'border-slate-300 text-transparent'
-                    "
-                  >
-                    <Check :size="14" />
+                    <span class="block font-black text-slate-900">COD</span>
+                    <span class="mt-1 block text-sm leading-5 text-slate-500"
+                      >Thanh toán khi nhận hàng.</span
+                    >
                   </span>
                 </div>
               </button>
 
+              <!-- Nút BANK (VietQR) -->
               <button
                 type="button"
                 :disabled="orderCancelled"
@@ -243,32 +227,40 @@
               >
                 <div class="flex items-start gap-4">
                   <span
-                    class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl"
-                    :class="
-                      paymentMethod === 'BANK'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-sky-50 text-sky-600'
-                    "
-                  >
-                    <Landmark :size="23" />
-                  </span>
-
+                    class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sky-50 text-sky-600"
+                    ><Landmark :size="23"
+                  /></span>
                   <span class="min-w-0 flex-1">
-                    <span class="block font-black text-slate-900">Chuyển khoản VietQR</span>
-                    <span class="mt-1 block text-sm leading-5 text-slate-500">
-                      Tạo mã QR, chuyển khoản và xác nhận trong thời gian còn lại.
-                    </span>
+                    <span class="block font-black text-slate-900">VietQR</span>
+                    <span class="mt-1 block text-sm leading-5 text-slate-500"
+                      >Quét mã chuyển khoản nhanh.</span
+                    >
                   </span>
+                </div>
+              </button>
 
+              <!-- Nút VNPAY -->
+              <button
+                type="button"
+                :disabled="orderCancelled"
+                class="payment-option group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
+                :class="
+                  paymentMethod === 'VNPAY'
+                    ? 'border-indigo-600 bg-indigo-50/70 shadow-lg shadow-indigo-100'
+                    : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'
+                "
+                @click="paymentMethod = 'VNPAY'"
+              >
+                <div class="flex items-start gap-4">
                   <span
-                    class="grid h-6 w-6 shrink-0 place-items-center rounded-full border-2"
-                    :class="
-                      paymentMethod === 'BANK'
-                        ? 'border-indigo-600 bg-indigo-600 text-white'
-                        : 'border-slate-300 text-transparent'
-                    "
-                  >
-                    <Check :size="14" />
+                    class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600"
+                    ><CreditCard :size="23"
+                  /></span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block font-black text-slate-900">VNPAY</span>
+                    <span class="mt-1 block text-sm leading-5 text-slate-500"
+                      >Thẻ ATM / QR Pay ngân hàng.</span
+                    >
                   </span>
                 </div>
               </button>
@@ -755,7 +747,16 @@ const payButtonLabel = computed(() => {
   if (isPaying.value) return 'Đang xử lý...'
   if (orderCancelled.value) return 'Đơn hàng đã bị hủy'
 
-  return paymentMethod.value === 'COD' ? 'Xác nhận đặt hàng' : 'Xác nhận đã chuyển khoản'
+  switch (paymentMethod.value) {
+    case 'COD':
+      return 'Xác nhận đặt hàng'
+    case 'VNPAY':
+      return 'Thanh toán qua VNPay'
+    case 'BANK':
+      return 'Quét mã VietQR chuyển khoản'
+    default:
+      return 'Chọn phương thức thanh toán!'
+  }
 })
 
 const payDisabled = computed(() => {
@@ -926,13 +927,11 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(clearCountdown)
-
 const pay = async () => {
   if (payDisabled.value) return
 
   if (paymentMethod.value === 'BANK') {
     syncCountdown()
-
     if (remainingSeconds.value <= 0) {
       await expireOrder()
       return
@@ -945,18 +944,27 @@ const pay = async () => {
     const body = {
       idHoaDon: Number(orderId),
       method: paymentMethod.value,
+      orderInfo: `Thanh toan don hang ${orderCode.value}`,
     }
-    //  LOG DỮ LIỆU GỬI LÊN BE TẠI ĐÂY
+
     console.log('=== DỮ LIỆU GỬI LÊN BACKEND ===', body)
     const res = await thanhToan(body)
 
+    // Nếu là VNPay và Backend trả về link thanh toán (paymentUrl)
+    if (res && res.paymentUrl && paymentMethod.value === 'VNPAY') {
+      clearQrSession()
+      sessionStorage.removeItem('checkoutData')
+      toast.success('Đang chuyển hướng đến cổng thanh toán VNPay...')
+
+      // Chuyển hướng trình duyệt sang cổng thanh toán VNPay
+      window.location.href = res.paymentUrl
+      return
+    }
+
+    // Trường hợp COD hoặc BANK
     clearQrSession()
-
-    // Xóa dữ liệu mua từ giỏ hàng sau khi thanh toán thành công
     sessionStorage.removeItem('checkoutData')
-
     toast.success(res.message || 'Đã ghi nhận phương thức thanh toán')
-
     router.push('/san-pham')
   } catch (error) {
     console.error(error)
@@ -965,7 +973,6 @@ const pay = async () => {
     isPaying.value = false
   }
 }
-
 const handleCancel = async () => {
   if (isPaying.value || isCancelling.value || isExpiring.value || orderCancelled.value) return
 

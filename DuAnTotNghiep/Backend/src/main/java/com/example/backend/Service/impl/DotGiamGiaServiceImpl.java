@@ -1,6 +1,5 @@
 package com.example.backend.Service.impl;
 
-
 import com.example.backend.Entity.*;
 import com.example.backend.Repository.*;
 import com.example.backend.Request.CreateDotGiamGiaRequest;
@@ -17,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.Service.HoaDonService;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -31,108 +31,67 @@ import java.util.stream.Collectors;
 public class DotGiamGiaServiceImpl implements DotGiamGiaService {
 
     private final DotGiamGiaRepository dotRepo;
-
     private final SanPhamGiamGiaRepository spggRepo;
-
     private final SanPhamChiTietRepository spctRepo;
-
     private final SanPhamRepository sanPhamRepository;
-
     private final PosSocketService posSocketService;
-
     private final HoaDonChiTietRepository hdctRepo;
-
     private final HoaDonRepository hoaDonRepo;
-
     private final HoaDonService hoaDonService;
 
     //================================================
     // Danh sách
     //================================================
-
     @Override
     public List<DotGiamGiaResponse> getAll() {
-
         return dotRepo.findAll()
                 .stream()
                 .sorted(Comparator.comparing(DotGiamGia::getNgayTao).reversed())
                 .map(dot -> {
-
                     DotGiamGiaResponse response =
                             DotGiamGiaMapper.toResponse(
                                     dot,
                                     (int) spggRepo.countByDotGiamGiaId(dot.getId())
                             );
-
-
-                    response.setTrangThai(
-                            tinhTrangThai(dot)
-                    );
-
-
+                    response.setTrangThai(tinhTrangThai(dot));
                     return response;
-
                 })
                 .collect(Collectors.toList());
-
     }
 
     //================================================
     // Chi tiết
     //================================================
-
     @Override
     public DotGiamGiaDetailResponse getById(Integer id) {
-
         DotGiamGia dot = layTheoId(id);
-
         DotGiamGiaDetailResponse response =
                 DotGiamGiaMapper.toDetailResponse(dot);
-
-
-        response.setTrangThai(
-                tinhTrangThai(dot)
-        );
-
-
+        response.setTrangThai(tinhTrangThai(dot));
         return response;
-
     }
 
     //================================================
     // Tạo
     //================================================
-
     @Override
     public DotGiamGiaResponse create(CreateDotGiamGiaRequest request) {
-
         validateDate(
                 request.getNgayBatDau(),
                 request.getNgayKetThuc()
         );
 
         DotGiamGia dot = new DotGiamGia();
-
         dot.setMaDotGiamGia(taoMa());
-
         dot.setTenDotGiamGia(request.getTenDotGiamGia());
-
         dot.setLoaiGiamGia(request.getLoaiGiamGia());
-
         dot.setGiaTriGiam(request.getGiaTriGiam());
-
         dot.setGiaTriGiamToiDa(request.getGiaTriGiamToiDa());
-
         dot.setNgayBatDau(request.getNgayBatDau());
-
         dot.setNgayKetThuc(request.getNgayKetThuc());
-
         dot.setMoTa(request.getMoTa());
-
         dot.setNgayTao(Instant.now());
-
         dot.setNgayCapNhat(Instant.now());
-
         dot.setTrangThai(
                 tinhTrangThai(
                         request.getNgayBatDau(),
@@ -141,39 +100,23 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
         );
 
         dotRepo.save(dot);
-
         return DotGiamGiaMapper.toResponse(dot, 0);
-
     }
 
     //================================================
     // Cập nhật
     //================================================
-
     @Override
-    public DotGiamGiaResponse update(Integer id,
-                                     UpdateDotGiamGiaRequest request) {
-
+    public DotGiamGiaResponse update(Integer id, UpdateDotGiamGiaRequest request) {
         DotGiamGia dot = layTheoId(id);
-
-
         String trangThai = tinhTrangThai(dot);
+        long soLuongSP = spggRepo.countByDotGiamGiaId(id);
 
-
-        long soLuongSP =
-                spggRepo.countByDotGiamGiaId(id);
-
-
-        if ("dang_dien_ra".equals(trangThai)
-                &&
-                soLuongSP > 0) {
-
+        if ("dang_dien_ra".equals(trangThai) && soLuongSP > 0) {
             throw new RuntimeException(
                     "Đợt giảm giá đang diễn ra và đã có sản phẩm áp dụng, không thể chỉnh sửa."
             );
-
         }
-
 
         validateDate(
                 request.getNgayBatDau(),
@@ -181,44 +124,30 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
         );
 
         dot.setTenDotGiamGia(request.getTenDotGiamGia());
-
         dot.setLoaiGiamGia(request.getLoaiGiamGia());
-
         dot.setGiaTriGiam(request.getGiaTriGiam());
-
         dot.setGiaTriGiamToiDa(request.getGiaTriGiamToiDa());
-
         dot.setNgayBatDau(request.getNgayBatDau());
-
         dot.setNgayKetThuc(request.getNgayKetThuc());
-
         dot.setMoTa(request.getMoTa());
-
         dot.setNgayCapNhat(Instant.now());
 
         if (!"tam_dung".equals(dot.getTrangThai())) {
-
             dot.setTrangThai(
                     tinhTrangThai(
                             request.getNgayBatDau(),
                             request.getNgayKetThuc()
                     )
             );
-
         }
         dotRepo.save(dot);
-        List<SanPhamGiamGia> ds =
-                spggRepo.findByDotGiamGiaId(id);
 
-
+        List<SanPhamGiamGia> ds = spggRepo.findByDotGiamGiaId(id);
         for (SanPhamGiamGia spgg : ds) {
-
             capNhatGiaHoaDonTheoDotGiamGia(
                     spgg.getSanPhamChiTiet().getId()
             );
-
         }
-
 
         posSocketService.notifyDiscountUpdated();
 
@@ -226,892 +155,364 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 dot,
                 (int) spggRepo.countByDotGiamGiaId(dot.getId())
         );
-
     }
 
     //================================================
     // Xóa
     //================================================
-
     @Override
     public void delete(Integer id) {
-
         DotGiamGia dot = layTheoId(id);
-
         String trangThai = tinhTrangThai(dot);
-
-        long soLuongSP =
-                spggRepo.countByDotGiamGiaId(id);
-
+        long soLuongSP = spggRepo.countByDotGiamGiaId(id);
 
         if ("dang_dien_ra".equals(trangThai)
                 || "tam_dung".equals(trangThai)
                 || "da_ket_thuc".equals(trangThai)) {
-
             throw new RuntimeException(
                     "Không thể xóa đợt giảm giá ở trạng thái hiện tại."
             );
         }
 
-
-        if ("sap_dien_ra".equals(trangThai)
-                && soLuongSP > 0) {
-
+        if ("sap_dien_ra".equals(trangThai) && soLuongSP > 0) {
             throw new RuntimeException(
                     "Đợt giảm giá đã có sản phẩm áp dụng, không thể xóa."
             );
         }
 
-
         dotRepo.delete(dot);
     }
+
     //================================================
     // Đổi trạng thái
     //================================================
-
     @Override
     public void doiTrangThai(Integer id) {
-
-
         DotGiamGia dot = layTheoId(id);
-
-
-        String trangThaiHienTai =
-                tinhTrangThai(dot);
-
+        String trangThaiHienTai = tinhTrangThai(dot);
 
         if ("da_ket_thuc".equals(trangThaiHienTai)) {
-
-            throw new RuntimeException(
-                    "Đợt giảm giá đã kết thúc"
-            );
-
+            throw new RuntimeException("Đợt giảm giá đã kết thúc");
         }
 
-
         if ("tam_dung".equals(dot.getTrangThai())) {
-
-
             dot.setTrangThai(
                     tinhTrangThai(
                             dot.getNgayBatDau(),
                             dot.getNgayKetThuc()
                     )
             );
-
-
         } else {
-
-
-            dot.setTrangThai(
-                    "tam_dung"
-            );
-
-
+            dot.setTrangThai("tam_dung");
         }
 
-
-        dot.setNgayCapNhat(
-                Instant.now()
-        );
-
-
+        dot.setNgayCapNhat(Instant.now());
         dotRepo.save(dot);
 
-
-        List<SanPhamGiamGia> ds =
-                spggRepo.findByDotGiamGiaId(id);
-
-
+        List<SanPhamGiamGia> ds = spggRepo.findByDotGiamGiaId(id);
         for (SanPhamGiamGia spgg : ds) {
-
             capNhatGiaHoaDonTheoDotGiamGia(
                     spgg.getSanPhamChiTiet().getId()
             );
-
         }
-        posSocketService.notifyDiscountUpdated();
     }
 
     //================================================
-    // Private Method
+    // Thêm sản phẩm vào đợt giảm giá
     //================================================
-
-    /**
-     * Lấy theo id
-     */
-    private DotGiamGia layTheoId(Integer id) {
-
-        return dotRepo.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Không tìm thấy đợt giảm giá"));
-
-    }
-
-    /**
-     * Validate ngày
-     */
-    private void validateDate(
-            Instant batDau,
-            Instant ketThuc
-    ) {
-
-        if (batDau == null || ketThuc == null) {
-
-            throw new RuntimeException("Ngày không được để trống.");
-
-        }
-
-        if (ketThuc.isBefore(batDau)) {
-
-            throw new RuntimeException(
-                    "Ngày kết thúc phải lớn hơn ngày bắt đầu."
-            );
-
-        }
-
-    }
-
-    /**
-     * Sinh mã
-     */
-    private String taoMa() {
-
-        long count = dotRepo.count() + 1;
-
-        return String.format("DGG%05d", count);
-
-    }
-
-    /**
-     * Tính trạng thái theo ngày
-     */
-    private String tinhTrangThai(
-            Instant batDau,
-            Instant ketThuc
-    ) {
-
-        Instant now = Instant.now();
-
-        if (now.isBefore(batDau)) {
-
-            return "sap_dien_ra";
-
-        }
-
-        if (now.isAfter(ketThuc)) {
-
-            return "da_ket_thuc";
-
-        }
-
-        return "dang_dien_ra";
-
-    }
-
-    /**
-     * Overload
-     */
-    private String tinhTrangThai(
-            DotGiamGia dot
-    ) {
-
-        if ("tam_dung".equals(dot.getTrangThai())) {
-
-            return "tam_dung";
-
-        }
-
-        return tinhTrangThai(
-                dot.getNgayBatDau(),
-                dot.getNgayKetThuc()
-        );
-
-    }
-
-    //================================================
-// Thêm sản phẩm vào đợt giảm giá
-//================================================
-
     @Override
     @Transactional
     public List<SanPhamGiamGiaResponse> themSanPham(
             Integer idDot,
             ThemSanPhamGGRequest request
     ) {
+        DotGiamGia dot = dotRepo.findById(idDot)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá"));
 
-        DotGiamGia dot =
-                dotRepo.findById(idDot)
-                        .orElseThrow(
-                                () -> new RuntimeException(
-                                        "Không tìm thấy đợt giảm giá"
-                                )
-                        );
-
-
-        List<SanPhamChiTiet> spcts =
-                spctRepo.findAllById(
-                        request.getIdsSanPhamChiTiet()
-                );
-
-
-        List<SanPhamGiamGia> list =
-                new ArrayList<>();
-
+        List<SanPhamChiTiet> spcts = spctRepo.findAllById(request.getIdsSanPhamChiTiet());
+        List<SanPhamGiamGia> list = new ArrayList<>();
 
         for (SanPhamChiTiet spct : spcts) {
-
-
-            boolean exists =
-                    spggRepo.existsByDotGiamGiaIdAndSanPhamChiTietId(
-                            idDot,
-                            spct.getId()
-                    );
-
-
+            boolean exists = spggRepo.existsByDotGiamGiaIdAndSanPhamChiTietId(idDot, spct.getId());
             if (exists) {
                 continue;
             }
 
-
-            SanPhamGiamGia spgg =
-                    new SanPhamGiamGia();
-
-
+            SanPhamGiamGia spgg = new SanPhamGiamGia();
             spgg.setDotGiamGia(dot);
-
             spgg.setSanPhamChiTiet(spct);
-
-
             list.add(spgg);
-
         }
-
-
 
         if (list.isEmpty()) {
-
             return new ArrayList<>();
-
         }
 
+        // 1. Lưu danh sách sản phẩm giảm giá vào DB
+        List<SanPhamGiamGia> saved = spggRepo.saveAll(list);
 
+        // 2. Cập nhật lại giá cho các hóa đơn chờ đang chứa sản phẩm này
+        for (SanPhamGiamGia spgg : saved) {
+            capNhatGiaHoaDonTheoDotGiamGia(
+                    spgg.getSanPhamChiTiet().getId()
+            );
+        }
 
-        List<SanPhamGiamGia> saved =
-                spggRepo.saveAll(list);
-
-
-
+        // 3. Map sang Response trả về cho client
         return saved.stream()
                 .map(spgg -> {
+                    SanPhamGiamGiaResponse rs = new SanPhamGiamGiaResponse();
+                    SanPhamChiTiet spct = spgg.getSanPhamChiTiet();
 
+                    rs.setId(spgg.getId());
+                    rs.setIdDotGiamGia(dot.getId());
+                    rs.setIdSanPhamChiTiet(spct.getId());
+                    rs.setIdSanPham(spct.getIdSanPham().getId());
+                    rs.setTenSanPham(spct.getIdSanPham().getTenSanPham());
+                    rs.setMaSanPham(spct.getIdSanPham().getMaSanPham());
+                    rs.setGiaGoc(spct.getGiaBan());
+                    rs.setSoLuongTon(spct.getSoLuongTon());
 
-                    SanPhamGiamGiaResponse rs =
-                            new SanPhamGiamGiaResponse();
-
-
-
-                    SanPhamChiTiet spct =
-                            spgg.getSanPhamChiTiet();
-
-
-
-                    rs.setId(
-                            spgg.getId()
-                    );
-
-
-
-                    rs.setIdDotGiamGia(
-                            dot.getId()
-                    );
-
-
-
-                    rs.setIdSanPhamChiTiet(
-                            spct.getId()
-                    );
-
-
-
-                    rs.setIdSanPham(
-                            spct.getIdSanPham()
-                                    .getId()
-                    );
-
-
-
-                    rs.setTenSanPham(
-                            spct.getIdSanPham()
-                                    .getTenSanPham()
-                    );
-
-
-
-                    rs.setMaSanPham(
-                            spct.getIdSanPham()
-                                    .getMaSanPham()
-                    );
-
-
-
-                    rs.setGiaGoc(
-                            spct.getGiaBan()
-                    );
-
-
-
-                    rs.setSoLuongTon(
-                            spct.getSoLuongTon()
-                    );
-
-
-
-                    if(spct.getIdMauSac()!=null){
-
-                        rs.setMauSac(
-                                spct.getIdMauSac()
-                                        .getTenMauSac()
-                        );
-
+                    if (spct.getIdMauSac() != null) {
+                        rs.setMauSac(spct.getIdMauSac().getTenMauSac());
                     }
 
-
-
-                    if(spct.getIdKichThuoc()!=null){
-
-                        rs.setKichThuoc(
-                                spct.getIdKichThuoc()
-                                        .getTenKichThuoc()
-                        );
-
+                    if (spct.getIdKichThuoc() != null) {
+                        rs.setKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
                     }
-
-                    posSocketService.notifyDiscountUpdated();
 
                     return rs;
-
                 })
                 .toList();
-
-
     }
-    //================================================
-// Xóa sản phẩm khỏi đợt
-//================================================
 
+    //================================================
+    // Xóa sản phẩm khỏi đợt
+    //================================================
+    //================================================
+    // Xóa sản phẩm khỏi đợt
+    //================================================
     @Override
-    public void xoaSanPham(Integer idDot,
-                           Integer idSPCT){
+    @Transactional
+    public void xoaSanPham(Integer idDot, Integer idSPCT) {
+        // 1. Xóa liên kết sản phẩm khỏi đợt giảm giá
         spggRepo.deleteByDotGiamGiaIdAndSanPhamChiTietId(
                 idDot,
                 idSPCT
         );
-        posSocketService.notifyDiscountUpdated();
+
+        // 2. Cập nhật lại giá cho các hóa đơn chờ đang chứa sản phẩm này
+        capNhatGiaHoaDonTheoDotGiamGia(idSPCT);
     }
     //================================================
-// Danh sách sản phẩm trong đợt
-//================================================
-
+    // Danh sách sản phẩm trong đợt
+    //================================================
     @Override
     public List<SanPhamGiamGiaResponse> getSanPham(Integer idDot) {
-
-
-        DotGiamGia dot =
-                layTheoId(idDot);
-
-
-        List<SanPhamGiamGia> list =
-                spggRepo.findByDotGiamGiaId(idDot);
-
-
-
+        DotGiamGia dot = layTheoId(idDot);
+        List<SanPhamGiamGia> list = spggRepo.findByDotGiamGiaId(idDot);
         return list.stream()
                 .map(spgg -> mapSPCTDangGiamGia(spgg, dot))
                 .toList();
-
-    }
-    private SanPhamGiamGiaResponse mapSPCTDangGiamGia(
-            SanPhamGiamGia spgg,
-            DotGiamGia dot
-    ){
-
-        SanPhamChiTiet spct =
-                spgg.getSanPhamChiTiet();
-
-
-        SanPham sp =
-                spct.getIdSanPham();
-
-
-
-        SanPhamGiamGiaResponse rs =
-                new SanPhamGiamGiaResponse();
-
-        if (sp.getIdThuongHieu() != null) {
-            rs.setThuongHieu(
-                    sp.getIdThuongHieu().getTenThuongHieu()
-            );
-        }
-
-        if (sp.getIdChatLieu() != null) {
-            rs.setChatLieu(
-                    sp.getIdChatLieu().getTenChatLieu()
-            );
-        }
-
-        rs.setId(
-                spgg.getId()
-        );
-
-
-        rs.setIdDotGiamGia(
-                dot.getId()
-        );
-
-        rs.setIdSanPham(
-                sp.getId()
-        );
-
-        rs.setIdSanPhamChiTiet(
-                spct.getId()
-        );
-        rs.setMaSPCT(spct.getMaSanPhamChiTiet());
-
-
-        rs.setTenSanPham(
-                sp.getTenSanPham()
-        );
-
-
-        rs.setMaSanPham(
-                sp.getMaSanPham()
-        );
-
-
-        rs.setGiaGoc(
-                spct.getGiaBan()
-        );
-
-
-        rs.setPhanTramGiam(
-                dot.getGiaTriGiam()
-        );
-
-
-
-        BigDecimal giaSauGiam =
-                spct.getGiaBan();
-
-
-
-        if("phan_tram".equals(dot.getLoaiGiamGia())){
-
-
-            BigDecimal tienGiam =
-                    spct.getGiaBan()
-                            .multiply(
-                                    dot.getGiaTriGiam()
-                                            .divide(
-                                                    BigDecimal.valueOf(100)
-                                            )
-                            );
-
-
-
-            if(dot.getGiaTriGiamToiDa()!=null
-                    &&
-                    tienGiam.compareTo(
-                            dot.getGiaTriGiamToiDa()
-                    ) > 0
-            ){
-
-                tienGiam =
-                        dot.getGiaTriGiamToiDa();
-
-            }
-
-
-
-            giaSauGiam =
-                    spct.getGiaBan()
-                            .subtract(tienGiam);
-
-
-        }
-        else if("tien_mat".equals(dot.getLoaiGiamGia())){
-
-
-            giaSauGiam =
-                    spct.getGiaBan()
-                            .subtract(
-                                    dot.getGiaTriGiam()
-                            );
-
-        }
-
-
-
-        if(giaSauGiam.compareTo(BigDecimal.ZERO)<0){
-
-            giaSauGiam =
-                    BigDecimal.ZERO;
-
-        }
-
-
-        rs.setGiaSauGiam(
-                giaSauGiam
-        );
-
-
-        rs.setSoLuongTon(
-                spct.getSoLuongTon()
-        );
-
-
-
-        // màu
-        if(spct.getIdMauSac()!=null){
-
-            rs.setMauSac(
-                    spct.getIdMauSac()
-                            .getTenMauSac()
-            );
-
-        }
-
-
-        // size
-        if(spct.getIdKichThuoc()!=null){
-
-            rs.setKichThuoc(
-                    spct.getIdKichThuoc()
-                            .getTenKichThuoc()
-            );
-
-        }
-
-
-
-        List<String> anh =
-                spctRepo.findLinkAnhChinhBySanPhamChiTietId(
-                        spct.getId()
-                );
-
-
-        if(!anh.isEmpty()){
-
-            rs.setAnh(
-                    "/sanpham/" + anh.get(0)
-            );
-
-        }
-
-
-        return rs;
-
     }
 
-
-
+    //================================================
+    // Danh sách sản phẩm chưa áp dụng
+    //================================================
     @Override
     public List<SanPhamGiamGiaResponse> getSanPhamChuaApDung(Integer idDot) {
-
         DotGiamGia dot = layTheoId(idDot);
-
         return spctRepo.findSanPhamChuaApDung()
                 .stream()
                 .map(spct -> mapSPCTChuaGiamGia(spct, dot))
                 .toList();
     }
 
-        private SanPhamGiamGiaResponse mapSPCTChuaGiamGia(
-                SanPhamChiTiet spct,
-                DotGiamGia dot
-        ){
-
-            SanPhamGiamGiaResponse rs =
-                    new SanPhamGiamGiaResponse();
-
-
-
-            SanPham sp =
-                    spct.getIdSanPham();
-
-            if (sp.getIdThuongHieu() != null) {
-                rs.setThuongHieu(
-                        sp.getIdThuongHieu().getTenThuongHieu()
-                );
-            }
-
-            if (sp.getIdChatLieu() != null) {
-                rs.setChatLieu(
-                        sp.getIdChatLieu().getTenChatLieu()
-                );
-            }
-
-            rs.setIdDotGiamGia(
-                    dot.getId()
-            );
-
-            rs.setIdSanPhamChiTiet(
-                    spct.getId()
-            );
-
-            rs.setMaSPCT(spct.getMaSanPhamChiTiet());
-
-            rs.setIdSanPham(
-                    sp.getId()
-            );
-
-
-            rs.setMaSanPham(
-                    sp.getMaSanPham()
-            );
-
-
-            rs.setTenSanPham(
-                    sp.getTenSanPham()
-            );
-
-
-            rs.setGiaGoc(
-                    spct.getGiaBan()
-            );
-
-
-            rs.setSoLuongTon(
-                    spct.getSoLuongTon()
-            );
-
-
-
-            if(spct.getIdMauSac()!=null){
-
-                rs.setMauSac(
-                        spct.getIdMauSac()
-                                .getTenMauSac()
-                );
-
-            }
-
-
-
-            if(spct.getIdKichThuoc()!=null){
-
-                rs.setKichThuoc(
-                        spct.getIdKichThuoc()
-                                .getTenKichThuoc()
-                );
-
-            }
-
-
-
-
-            BigDecimal giaSauGiam =
-                    spct.getGiaBan();
-
-
-
-            if("phan_tram".equals(dot.getLoaiGiamGia())){
-
-
-                BigDecimal tienGiam =
-                        spct.getGiaBan()
-                                .multiply(
-                                        dot.getGiaTriGiam()
-                                                .divide(
-                                                        BigDecimal.valueOf(100)
-                                                )
-                                );
-
-
-
-                if(dot.getGiaTriGiamToiDa()!=null
-                        &&
-                        tienGiam.compareTo(
-                                dot.getGiaTriGiamToiDa()
-                        )>0
-                ){
-
-                    tienGiam =
-                            dot.getGiaTriGiamToiDa();
-
-                }
-
-
-
-                giaSauGiam =
-                        spct.getGiaBan()
-                                .subtract(tienGiam);
-
-
-                rs.setPhanTramGiam(
-                        dot.getGiaTriGiam()
-                );
-
-            }
-            else if("tien_mat".equals(dot.getLoaiGiamGia())){
-
-
-                giaSauGiam =
-                        spct.getGiaBan()
-                                .subtract(
-                                        dot.getGiaTriGiam()
-                                );
-
-            }
-
-
-
-            if(giaSauGiam.compareTo(BigDecimal.ZERO)<0){
-
-                giaSauGiam =
-                        BigDecimal.ZERO;
-
-            }
-
-
-
-            rs.setGiaSauGiam(
-                    giaSauGiam
-            );
-
-
-
-            List<String> anh =
-                    spctRepo.findLinkAnhChinhBySanPhamChiTietId(
-                            spct.getId()
-                    );
-
-
-            if(!anh.isEmpty()){
-
-                rs.setAnh(
-                        "/sanpham/" + anh.get(0)
-                );
-
-            }
-
-
-
-            return rs;
-
+    //================================================
+    // Private Method
+    //================================================
+    private DotGiamGia layTheoId(Integer id) {
+        return dotRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá"));
+    }
+
+    private void validateDate(Instant batDau, Instant ketThuc) {
+        if (batDau == null || ketThuc == null) {
+            throw new RuntimeException("Ngày không được để trống.");
+        }
+        if (ketThuc.isBefore(batDau)) {
+            throw new RuntimeException("Ngày kết thúc phải lớn hơn ngày bắt đầu.");
+        }
+    }
+
+    private String taoMa() {
+        long count = dotRepo.count() + 1;
+        return String.format("DGG%05d", count);
+    }
+
+    private String tinhTrangThai(Instant batDau, Instant ketThuc) {
+        Instant now = Instant.now();
+        if (now.isBefore(batDau)) {
+            return "sap_dien_ra";
+        }
+        if (now.isAfter(ketThuc)) {
+            return "da_ket_thuc";
+        }
+        return "dang_dien_ra";
+    }
+
+    private String tinhTrangThai(DotGiamGia dot) {
+        if ("tam_dung".equals(dot.getTrangThai())) {
+            return "tam_dung";
+        }
+        return tinhTrangThai(dot.getNgayBatDau(), dot.getNgayKetThuc());
+    }
+
+    private SanPhamGiamGiaResponse mapSPCTDangGiamGia(SanPhamGiamGia spgg, DotGiamGia dot) {
+        SanPhamChiTiet spct = spgg.getSanPhamChiTiet();
+        SanPham sp = spct.getIdSanPham();
+        SanPhamGiamGiaResponse rs = new SanPhamGiamGiaResponse();
+
+        if (sp.getIdThuongHieu() != null) {
+            rs.setThuongHieu(sp.getIdThuongHieu().getTenThuongHieu());
+        }
+        if (sp.getIdChatLieu() != null) {
+            rs.setChatLieu(sp.getIdChatLieu().getTenChatLieu());
         }
 
+        rs.setId(spgg.getId());
+        rs.setIdDotGiamGia(dot.getId());
+        rs.setIdSanPham(sp.getId());
+        rs.setIdSanPhamChiTiet(spct.getId());
+        rs.setMaSPCT(spct.getMaSanPhamChiTiet());
+        rs.setTenSanPham(sp.getTenSanPham());
+        rs.setMaSanPham(sp.getMaSanPham());
+        rs.setGiaGoc(spct.getGiaBan());
+        rs.setPhanTramGiam(dot.getGiaTriGiam());
 
-    private void capNhatGiaHoaDonTheoDotGiamGia(
-            Integer idSanPhamChiTiet
-    ){
+        BigDecimal giaSauGiam = spct.getGiaBan();
+        if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+            BigDecimal tienGiam = spct.getGiaBan()
+                    .multiply(dot.getGiaTriGiam().divide(BigDecimal.valueOf(100)));
 
-        List<HoaDonChiTiet> list =
-                hdctRepo.findChoXacNhanBySpct(idSanPhamChiTiet);
+            if (dot.getGiaTriGiamToiDa() != null && tienGiam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                tienGiam = dot.getGiaTriGiamToiDa();
+            }
+            giaSauGiam = spct.getGiaBan().subtract(tienGiam);
+        } else if ("tien_mat".equals(dot.getLoaiGiamGia())) {
+            giaSauGiam = spct.getGiaBan().subtract(dot.getGiaTriGiam());
+        }
 
+        if (giaSauGiam.compareTo(BigDecimal.ZERO) < 0) {
+            giaSauGiam = BigDecimal.ZERO;
+        }
 
-        for(HoaDonChiTiet hdct : list){
+        rs.setGiaSauGiam(giaSauGiam);
+        rs.setSoLuongTon(spct.getSoLuongTon());
 
+        if (spct.getIdMauSac() != null) {
+            rs.setMauSac(spct.getIdMauSac().getTenMauSac());
+        }
+        if (spct.getIdKichThuoc() != null) {
+            rs.setKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
+        }
 
-            SanPhamChiTiet spct =
-                    hdct.getIdSanPhamChiTiet();
+        List<String> anh = spctRepo.findLinkAnhChinhBySanPhamChiTietId(spct.getId());
+        if (!anh.isEmpty()) {
+            rs.setAnh("/sanpham/" + anh.get(0));
+        }
 
+        return rs;
+    }
 
-            BigDecimal giaMoi =
-                    spct.getGiaBan();
+    private SanPhamGiamGiaResponse mapSPCTChuaGiamGia(SanPhamChiTiet spct, DotGiamGia dot) {
+        SanPhamGiamGiaResponse rs = new SanPhamGiamGiaResponse();
+        SanPham sp = spct.getIdSanPham();
 
+        if (sp.getIdThuongHieu() != null) {
+            rs.setThuongHieu(sp.getIdThuongHieu().getTenThuongHieu());
+        }
+        if (sp.getIdChatLieu() != null) {
+            rs.setChatLieu(sp.getIdChatLieu().getTenChatLieu());
+        }
 
-            Optional<SanPhamGiamGia> spggOpt =
-                    spggRepo.findDangGiamGiaBySpctId(
-                            spct.getId()
-                    );
+        rs.setIdDotGiamGia(dot.getId());
+        rs.setIdSanPhamChiTiet(spct.getId());
+        rs.setMaSPCT(spct.getMaSanPhamChiTiet());
+        rs.setIdSanPham(sp.getId());
+        rs.setMaSanPham(sp.getMaSanPham());
+        rs.setTenSanPham(sp.getTenSanPham());
+        rs.setGiaGoc(spct.getGiaBan());
+        rs.setSoLuongTon(spct.getSoLuongTon());
 
+        if (spct.getIdMauSac() != null) {
+            rs.setMauSac(spct.getIdMauSac().getTenMauSac());
+        }
+        if (spct.getIdKichThuoc() != null) {
+            rs.setKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
+        }
 
-            // nếu còn giảm giá
-            if(spggOpt.isPresent()){
+        BigDecimal giaSauGiam = spct.getGiaBan();
+        if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+            BigDecimal tienGiam = spct.getGiaBan()
+                    .multiply(dot.getGiaTriGiam().divide(BigDecimal.valueOf(100)));
 
+            if (dot.getGiaTriGiamToiDa() != null && tienGiam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                tienGiam = dot.getGiaTriGiamToiDa();
+            }
+            giaSauGiam = spct.getGiaBan().subtract(tienGiam);
+            rs.setPhanTramGiam(dot.getGiaTriGiam());
+        } else if ("tien_mat".equals(dot.getLoaiGiamGia())) {
+            giaSauGiam = spct.getGiaBan().subtract(dot.getGiaTriGiam());
+        }
 
-                DotGiamGia dot =
-                        spggOpt.get()
-                                .getDotGiamGia();
+        if (giaSauGiam.compareTo(BigDecimal.ZERO) < 0) {
+            giaSauGiam = BigDecimal.ZERO;
+        }
 
+        rs.setGiaSauGiam(giaSauGiam);
 
+        List<String> anh = spctRepo.findLinkAnhChinhBySanPhamChiTietId(spct.getId());
+        if (!anh.isEmpty()) {
+            rs.setAnh("/sanpham/" + anh.get(0));
+        }
 
-                if("phan_tram".equals(dot.getLoaiGiamGia())){
+        return rs;
+    }
 
+    private void capNhatGiaHoaDonTheoDotGiamGia(Integer idSanPhamChiTiet) {
+        List<HoaDonChiTiet> list = hdctRepo.findChoXacNhanBySpct(idSanPhamChiTiet);
 
-                    BigDecimal tienGiam =
-                            giaMoi.multiply(
-                                            dot.getGiaTriGiam()
-                                    )
-                                    .divide(
-                                            BigDecimal.valueOf(100)
-                                    );
+        for (HoaDonChiTiet hdct : list) {
+            SanPhamChiTiet spct = hdct.getIdSanPhamChiTiet();
+            BigDecimal giaMoi = spct.getGiaBan();
 
+            Optional<SanPhamGiamGia> spggOpt = spggRepo.findDangGiamGiaBySpctId(spct.getId());
 
-                    if(dot.getGiaTriGiamToiDa()!=null
-                            &&
-                            tienGiam.compareTo(
-                                    dot.getGiaTriGiamToiDa()
-                            )>0
-                    ){
+            if (spggOpt.isPresent()) {
+                DotGiamGia dot = spggOpt.get().getDotGiamGia();
 
-                        tienGiam =
-                                dot.getGiaTriGiamToiDa();
+                if ("phan_tram".equals(dot.getLoaiGiamGia())) {
+                    BigDecimal tienGiam = giaMoi.multiply(dot.getGiaTriGiam())
+                            .divide(BigDecimal.valueOf(100));
 
+                    if (dot.getGiaTriGiamToiDa() != null && tienGiam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                        tienGiam = dot.getGiaTriGiamToiDa();
                     }
-
-
-                    giaMoi =
-                            giaMoi.subtract(tienGiam);
-
-
-                }
-                else {
-
-
-                    giaMoi =
-                            giaMoi.subtract(
-                                    dot.getGiaTriGiam()
-                            );
-
-
-                    if(giaMoi.compareTo(BigDecimal.ZERO)<0){
-
-                        giaMoi =
-                                BigDecimal.ZERO;
-
+                    giaMoi = giaMoi.subtract(tienGiam);
+                } else {
+                    giaMoi = giaMoi.subtract(dot.getGiaTriGiam());
+                    if (giaMoi.compareTo(BigDecimal.ZERO) < 0) {
+                        giaMoi = BigDecimal.ZERO;
                     }
-
                 }
-
             }
 
-
-
-            // cập nhật giá mới
-            hdct.setDonGia(
-                    giaMoi
-            );
-
-
-            hdct.setThanhTien(
-                    giaMoi.multiply(
-                            BigDecimal.valueOf(
-                                    hdct.getSoLuong()
-                            )
-                    )
-            );
-
-
+            hdct.setDonGia(giaMoi);
+            hdct.setThanhTien(giaMoi.multiply(BigDecimal.valueOf(hdct.getSoLuong())));
             hdctRepo.save(hdct);
 
-
-
-            hoaDonService.recalculateHoaDon(
-                    hdct.getIdHoaDon().getId()
-            );
-
+            hoaDonService.recalculateHoaDon(hdct.getIdHoaDon().getId());
 
             posSocketService.send(
                     new PosEvent(
@@ -1121,8 +522,6 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                             spct.getSoLuongTon()
                     )
             );
-
         }
-
     }
 }

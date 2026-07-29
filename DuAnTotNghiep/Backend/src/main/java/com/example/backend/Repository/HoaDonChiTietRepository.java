@@ -165,4 +165,6 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             @Param("trangThai") String trangThai,
             @Param("loaiHoaDon") String loaiHoaDon
     );
+
+
 }

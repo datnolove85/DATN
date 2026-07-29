@@ -66,8 +66,6 @@
         </div>
 
         <!-- PRODUCTS -->
-        <!-- PRODUCTS -->
-        <!-- PRODUCTS -->
         <div class="product-list-container">
           <!-- Thanh Chọn tất cả sản phẩm trong hóa đơn này -->
           <div class="select-all-bar">
@@ -160,7 +158,7 @@
           <div class="action-buttons">
             <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
 
-            <!-- Nút Hủy đơn hàng (Cho phép hủy khi Đơn đang Chờ xác nhận hoặc Đã xác nhận) -->
+            <!-- Nút Hủy đơn hàng -->
             <el-button
               type="danger"
               plain
@@ -173,7 +171,7 @@
               Hủy đơn
             </el-button>
 
-            <!-- Nút Xác nhận đã nhận hàng nếu đang ở giao_thanh_cong -->
+            <!-- Nút Xác nhận đã nhận hàng -->
             <el-button
               type="success"
               v-if="order.thongTinDonHang.trangThai === 'giao_thanh_cong'"
@@ -425,9 +423,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { Client } from '@stomp/stompjs'
 import {
   Refresh,
   ShoppingBag,
@@ -437,12 +436,21 @@ import {
   Warning,
   Goods,
 } from '@element-plus/icons-vue'
-// Import service xử lý API đơn hàng
-import donHangService from '@/service/DonHangService' // Điều chỉnh lại đường dẫn file cho khớp với project của bạn
+import donHangService from '@/service/DonHangService'
+
 const router = useRouter()
+
+// Alias toast chuẩn Element Plus
+const toast = {
+  success: (msg) => ElMessage.success(msg),
+  info: (msg) => ElMessage.info(msg),
+  warning: (msg) => ElMessage.warning(msg),
+  error: (msg) => ElMessage.error(msg),
+}
 
 // State lưu danh sách idSanPham được chọn cho từng đơn hàng: { [idHoaDon]: [id1, id2] }
 const selectedProductsMap = ref({})
+
 // ======================
 // STATE
 // ======================
@@ -467,9 +475,89 @@ const imageUrl = (path) => {
   return `http://localhost:8080${path}`
 }
 
-// ======================
-// LOAD DANH SÁCH ĐƠN HÀNG
-// ======================
+// ==========================================
+// SOCKET REALTIME (KHÔNG DÙNG SOCKJS -> DÙNG NATIVE WS)
+// ==========================================
+const stompClient = new Client({
+  brokerURL: 'ws://localhost:8080/ws', // Đường dẫn WebSocket trực tiếp từ Spring Boot
+  reconnectDelay: 5000,
+  onStompError: (frame) => {
+    console.error('🔴 Lỗi kết nối WebSocket:', frame.headers['message'])
+  },
+})
+
+let socketSubscription = null
+
+const subscribePos = () => {
+  // 1. Hủy đăng ký cũ nếu đã tồn tại (chống lặp sự kiện)
+  if (socketSubscription) {
+    socketSubscription.unsubscribe()
+  }
+
+  // 2. Đăng ký nhận tin mới từ Socket
+  socketSubscription = stompClient.subscribe('/topic/orders', async (msg) => {
+    try {
+      // Tải lại danh sách đơn hàng ngầm
+      await loadOrders()
+
+      // 🔔 XỬ LÝ THÔNG BÁO TỪ BACKEND
+      if (msg && msg.body) {
+        let data = {}
+        let isJson = false
+
+        try {
+          data = JSON.parse(msg.body)
+          isJson = true
+        } catch (e) {
+          // Chuỗi Text thuần
+        }
+
+        const eventType = isJson ? data.type || data.eventType || data.action : ''
+
+        // Trường hợp bị từ chối hủy đơn
+        if (eventType === 'CANCEL_REJECTED') {
+          cancelDialogVisible.value = false
+          canceling.value = false
+          ElMessageBox.alert(
+            data.message || 'Đơn hàng của bạn đã chuyển trạng thái, không thể hủy!',
+            'Thông báo đơn hàng',
+            { confirmButtonText: 'Đã hiểu', type: 'warning' },
+          )
+          return
+        }
+
+        // 🟢 TH1: Riêng sự kiện THANH TOÁN -> Hiện thông báo cố định màu xanh
+        if (eventType === 'INVOICE_PAID') {
+          toast.success('Thanh toán thành công!')
+        }
+        // 🔵 TH2: Tất cả sự kiện khác -> Lấy nguyên văn thông báo từ BE gửi sang
+        else {
+          const noiDungThongBao = isJson
+            ? data.message || data.noiDung || data.content || msg.body
+            : msg.body
+
+          if (noiDungThongBao) {
+            toast.info(noiDungThongBao)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi cập nhật dữ liệu từ Socket:', error)
+    }
+  })
+}
+
+const connectSocket = () => {
+  if (stompClient.connected) {
+    subscribePos()
+  } else {
+    stompClient.onConnect = () => {
+      subscribePos()
+    }
+    stompClient.activate()
+  }
+}
+
 // ======================
 // LOAD DANH SÁCH ĐƠN HÀNG
 // ======================
@@ -479,14 +567,13 @@ async function loadOrders() {
     const data = await donHangService.layDanhSachDonHang()
     orders.value = data
 
-    // MẶC ĐỊNH: Không chọn sản phẩm nào (mảng rỗng [])
     data.forEach((order) => {
       const orderId = order.thongTinDonHang.id
       selectedProductsMap.value[orderId] = []
     })
   } catch (e) {
     console.error(e)
-    ElMessage.error(e.message || 'Không lấy được danh sách đơn hàng')
+    toast.error(e.message || 'Không lấy được danh sách đơn hàng')
   } finally {
     loading.value = false
   }
@@ -495,28 +582,23 @@ async function loadOrders() {
 // ======================
 // LOGIC CHỌN TẤT CẢ (SELECT ALL)
 // ======================
-// Kiểm tra xem đơn hàng đã được chọn hết tất cả SP chưa
 function isAllSelected(order) {
   const orderId = order.thongTinDonHang.id
   const selected = selectedProductsMap.value[orderId] || []
   return selected.length > 0 && selected.length === order.sanPham.length
 }
 
-// Kiểm tra xem có đang chọn dở dang (chọn 1 vài SP chứ chưa chọn hết)
 function isIndeterminate(order) {
   const orderId = order.thongTinDonHang.id
   const selected = selectedProductsMap.value[orderId] || []
   return selected.length > 0 && selected.length < order.sanPham.length
 }
 
-// Xử lý khi bấm nút "Chọn tất cả" của 1 đơn hàng
 function toggleSelectAll(val, order) {
   const orderId = order.thongTinDonHang.id
   if (val) {
-    // Tick chọn tất cả sản phẩm
     selectedProductsMap.value[orderId] = order.sanPham.map((sp) => sp.idSanPham)
   } else {
-    // Bỏ chọn tất cả
     selectedProductsMap.value[orderId] = []
   }
 }
@@ -526,19 +608,15 @@ function toggleSelectAll(val, order) {
 // ======================
 const handleRebuy = (order) => {
   const orderId = order.thongTinDonHang.id
-  // Lấy danh sách idSanPham người dùng đã tích chọn bằng checkbox
   const selectedIds = selectedProductsMap.value[orderId] || []
 
-  // 1. Kiểm tra nếu chưa tick chọn sản phẩm nào
   if (selectedIds.length === 0) {
-    ElMessage.warning('Vui lòng chọn ít nhất một sản phẩm để mua lại!')
+    toast.warning('Vui lòng chọn ít nhất một sản phẩm để mua lại!')
     return
   }
 
-  // 2. Lọc danh sách các sản phẩm được tick chọn từ order.sanPham
   const selectedItems = order.sanPham.filter((sp) => selectedIds.includes(sp.idSanPham))
 
-  // 3. Đóng gói dữ liệu chuẩn 100% theo cấu trúc checkoutData của Giỏ Hàng
   const checkoutData = {
     items: selectedItems.map((sp) => {
       const gia = Number(sp.donGia || sp.giaBan || 0)
@@ -551,33 +629,30 @@ const handleRebuy = (order) => {
         maSanPhamChiTiet: sp.maSanPhamChiTiet || sp.maSanPham || '',
         giaBan: gia,
         mauSac: sp.mauSac || '',
-        kichCo: sp.kichCo || sp.kichThuoc || '', // Map kichThuoc sang kichCo cho khớp giỏ hàng
+        kichCo: sp.kichCo || sp.kichThuoc || '',
         anh: sp.anh || '',
-        soLuongTon: sp.soLuongTon ?? 99, // Fallback nếu API đơn hàng không trả về tồn kho
+        soLuongTon: sp.soLuongTon ?? 99,
         thanhTien: gia * qty,
         soLuongKhaDung: sp.soLuongKhaDung ?? 1,
       }
     }),
   }
 
-  // 4. Lưu vào sessionStorage với key 'checkoutData'
   sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData))
-
-  // 5. Chuyển hướng sang trang xác nhận thanh toán
   router.push('/xacnhan')
 }
 
-// Hàm chuyển hướng sang trang chi tiết sản phẩm
 function goToProductDetail(id) {
   if (!id) return
 
   router.push({
     name: 'confirmbuy',
     params: {
-      id: id, // Truyền idSanPham (hoặc sp.idChiTietSanPham tùy trang SPCT của bạn cần)
+      id: id,
     },
   })
 }
+
 // ======================
 // HELPERS
 // ======================
@@ -683,7 +758,6 @@ function openDetail(order) {
   dialogVisible.value = true
 }
 
-// 1. Xác nhận nhận hàng
 async function confirmReceived(order) {
   try {
     await ElMessageBox.confirm(
@@ -697,16 +771,15 @@ async function confirmReceived(order) {
     )
 
     await donHangService.xacNhanDaNhan(order.thongTinDonHang.id)
-    ElMessage.success('Cảm ơn bạn đã xác nhận nhận hàng!')
+    toast.success('Cảm ơn bạn đã xác nhận nhận hàng!')
     loadOrders()
   } catch (e) {
     if (e !== 'cancel') {
-      ElMessage.error(e.message || 'Không thể cập nhật trạng thái')
+      toast.error(e.message || 'Không thể cập nhật trạng thái')
     }
   }
 }
 
-// 2. Mở dialog hủy đơn
 function openCancelDialog(order) {
   orderToCancel.value = order
   selectedCancelReason.value = 'Thay đổi địa chỉ nhận hàng'
@@ -714,13 +787,12 @@ function openCancelDialog(order) {
   cancelDialogVisible.value = true
 }
 
-// 3. Xử lý gửi yêu cầu Hủy đơn
 async function handleHuyDonHang() {
   let lyDoFinal = selectedCancelReason.value
 
   if (lyDoFinal === 'Khác') {
     if (!customCancelReason.value.trim()) {
-      ElMessage.warning('Vui lòng nhập lý do hủy chi tiết!')
+      toast.warning('Vui lòng nhập lý do hủy chi tiết!')
       return
     }
     lyDoFinal = customCancelReason.value.trim()
@@ -731,20 +803,34 @@ async function handleHuyDonHang() {
     const idHoaDon = orderToCancel.value.thongTinDonHang.id
     await donHangService.huyDonHang(idHoaDon, lyDoFinal)
 
-    ElMessage.success('Hủy đơn hàng thành công!')
+    toast.success('Hủy đơn hàng thành công!')
     cancelDialogVisible.value = false
-    loadOrders() // Tải lại danh sách sau khi hủy
+    loadOrders()
   } catch (e) {
-    ElMessage.error(e.message || 'Hủy đơn hàng thất bại!')
+    toast.error(e.message || 'Hủy đơn hàng thất bại!')
   } finally {
     canceling.value = false
   }
 }
 
+// ======================
+// LIFECYCLE HOOKS
+// ======================
 onMounted(() => {
   loadOrders()
+  connectSocket()
+})
+
+onUnmounted(() => {
+  if (socketSubscription) {
+    socketSubscription.unsubscribe()
+  }
+  if (stompClient) {
+    stompClient.deactivate()
+  }
 })
 </script>
+
 <style scoped>
 /* ===========================
    CSS VARIABLES & DESIGN TOKENS
@@ -784,6 +870,7 @@ onMounted(() => {
 .el-checkbox-group {
   width: 100%;
 }
+
 .order-page {
   --primary-color: #0284c7;
   --primary-hover: #0369a1;
@@ -992,7 +1079,6 @@ onMounted(() => {
   border-bottom: none;
 }
 
-/* Tối ưu căn chỉnh Checkbox */
 .product-checkbox {
   margin-right: 0;
   display: flex;
@@ -1001,7 +1087,7 @@ onMounted(() => {
 }
 
 :deep(.product-checkbox .el-checkbox__label) {
-  display: none; /* Ẩn khoảng trống thừa của label checkbox */
+  display: none;
 }
 
 .product-image {
@@ -1016,7 +1102,7 @@ onMounted(() => {
 
 .product-info {
   flex: 1;
-  min-width: 0; /* Giúp ellipsis hoạt động nếu tên dài */
+  min-width: 0;
 }
 
 .product-info h4 {
@@ -1039,7 +1125,7 @@ onMounted(() => {
 }
 
 /* ===========================
-   FIX LỖI ĐÈ CHỮ Ở PHẦN GIÁ
+   PHẦN GIÁ SẢN PHẨM
 =========================== */
 .product-price {
   display: flex !important;
@@ -1051,14 +1137,13 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* Reset lại position & line-height cho các dòng giá */
 .product-price .unit-price,
 .product-price .quantity,
 .product-price .total-price {
-  position: static !important; /* Khôi phục vị trí chuẩn, chống đè position: absolute */
+  position: static !important;
   display: block !important;
   margin: 0 !important;
-  line-height: 1.4 !important; /* Tạo khoảng cách dòng chuẩn */
+  line-height: 1.4 !important;
   height: auto !important;
 }
 
@@ -1401,7 +1486,6 @@ onMounted(() => {
   width: 100%;
 }
 
-/* Tạo giao diện dạng Card cho Radio Lý Do Hủy */
 .cancel-reasons-list .el-radio {
   width: 100%;
   padding: 10px 14px;

@@ -18,30 +18,34 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/virtual-try-on")
-@RequiredArgsConstructor
 public class VirtualTryOnController {
 
     private final VirtualTryOnService virtualTryOnService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> tryOn(
-            @RequestParam("spctId") Integer sanPhamChiTietId,
+            @RequestParam("spctId") Integer spctId,
             @RequestParam("personImage") MultipartFile personImage,
             @RequestParam(value = "category", defaultValue = "upper_body") String category
     ) {
+
         try {
-            VirtualTryOnResult result = virtualTryOnService.tryOn(
-                    sanPhamChiTietId,
-                    personImage,
-                    category
-            );
+
+            VirtualTryOnResult result =
+                    virtualTryOnService.tryOn(
+                            spctId,
+                            personImage,
+                            category
+                    );
 
             MediaType mediaType;
+
             try {
                 mediaType = MediaType.parseMediaType(result.contentType());
-            } catch (Exception ignored) {
+            } catch (Exception e) {
                 mediaType = MediaType.IMAGE_PNG;
             }
 
@@ -49,10 +53,24 @@ public class VirtualTryOnController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-store")
                     .contentType(mediaType)
                     .body(result.imageBytes());
-        } catch (VirtualTryOnException e) {
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("message", e.getMessage()));
+
+        } catch (VirtualTryOnException ex) {
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of(
+                            "success", false,
+                            "message", ex.getMessage()
+                    ));
+
+        } catch (Exception ex) {
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", ex.getMessage()
+                    ));
         }
     }
 }

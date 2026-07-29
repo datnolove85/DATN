@@ -365,9 +365,14 @@ export const hoaDonService = {
     return await response.text() // backend trả "OK"
   },
 }
-export const taoQr = async (hoaDonId) => {
+export const taoQr = async (hoaDonId, soTien) => {
   try {
-    const response = await fetch(`http://localhost:8080/hoadon/tao-qr/${hoaDonId}`, {
+    // Đính kèm ?amount=... nếu có truyền soTien vào
+    const url = soTien
+      ? `http://localhost:8080/hoadon/tao-qr/${hoaDonId}?amount=${soTien}`
+      : `http://localhost:8080/hoadon/tao-qr/${hoaDonId}`
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

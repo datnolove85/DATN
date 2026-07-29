@@ -465,21 +465,58 @@ public class HoaDonServiceImpl implements HoaDonService {
             spctRepo.save(spct);
 
             // Bắn Socket cập nhật tồn kho thời gian thực lên POS
-            posSocketService.send(new PosEvent("PRODUCT_UPDATED", hd.getId(), spct.getId(), spct.getSoLuongTon()));
+
         }
 
         // ================== 6. TẠO THANH TOÁN & TRỪ LƯỢT VOUCHER ==================
-        PhuongThucThanhToan pt = ptRepo.findById(req.getIdPhuongThucThanhToan())
-                .orElseThrow(() -> new ApiException("Phương thức thanh toán không hợp lệ!", "PAYMENT_METHOD_NOT_FOUND"));
+        // ================== 6. TẠO THANH TOÁN (HỖ TRỢ CẢ CŨ LẪN MỚI) & TRỪ LƯỢT VOUCHER ==================
+        List<ThanhToanHoaDonRequest.ChiTietThanhTienDto> danhSachThanhToanXuLy = new ArrayList<>();
 
-        ThanhToan tt = new ThanhToan();
-        tt.setIdHoaDon(hd);
-        tt.setIdPhuongThucThanhToan(pt);
-        tt.setSoTien(tongThanhToan);
-        tt.setTrangThai("da_thanh_toan");
-        tt.setNgayThanhToan(LocalDateTime.now());
-        ttRepo.save(tt);
+        // THƯỜNG TRƯỜNG HỢP 1: Gửi theo danh sách kết hợp mới (Tại quầy: Tiền mặt + Chuyển khoản)
+        if (req.getDanhSachThanhToan() != null && !req.getDanhSachThanhToan().isEmpty()) {
+            danhSachThanhToanXuLy = req.getDanhSachThanhToan();
+        }
+        // THƯỜNG TRƯỜNG HỢP 2: Gửi theo kiểu cũ (Online hoặc 1 hình thức đơn lẻ) -> Tự bọc lại thành list
+        else if (req.getIdPhuongThucThanhToan() != null) {
+            ThanhToanHoaDonRequest.ChiTietThanhTienDto dtoCu = new ThanhToanHoaDonRequest.ChiTietThanhTienDto();
+            dtoCu.setIdPhuongThucThanhToan(req.getIdPhuongThucThanhToan());
+            dtoCu.setSoTien(tongThanhToan); // Lấy toàn bộ tiền hóa đơn
+            dtoCu.setMaGiaoDich(null);
+            danhSachThanhToanXuLy.add(dtoCu);
+        } else {
+            throw new ApiException("Vui lòng chọn phương thức thanh toán!", "PAYMENT_METHOD_REQUIRED");
+        }
 
+        // Kiểm tra tổng tiền khách trả có khớp với tổng thanh toán không
+        BigDecimal tongTienKhachTra = danhSachThanhToanXuLy.stream()
+                .map(ThanhToanHoaDonRequest.ChiTietThanhTienDto::getSoTien)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (tongTienKhachTra.compareTo(tongThanhToan) < 0) {
+            throw new ApiException("Số tiền thanh toán (" + tongTienKhachTra + ") chưa đủ so với tổng tiền hóa đơn (" + tongThanhToan + ")!", "INVALID_PAYMENT_AMOUNT");
+        }
+
+        // Vòng lặp lưu xuống DB (Hỗ trợ 1 hoặc nhiều dòng thanh toán cực kỳ mượt mà)
+        List<PhuongThucThanhToan> dsPhuongThucTraVe = new ArrayList<>();
+
+        for (ThanhToanHoaDonRequest.ChiTietThanhTienDto item : danhSachThanhToanXuLy) {
+            PhuongThucThanhToan pt = ptRepo.findById(item.getIdPhuongThucThanhToan())
+                    .orElseThrow(() -> new ApiException("Phương thức thanh toán không hợp lệ!", "PAYMENT_METHOD_NOT_FOUND"));
+
+            ThanhToan tt = new ThanhToan();
+            tt.setIdHoaDon(hd);
+            tt.setIdPhuongThucThanhToan(pt);
+            tt.setSoTien(item.getSoTien());
+            tt.setMaGiaoDich(item.getMaGiaoDich());
+            tt.setTrangThai("da_thanh_toan");
+            tt.setNgayThanhToan(LocalDateTime.now());
+            ttRepo.save(tt); // Lưu ý tên repo của bạn (thanhToanRepo / ttRepo)
+
+            dsPhuongThucTraVe.add(pt);
+        }
+
+        // Xử lý trừ lượt voucher (giữ nguyên logic cũ của bạn)
         HoaDonVoucher hdVoucher = hoaDonVoucherRepo.findByIdHoaDon_Id(hd.getId()).orElse(null);
         if (hdVoucher != null) {
             Voucher voucher = hdVoucher.getIdVoucher();
@@ -490,20 +527,18 @@ public class HoaDonServiceImpl implements HoaDonService {
             voucher.setSoLuongDaDung(Optional.ofNullable(voucher.getSoLuongDaDung()).orElse(0) + 1);
             voucher.setSoLuong(voucher.getSoLuong() - 1);
             voucherRepo.save(voucher);
-
-            posSocketService.send(new PosEvent("VOUCHER_UPDATED", null, voucher.getId(), null));
         }
-
         // ================== 7. CHỐT TRẠNG THÁI HÓA ĐƠN ==================
         hd.setTrangThai("hoan_thanh");
         hd.setNgayCapNhat(LocalDateTime.now());
+        hd.setTrangThaiThanhToan("da_thanh_toan");
         hoaDonRepo.save(hd);
 
         // Bắn Socket báo hoàn thành hóa đơn
         posSocketService.send(new PosEvent("INVOICE_PAID", hd.getId(), null, null));
 
         // ================== 8. TRẢ VỀ DỮ LIỆU THÀNH CÔNG ==================
-        return buildResponseData(hd, pt, dsChiTiet);
+        return buildResponseData(hd, dsPhuongThucTraVe.get(0), dsChiTiet);
     }
 
 // ==================================================================================
@@ -971,10 +1006,10 @@ public class HoaDonServiceImpl implements HoaDonService {
         // ===== Gửi WebSocket =====
         posSocketService.send(
                 new PosEvent(
-                        "PRODUCT_UPDATED",
+                        "QUANTITY_UPDATED",
                         hdct.getIdHoaDon().getId(),
                         spct.getId(),
-                        spct.getSoLuongTon()
+                        spct.getSoLuongTon() - spct.getSoLuongTamGiu()
                 )
         );
     }
@@ -1024,10 +1059,10 @@ public class HoaDonServiceImpl implements HoaDonService {
         // Gửi WebSocket
         posSocketService.send(
                 new PosEvent(
-                        "PRODUCT_UPDATED",
+                        "QUANTITY_UPDATED",
                         hdct.getIdHoaDon().getId(),
                         spct.getId(),
-                        spct.getSoLuongTon()
+                        ton - spct.getSoLuongTamGiu()
                 )
         );
     }
@@ -1106,10 +1141,10 @@ public class HoaDonServiceImpl implements HoaDonService {
         // ===== Gửi WebSocket =====
         posSocketService.send(
                 new PosEvent(
-                        "PRODUCT_UPDATED",
+                        "QUANTITY_UPDATED",
                         idHoaDon,
                         spct.getId(),
-                        spct.getSoLuongTon()
+                        spct.getSoLuongTon() - spct.getSoLuongTamGiu()
                 )
         );
     }
@@ -1180,7 +1215,7 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         posSocketService.send(
                 new PosEvent(
-                        "PRODUCT_UPDATED",
+                        "QUANTITY_UPDATED",
                         idHoaDon,
                         spct.getId(),
                         ton - spct.getSoLuongTamGiu()
@@ -1978,29 +2013,29 @@ public class HoaDonServiceImpl implements HoaDonService {
         }
     }
 
-    @Override
-    public Map<String, Object> taoQr(Integer hoaDonId) {
 
+    @Override
+    public Map<String, Object> taoQr(Integer hoaDonId, Long amount) {
         HoaDon hd = hoaDonRepo.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-
-        // Không cho tạo QR nếu hóa đơn đã hủy
+        // Nếu có truyền amount (dùng cho thanh toán kết hợp), lấy amount đó; không thì lấy tổng tiền hóa đơn
+        Long finalAmount = (amount != null) ? amount : hd.getTongThanhToan().longValue();
 
         String qrUrl = VietQrUtil.createQrUrl(
-                hd.getTongThanhToan().longValue(),
+                finalAmount,
                 hd.getMaHoaDon()
         );
 
         Map<String, Object> result = new HashMap<>();
-
         result.put("id", hd.getId());
         result.put("maHoaDon", hd.getMaHoaDon());
-        result.put("tongTien", hd.getTongThanhToan());
+        result.put("tongTien", finalAmount);
         result.put("qrUrl", qrUrl);
 
         return result;
     }
+
 
     @Override
     @Transactional

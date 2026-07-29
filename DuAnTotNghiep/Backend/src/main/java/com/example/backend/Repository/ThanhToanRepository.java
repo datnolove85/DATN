@@ -49,4 +49,7 @@ public interface ThanhToanRepository extends JpaRepository<ThanhToan, Integer> {
 
     ThanhToan findByIdHoaDon_Id(Integer idHoaDon);
 
+    @Query("SELECT t FROM ThanhToan t WHERE t.idHoaDon.id = :idHoaDon")
+    List<ThanhToan> getDanhSachThanhToanTheoHoaDon(Integer idHoaDon);
+
 }

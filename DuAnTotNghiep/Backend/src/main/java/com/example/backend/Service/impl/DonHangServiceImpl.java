@@ -6,13 +6,12 @@ import com.example.backend.Response.*;
 import com.example.backend.Service.DonHangService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +23,7 @@ public class DonHangServiceImpl implements DonHangService {
     private final ThanhToanRepository thanhToanRepository;
     private final TraHangRepository traHangRepository;
     private final HinhAnhRepository hinhAnhRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public List<DonHangResponse> layDanhSachDonHang(Integer idTaiKhoan) {
@@ -270,7 +270,19 @@ public class DonHangServiceImpl implements DonHangService {
 
         // 4. Kiểm tra điều kiện trạng thái cho phép hủy
         String trangThai = hoaDon.getTrangThai() != null ? hoaDon.getTrangThai().toLowerCase() : "";
+
         if (!"cho_xac_nhan".equals(trangThai) && !"da_xac_nhan".equals(trangThai)) {
+
+            // Tạo dữ liệu thông báo
+            Map<String, Object> socketPayload = new HashMap<>();
+            socketPayload.put("type", "CANCEL_REJECTED");
+            socketPayload.put("idHoaDon", idHoaDon);
+            socketPayload.put("trangThaiMoi", hoaDon.getTrangThai());
+            socketPayload.put("message", "Đơn hàng đã chuyển sang trạng thái '" + hoaDon.getTrangThai() + "', không thể hủy!");
+
+            // 🟢 Thêm (Object) ở đây để không bị lỗi Ambiguous method call
+            messagingTemplate.convertAndSend("/topic/orders", (Object) socketPayload);
+
             throw new RuntimeException("Đơn hàng đang giao hoặc đã hoàn tất, không thể hủy!");
         }
 
@@ -281,18 +293,16 @@ public class DonHangServiceImpl implements DonHangService {
                 : "Khách tự hủy đơn hàng");
         hoaDon.setNgayCapNhat(LocalDateTime.now());
 
-        // 6. Hoàn lại số lượng tồn/tạm giữ cho kho (Xử lý hoàn kho)
+        // 6. Trả lại tạm giữ / tồn kho
         List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByIdHoaDon_Id(hoaDon.getId());
         for (HoaDonChiTiet ct : chiTietList) {
             SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
             if (spct != null) {
                 int soLuongTra = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
 
-                // Trừ số lượng tạm giữ
                 int tamGiuHienTai = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
                 spct.setSoLuongTamGiu(Math.max(0, tamGiuHienTai - soLuongTra));
 
-                // Nếu đơn hàng đã xác nhận (đã trừ kho thật), cộng lại vào soLuongTon
                 if ("da_xac_nhan".equals(trangThai)) {
                     int tonHienTai = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                     spct.setSoLuongTon(tonHienTai + soLuongTra);
@@ -301,5 +311,12 @@ public class DonHangServiceImpl implements DonHangService {
         }
 
         hoaDonRepository.save(hoaDon);
+
+        // 🟢 Bắn Socket hủy thành công độc lập
+        Map<String, Object> successPayload = new HashMap<>();
+        successPayload.put("type", "CANCEL_SUCCESS");
+        successPayload.put("idHoaDon", idHoaDon);
+
+        messagingTemplate.convertAndSend("/topic/orders", (Object) successPayload);
     }
 }

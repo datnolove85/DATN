@@ -610,13 +610,17 @@ public class SanPhamChiTietService {
         SanPhamChiTiet updated = sanPhamChiTietRepository.save(spct);
 
         // ================== 5. TẠO CÂU THÔNG BÁO CHI TIẾT ==================
+        // ================== 5. TẠO CÂU THÔNG BÁO CHI TIẾT ==================
+        // Lấy tên chi tiết sản phẩm (hoặc lấy từ spct.getTenSanPhamChiTiet())
+        String tenSpct = sanPham.getTenSanPham() + " - " + mauSac.getTenMauSac() + " - " + kichThuoc.getTenKichThuoc();
+
         final String thongBao;
         if (isNgungKinhDoanh) {
-            thongBao = "Sản phẩm đã chuyển sang NGỪNG KINH DOANH và tự động xóa khỏi các hóa đơn chờ tại quầy!";
+            thongBao = "Sản phẩm [" + tenSpct + "] đã chuyển sang NGỪNG KINH DOANH và tự động xóa khỏi các hóa đơn chờ tại quầy!";
         } else if (soLuongBiXenInNotification > 0) {
             thongBao = "Cập nhật thành công! Tồn kho về " + soLuongTonMoi + " (Đã tự động giảm/xóa " + soLuongBiXenInNotification + " sản phẩm ở đơn chờ tại quầy)!";
         } else {
-            thongBao = "Cập nhật sản phẩm chi tiết thành công!";
+            thongBao = "Hệ thống đã cập nhật sản phẩm!";
         }
 
         // ================== 6. BẮN SOCKET THÔNG BÁO TỚI POS ==================
@@ -800,9 +804,12 @@ public class SanPhamChiTietService {
         }
 
         // ================== 3. TẠO THÔNG BÁO ==================
+        // ================== 3. TẠO THÔNG BÁO ==================
+        String tenSpct = spct.getTenSanPhamChiTiet() != null ? spct.getTenSanPhamChiTiet() : "";
+
         final String thongBao = (soLuongChiTietHDBiXoa > 0)
-                ? "Đã chuyển sản phẩm sang NGỪNG KINH DOANH và tự động xóa khỏi các hóa đơn chờ tại quầy!"
-                : "Đã chuyển sản phẩm sang NGỪNG KINH DOANH!";
+                ? "Sản phẩm [" + tenSpct + "] đã chuyển sang NGỪNG KINH DOANH và tự động xóa khỏi các hóa đơn chờ tại quầy!"
+                : "Sản phẩm [" + tenSpct + "] đã chuyển sang NGỪNG KINH DOANH!";
 
         // ================== 4. BẮN SOCKET VỚI EVENT "STOCK_FORCE_ADJUSTED" ==================
         PosAlertEvent alertEvent = new PosAlertEvent("STOCK_FORCE_ADJUSTED", thongBao, updated.getId(), 0);

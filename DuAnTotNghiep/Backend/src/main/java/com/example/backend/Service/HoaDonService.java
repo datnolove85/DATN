@@ -85,9 +85,11 @@ public interface HoaDonService {
     );
     void updateTrangThai(Integer id, String trangThaiMoi);
 
-     Map<String, Object> taoQr(Integer hoaDonId);
+    Map<String, Object> taoQr(Integer hoaDonId, Long amount);
 
     void capNhatHoaDonTheoVoucher(Integer idVoucher);
 
     void capNhatSoLuong(Integer idHoaDonChiTiet, Integer soLuongMoi);
+
+
 }

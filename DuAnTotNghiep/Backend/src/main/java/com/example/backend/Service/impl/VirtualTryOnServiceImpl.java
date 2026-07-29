@@ -88,7 +88,8 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
                 throw new VirtualTryOnException("Hugging Face không trả đủ đường dẫn ảnh đã tải lên");
             }
 
-            String eventId = submitPrediction(
+            // 1. Submit yêu cầu và nhận về cả pathPrefix lẫn eventId
+            SubmitResult submitResult = submitPrediction(
                     uploadedPaths.get(0),
                     human,
                     uploadedPaths.get(1),
@@ -96,8 +97,10 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
                     category
             );
 
-            String resultUrl = waitForResult(eventId);
+            // 2. Chờ kết quả bằng đúng pathPrefix đã dùng
+            String resultUrl = waitForResult(submitResult.pathPrefix(), submitResult.eventId());
             return downloadResult(resultUrl);
+
         } catch (VirtualTryOnException e) {
             throw e;
         } catch (InterruptedException e) {
@@ -107,7 +110,6 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
             throw new VirtualTryOnException("Không thể tạo ảnh thử đồ lúc này", e);
         }
     }
-
     private void validateRequest(
             Integer sanPhamChiTietId,
             MultipartFile personImage,
@@ -216,9 +218,9 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
         String boundary = "----DATNTryOn" + UUID.randomUUID();
         byte[] multipartBody = multipartBody(boundary, List.of(human, garment));
 
-        HttpRequest request = authorizedRequest(
-                URI.create(baseUrl() + "/gradio_api/upload")
-        )
+        // Thử endpoint chuẩn direct space trước
+        String uploadUrl = baseUrl() + "/upload";
+        HttpRequest request = authorizedRequest(URI.create(uploadUrl))
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(multipartBody))
                 .timeout(Duration.ofSeconds(120))
@@ -228,6 +230,18 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
                 request,
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
         );
+
+        // Dự phòng nếu /upload bị 404 thì gọi /gradio_api/upload
+        if (response.statusCode() == 404) {
+            uploadUrl = baseUrl() + "/gradio_api/upload";
+            request = authorizedRequest(URI.create(uploadUrl))
+                    .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(multipartBody))
+                    .timeout(Duration.ofSeconds(120))
+                    .build();
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        }
+
         ensureSuccess(response.statusCode(), "Không tải được ảnh lên Hugging Face");
 
         JsonNode root = jsonMapper.readTree(response.body());
@@ -238,14 +252,22 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
         java.util.ArrayList<String> paths = new java.util.ArrayList<>();
         for (int index = 0; index < root.size(); index++) {
             JsonNode value = root.get(index);
-            if (value != null && value.isTextual()) {
+            if (value == null) continue;
+
+            // Hỗ trợ cả Gradio cũ (String) và Gradio 4+ (Object)
+            if (value.isTextual()) {
                 paths.add(value.asText());
+            } else if (value.isObject()) {
+                if (value.has("path")) {
+                    paths.add(value.get("path").asText());
+                } else if (value.has("name")) {
+                    paths.add(value.get("name").asText());
+                }
             }
         }
         return paths;
     }
-
-    private String submitPrediction(
+    private SubmitResult submitPrediction(
             String humanPath,
             BinaryImage human,
             String garmentPath,
@@ -265,17 +287,20 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
         data.add(garmentFile);
         data.add(garmentDescription(category));
         data.add(true);
-        data.add(true);
-        data.add(20);
+        data.add(false);
+        data.add(30);
         data.add(ThreadLocalRandom.current().nextInt(1, 1_000_000));
 
         ObjectNode payload = jsonMapper.createObjectNode();
         payload.set("data", data);
 
         String endpoint = normalizeEndpoint(tryOnEndpoint);
-        HttpRequest request = authorizedRequest(
-                URI.create(baseUrl() + "/gradio_api/call" + endpoint)
-        )
+
+        // Thử dùng prefix /call trước
+        String pathPrefix = "/call" + endpoint;
+        String callUrl = baseUrl() + pathPrefix;
+
+        HttpRequest request = authorizedRequest(URI.create(callUrl))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
                         jsonMapper.writeValueAsString(payload),
@@ -288,6 +313,22 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
                 request,
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
         );
+
+        // Nếu /call bị 404 thì chuyển sang /gradio_api/call
+        if (response.statusCode() == 404) {
+            pathPrefix = "/gradio_api/call" + endpoint;
+            callUrl = baseUrl() + pathPrefix;
+            request = authorizedRequest(URI.create(callUrl))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(
+                            jsonMapper.writeValueAsString(payload),
+                            StandardCharsets.UTF_8
+                    ))
+                    .timeout(Duration.ofSeconds(60))
+                    .build();
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        }
+
         ensureSuccess(response.statusCode(), "Hugging Face từ chối yêu cầu thử đồ");
 
         String eventId = jsonMapper.readTree(response.body())
@@ -297,14 +338,15 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
         if (eventId.isBlank()) {
             throw new VirtualTryOnException("Hugging Face không trả event_id");
         }
-        return eventId;
+
+        // Trả về cả prefix thành công và eventId
+        return new SubmitResult(pathPrefix, eventId);
     }
 
-    private String waitForResult(String eventId) throws IOException, InterruptedException {
-        String endpoint = normalizeEndpoint(tryOnEndpoint);
-        HttpRequest request = authorizedRequest(
-                URI.create(baseUrl() + "/gradio_api/call" + endpoint + "/" + eventId)
-        )
+    private String waitForResult(String pathPrefix, String eventId) throws IOException, InterruptedException {
+        String streamUrl = baseUrl() + pathPrefix + "/" + eventId;
+
+        HttpRequest request = authorizedRequest(URI.create(streamUrl))
                 .header("Accept", "text/event-stream")
                 .GET()
                 .timeout(Duration.ofSeconds(Math.max(timeoutSeconds, 60)))
@@ -314,6 +356,22 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
                 request,
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)
         );
+
+        // Dự phòng: nếu tiền tố cũ vẫn 404, tự đổi tiền tố còn lại
+        if (response.statusCode() == 404) {
+            String altPrefix = pathPrefix.startsWith("/gradio_api")
+                    ? pathPrefix.replace("/gradio_api", "")
+                    : "/gradio_api" + pathPrefix;
+            streamUrl = baseUrl() + altPrefix + "/" + eventId;
+
+            request = authorizedRequest(URI.create(streamUrl))
+                    .header("Accept", "text/event-stream")
+                    .GET()
+                    .timeout(Duration.ofSeconds(Math.max(timeoutSeconds, 60)))
+                    .build();
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        }
+
         ensureSuccess(response.statusCode(), "Không lấy được kết quả thử đồ");
 
         String currentEvent = "";
@@ -345,7 +403,6 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
 
         throw new VirtualTryOnException("API kết thúc nhưng không có sự kiện complete");
     }
-
     private VirtualTryOnResult downloadResult(String resultUrl)
             throws IOException, InterruptedException {
         URI resultUri = URI.create(resultUrl);
@@ -545,4 +602,5 @@ public class VirtualTryOnServiceImpl implements VirtualTryOnService {
             String contentType
     ) {
     }
+    private record SubmitResult(String pathPrefix, String eventId) {}
 }
