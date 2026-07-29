@@ -1,0 +1,70 @@
+/* ===== Toast chung ===== */
+.Vue-Toastification__toast {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.12),
+    0 4px 10px rgba(15, 23, 42, 0.06) !important;
+  padding: 14px 16px !important;
+  font-weight: 500;
+  min-height: 64px;
+}
+
+/* Chữ */
+.Vue-Toastification__toast-body {
+  color: #334155 !important;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Nút đóng */
+.Vue-Toastification__close-button {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.Vue-Toastification__close-button:hover {
+  color: #334155 !important;
+}
+
+/* Icon */
+.Vue-Toastification__icon {
+  opacity: 1 !important;
+}
+
+/* ===== Success ===== */
+.Vue-Toastification__toast--success {
+  border-left: 6px solid #22c55e !important;
+}
+
+.Vue-Toastification__toast--success .Vue-Toastification__icon {
+  color: #22c55e !important;
+}
+
+/* ===== Error ===== */
+.Vue-Toastification__toast--error {
+  border-left: 6px solid #ef4444 !important;
+}
+
+.Vue-Toastification__toast--error .Vue-Toastification__icon {
+  color: #ef4444 !important;
+}
+
+/* ===== Warning ===== */
+.Vue-Toastification__toast--warning {
+  border-left: 6px solid #f59e0b !important;
+}
+
+.Vue-Toastification__toast--warning .Vue-Toastification__icon {
+  color: #f59e0b !important;
+}
+
+/* ===== Info ===== */
+.Vue-Toastification__toast--info {
+  border-left: 6px solid #3b82f6 !important;
+}
+
+.Vue-Toastification__toast--info .Vue-Toastification__icon {
+  color: #3b82f6 !important;
+}
