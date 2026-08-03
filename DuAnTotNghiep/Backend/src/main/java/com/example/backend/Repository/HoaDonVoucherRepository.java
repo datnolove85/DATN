@@ -24,4 +24,6 @@ public interface HoaDonVoucherRepository extends JpaRepository<HoaDonVoucher,Int
 
 
     List<HoaDonVoucher> findByIdVoucher_Id(Integer idVoucher);
+
+    List<HoaDonVoucher> findByIdKhoVoucher_Id(Integer idKhoVoucher);
 }

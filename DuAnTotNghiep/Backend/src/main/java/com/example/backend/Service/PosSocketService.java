@@ -28,4 +28,16 @@ public class PosSocketService {
                 new PosEvent("DISCOUNT_UPDATED", null, null, null)
         );
     }
+
+    public void notifyKhoVoucherUpdated(Integer khoVoucherId) {
+        messagingTemplate.convertAndSend(
+                "/topic/pos",
+                new PosEvent(
+                        "KHO_VOUCHER_UPDATED",
+                        null,
+                        khoVoucherId,
+                        null
+                )
+        );
+    }
 }

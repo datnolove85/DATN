@@ -1,8 +1,10 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Entity.HoaDon;
+import com.example.backend.Entity.KhoVoucher;
 import com.example.backend.Request.*;
 import com.example.backend.Response.HoaDonResponse;
+import com.example.backend.Response.VoucherKhachHangResponse;
 import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.TraHangService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -181,16 +184,21 @@ public class HoaDonController {
     }
 
     @PutMapping("/gan-khach-hang")
-    public ResponseEntity<?> ganKhachHang(
-            @RequestBody GanKhachHangRequest request
-    ) {
+    public ResponseEntity<?> ganKhachHang(@RequestBody GanKhachHangRequest request) {
+        try {
+            List<VoucherKhachHangResponse> danhSachVoucherCuaKhach =
+                    service.ganKhachHang(
+                            request.getIdHoaDon(),
+                            request.getIdKhachHang()
+                    );
 
-        service.ganKhachHang(
-                request.getIdHoaDon(),
-                request.getIdKhachHang()
-        );
+            return ResponseEntity.ok(danhSachVoucherCuaKhach);
 
-        return ResponseEntity.ok("Gán khách hàng thành công");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi gán khách hàng: " + e.getMessage());
+        }
     }
 
     @PutMapping("/huy/{id}")
@@ -208,11 +216,13 @@ public class HoaDonController {
     @PostMapping("/{idHoaDon}/voucher")
     public void apVoucher(
             @PathVariable Integer idHoaDon,
-            @RequestParam Integer idVoucher
+            @RequestParam(required = false) Integer idVoucher,
+            @RequestParam(required = false) Integer idVoucherKhachHang
     ){
         service.apVoucher(
                 idHoaDon,
-                idVoucher
+                idVoucher,
+                idVoucherKhachHang
         );
     }
 
@@ -257,5 +267,8 @@ public class HoaDonController {
 
         return ResponseEntity.ok("OK");
     }
-
+    @PutMapping("/{idHoaDon}/go-khach-hang")
+    public ResponseEntity<List<KhoVoucher>> goKhachHang(@PathVariable Integer idHoaDon) {
+        return ResponseEntity.ok(service.goKhachHang(idHoaDon));
+    }
 }

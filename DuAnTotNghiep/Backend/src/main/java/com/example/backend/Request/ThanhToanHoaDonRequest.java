@@ -10,6 +10,9 @@ public class ThanhToanHoaDonRequest {
     private Integer idHoaDon;
     private Integer idVoucher;
 
+    // 🌟 Bổ sung trường này để nhận ID voucher cá nhân từ phía Frontend gửi lên
+    private Integer idVoucherKhachHang;
+
     // 1. Dùng cho thanh toán cũ (Online hoặc 1 hình thức đơn lẻ)
     private Integer idPhuongThucThanhToan;
 

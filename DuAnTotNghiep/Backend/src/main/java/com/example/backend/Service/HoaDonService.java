@@ -2,7 +2,9 @@ package com.example.backend.Service;
 
 
 import com.example.backend.Entity.HoaDon;
+import com.example.backend.Entity.KhoVoucher;
 import com.example.backend.Entity.TrangThaiHoaDon;
+import com.example.backend.Entity.VoucherCuaKhachHang;
 import com.example.backend.Request.*;
 import com.example.backend.Response.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +49,7 @@ public interface HoaDonService {
 
     void giamSoLuong(Integer idHoaDonChiTiet);
 
-    void ganKhachHang(Integer idHoaDon, Integer idKhachHang);
+    List<VoucherKhachHangResponse> ganKhachHang(Integer idHoaDon, Integer idKhachHang);
 
     @Transactional
     public Object thanhToanHoaDon(
@@ -62,10 +64,7 @@ public interface HoaDonService {
 
     void huyHoaDonOnline(Integer id);
 
-    void apVoucher(
-            Integer idHoaDon,
-            Integer idVoucher
-    );
+    void apVoucher(Integer idHoaDon, Integer idVoucher, Integer idVoucherKhachHang);
 
     void boVoucher(
             Integer idHoaDon
@@ -89,7 +88,11 @@ public interface HoaDonService {
 
     void capNhatHoaDonTheoVoucher(Integer idVoucher);
 
+    void capNhatHoaDonTheoKhoVoucher(Integer idKhoVoucher);
+
     void capNhatSoLuong(Integer idHoaDonChiTiet, Integer soLuongMoi);
+
+    List<KhoVoucher> goKhachHang(Integer idHoaDon);
 
 
 }

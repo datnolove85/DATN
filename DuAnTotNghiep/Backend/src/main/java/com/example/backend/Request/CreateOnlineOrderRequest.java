@@ -25,6 +25,7 @@ public class CreateOnlineOrderRequest {
 
     private Integer voucherId;
 
+    private Integer voucherKhachHangId;
     private String note;
 
     private List<Item> items;

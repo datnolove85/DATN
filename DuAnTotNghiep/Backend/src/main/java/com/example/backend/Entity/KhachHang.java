@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Table(name = "khach_hang")
 public class KhachHang {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ◄ THÊM DÒNG NÀY
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
@@ -44,12 +44,10 @@ public class KhachHang {
     private LocalDate ngaySinh;
 
     @Size(max = 50)
-
     @Column(name = "hang_thanh_vien", length = 50)
     private String hangThanhVien;
 
     @Size(max = 255)
-
     @Column(name = "dia_chi")
     private String diaChi;
 
@@ -61,12 +59,24 @@ public class KhachHang {
     private Instant ngayMuaCuoi;
 
     @Size(max = 255)
-
     @Column(name = "anh")
     private String anh;
 
     @Column(name = "gioi_tinh")
     private Boolean gioiTinh;
+
+    // === BỔ SUNG: Ví Xu & Chuỗi điểm danh ===
+    @ColumnDefault("0")
+    @Column(name = "so_du_xu")
+    private Integer soDuXu = 0;
+
+    @ColumnDefault("0")
+    @Column(name = "chuoi_diem_danh")
+    private Integer chuoiDiemDanh = 0;
+
+    @Column(name = "ngay_diem_danh_gan_nhat")
+    private LocalDate ngayDiemDanhGanNhat;
+    // =====================================
 
     @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
@@ -76,17 +86,14 @@ public class KhachHang {
     private Instant ngayCapNhat;
 
     @Size(max = 100)
-
     @Column(name = "nguoi_tao", length = 100)
     private String nguoiTao;
 
     @Size(max = 100)
-
     @Column(name = "nguoi_cap_nhat", length = 100)
     private String nguoiCapNhat;
 
     @ColumnDefault("0")
     @Column(name = "trang_thai_xoa")
     private Boolean trangThai;
-
 }

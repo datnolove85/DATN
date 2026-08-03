@@ -5,6 +5,7 @@ import com.example.backend.Repository.*;
 import com.example.backend.Response.*;
 import com.example.backend.Service.DonHangService;
 
+import com.example.backend.Service.payment.VoucherConsumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,11 @@ public class DonHangServiceImpl implements DonHangService {
     private final TraHangRepository traHangRepository;
     private final HinhAnhRepository hinhAnhRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final HoaDonVoucherRepository hoaDonVoucherRepository;
+    private final VoucherRepository voucherRepository;
+    private final VoucherCuaKhachHangRepository voucherCuaKhachHangRepository;
+    private final KhoVoucherRepository khoVoucherRepository;
+    private final VoucherConsumeService voucherConsumeService;
 
     @Override
     public List<DonHangResponse> layDanhSachDonHang(Integer idTaiKhoan) {
@@ -308,6 +314,63 @@ public class DonHangServiceImpl implements DonHangService {
                     spct.setSoLuongTon(tonHienTai + soLuongTra);
                 }
             }
+        }
+        // 7. Hoàn voucher nếu có
+        // 7. Hoàn voucher nếu có
+        HoaDonVoucher hdVoucher = hoaDonVoucherRepository
+                .findByIdHoaDon_Id(hoaDon.getId())
+                .orElse(null);
+
+        if (hdVoucher != null) {
+
+            // Chỉ hoàn nếu voucher đã được consume
+            if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
+
+                // ==========================
+                // Voucher hệ thống
+                // ==========================
+                if (hdVoucher.getIdVoucher() != null) {
+
+                    Voucher voucher = hdVoucher.getIdVoucher();
+
+                    int daDung = voucher.getSoLuongDaDung() == null
+                            ? 0
+                            : voucher.getSoLuongDaDung();
+
+                    voucher.setSoLuongDaDung(Math.max(0, daDung - 1));
+                    voucher.setSoLuong(voucher.getSoLuong() + 1);
+
+                    voucherRepository.save(voucher);
+                }
+
+                // ==========================
+                // Voucher khách
+                // ==========================
+                if (hdVoucher.getVoucherCuaKhachHang() != null) {
+
+                    VoucherCuaKhachHang voucherKhach =
+                            hdVoucher.getVoucherCuaKhachHang();
+
+                    voucherKhach.setTrangThai("CHUA_DUNG");
+                    voucherCuaKhachHangRepository.save(voucherKhach);
+
+                    if (hdVoucher.getIdKhoVoucher() != null) {
+
+                        KhoVoucher khoVoucher = hdVoucher.getIdKhoVoucher();
+
+                        int conLai = khoVoucher.getSoLuongConLai() == null
+                                ? 0
+                                : khoVoucher.getSoLuongConLai();
+
+                        khoVoucher.setSoLuongConLai(conLai + 1);
+
+                        khoVoucherRepository.save(khoVoucher);
+                    }
+                }
+            }
+
+            // Dù consume hay chưa thì đều xóa bản ghi hóa đơn voucher
+            hoaDonVoucherRepository.delete(hdVoucher);
         }
 
         hoaDonRepository.save(hoaDon);

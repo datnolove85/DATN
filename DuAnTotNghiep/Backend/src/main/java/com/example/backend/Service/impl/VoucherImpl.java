@@ -108,13 +108,13 @@ public class VoucherImpl implements VoucherService {
         Voucher updated = voucherRepository.save(voucher);
 
 
-// cập nhật lại các hóa đơn đang dùng voucher này
+        // cập nhật lại các hóa đơn đang dùng voucher này
         hoaDonService.capNhatHoaDonTheoVoucher(
                 updated.getId()
         );
 
 
-// báo POS reload
+        // báo POS reload
         posSocketService.send(
                 new PosEvent(
                         "VOUCHER_UPDATED",

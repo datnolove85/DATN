@@ -1,14 +1,9 @@
 package com.example.backend.Service.impl;
 
+import com.example.backend.Entity.*;
+import com.example.backend.Repository.*;
 import com.example.backend.Request.HuyDonLoiRequest;
 import com.example.backend.Request.HuyHangLoatLoiRequest;
-import com.example.backend.Entity.HoaDon;
-import com.example.backend.Entity.HoaDonChiTiet;
-import com.example.backend.Entity.SanPhamChiTiet;
-import com.example.backend.Entity.TrangThaiHoaDon;
-import com.example.backend.Repository.HoaDonChiTietRepository;
-import com.example.backend.Repository.HoaDonRepository;
-import com.example.backend.Repository.SanPhamChiTietRepository;
 import com.example.backend.Service.HoaDonLoiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +21,10 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final SanPhamChiTietRepository sanPhamChiTietRepository;
+    private final HoaDonVoucherRepository hoaDonVoucherRepository;
+    private final VoucherRepository voucherRepository;
+    private final VoucherCuaKhachHangRepository voucherCuaKhachHangRepository;
+    private final KhoVoucherRepository khoVoucherRepository;
 
     @Override
     public Page<HoaDon> timDonHangChuaGiaoChuaSanPhamLoi(String keyword, int page, int size) {
@@ -91,6 +90,46 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
                 spct.setSoLuongTamGiu(tamGiuMoi);
                 sanPhamChiTietRepository.save(spct);
             }
+        }
+        // 4. Hoàn voucher nếu có
+        HoaDonVoucher hdVoucher = hoaDonVoucherRepository
+                .findByIdHoaDon_Id(hoaDon.getId())
+                .orElse(null);
+
+        if (hdVoucher != null) {
+
+            // Nếu voucher đã consume thì hoàn lại
+            if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
+
+                // Voucher hệ thống
+                if (hdVoucher.getIdVoucher() != null) {
+
+                    Voucher voucher = hdVoucher.getIdVoucher();
+
+                    Integer daDung = voucher.getSoLuongDaDung() == null
+                            ? 0
+                            : voucher.getSoLuongDaDung();
+
+                    voucher.setSoLuongDaDung(Math.max(0, daDung - 1));
+                    voucher.setSoLuong(voucher.getSoLuong() + 1);
+
+                    voucherRepository.save(voucher);
+                }
+
+                // Voucher của khách
+                if (hdVoucher.getVoucherCuaKhachHang() != null) {
+
+                    VoucherCuaKhachHang voucherKhach =
+                            hdVoucher.getVoucherCuaKhachHang();
+
+                    voucherKhach.setTrangThai("CHUA_DUNG");
+                    voucherCuaKhachHangRepository.save(voucherKhach);
+
+                }
+            }
+
+            // Xóa bản ghi hóa đơn voucher
+            hoaDonVoucherRepository.delete(hdVoucher);
         }
     }
 }

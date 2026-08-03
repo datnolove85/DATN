@@ -91,14 +91,14 @@
         //====================================
 
         @DeleteMapping("/{id}")
-        public ResponseEntity<?> delete(
-                @PathVariable Integer id
-        ) {
+        public ResponseEntity<?> delete(@PathVariable Integer id) {
 
             service.delete(id);
 
-            return ResponseEntity.ok("Xóa thành công");
-
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Xóa thành công"
+            ));
         }
 
         //====================================

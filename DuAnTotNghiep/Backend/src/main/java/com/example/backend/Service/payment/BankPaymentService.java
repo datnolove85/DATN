@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 public class BankPaymentService implements PaymentService {
@@ -22,13 +21,16 @@ public class BankPaymentService implements PaymentService {
     private final ThanhToanRepository thanhToanRepository;
     private final PhuongThucThanhToanRepository phuongThucRepository;
 
+    // thêm service này
+    private final VoucherConsumeService voucherConsumeService;
+
     @Override
     public String getCode() {
         return "BANK";
     }
 
     @Override
-    @Transactional // Thêm Annotation để đảm bảo rollback nếu 1 trong 2 save bị lỗi
+    @Transactional
     public PaymentResponse pay(PaymentRequest request) {
 
         HoaDon hoaDon = hoaDonRepository.findById(request.getIdHoaDon())
@@ -38,22 +40,26 @@ public class BankPaymentService implements PaymentService {
                 .findByMaPhuongThuc("BANK")
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phương thức BANK"));
 
-        // 1. Tạo lịch sử thanh toán -> trạng thái "da_thanh_toan"
+        // 1. Lưu lịch sử thanh toán
         ThanhToan thanhToan = new ThanhToan();
         thanhToan.setIdHoaDon(hoaDon);
         thanhToan.setIdPhuongThucThanhToan(pttt);
         thanhToan.setSoTien(hoaDon.getTongThanhToan());
-        thanhToan.setTrangThai("da_thanh_toan"); // <--- Sửa thành "da_thanh_toan"
+        thanhToan.setTrangThai("da_thanh_toan");
         thanhToan.setNgayThanhToan(LocalDateTime.now());
         thanhToanRepository.save(thanhToan);
 
-        // 2. CẬP NHẬT TRẠNG THÁI HÓA ĐƠN -> "da_thanh_toan"
-        hoaDon.setTrangThaiThanhToan("da_thanh_toan"); // <--- Bổ sung dòng này
-        hoaDon.setNgayCapNhat(LocalDateTime.now());
+        // 2. Cập nhật hóa đơn
+        hoaDon.setTrangThaiThanhToan("da_thanh_toan");
         hoaDon.setTrangThai("da_xac_nhan");
-        hoaDonRepository.save(hoaDon); // <--- Bổ sung save hóa đơn
+        hoaDon.setNgayCapNhat(LocalDateTime.now());
+        hoaDonRepository.save(hoaDon);
 
-        String paymentUrl = "http://localhost:5173/payment/fake?paymentId=" + thanhToan.getId();
+        // ⭐ Trừ voucher tại đây
+        voucherConsumeService.consumeVoucher(hoaDon.getId());
+
+        String paymentUrl =
+                "http://localhost:5173/payment/fake?paymentId=" + thanhToan.getId();
 
         return new PaymentResponse(
                 true,

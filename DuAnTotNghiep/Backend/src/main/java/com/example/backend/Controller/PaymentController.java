@@ -9,6 +9,7 @@ import com.example.backend.Response.PaymentResponse;
 
 import com.example.backend.Service.payment.PaymentFactory;
 import com.example.backend.Service.payment.PaymentService;
+import com.example.backend.Service.payment.VoucherConsumeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ public class PaymentController {
     private final HoaDonRepository hoaDonRepository;
 
     private final ThanhToanRepository thanhToanRepository;
+
+    private final VoucherConsumeService voucherConsumeService; // thêm dòng này
 
     @PostMapping("/pay")
     public PaymentResponse pay(@RequestBody PaymentRequest request) {
@@ -61,6 +64,7 @@ public class PaymentController {
                     hoaDon.setTrangThaiThanhToan("da_thanh_toan");
                     hoaDon.setNgayCapNhat(LocalDateTime.now());
                     hoaDonRepository.save(hoaDon);
+                    voucherConsumeService.consumeVoucher(hoaDon.getId());
 
                     // Cập nhật bảng ThanhToan sang "da_thanh_toan"
                     List<ThanhToan> listThanhToan = thanhToanRepository.getDanhSachThanhToanTheoHoaDon(hoaDon.getId());
@@ -98,6 +102,7 @@ public class PaymentController {
             hoaDon.setTrangThaiThanhToan("da_thanh_toan");
             hoaDon.setNgayCapNhat(LocalDateTime.now());
             hoaDonRepository.save(hoaDon);
+            voucherConsumeService.consumeVoucher(hoaDon.getId());
 
             // 3. Cập nhật bản ghi ThanhToan tương ứng sang "da_thanh_toan"
             List<ThanhToan> listThanhToan = thanhToanRepository.getDanhSachThanhToanTheoHoaDon(hoaDon.getId());

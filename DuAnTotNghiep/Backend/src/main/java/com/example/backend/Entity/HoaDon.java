@@ -9,9 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -52,6 +50,16 @@ public class HoaDon {
     @Column(name = "tong_thanh_toan", precision = 18, scale = 2)
     private BigDecimal tongThanhToan;
 
+    // === BỔ SUNG: Dùng xu thanh toán đơn hàng ===
+    @ColumnDefault("0")
+    @Column(name = "so_xu_su_dung")
+    private Integer soXuSuDung = 0;
+
+    @ColumnDefault("0")
+    @Column(name = "tien_giam_do_xu", precision = 18, scale = 2)
+    private BigDecimal tienGiamDoXu = BigDecimal.ZERO;
+    // ============================================
+
     @Size(max = 100)
     @Nationalized
     @Column(name = "ten_nguoi_nhan", length = 100)
@@ -70,7 +78,6 @@ public class HoaDon {
     @Column(name = "loai_hoa_don", length = 20)
     private String loaiHoaDon;
 
-
     @Size(max = 30)
     @Column(name = "trang_thai", length = 30)
     private String trangThai;
@@ -88,11 +95,8 @@ public class HoaDon {
     @Column(name = "ngay_cap_nhat")
     private LocalDateTime ngayCapNhat;
 
-
-
     @Size(max = 30)
     @ColumnDefault("'chua_thanh_toan'")
     @Column(name = "trang_thai_thanh_toan", length = 30)
     private String trangThaiThanhToan;
-
 }

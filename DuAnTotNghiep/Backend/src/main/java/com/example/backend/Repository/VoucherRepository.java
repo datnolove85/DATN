@@ -90,4 +90,6 @@ public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
 
     @Query("select max(v.id) from Voucher v")
     Integer getMaxId();
+
+
 }

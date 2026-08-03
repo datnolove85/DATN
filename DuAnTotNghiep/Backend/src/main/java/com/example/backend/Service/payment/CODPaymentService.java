@@ -21,6 +21,7 @@ public class CODPaymentService implements PaymentService {
     private final HoaDonRepository hoaDonRepository;
     private final ThanhToanRepository thanhToanRepository;
     private final PhuongThucThanhToanRepository phuongThucRepository;
+    private final VoucherConsumeService voucherConsumeService;
 
     @Override
     public String getCode() {
@@ -28,7 +29,7 @@ public class CODPaymentService implements PaymentService {
     }
 
     @Override
-    @Transactional // <--- Thêm annotation này
+    @Transactional
     public PaymentResponse pay(PaymentRequest request) {
 
         HoaDon hoaDon = hoaDonRepository.findById(request.getIdHoaDon())
@@ -38,19 +39,24 @@ public class CODPaymentService implements PaymentService {
                 .findByMaPhuongThuc("COD")
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phương thức thanh toán COD"));
 
-        // 1. Tạo bản ghi ThanhToan -> "cho_thanh_toan"
+        // 1. Tạo lịch sử thanh toán
         ThanhToan thanhToan = new ThanhToan();
         thanhToan.setIdHoaDon(hoaDon);
         thanhToan.setIdPhuongThucThanhToan(pttt);
         thanhToan.setSoTien(hoaDon.getTongThanhToan());
         thanhToan.setTrangThai("cho_thanh_toan");
         thanhToan.setNgayThanhToan(LocalDateTime.now());
+
         thanhToanRepository.save(thanhToan);
 
-        // 2. CẬP NHẬT HÓA ĐƠN -> "cho_thanh_toan"
-        hoaDon.setTrangThaiThanhToan("chua_thanh_toan"); // <--- Bổ sung cập nhật trạng thái hóa đơn
+        // 2. Cập nhật hóa đơn
+        hoaDon.setTrangThaiThanhToan("chua_thanh_toan");
         hoaDon.setNgayCapNhat(LocalDateTime.now());
-        hoaDonRepository.save(hoaDon); // <--- Bổ sung save hóa đơn
+
+        hoaDonRepository.save(hoaDon);
+
+        // 3. Trừ voucher
+        voucherConsumeService.consumeVoucher(hoaDon.getId());
 
         return new PaymentResponse(
                 true,

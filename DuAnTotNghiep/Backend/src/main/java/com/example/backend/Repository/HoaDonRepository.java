@@ -117,7 +117,19 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
             """)
     List<HoaDon> findExpiredHoaDon(LocalDateTime time);
 
+    @Query("""
+    SELECT h FROM HoaDon h
+    WHERE h.trangThai = 'cho_xac_nhan'
+      AND h.loaiHoaDon = :loaiHoaDon
+      AND h.ngayTao <= :expiredTime
+""")
+    List<HoaDon> findExpiredHoaDonByLoai(
+            @Param("loaiHoaDon") String loaiHoaDon,
+            @Param("expiredTime") LocalDateTime expiredTime
+    );
+
     List<HoaDon> findByIdKhachHang_Id(Integer idKhachHang);
+
 
     //Thống kê
     @Query("""
