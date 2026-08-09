@@ -26,33 +26,34 @@ public interface VoucherCuaKhachHangRepository extends JpaRepository<VoucherCuaK
 
 
     @Query(value = """
-        SELECT
-            v.id AS idVoucherKhachHang,
-            v.trang_thai AS trangThai,
-            v.ngay_doi AS ngayDoi,
+    SELECT
+        v.id AS idVoucherKhachHang,
+        v.trang_thai AS trangThai,
+        v.ngay_doi AS ngayDoi,
 
-            k.id AS idKhoVoucher,
-            k.ten_voucher AS tenVoucher,
-            k.ma_code AS maCode,
-            k.loai_giam_gia AS loaiGiamGia,
-            k.gia_tri_giam AS giaTriGiam,
-            k.gia_tri_giam_toi_da AS giaTriGiamToiDa,
-            k.dieu_kien_toi_thieu AS dieuKienToiThieu,
-            k.so_xu_doi AS soXuDoi,
-            k.ngay_bat_dau AS ngayBatDau,
-            k.ngay_het_han AS ngayHetHan,
-            k.mo_ta AS moTa
+        k.id AS idKhoVoucher,
+        k.ten_voucher AS tenVoucher,
+        k.ma_code AS maCode,
+        k.loai_giam_gia AS loaiGiamGia,
+        k.gia_tri_giam AS giaTriGiam,
+        k.gia_tri_giam_toi_da AS giaTriGiamToiDa,
+        k.dieu_kien_toi_thieu AS dieuKienToiThieu,
+        k.so_xu_doi AS soXuDoi,
+        k.ngay_bat_dau AS ngayBatDau,
+        k.ngay_het_han AS ngayHetHan,
+        k.mo_ta AS moTa
 
-        FROM voucher_cua_khach_hang v
-        JOIN kho_voucher k
-             ON v.id_kho_voucher = k.id
+    FROM voucher_cua_khach_hang v
+    JOIN kho_voucher k
+         ON v.id_kho_voucher = k.id
 
-        WHERE v.id_khach_hang = :idKhachHang
-        ORDER BY v.ngay_doi DESC
-        """,
+    WHERE v.id_khach_hang = :idKhachHang
+      AND v.trang_thai = 'CHUA_DUNG'
+      AND k.trang_thai = 1
+    ORDER BY v.ngay_doi DESC
+    """,
             nativeQuery = true)
     List<Object[]> getVoucherResponse(@Param("idKhachHang") Integer idKhachHang);
-
     Optional<VoucherCuaKhachHang> findByIdAndTrangThai(
             Integer id,
             String trangThai

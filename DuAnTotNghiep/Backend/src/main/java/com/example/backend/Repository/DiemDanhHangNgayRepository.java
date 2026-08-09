@@ -15,4 +15,6 @@ public interface DiemDanhHangNgayRepository extends JpaRepository<DiemDanhHangNg
 
     // Lấy thông tin điểm danh của khách hàng trong một ngày cụ thể
     Optional<DiemDanhHangNgay> findByIdKhachHang_IdAndNgayDiemDanh(Integer idKhachHang, LocalDate ngayDiemDanh);
+
+
 }

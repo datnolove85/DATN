@@ -60,6 +60,16 @@ public class HoaDon {
     private BigDecimal tienGiamDoXu = BigDecimal.ZERO;
     // ============================================
 
+    // === BỔ SUNG MỚI: Tiền khách đưa & Tiền thối lại ===
+    @ColumnDefault("0")
+    @Column(name = "tien_khach_dua", precision = 18, scale = 2)
+    private BigDecimal tienKhachDua = BigDecimal.ZERO;
+
+    @ColumnDefault("0")
+    @Column(name = "tien_thoi_lai", precision = 18, scale = 2)
+    private BigDecimal tienThoiLai = BigDecimal.ZERO;
+    // ===================================================
+
     @Size(max = 100)
     @Nationalized
     @Column(name = "ten_nguoi_nhan", length = 100)

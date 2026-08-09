@@ -397,7 +397,7 @@ const reloadFullAddress = async () => {
 }
 
 // Code mới
-const goBack = () => router.push('/admin/khach-hang')
+const goBack = () => router.push('/admin/khachhang')
 // --- LƯU DỮ LIỆU ---
 const handleSave = async () => {
   if (!validateForm()) {

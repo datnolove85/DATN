@@ -52,4 +52,6 @@ public interface ThanhToanRepository extends JpaRepository<ThanhToan, Integer> {
     @Query("SELECT t FROM ThanhToan t WHERE t.idHoaDon.id = :idHoaDon")
     List<ThanhToan> getDanhSachThanhToanTheoHoaDon(Integer idHoaDon);
 
+    Optional<ThanhToan> findFirstByIdHoaDon_IdOrderByNgayThanhToanDesc(Integer idHoaDon);
+
 }

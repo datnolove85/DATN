@@ -59,6 +59,12 @@ const router = createRouter({
           component: () => import('@/views/shop/sanpham.vue'),
         },
         {
+          path: 'minigame',
+          name: 'minigame',
+          component: () => import('@/views/shop/components/GamificationUserView.vue'), // Đổi đường dẫn theo nơi bạn lưu file Minigame
+        },
+
+        {
           path: 'spct/:id',
           name: 'confirmbuy',
           component: confirmbuy,
@@ -226,6 +232,16 @@ const router = createRouter({
           path: 'spgg/:id',
           name: 'spgg',
           component: () => import('../views/Admin/Layout/sales/QuanLySanPhamTrongDot.vue'),
+        },
+        {
+          path: 'gamification',
+          name: 'AdminGamification',
+          component: () => import('../views/Admin/Layout/wards/GamificationAdminView.vue'), // Trỏ đúng đường dẫn file Vue của bạn
+        },
+        {
+          path: 'kho-voucher',
+          name: 'AdminKhoVoucher',
+          component: () => import('../views/Admin/Layout/wards/QuanLyKhoVoucher.vue'), // ⚠️ Sửa lại đường dẫn import nếu bạn lưu file .vue ở thư mục khác nhé!
         },
       ],
     },

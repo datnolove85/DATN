@@ -394,15 +394,6 @@
                   <h2 class="mt-1 text-2xl font-black tracking-tight">Sản phẩm đã chọn</h2>
                 </div>
               </div>
-
-              <!-- Chỉ hiển thị Khả dụng tổng quan (Mua Ngay) -->
-              <!-- <div v-if="!isCartCheckout" class="flex flex-wrap gap-2">
-                <span
-                  class="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700"
-                >
-                  Khả dụng: {{ product?.soLuongKhaDung ?? product?.soLuongTon ?? 0 }}
-                </span>
-              </div> -->
             </div>
 
             <!-- ==================== CHECKOUT TỪ GIỎ HÀNG ==================== -->
@@ -444,7 +435,7 @@
                       </span>
                     </div>
 
-                    <!-- Thuộc tính (Màu sắc, Kích cỡ) & Khả dụng -->
+                    <!-- Thuộc tính & Khả dụng -->
                     <div class="mt-2.5 flex flex-wrap items-center gap-2">
                       <span
                         v-if="item.mauSac"
@@ -460,7 +451,6 @@
                         📏 {{ item.kichCo }}
                       </span>
 
-                      <!-- Thẻ Khả dụng ở vị trí đồng bộ -->
                       <span
                         class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/60"
                       >
@@ -473,9 +463,7 @@
                   <div
                     class="mt-4 flex flex-col gap-3 pt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <!-- Đơn giá & Tăng giảm số lượng -->
                     <div class="flex items-center justify-between gap-4 sm:justify-start">
-                      <!-- Đơn giá -->
                       <div>
                         <p class="text-[11px] font-medium uppercase tracking-wider text-slate-400">
                           Đơn giá
@@ -495,7 +483,6 @@
 
                       <div class="h-7 w-px bg-slate-200 hidden sm:block"></div>
 
-                      <!-- Bộ tăng giảm số lượng -->
                       <div
                         class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50"
                       >
@@ -529,7 +516,6 @@
                       </div>
                     </div>
 
-                    <!-- Thành tiền -->
                     <div
                       class="flex items-center justify-between border-t border-dashed border-slate-200 pt-2.5 sm:border-none sm:pt-0 sm:justify-end sm:gap-2"
                     >
@@ -548,7 +534,6 @@
               <article
                 class="mt-4 grid gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:grid-cols-[120px_1fr] sm:gap-5 sm:p-5"
               >
-                <!-- Ảnh sản phẩm -->
                 <div
                   class="h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 shadow-inner sm:h-30 sm:w-30"
                 >
@@ -563,10 +548,8 @@
                   />
                 </div>
 
-                <!-- Thông tin sản phẩm -->
                 <div class="flex min-w-0 flex-1 flex-col justify-between">
                   <div>
-                    <!-- Tên & Mã -->
                     <div class="flex items-start justify-between gap-3">
                       <h3 class="line-clamp-2 text-base font-bold text-slate-900 sm:text-lg">
                         {{ product?.tenSanPham }}
@@ -578,7 +561,6 @@
                       </span>
                     </div>
 
-                    <!-- Thuộc tính (Màu sắc, Kích cỡ) & Khả dụng -->
                     <div class="mt-2.5 flex flex-wrap items-center gap-2">
                       <span
                         v-if="product?.tenMauSac"
@@ -594,7 +576,6 @@
                         📏 {{ product?.tenKichThuoc }}
                       </span>
 
-                      <!-- Thẻ Khả dụng ở vị trí đồng bộ -->
                       <span
                         class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/60"
                       >
@@ -603,13 +584,10 @@
                     </div>
                   </div>
 
-                  <!-- Giá, Số lượng & Thành tiền -->
                   <div
                     class="mt-4 flex flex-col gap-3 pt-2 border-t border-slate-100 sm:border-t-0 sm:pt-0 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <!-- Đơn giá & Tăng giảm số lượng -->
                     <div class="flex items-center justify-between gap-4 sm:justify-start">
-                      <!-- Đơn giá -->
                       <div>
                         <p class="text-[11px] font-medium uppercase tracking-wider text-slate-400">
                           Đơn giá
@@ -632,7 +610,6 @@
 
                       <div class="h-7 w-px bg-slate-200 hidden sm:block"></div>
 
-                      <!-- Bộ tăng giảm số lượng Mua Ngay -->
                       <div
                         class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50"
                       >
@@ -666,7 +643,6 @@
                       </div>
                     </div>
 
-                    <!-- Thành tiền -->
                     <div
                       class="flex items-center justify-between border-t border-dashed border-slate-200 pt-2.5 sm:border-none sm:pt-0 sm:justify-end sm:gap-2"
                     >
@@ -1015,6 +991,8 @@
           </div>
         </div>
       </Teleport>
+
+      <!-- VOUCHER MODAL -->
       <Teleport to="body">
         <div
           v-if="showVoucherModal"
@@ -1063,7 +1041,6 @@
                 <div>
                   <div class="font-semibold text-slate-800 flex items-center gap-2">
                     Không sử dụng voucher
-
                     <span
                       v-if="selectedVoucherId === null"
                       class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold"
@@ -1071,7 +1048,6 @@
                       ✓ Đang áp dụng
                     </span>
                   </div>
-
                   <p class="text-xs text-slate-500 mt-1">Thanh toán theo giá gốc của đơn hàng</p>
                 </div>
 
@@ -1083,19 +1059,20 @@
                   @click.stop="clearVoucher"
                 />
               </div>
+
+              <!-- Danh sách voucher đã sắp xếp qua uid -->
               <div
                 v-for="v in sortedVouchers"
-                :key="v.id"
+                :key="v.uid"
                 @click="
                   subtotal >= v.giaTriDonHangToiThieu &&
-                  ((selectedVoucherId = v.id), (showVoucherModal = false))
+                  ((selectedVoucherId = v.uid), (showVoucherModal = false))
                 "
                 :class="[
                   'relative flex items-center bg-white rounded-xl border transition-all overflow-hidden p-3.5 gap-4',
-
-                  selectedVoucherId === v.id
+                  selectedVoucherId === v.uid
                     ? 'border-emerald-500 ring-2 ring-emerald-100'
-                    : bestVoucher && bestVoucher.id === v.id
+                    : bestVoucher && bestVoucher.uid === v.uid
                       ? 'border-amber-400 ring-2 ring-amber-100'
                       : subtotal >= v.giaTriDonHangToiThieu
                         ? 'border-slate-200 hover:border-indigo-500 hover:shadow-md'
@@ -1111,9 +1088,9 @@
                       : 'bg-gradient-to-tr from-slate-400 to-slate-500',
                   ]"
                 >
-                  <span class="text-[10px] uppercase tracking-wider opacity-90 font-medium"
-                    >Giảm</span
-                  >
+                  <span class="text-[9px] uppercase tracking-wider opacity-90 font-medium">
+                    {{ v.loaiVoucher === 'CA_NHAN' ? 'Voucher của bạn' : 'Voucher hệ thống' }}
+                  </span>
                   <span class="text-base font-black my-0.5 tracking-tight">
                     {{
                       v.loaiGiamGia === 'tien_mat'
@@ -1132,17 +1109,29 @@
                           {{ v.tenVoucher }}
                         </h3>
 
-                        <!-- Voucher đang dùng -->
                         <span
-                          v-if="selectedVoucherId === v.id"
+                          v-if="v.loaiVoucher === 'CA_NHAN'"
+                          class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold"
+                        >
+                          🎁 Voucher của bạn
+                        </span>
+
+                        <span
+                          v-else
+                          class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold"
+                        >
+                          🏷️ Hệ thống
+                        </span>
+
+                        <span
+                          v-if="selectedVoucherId === v.uid"
                           class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold"
                         >
                           ✓ Đang áp dụng
                         </span>
 
-                        <!-- Voucher đề xuất -->
                         <span
-                          v-else-if="bestVoucher && bestVoucher.id === v.id"
+                          v-else-if="bestVoucher && bestVoucher.uid === v.uid"
                           class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold"
                         >
                           ⭐ Đề xuất
@@ -1157,7 +1146,6 @@
                           Tiết kiệm {{ formatCurrency(getVoucherDiscount(v)) }}
                         </p>
 
-                        <!-- Chuyển giảm tối đa sang bên phải ở đây -->
                         <span
                           v-if="v.loaiGiamGia === 'phan_tram' && v.giaTriGiamToiDa"
                           class="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium"
@@ -1172,12 +1160,12 @@
                       <input
                         type="radio"
                         :name="'voucher-selection'"
-                        :checked="selectedVoucherId === v.id"
+                        :checked="selectedVoucherId === v.uid"
                         :disabled="subtotal < v.giaTriDonHangToiThieu"
                         class="w-4 h-4 text-indigo-600 accent-indigo-600 cursor-pointer"
                         @click.stop="
                           subtotal >= v.giaTriDonHangToiThieu &&
-                          ((selectedVoucherId = v.id), (showVoucherModal = false))
+                          ((selectedVoucherId = v.uid), (showVoucherModal = false))
                         "
                       />
                     </div>
@@ -1264,11 +1252,11 @@ import {
   xoaDiaChi,
   doiMacDinh,
 } from '@/service/DiaChiKhachHangService'
-// import { getProvinces, getDistricts, getWards } from '@/service/ProvinceService'
 import L from 'leaflet'
+
+import gamificationApi from '@/service/clientGamificationService'
 import 'leaflet/dist/leaflet.css'
 
-// Fix lỗi icon Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
 import shadow from 'leaflet/dist/images/marker-shadow.png'
 
@@ -1291,7 +1279,6 @@ const decreaseQty = () => {
   if (quantity.value > 1) quantity.value--
 }
 
-// Hàm kiểm tra khi nhập từ bàn phím (Mua ngay)
 const validateQty = () => {
   if (quantity.value > maxAvailable.value) {
     quantity.value = maxAvailable.value
@@ -1299,7 +1286,6 @@ const validateQty = () => {
   }
 }
 
-// Hàm xử lý khi rời ô nhập nếu để trống hoặc <= 0 (Mua ngay)
 const onQtyBlur = () => {
   if (!quantity.value || quantity.value < 1) {
     quantity.value = 1
@@ -1308,9 +1294,7 @@ const onQtyBlur = () => {
 
 // ================= LOGIC GIỎ HÀNG =================
 const increaseCartQty = (item) => {
-  // Lấy giới hạn từ soLuongKhaDung (fallback về soLuongTon)
   const max = item.soLuongKhaDung ?? item.soLuongTon ?? 1
-
   if (item.quantity < max) {
     item.quantity++
   } else {
@@ -1324,7 +1308,6 @@ const decreaseCartQty = (item) => {
   }
 }
 
-// Hàm kiểm tra khi nhập từ bàn phím (Giỏ hàng)
 const validateCartQty = (item) => {
   const max = item.soLuongKhaDung ?? item.soLuongTon ?? 1
   if (item.quantity > max) {
@@ -1333,19 +1316,67 @@ const validateCartQty = (item) => {
   }
 }
 
-// Hàm xử lý khi rời ô nhập nếu để trống hoặc <= 0 (Giỏ hàng)
 const onCartQtyBlur = (item) => {
   if (!item.quantity || item.quantity < 1) {
     item.quantity = 1
   }
 }
 
-// Sắp xếp voucher: Đưa voucher đủ điều kiện (true) lên trước, voucher không đủ (false) xuống sau
+// ================= LOGIC VOUCHER (ĐÃ KHẮC PHỤC TRÙNG ID) =================
+const fetchVouchers = async () => {
+  // Voucher hệ thống
+  const voucherHeThong = (await getAllVoucher())
+    .filter((v) => v.trangThai === 1)
+    .map((v) => ({
+      ...v,
+      uid: `sys_${v.id}`,
+      loaiVoucher: 'HE_THONG',
+    }))
+
+  // Voucher cá nhân
+  let voucherCaNhan = []
+  const currentUser = JSON.parse(sessionStorage.getItem('user'))
+
+  if (currentUser?.idKhachHang) {
+    try {
+      const res = await gamificationApi.getVoucherCuaToi(currentUser.idKhachHang)
+      voucherCaNhan = (res.data || [])
+        .filter((v) => v.trangThai === 'CHUA_DUNG')
+        .map((v) => ({
+          id: v.idKhoVoucher,
+          idVoucherKhachHang: v.idVoucherKhachHang,
+          tenVoucher: v.tenVoucher,
+          maVoucher: v.maCode,
+          giaTriDonHangToiThieu: v.dieuKienToiThieu,
+          giaTriGiam: v.giaTriGiam,
+          giaTriGiamToiDa: v.giaTriGiamToiDa,
+          loaiGiamGia: v.loaiGiamGia,
+          ngayBatDau: v.ngayBatDau,
+          ngayKetThuc: v.ngayHetHan,
+          moTa: v.moTa,
+          trangThai: 1,
+          loaiVoucher: 'CA_NHAN',
+          uid: `per_${v.idVoucherKhachHang || v.idKhoVoucher}`,
+        }))
+    } catch (e) {
+      console.error('Lỗi tải voucher cá nhân:', e)
+    }
+  }
+
+  vouchers.value = [...voucherHeThong, ...voucherCaNhan]
+}
+
+const selectedVoucherId = ref(null)
+
+const selectedVoucher = computed(() => {
+  return vouchers.value.find((v) => v.uid === selectedVoucherId.value) || null
+})
+
 const sortedVouchers = computed(() => {
   return [...vouchers.value].sort((a, b) => {
     // 1. Voucher đang dùng luôn lên đầu
-    if (a.id === selectedVoucherId.value) return -1
-    if (b.id === selectedVoucherId.value) return 1
+    if (a.uid === selectedVoucherId.value) return -1
+    if (b.uid === selectedVoucherId.value) return 1
 
     // 2. Voucher đủ điều kiện đứng trước
     const aValid = subtotal.value >= a.giaTriDonHangToiThieu
@@ -1380,11 +1411,13 @@ const getVoucherDiscount = (voucher) => {
 
   return discount
 }
+
 const bestVoucher = computed(() => {
   return vouchers.value
     .filter((v) => subtotal.value >= v.giaTriDonHangToiThieu)
     .sort((a, b) => getVoucherDiscount(b) - getVoucherDiscount(a))[0]
 })
+
 const formatShortCurrency = (value) => {
   if (!value) return '0đ'
   if (value >= 1000000) {
@@ -1395,10 +1428,8 @@ const formatShortCurrency = (value) => {
   }
   return value + 'đ'
 }
+
 const showVoucherModal = ref(false)
-const selectedVoucher = computed(() => {
-  return vouchers.value.find((v) => v.id === selectedVoucherId.value) || null
-})
 const selectAddress = (id) => {
   selectedAddressId.value = id
   showAllAddresses.value = false
@@ -1408,23 +1439,16 @@ const formatCurrency = (value) => {
   return Number(value || 0).toLocaleString('vi-VN') + 'đ'
 }
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('vi-VN')
-}
 const showAllAddresses = ref(false)
 const provinces = ref([])
 const districts = ref([])
 const wards = ref([])
-
-// Cache toàn bộ phường theo tỉnh
 const wardCache = ref([])
 
 const selectedProvince = ref(null)
 const selectedDistrict = ref(null)
 const selectedWard = ref(null)
 
-const provinceCode = ref(null)
-const districtCode = ref(null)
 const showAddressModal = ref(false)
 const editingAddress = ref(null)
 
@@ -1437,15 +1461,12 @@ const calculateShipping = async (address) => {
 
   try {
     shippingLoading.value = true
-
     const fee = await getShippingFee({
       thanhPho: address.thanhPho,
       quan: address.quan,
       phuong: address.phuong,
     })
-
     shippingFee.value = fee
-    console.log('Phí ship cập nhật:', fee)
   } catch (error) {
     console.error('Lỗi tính ship', error)
     toast.error('Không thể tính phí vận chuyển cho địa chỉ này')
@@ -1455,8 +1476,6 @@ const calculateShipping = async (address) => {
   }
 }
 
-const center = ref({ lat: 21.0285, lng: 105.8542 }) // Mặc định Hà Nội
-const markerPosition = ref(null)
 const loading = ref(false)
 let map = null
 let marker = null
@@ -1469,7 +1488,6 @@ const router = useRouter()
 const authToken = sessionStorage.getItem('token')
 const isLoggedIn = Boolean(authToken)
 
-// Data
 const spctId = computed(() => {
   return route.query.spct ? Number(route.query.spct) : null
 })
@@ -1480,51 +1498,18 @@ const checkoutItems = ref([])
 const isCartCheckout = ref(false)
 const vouchers = ref([])
 
-const displayItems = computed(() => {
-  if (isCartCheckout.value) {
-    return checkoutItems.value
-  }
-
-  if (!product.value) {
-    return []
-  }
-
-  return [
-    {
-      productDetailId: product.value.id,
-
-      tenSanPham: product.value.tenSanPham,
-      maSanPhamChiTiet: product.value.maSanPhamChiTiet,
-
-      giaBan: product.value.giaSauGiam || product.value.giaBan,
-
-      mauSac: product.value.tenMauSac,
-      kichCo: product.value.tenKichThuoc,
-
-      anh: product.value.images?.[0] ?? '',
-
-      // ✅ FIX: Lấy đúng số lượng khả dụng & số lượng tồn từ BE
-      soLuongKhaDung: product.value.soLuongKhaDung ?? 0,
-      soLuongTon: product.value.soLuongTon ?? 0,
-
-      quantity: quantity.value,
-    },
-  ]
-})
-
 async function loadData() {
   product.value = await getSanPhamChiTietById(spctId.value)
 
-  // ✅ FIX: Dùng soLuongKhaDung (hoặc soLuongTon) thay vì soLuong
   const maxAvailable = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
 
   if (quantity.value > maxAvailable) {
     quantity.value = maxAvailable > 0 ? maxAvailable : 1
-
     toast.warning('Số lượng sản phẩm vượt quá hàng sẵn có, đã tự động điều chỉnh.')
   }
 
-  vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+  await fetchVouchers()
+
   if (isLoggedIn) {
     await loadAddresses()
   }
@@ -1532,35 +1517,27 @@ async function loadData() {
 }
 
 onMounted(async () => {
-  // Ưu tiên mua ngay
   if (spctId.value) {
     isCartCheckout.value = false
-
     await loadData()
-
     connectSocket()
-
     return
   }
 
-  // Thanh toán từ giỏ
   const checkout = sessionStorage.getItem('checkoutData')
 
   if (checkout) {
     isCartCheckout.value = true
-
     checkoutItems.value = JSON.parse(checkout).items
 
-    vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+    await fetchVouchers()
 
     if (isLoggedIn) {
       await loadAddresses()
     }
 
     provinces.value = await getProvinces()
-
     connectSocket()
-
     return
   }
 
@@ -1573,16 +1550,14 @@ function connectSocket() {
   } else {
     stompClient.onConnect = () => {
       console.log('✅ Connected')
-
       subscribeOrder()
     }
   }
 }
+
 function subscribeOrder() {
   stompClient.subscribe('/topic/pos', async (msg) => {
     const event = JSON.parse(msg.body)
-
-    console.log(event)
 
     switch (event.type) {
       case 'DISCOUNT_UPDATED':
@@ -1590,37 +1565,72 @@ function subscribeOrder() {
         break
 
       case 'VOUCHER_UPDATED':
-        vouchers.value = (await getAllVoucher()).filter((v) => v.trangThai === 1)
+        await fetchVouchers()
 
         if (selectedVoucherId.value) {
-          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+          const latest = vouchers.value.find((v) => v.uid === selectedVoucherId.value)
 
-          // Voucher bị xóa hoặc ngừng hoạt động
           if (!latest || latest.trangThai !== 1) {
             selectedVoucherId.value = null
             toast.warning('Voucher không còn khả dụng.')
             break
           }
 
-          // Không còn đủ điều kiện áp dụng
           if (subtotal.value < latest.giaTriDonHangToiThieu) {
             selectedVoucherId.value = null
             toast.warning('Voucher không còn đủ điều kiện áp dụng.')
           }
         }
+        break
+      case 'KHO_VOUCHER_UPDATED':
+        await fetchVouchers()
 
+        if (selectedVoucherId.value) {
+          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+          const now = new Date()
+
+          // Kiểm tra 1: Voucher bị xóa, ngừng hoạt động (trangThai = false), hoặc hết số lượng
+          if (
+            !latest ||
+            latest.trangThai === false ||
+            (latest.soLuongConLai !== null && latest.soLuongConLai <= 0)
+          ) {
+            selectedVoucherId.value = null
+            toast.warning(
+              'Voucher bạn đang chọn đã bị Admin ngưng hoạt động hoặc đã hết lượt sử dụng!',
+            )
+            break
+          }
+
+          // Kiểm tra 2: Voucher đã quá hạn sử dụng so với thời gian thực tế
+          if (latest.ngayHetHan && new Date(latest.ngayHetHan) < now) {
+            selectedVoucherId.value = null
+            toast.warning('Voucher bạn đang chọn đã hết hạn sử dụng.')
+            break
+          }
+
+          // Kiểm tra 3: Giá trị đơn hàng hiện tại không còn đạt điều kiện tối thiểu mới
+          const dieuKienToiThieu = latest.dieuKienToiThieu ? Number(latest.dieuKienToiThieu) : 0
+          if (subtotal.value < dieuKienToiThieu) {
+            selectedVoucherId.value = null
+            toast.warning(
+              'Đơn hàng không còn đủ điều kiện tối thiểu theo mức quy định mới của voucher.',
+            )
+            break
+          }
+
+          // Kiểm tra 4: Nếu thông tin chi tiết (giá trị giảm) bị thay đổi
+          toast.info('Thông tin hoặc mức giảm của voucher vừa được Admin cập nhật lại.')
+        }
         break
     }
   })
 }
 
-// Logic Đơn hàng
 const shippingFee = ref(0)
 const shippingLoading = ref(false)
-const selectedVoucherId = ref(null)
 const note = ref('')
 
-const stock = computed(() => product.value?.soLuongTon || 0)
 const subtotal = computed(() => {
   if (isCartCheckout.value) {
     return checkoutItems.value.reduce((sum, item) => sum + item.giaBan * item.quantity, 0)
@@ -1628,8 +1638,9 @@ const subtotal = computed(() => {
 
   return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
 })
+
 const voucherDiscount = computed(() => {
-  const v = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+  const v = selectedVoucher.value
   if (!v || subtotal.value < v.giaTriDonHangToiThieu) return 0
   return v.loaiGiamGia === 'phan_tram'
     ? Math.min((subtotal.value * v.giaTriGiam) / 100, v.giaTriGiamToiDa ?? Number.POSITIVE_INFINITY)
@@ -1679,6 +1690,8 @@ const placeOrder = async () => {
     return
   }
 
+  const selectedVoucherObj = selectedVoucher.value
+
   const body = {
     addressId: isLoggedIn ? selectedAddressId.value : null,
     tenNguoiNhan: isLoggedIn ? null : addressForm.value.tenNguoiNhan,
@@ -1690,7 +1703,10 @@ const placeOrder = async () => {
     districtId: isLoggedIn ? null : addressForm.value.districtId,
     wardCode: isLoggedIn ? null : addressForm.value.wardCode,
     shippingFee: shippingFee.value,
-    voucherId: selectedVoucherId.value,
+    voucherId:
+      selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? null : (selectedVoucherObj?.id ?? null),
+    voucherKhachHangId:
+      selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? selectedVoucherObj.idVoucherKhachHang : null,
     note: note.value,
     items: isCartCheckout.value
       ? checkoutItems.value.map((item) => ({
@@ -1708,8 +1724,6 @@ const placeOrder = async () => {
 
   try {
     isPlacingOrder.value = true
-
-    console.log('Body object:', body)
     const res = await taoHoaDonOnline(body, authToken)
     toast.success(`Đặt hàng thành công. Mã đơn: ${res.maHoaDon}`)
     if (isCartCheckout.value) {
@@ -1724,20 +1738,15 @@ const placeOrder = async () => {
     })
   } catch (error) {
     toast.error(error.message || 'Đặt hàng thất bại ❌')
-
-    // ⏳ Đợi 2 giây cho khách đọc xong thông báo lỗi rồi tự động reload lại trang
     setTimeout(() => {
       window.location.reload()
-      // Hoặc dùng: router.go(0)
     }, 2000)
   } finally {
     isPlacingOrder.value = false
   }
 }
 
-// Logic Map
 const initMap = () => {
-  // Nếu đã tồn tại map, xóa nó trước khi tạo mới để tránh lỗi
   if (map) {
     map.remove()
     map = null
@@ -1748,13 +1757,11 @@ const initMap = () => {
     attribution: '© OpenStreetMap',
   }).addTo(map)
 
-  // Nếu đang sửa địa chỉ, thêm lại marker cũ vào map mới
   if (editingAddress.value && editingAddress.value.latitude) {
     addMarker(editingAddress.value.latitude, editingAddress.value.longitude)
   }
 }
 
-// Hàm hỗ trợ vẽ marker
 const addMarker = (lat, lng) => {
   if (marker) map.removeLayer(marker)
   marker = L.marker([lat, lng], {
@@ -1768,16 +1775,12 @@ const addMarker = (lat, lng) => {
   map.setView([lat, lng], 16)
 }
 
-//Logic địa chỉ
 const getWardsCached = async (districtId) => {
   if (wardCache[districtId]) {
     return wardCache[districtId]
   }
-
   const data = await getWards(districtId)
-
   wardCache[districtId] = data
-
   return data
 }
 
@@ -1788,12 +1791,10 @@ const addressForm = ref({
   quan: '',
   phuong: '',
   diaChiCuThe: '',
-
   districtId: null,
   wardCode: '',
   latitude: null,
   longitude: null,
-
   macDinh: false,
 })
 
@@ -1804,24 +1805,13 @@ const getCurrentLocation = () => {
     async (pos) => {
       try {
         const { latitude, longitude } = pos.coords
-
-        // =========================
-        // FILL GPS
-        // =========================
-
         addressForm.value.latitude = latitude
         addressForm.value.longitude = longitude
 
-        // =========================
-        // MAP
-        // =========================
-
         map.setView([latitude, longitude], 16)
-
         if (marker) {
           map.removeLayer(marker)
         }
-
         marker = L.marker([latitude, longitude], {
           icon: L.icon({
             iconUrl: icon,
@@ -1831,25 +1821,13 @@ const getCurrentLocation = () => {
           }),
         }).addTo(map)
 
-        // =========================
-        // REVERSE GPS
-        // =========================
-
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&zoom=18&lat=${latitude}&lon=${longitude}`,
         )
-
         const data = await response.json()
 
-        console.log('Nominatim:', data.address)
-
         if (!data.address) return
-
         const a = data.address
-
-        // =========================
-        // ĐỊA CHỈ CHI TIẾT
-        // =========================
 
         addressForm.value.diaChiCuThe = [
           a.house_number,
@@ -1861,22 +1839,11 @@ const getCurrentLocation = () => {
           .filter(Boolean)
           .join(', ')
 
-        // =========================
-        // FILL TỈNH QUẬN PHƯỜNG TỪ GPS
-        // =========================
-
         const city = a.city || a.state || a.province || ''
-
         addressForm.value.thanhPho = city
-
         addressForm.value.quan = a.city_district || a.district || a.county || ''
-
         addressForm.value.phuong =
           a.city_district || a.suburb || a.town || a.village || a.neighbourhood || ''
-
-        // =========================
-        // FIND PROVINCE GHN
-        // =========================
 
         const cleanCity = city.replace('Thành phố ', '').replace('Tỉnh ', '').trim().toLowerCase()
 
@@ -1885,19 +1852,10 @@ const getCurrentLocation = () => {
             .replace('Tỉnh ', '')
             .trim()
             .toLowerCase()
-
           return name.includes(cleanCity) || cleanCity.includes(name)
         })
 
-        if (!selectedProvince.value) {
-          console.log('Không tìm thấy tỉnh GHN')
-
-          return
-        }
-
-        // =========================
-        // LOAD QUẬN
-        // =========================
+        if (!selectedProvince.value) return
 
         districts.value = await getDistricts(selectedProvince.value.ProvinceID)
 
@@ -1908,20 +1866,10 @@ const getCurrentLocation = () => {
           .trim()
           .toLowerCase()
 
-        console.log('Tìm phường:', cleanWard)
-
-        // =========================
-        // LOAD PHƯỜNG SONG SONG
-        // =========================
-
         const wardResults = await Promise.all(
           districts.value.map(async (district) => {
             const list = await getWardsCached(district.DistrictID)
-
-            return {
-              district,
-              list,
-            }
+            return { district, list }
           }),
         )
 
@@ -1935,60 +1883,39 @@ const getCurrentLocation = () => {
               .replace('Thị trấn ', '')
               .trim()
               .toLowerCase()
-
             return name === cleanWard || name.includes(cleanWard) || cleanWard.includes(name)
           })
 
           if (ward) {
             foundDistrict = item.district
-
             foundWard = ward
-
             wards.value = item.list
-
             break
           }
         }
 
-        console.log('Quận GHN:', foundDistrict)
-
-        console.log('Phường GHN:', foundWard)
-
-        // =========================
-        // UPDATE FORM
-        // =========================
-
         if (foundDistrict && foundWard) {
           selectedDistrict.value = foundDistrict
-
           selectedWard.value = foundWard
-
           addressForm.value.thanhPho = selectedProvince.value.ProvinceName
-
           addressForm.value.quan = foundDistrict.DistrictName
-
           addressForm.value.phuong = foundWard.WardName
-
           addressForm.value.districtId = foundDistrict.DistrictID
-
           addressForm.value.wardCode = foundWard.WardCode
         }
-
-        console.log('FORM CUOI:', JSON.parse(JSON.stringify(addressForm.value)))
       } catch (error) {
         console.error('Lỗi lấy vị trí:', error)
       } finally {
         loading.value = false
       }
     },
-
     () => {
       alert('Không thể lấy vị trí')
-
       loading.value = false
     },
   )
 }
+
 const resetAddressForm = () => {
   addressForm.value = {
     tenNguoiNhan: '',
@@ -2001,7 +1928,6 @@ const resetAddressForm = () => {
     wardCode: '',
     latitude: null,
     longitude: null,
-
     macDinh: false,
   }
   editingAddress.value = null
@@ -2009,10 +1935,8 @@ const resetAddressForm = () => {
 
 const loadAddresses = async () => {
   if (!isLoggedIn) return
-
   try {
     addresses.value = await getAllDiaChi()
-
     const selected = addresses.value.find((item) => item.macDinh) || addresses.value[0]
     selectedAddressId.value = selected?.id ?? null
   } catch (e) {
@@ -2023,14 +1947,11 @@ const loadAddresses = async () => {
 
 const openAddAddress = () => {
   resetAddressForm()
-
   if (addresses.value.length >= 3) {
     toast.warning('Bạn chỉ được lưu tối đa 3 địa chỉ')
     return
   }
-
   editingAddress.value = null
-
   showAddressModal.value = true
 }
 
@@ -2038,89 +1959,60 @@ const openEditAddress = (item) => {
   editingAddress.value = item
   addressForm.value = {
     tenNguoiNhan: item.tenNguoiNhan,
-
     soDienThoai: item.soDienThoai,
-
     thanhPho: item.thanhPho,
-
     quan: item.quan,
-
     phuong: item.phuong,
-
     districtId: item.districtId,
-
     wardCode: item.wardCode,
-
     latitude: item.latitude,
-
     longitude: item.longitude,
-
     diaChiCuThe: item.diaChiCuThe,
-
     macDinh: item.macDinh,
   }
-
   showAddressModal.value = true
 }
+
 const saveAddress = async () => {
   try {
     if (editingAddress.value) {
       await capNhatDiaChi(editingAddress.value.id, addressForm.value)
-
       toast.success('Cập nhật thành công')
     } else {
-      console.log('DATA SAVE', JSON.stringify(addressForm.value, null, 2))
-
       await themDiaChi(addressForm.value)
-
       toast.success('Thêm địa chỉ thành công')
     }
 
-    // đóng modal
     showAddressModal.value = false
-
-    // load lại danh sách địa chỉ
     await loadAddresses()
-
-    // reset form sau khi lưu
     resetAddressForm()
 
-    // reset combobox GHN
     selectedProvince.value = null
     selectedDistrict.value = null
     selectedWard.value = null
-
     districts.value = []
     wards.value = []
   } catch (e) {
     console.error(e)
     toast.error(e.message)
   }
-  if (!editingAddress.value && addresses.value.length >= 3) {
-    toast.warning('Chỉ được lưu tối đa 3 địa chỉ')
-
-    return
-  }
 }
+
 const deleteAddress = async (id) => {
   if (!confirm('Xóa địa chỉ này?')) return
-
   try {
     await xoaDiaChi(id)
-
     toast.success('Đã xóa')
-
     await loadAddresses()
   } catch (e) {
     toast.error(e.message)
   }
 }
+
 const setDefault = async (id) => {
   try {
     await doiMacDinh(id)
-
     toast.success('Đã đổi địa chỉ mặc định')
-
     await loadAddresses()
   } catch (e) {
     toast.error(e.message)
@@ -2182,7 +2074,7 @@ const onWardChange = async () => {
     await calculateShipping(addressForm.value)
   }
 }
-// Watch để khởi tạo map
+
 watch(showAddressModal, (val) => {
   if (val) {
     nextTick(() => {
@@ -2190,7 +2082,6 @@ watch(showAddressModal, (val) => {
       map?.invalidateSize()
     })
   } else {
-    // Dọn dẹp khi đóng modal
     if (map) {
       map.remove()
       map = null
@@ -2200,11 +2091,8 @@ watch(showAddressModal, (val) => {
 
 watch(selectedAddressId, async (id) => {
   if (!id) return
-
   const address = addresses.value.find((x) => x.id === id)
-
   if (!address) return
-
   await calculateShipping(address)
 })
 </script>
@@ -2218,7 +2106,6 @@ watch(selectedAddressId, async (id) => {
     auto,
     24px 24px;
 }
-/* Tùy chỉnh thanh cuộn nhỏ gọn */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

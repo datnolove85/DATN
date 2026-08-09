@@ -1,0 +1,38 @@
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Node
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+target/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# AI models
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+
+# Windows shortcuts
+*.lnk

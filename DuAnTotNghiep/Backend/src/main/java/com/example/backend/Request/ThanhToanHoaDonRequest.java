@@ -19,6 +19,9 @@ public class ThanhToanHoaDonRequest {
     // 2. Dùng cho thanh toán kết hợp mới (Tiền mặt + Chuyển khoản tại quầy)
     private List<ChiTietThanhTienDto> danhSachThanhToan;
 
+    private BigDecimal tienKhachDua;
+    private BigDecimal tienThoi;
+
     @Data
     public static class ChiTietThanhTienDto {
         private Integer idPhuongThucThanhToan;

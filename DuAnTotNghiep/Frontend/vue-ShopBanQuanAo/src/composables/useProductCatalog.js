@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Client } from '@stomp/stompjs'
 import { getAllSanpham } from '@/service/SanphamService'
 import { getAllSanPhamChiTiet } from '@/service/SanPhamChiTiet'
@@ -52,6 +52,7 @@ const normalizeImagePath = (path) => {
 
 export function useProductCatalog(options = {}) {
   const router = useRouter()
+  const route = useRoute()
   const pageSize = ref(options.pageSize || 12)
 
   const products = ref([])
@@ -484,6 +485,15 @@ export function useProductCatalog(options = {}) {
   watch(totalPages, (total) => {
     if (currentPage.value > total) currentPage.value = total
   })
+
+  watch(
+    () => route.query.keyword,
+    (keyword) => {
+      const normalizedKeyword = Array.isArray(keyword) ? keyword[0] : keyword
+      filters.keyword = String(normalizedKeyword || '').trim()
+    },
+    { immediate: true },
+  )
 
   onMounted(async () => {
     await reload()

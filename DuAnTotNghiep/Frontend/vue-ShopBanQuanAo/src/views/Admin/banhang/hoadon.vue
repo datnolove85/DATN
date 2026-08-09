@@ -3,67 +3,35 @@
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl min-h-screen selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
     <div
-      class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm overflow-hidden"
+      class="relative p-6 bg-white rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm"
     >
-      <div class="relative z-10">
-        <span class="text-[10px] tracking-widest uppercase font-bold text-indigo-400"
-          >Hệ thống vận hành giao dịch</span
-        >
-        <h1 class="text-2xl font-bold tracking-tight mt-1 text-white">Quản Lý Hóa Đơn</h1>
-        <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
-          <span class="relative flex h-2 w-2">
-            <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
-            ></span>
-            <span class="relative inline-block rounded-full h-2 w-2 bg-indigo-500"></span>
-          </span>
+      <!-- Nội dung bên trái -->
+      <div>
+        <span class="text-xs tracking-wide uppercase font-semibold text-indigo-600">
+          Hệ thống vận hành giao dịch
+        </span>
+
+        <h1 class="text-2xl font-bold tracking-tight mt-1 text-slate-800">Quản Lý Hóa Đơn</h1>
+
+        <p class="text-sm text-slate-500 mt-1">
           Truy vết luồng tiền, trạng thái đơn hàng và kênh phân phối thời gian thực.
         </p>
       </div>
 
-      <!-- <button
-        class="relative z-10 flex items-center justify-center gap-2 px-5 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2.5"
-          stroke="currentColor"
-          class="w-4 h-4 text-indigo-400"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-          />
-        </svg>
-      </button> -->
+      <!-- Nếu Hóa đơn có nút thêm -->
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-      <div class="flex items-center justify-between mb-5 select-none">
-        <h3
-          class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-2"
-        >
-          <span class="inline-block w-1.5 h-3.5 bg-indigo-600 rounded-sm"></span>
-          Bộ lọc dữ liệu tối ưu
-        </h3>
-        <span
-          class="text-[11px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100"
-        >
-          Bộ lọc: Tự động áp dụng
-        </span>
-      </div>
-
-      <div class="flex flex-wrap gap-2 mb-5">
+    <!-- Bộ lọc -->
+    <div class="mb-4">
+      <!-- Filter nhanh -->
+      <div class="flex flex-wrap gap-1.5 mb-3">
         <button
           @click="filterToday"
           :class="[
-            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
             activeFilter === 'today'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
-              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600',
           ]"
         >
           Hôm nay
@@ -72,10 +40,10 @@
         <button
           @click="filterYesterday"
           :class="[
-            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
             activeFilter === 'yesterday'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
-              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600',
           ]"
         >
           Hôm qua
@@ -84,10 +52,10 @@
         <button
           @click="filter7Days"
           :class="[
-            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
             activeFilter === '7days'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
-              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600',
           ]"
         >
           7 ngày gần đây
@@ -96,10 +64,10 @@
         <button
           @click="filterThisMonth"
           :class="[
-            'px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300',
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
             activeFilter === 'month'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
-              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50',
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600',
           ]"
         >
           Tháng này
@@ -107,16 +75,23 @@
 
         <button
           @click="resetFilter"
-          class="px-3 py-2 rounded-xl bg-slate-50 text-slate-600 text-xs font-bold"
+          :class="[
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200',
+            activeFilter === 'all'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600',
+          ]"
         >
           Tất cả
         </button>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="sm:col-span-2 flex gap-2">
+      <!-- Bộ lọc chi tiết -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <!-- Search -->
+        <div class="lg:col-span-2 flex gap-2">
           <div
-            class="relative flex items-center bg-slate-50 border border-slate-200 focus-within:border-indigo-500 focus-within:bg-white rounded-xl px-3 py-1 w-full transition-all group"
+            class="relative flex items-center bg-slate-50 border border-slate-200 focus-within:border-indigo-500 focus-within:bg-white rounded-lg px-3 h-10 w-full transition-all group"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +99,7 @@
               viewBox="0 0 24 24"
               stroke-width="2.5"
               stroke="currentColor"
-              class="w-4 h-4 text-slate-400 mr-2 group-focus-within:text-indigo-500"
+              class="w-4 h-4 text-slate-400 mr-2 group-focus-within:text-indigo-500 shrink-0"
             >
               <path
                 stroke-linecap="round"
@@ -132,6 +107,7 @@
                 d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.602Z"
               />
             </svg>
+
             <input
               v-model="filters.keyword"
               type="text"
@@ -140,9 +116,10 @@
             />
           </div>
 
+          <!-- Reset -->
           <button
             @click="resetFilter"
-            class="px-3.5 py-2.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center"
+            class="w-10 h-10 shrink-0 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 rounded-lg transition-all active:scale-95 flex items-center justify-center"
             title="Đặt lại bộ lọc"
           >
             <svg
@@ -162,25 +139,24 @@
           </button>
         </div>
 
-        <div class="flex flex-col gap-1">
-          <input
-            v-model="filters.fromDate"
-            type="date"
-            class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-700 outline-none transition-all"
-          />
-        </div>
+        <!-- Từ ngày -->
+        <input
+          v-model="filters.fromDate"
+          type="date"
+          class="w-full h-10 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg px-3 text-xs font-semibold text-slate-700 outline-none transition-all"
+        />
 
-        <div class="flex flex-col gap-1">
-          <input
-            v-model="filters.toDate"
-            type="date"
-            class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-700 outline-none transition-all"
-          />
-        </div>
+        <!-- Đến ngày -->
+        <input
+          v-model="filters.toDate"
+          type="date"
+          class="w-full h-10 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg px-3 text-xs font-semibold text-slate-700 outline-none transition-all"
+        />
 
+        <!-- Trạng thái -->
         <select
           v-model="filters.trangThai"
-          class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 outline-none transition-all cursor-pointer appearance-none"
+          class="w-full h-10 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg px-3 text-xs font-bold text-slate-600 outline-none transition-all cursor-pointer appearance-none"
         >
           <option value="">Tất cả trạng thái</option>
           <option value="cho_xac_nhan">Chờ xác nhận</option>
@@ -189,27 +165,34 @@
           <option value="da_huy">Đã hủy</option>
         </select>
 
+        <!-- Loại hóa đơn -->
         <select
           v-model="filters.loaiHoaDon"
-          class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 outline-none transition-all cursor-pointer appearance-none"
+          class="w-full h-10 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg px-3 text-xs font-bold text-slate-600 outline-none transition-all cursor-pointer appearance-none"
         >
           <option value="" disabled hidden>Phân loại đơn</option>
           <option value="online">Hóa đơn Online</option>
           <option value="tai_quay">Mua tại quầy</option>
         </select>
 
-        <div class="flex gap-2 sm:col-span-2">
+        <!-- Khoảng giá -->
+        <div class="lg:col-span-2 flex gap-2">
           <input
             v-model="filters.minPrice"
             type="number"
+            min="0"
+            @input="validateMinPrice"
             placeholder="Khoảng giá từ (đ)"
-            class="w-1/2 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-700 outline-none transition-all"
+            class="w-1/2 h-10 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg px-3 text-xs font-semibold text-slate-700 outline-none transition-all"
           />
+
           <input
             v-model="filters.maxPrice"
             type="number"
-            placeholder="đến giá (đ)"
-            class="w-1/2 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-700 outline-none transition-all"
+            min="0"
+            @input="validateMaxPrice"
+            placeholder="Đến giá (đ)"
+            class="w-1/2 h-10 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-lg px-3 text-xs font-semibold text-slate-700 outline-none transition-all"
           />
         </div>
       </div>
@@ -222,7 +205,6 @@
         <div class="col-span-2">Mã hóa đơn</div>
         <div class="col-span-3">Khách hàng hồ sơ</div>
         <div class="col-span-2">Thời gian tạo</div>
-        <!-- Thêm cột Loại hóa đơn -->
         <div class="col-span-1">Phân loại</div>
         <div class="col-span-2">Tổng thành tiền</div>
         <div class="col-span-1 text-center">Trạng thái</div>
@@ -266,7 +248,6 @@
               {{ invoice.created }}
             </div>
 
-            <!-- Thêm hiển thị loại hóa đơn -->
             <div class="col-span-1">
               <span
                 :class="[
@@ -488,7 +469,20 @@ const filters = ref({
   minPrice: '',
   maxPrice: '',
 })
-const activeFilter = ref('')
+// Mặc định ban đầu vào trang là 'all' (Tất cả)
+const activeFilter = ref('all')
+
+const validateMinPrice = () => {
+  if (filters.value.minPrice < 0) {
+    filters.value.minPrice = 0
+  }
+}
+
+const validateMaxPrice = () => {
+  if (filters.value.maxPrice < 0) {
+    filters.value.maxPrice = 0
+  }
+}
 
 const formatDate = (date) => {
   const year = date.getFullYear()
@@ -497,9 +491,9 @@ const formatDate = (date) => {
 
   return `${year}-${month}-${day}`
 }
+
 const filterToday = () => {
   activeFilter.value = 'today'
-
   const today = formatDate(new Date())
   filters.value.fromDate = today
   filters.value.toDate = today
@@ -507,10 +501,8 @@ const filterToday = () => {
 
 const filterYesterday = () => {
   activeFilter.value = 'yesterday'
-
   const d = new Date()
   d.setDate(d.getDate() - 1)
-
   const day = formatDate(d)
   filters.value.fromDate = day
   filters.value.toDate = day
@@ -518,28 +510,22 @@ const filterYesterday = () => {
 
 const filter7Days = () => {
   activeFilter.value = '7days'
-
   const to = new Date()
   const from = new Date()
   from.setDate(from.getDate() - 6)
-
   filters.value.fromDate = formatDate(from)
   filters.value.toDate = formatDate(to)
 }
 
 const filterThisMonth = () => {
   activeFilter.value = 'month'
-
   const now = new Date()
-
   filters.value.fromDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-
   filters.value.toDate = formatDate(now)
 }
 
 const resetFilter = () => {
-  activeFilter.value = ''
-
+  activeFilter.value = 'all'
   filters.value = {
     keyword: '',
     fromDate: '',

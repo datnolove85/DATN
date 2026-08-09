@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -48,6 +49,9 @@ public class GamificationServiceImpl implements GamificationService {
     private KhoVoucherRepository khoVoucherRepository;
 
     @Autowired
+    private CauHinhDiemDanhRepository cauHinhDiemDanhRepository;
+
+    @Autowired
     private HoaDonService hoaDonService;
 
     @Autowired
@@ -55,41 +59,58 @@ public class GamificationServiceImpl implements GamificationService {
 
     @Override
     @Transactional
-    public DiemDanhHangNgay diemDanhHangNgay(Integer idKhachHang) {
-        KhachHang khachHang = khachHangRepository.findById(idKhachHang)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
+    public DiemDanhHangNgay diemDanhHangNgay(Integer idInput) {
+        // 1. Tìm khách hàng: ưu tiên tìm theo id_tai_khoan, nếu không thấy thử tìm theo id khách hàng
+        KhachHang khachHang = khachHangRepository.findByIdTaiKhoan_Id(idInput)
+                .orElseGet(() -> khachHangRepository.findById(idInput)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng!"))
+                );
 
+        Integer idKhachHangThucTe = khachHang.getId(); // Lấy ID chuẩn trong bảng khach_hang
         LocalDate today = LocalDate.now();
 
-        // 1. Kiểm tra hôm nay đã điểm danh chưa
-        boolean daDiemDanh = diemDanhHangNgayRepository.existsByIdKhachHang_IdAndNgayDiemDanh(idKhachHang, today);
+        // 2. Kiểm tra hôm nay đã điểm danh chưa (dùng ID chuẩn thực tế)
+        boolean daDiemDanh = diemDanhHangNgayRepository.existsByIdKhachHang_IdAndNgayDiemDanh(idKhachHangThucTe, today);
         if (daDiemDanh) {
             throw new RuntimeException("Hôm nay bạn đã điểm danh rồi!");
         }
 
-        // 2. Tính toán chuỗi Streak nghiêm ngặt
+        // 3. Tính toán chuỗi Streak
         LocalDate yesterday = today.minusDays(1);
         int chuoiMoi = 1;
 
         if (khachHang.getNgayDiemDanhGanNhat() != null && khachHang.getNgayDiemDanhGanNhat().equals(yesterday)) {
-            // Nếu hôm qua có điểm danh -> Tăng chuỗi lên 1
             chuoiMoi = khachHang.getChuoiDiemDanh() + 1;
         } else {
-            // Nếu quên hoặc gián đoạn -> Reset về 1
             chuoiMoi = 1;
         }
 
-        // Thưởng xu tăng dần theo chuỗi (VD: cơ bản 10 xu + 2 xu * chuỗi)
-        int soXuNhan = 10 + (chuoiMoi * 2);
+        // 4. LẤY SỐ XU TỰ ĐỘNG TỪ BẢNG CẤU HÌNH (Chỉ lấy các mốc đang hoạt động / trangThai = true)
+        List<CauHinhDiemDanh> activeConfigs = cauHinhDiemDanhRepository.findByTrangThaiTrueOrderByNgayThuAsc();
 
-        // 3. Cập nhật thông tin Khách hàng
-        int soDuTruoc = khachHang.getSoDuXu();
+        CauHinhDiemDanh config;
+        if (activeConfigs.isEmpty()) {
+            CauHinhDiemDanh defaultConfig = new CauHinhDiemDanh();
+            defaultConfig.setSoXuThuong(10); // Fallback nếu chưa cấu hình hoặc toàn bộ bị khóa
+            config = defaultConfig;
+        } else {
+            int totalConfigDays = activeConfigs.size(); // Tổng số ngày đang mở hoạt động
+
+            // Công thức vòng lặp modular dựa trên danh sách thực tế đang hoạt động
+            int targetIndex = (int) ((chuoiMoi - 1) % totalConfigDays);
+            config = activeConfigs.get(targetIndex);
+        }
+
+        int soXuNhan = config.getSoXuThuong() != null ? config.getSoXuThuong() : 10;
+
+        // 5. Cập nhật thông tin Khách hàng
+        int soDuTruoc = khachHang.getSoDuXu() != null ? khachHang.getSoDuXu() : 0;
         khachHang.setSoDuXu(soDuTruoc + soXuNhan);
         khachHang.setChuoiDiemDanh(chuoiMoi);
         khachHang.setNgayDiemDanhGanNhat(today);
         khachHangRepository.save(khachHang);
 
-        // 4. Lưu lịch sử điểm danh
+        // 6. Lưu lịch sử điểm danh
         DiemDanhHangNgay diemDanh = new DiemDanhHangNgay();
         diemDanh.setIdKhachHang(khachHang);
         diemDanh.setNgayDiemDanh(today);
@@ -97,7 +118,7 @@ public class GamificationServiceImpl implements GamificationService {
         diemDanh.setSoNgayLienTiep(chuoiMoi);
         diemDanhHangNgayRepository.save(diemDanh);
 
-        // 5. Ghi log biến động ví xu
+        // 7. Ghi log biến động ví xu
         LichSuXu lichSuXu = new LichSuXu();
         lichSuXu.setIdKhachHang(khachHang);
         lichSuXu.setSoXuThayDoi(soXuNhan);
@@ -109,35 +130,51 @@ public class GamificationServiceImpl implements GamificationService {
 
         return diemDanh;
     }
-
     @Override
     @Transactional
-    public PhanThuongMinigame quayThuong(Integer idKhachHang, String loaiGame) {
-        KhachHang khachHang = khachHangRepository.findById(idKhachHang)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
+    public PhanThuongMinigame quayThuong(Integer idInput, String loaiGame) {
+        // 1. Giải mã idInput thành khách hàng thực tế (Tránh lỗi lệch id_tai_khoan và id_khach_hang)
+        KhachHang khachHang = khachHangRepository.findByIdTaiKhoan_Id(idInput)
+                .orElseGet(() -> khachHangRepository.findById(idInput)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"))
+                );
 
-        // === GIỚI HẠN LƯỢT CHƠI TRONG NGÀY CHO "LẬT THẺ" (Tối đa 3 lần) ===
-        if ("lat_the".equals(loaiGame)) {
-            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-            LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
+        Integer idKhachHangThucTe = khachHang.getId();
+        int soDuTruoc = khachHang.getSoDuXu() != null ? khachHang.getSoDuXu() : 0;
 
-            long soLuotDaChoi = lichSuMinigameRepository.countByIdKhachHang_IdAndLoaiGameAndNgayTaoBetween(
-                    idKhachHang, "lat_the", startOfDay, endOfDay
-            );
-
-            if (soLuotDaChoi >= 3) {
-                throw new RuntimeException("Bạn đã đạt giới hạn lật thẻ tối đa 3 lần trong ngày hôm nay!");
+        // 2. Xử lý trừ phí nếu là Vòng quay (Mất 5 xu). Nếu là lật thẻ sẽ tự động bỏ qua (miễn phí)
+        if ("vong_quay".equals(loaiGame)) {
+            if (soDuTruoc < 5) {
+                throw new RuntimeException("Số dư xu của bạn không đủ (cần 5 Xu) để quay thưởng!");
             }
-        }
-        // ================================================================
+            khachHang.setSoDuXu(soDuTruoc - 5);
 
-        // Lấy danh sách phần thưởng hợp lệ theo loại game
+            // Ghi log biến động xu (trừ phí quay)
+            LichSuXu logPhi = new LichSuXu();
+            logPhi.setIdKhachHang(khachHang);
+            logPhi.setSoXuThayDoi(-5);
+            logPhi.setSoDuTruoc(soDuTruoc);
+            logPhi.setSoDuSau(khachHang.getSoDuXu());
+            logPhi.setLoaiGiaoDich("phi_vong_quay");
+            logPhi.setMoTa("Tham gia Vòng quay may mắn");
+            logPhi.setNgayTao(LocalDateTime.now());
+            lichSuXuRepository.save(logPhi);
+
+            soDuTruoc = khachHang.getSoDuXu(); // Cập nhật lại số dư sau khi trừ phí
+        }
+
+        // 3. Lấy danh sách phần thưởng hợp lệ (Trạng thái hoạt động và chưa vượt giới hạn phát hành)
         List<PhanThuongMinigame> dsPhanThuong = phanThuongMinigameRepository.findByLoaiGameAndTrangThai(loaiGame, true);
+
+        dsPhanThuong = dsPhanThuong.stream().filter(p ->
+                p.getSoLuongGioiHan() == null || p.getSoLuongGioiHan() == -1 || p.getSoLuongDaTrung() < p.getSoLuongGioiHan()
+        ).collect(Collectors.toList());
+
         if (dsPhanThuong.isEmpty()) {
-            throw new RuntimeException("Chưa cấu hình phần thưởng cho minigame này!");
+            throw new RuntimeException("Minigame hiện tại đã hết phần thưởng phát hành!");
         }
 
-        // Thuật toán quay thưởng ngẫu nhiên theo tỷ lệ phần trăm (Probability Weight)
+        // 4. Thuật toán quay ngẫu nhiên dựa theo tỷ lệ trúng (ty_le_trung)
         double tongTyLe = dsPhanThuong.stream().mapToDouble(p -> p.getTyLeTrung().doubleValue()).sum();
         double randomVal = new Random().nextDouble() * tongTyLe;
 
@@ -152,51 +189,99 @@ public class GamificationServiceImpl implements GamificationService {
             }
         }
 
-        // Xử lý khi trúng thưởng Xu
+        // 5. Tăng số lượng đã trúng của phần thưởng này lên 1
+        int daTrungCu = phanThuongTrung.getSoLuongDaTrung() != null ? phanThuongTrung.getSoLuongDaTrung() : 0;
+        phanThuongTrung.setSoLuongDaTrung(daTrungCu + 1);
+        phanThuongMinigameRepository.save(phanThuongTrung);
+
+        // 6. Xử lý phần thưởng nhận được (XU hoặc VOUCHER)
         if ("xu".equals(phanThuongTrung.getLoaiPhanThuong())) {
-            int soDuTruoc = khachHang.getSoDuXu();
-            int soXuThuong = phanThuongTrung.getGiaTriXu();
+            int soXuThuong = phanThuongTrung.getGiaTriXu() != null ? phanThuongTrung.getGiaTriXu() : 0;
 
             khachHang.setSoDuXu(soDuTruoc + soXuThuong);
             khachHangRepository.save(khachHang);
 
-            // Ghi log xu
+            // Phân tách chi tiết loại giao dịch và mô tả riêng cho từng trò chơi
+            String loaiGiaoDich;
+            String moTaChiTiet;
+
+            if ("vong_quay".equals(loaiGame)) {
+                loaiGiaoDich = "trung_vong_quay";
+                moTaChiTiet = "Trúng phần thưởng vòng quay: " + phanThuongTrung.getTenPhanThuong();
+            } else if ("lat_the".equals(loaiGame)) {
+                loaiGiaoDich = "trung_lat_the";
+                moTaChiTiet = "Trúng phần thưởng lật thẻ: " + phanThuongTrung.getTenPhanThuong();
+            } else {
+                loaiGiaoDich = "trung_minigame";
+                moTaChiTiet = "Trúng phần thưởng minigame: " + phanThuongTrung.getTenPhanThuong();
+            }
+
+            // Ghi log biến động xu (cộng thưởng)
             LichSuXu logXu = new LichSuXu();
             logXu.setIdKhachHang(khachHang);
             logXu.setSoXuThayDoi(soXuThuong);
             logXu.setSoDuTruoc(soDuTruoc);
             logXu.setSoDuSau(khachHang.getSoDuXu());
-            logXu.setLoaiGiaoDich("vong_quay");
-            logXu.setMoTa("Trúng phần thưởng minigame: " + phanThuongTrung.getTenPhanThuong());
+            logXu.setLoaiGiaoDich(loaiGiaoDich);
+            logXu.setMoTa(moTaChiTiet);
+            logXu.setNgayTao(LocalDateTime.now());
             lichSuXuRepository.save(logXu);
+
+        } else if ("voucher".equals(phanThuongTrung.getLoaiPhanThuong())) {
+            if (phanThuongTrung.getIdVoucher() != null) {
+                // Lấy thông tin voucher từ kho (bảng kho_voucher)
+                KhoVoucher voucher = khoVoucherRepository.findById(phanThuongTrung.getIdVoucher())
+                        .orElseThrow(() -> new RuntimeException("Voucher phần thưởng không tồn tại trong kho!"));
+
+                int soLuongConLai = voucher.getSoLuongConLai() != null ? voucher.getSoLuongConLai() : 0;
+                if (soLuongConLai <= 0) {
+                    throw new RuntimeException("Rất tiếc, mã voucher phần thưởng này đã hết lượt trong kho!");
+                }
+
+                // Trừ số lượng tồn kho của voucher
+                voucher.setSoLuongConLai(soLuongConLai - 1);
+                khoVoucherRepository.save(voucher);
+
+                // INSERT VÀO VÍ VOUCHER CỦA KHÁCH HÀNG
+                VoucherCuaKhachHang vckh = new VoucherCuaKhachHang();
+                vckh.setIdKhachHang(idKhachHangThucTe);
+                vckh.setIdKhoVoucher(phanThuongTrung.getIdVoucher());
+                vckh.setTrangThai("CHUA_DUNG");
+                vckh.setNgayDoi(LocalDateTime.now());
+                voucherCuaKhachHangRepository.save(vckh);
+            }
         }
 
-        // Lưu lịch sử quay minigame (Cột thời gian ngayTao sẽ tự động lưu mốc thời gian hiện tại)
+        // 7. Lưu lại lịch sử tham gia minigame của khách
         LichSuMinigame lichSuGame = new LichSuMinigame();
         lichSuGame.setIdKhachHang(khachHang);
         lichSuGame.setIdPhanThuong(phanThuongTrung);
         lichSuGame.setLoaiGame(loaiGame);
+        lichSuGame.setTrangThaiNhan("da_nhan");
+        lichSuGame.setNgayTao(LocalDateTime.now());
         lichSuMinigameRepository.save(lichSuGame);
 
         return phanThuongTrung;
     }
 
     @Override
-    public TrangThaiGamificationResponse getTrangThaiGamification(Integer idKhachHang) {
-        KhachHang khachHang = khachHangRepository.findById(idKhachHang)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
+    public TrangThaiGamificationResponse getTrangThaiGamification(Integer idTaiKhoan) {
+        KhachHang khachHang = khachHangRepository.findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng cho tài khoản này!"));
 
         LocalDate today = LocalDate.now();
-        boolean daDiemDanh = diemDanhHangNgayRepository.existsByIdKhachHang_IdAndNgayDiemDanh(idKhachHang, today);
+        Integer idKhachHangThucTe = khachHang.getId();
 
-        // === TÍNH SỐ LƯỢT LẬT THẺ CÒN LẠI TRONG NGÀY ===
+        boolean daDiemDanh = diemDanhHangNgayRepository.existsByIdKhachHang_IdAndNgayDiemDanh(idKhachHangThucTe, today);
+
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
         long soLuotDaChoi = lichSuMinigameRepository.countByIdKhachHang_IdAndLoaiGameAndNgayTaoBetween(
-                idKhachHang, "lat_the", startOfDay, endOfDay
+                idKhachHangThucTe, "lat_the", startOfDay, endOfDay
         );
-        int soLuotLatTheConLai = Math.max(0, 3 - (int) soLuotDaChoi);
-        // ===============================================
+
+        int gioiHanToiDa = khachHang.getSoLuotLatThe() != null ? khachHang.getSoLuotLatThe() : 3;
+        int soLuotLatTheConLai = Math.max(0, gioiHanToiDa - (int) soLuotDaChoi);
 
         return new TrangThaiGamificationResponse(
                 khachHang.getId(),
@@ -204,13 +289,41 @@ public class GamificationServiceImpl implements GamificationService {
                 khachHang.getChuoiDiemDanh() != null ? khachHang.getChuoiDiemDanh() : 0,
                 khachHang.getNgayDiemDanhGanNhat(),
                 daDiemDanh,
-                soLuotLatTheConLai // Truyền thêm số lượt vào constructor Response
+                soLuotLatTheConLai,
+                gioiHanToiDa
         );
     }
 
+    // === 3. BỔ SUNG HÀM CHO ADMIN: Cập nhật lượt lật thẻ cho cá nhân ===
     @Override
-    public List<LichSuXuResponse> getLichSuXu(Integer idKhachHang) {
-        List<LichSuXu> list = lichSuXuRepository.findByIdKhachHang_IdOrderByNgayTaoDesc(idKhachHang);
+    @Transactional
+    public void updateSoLuotLatTheChoKhachHang(Integer idKhachHang, Integer soLuotMoi) {
+        KhachHang khachHang = khachHangRepository.findById(idKhachHang)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng có ID: " + idKhachHang));
+        khachHang.setSoLuotLatThe(soLuotMoi);
+        khachHangRepository.save(khachHang);
+    }
+
+    // === 4. BỔ SUNG HÀM CHO ADMIN: Cập nhật lượt lật thẻ cho toàn bộ hệ thống ===
+    @Override
+    @Transactional
+    public void updateSoLuotLatTheChoToanBo(Integer soLuotMoi) {
+        List<KhachHang> listKhachHang = khachHangRepository.findAll();
+        for (KhachHang kh : listKhachHang) {
+            kh.setSoLuotLatThe(soLuotMoi);
+        }
+        khachHangRepository.saveAll(listKhachHang);
+    }
+
+    @Override
+    public List<LichSuXuResponse> getLichSuXu(Integer idInput) {
+        // Fix: Lấy id khách hàng thực tế từ id tài khoản
+        KhachHang khachHang = khachHangRepository.findByIdTaiKhoan_Id(idInput)
+                .orElseGet(() -> khachHangRepository.findById(idInput)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"))
+                );
+
+        List<LichSuXu> list = lichSuXuRepository.findByIdKhachHang_IdOrderByNgayTaoDesc(khachHang.getId());
 
         return list.stream().map(item -> new LichSuXuResponse(
                 item.getId(),
@@ -228,25 +341,22 @@ public class GamificationServiceImpl implements GamificationService {
         return phanThuongMinigameRepository.findAll();
     }
 
-    // === ADMIN: Thêm phần thưởng mới ===
-    @Override
     // === ADMIN: Thêm mới phần thưởng ===
+    @Override
     @Transactional
     public PhanThuongMinigame createPhanThuong(PhanThuongMinigame phanThuong) {
-        // Làm sạch dữ liệu theo loại quà
         if ("voucher".equals(phanThuong.getLoaiPhanThuong())) {
-            phanThuong.setGiaTriXu(0); // Quà voucher thì giá trị xu bằng 0
+            phanThuong.setGiaTriXu(0);
+            // idVoucher đã được map tự động nhờ @JsonProperty ở Entity
         } else if ("xu".equals(phanThuong.getLoaiPhanThuong())) {
-            phanThuong.setIdVoucher(null); // Quà xu thì không gắn id_voucher
+            phanThuong.setIdVoucher(null);
         } else {
-            // Loại không trúng hoặc loại khác
             phanThuong.setIdVoucher(null);
             phanThuong.setGiaTriXu(0);
         }
 
         return phanThuongMinigameRepository.save(phanThuong);
     }
-
     // === ADMIN: Cập nhật phần thưởng ===
     @Override
     @Transactional
@@ -261,13 +371,12 @@ public class GamificationServiceImpl implements GamificationService {
         existing.setSoLuongGioiHan(phanThuongMoi.getSoLuongGioiHan());
         existing.setTrangThai(phanThuongMoi.getTrangThai());
 
-        // Xử lý logic gán dữ liệu chuẩn xác theo loại phần thưởng
         if ("voucher".equals(phanThuongMoi.getLoaiPhanThuong())) {
-            existing.setIdVoucher(phanThuongMoi.getIdVoucher()); // Nhận ID voucher từ Vue 3 gửi lên
+            existing.setIdVoucher(phanThuongMoi.getIdVoucher());
             existing.setGiaTriXu(0);
         } else if ("xu".equals(phanThuongMoi.getLoaiPhanThuong())) {
             existing.setGiaTriXu(phanThuongMoi.getGiaTriXu());
-            existing.setIdVoucher(null); // Xóa id_voucher nếu đổi sang nhận xu
+            existing.setIdVoucher(null);
         } else {
             existing.setIdVoucher(null);
             existing.setGiaTriXu(0);
@@ -294,21 +403,21 @@ public class GamificationServiceImpl implements GamificationService {
 
     @Override
     @Transactional
-    public VoucherCuaKhachHang doiXuLayVoucher(Integer idKhachHang, Integer idKhoVoucher) {
-        // 1. Lấy thông tin khách hàng và voucher
-        KhachHang khachHang = khachHangRepository.findById(idKhachHang)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
+    public VoucherCuaKhachHang doiXuLayVoucher(Integer idInput, Integer idKhoVoucher) {
+        // Fix: Giải mã idInput thành khách hàng thực tế
+        KhachHang khachHang = khachHangRepository.findByIdTaiKhoan_Id(idInput)
+                .orElseGet(() -> khachHangRepository.findById(idInput)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"))
+                );
 
         KhoVoucher voucher = khoVoucherRepository.findById(idKhoVoucher)
                 .orElseThrow(() -> new RuntimeException("Voucher không tồn tại!"));
 
-        // 2. Kiểm tra số lượng voucher trong kho (tránh null)
         int soLuongConLai = voucher.getSoLuongConLai() != null ? voucher.getSoLuongConLai() : 0;
         if (soLuongConLai <= 0) {
             throw new RuntimeException("Voucher đã hết lượt đổi!");
         }
 
-        // 3. Kiểm tra số dư xu của khách (tránh null)
         int soDuTruoc = khachHang.getSoDuXu() != null ? khachHang.getSoDuXu() : 0;
         int soXuDoi = voucher.getSoXuDoi() != null ? voucher.getSoXuDoi() : 0;
 
@@ -316,23 +425,19 @@ public class GamificationServiceImpl implements GamificationService {
             throw new RuntimeException("Số dư xu của bạn không đủ để đổi voucher này!");
         }
 
-        // 4. Trừ xu của khách
         khachHang.setSoDuXu(soDuTruoc - soXuDoi);
         khachHangRepository.save(khachHang);
 
-        // 5. Trừ số lượng voucher trong kho
         voucher.setSoLuongConLai(soLuongConLai - 1);
         khoVoucherRepository.save(voucher);
 
-        // 6. Lưu vào kho voucher cá nhân của khách (Dùng setIdKhoVoucher khớp với Entity)
         VoucherCuaKhachHang vckh = new VoucherCuaKhachHang();
-        vckh.setIdKhachHang(idKhachHang);
+        vckh.setIdKhachHang(khachHang.getId()); // Dùng ID chuẩn của khách hàng
         vckh.setIdKhoVoucher(idKhoVoucher);
         vckh.setTrangThai("CHUA_DUNG");
         vckh.setNgayDoi(LocalDateTime.now());
         VoucherCuaKhachHang savedVoucher = voucherCuaKhachHangRepository.save(vckh);
 
-        // 7. Ghi lại lịch sử biến động xu
         LichSuXu lichSu = new LichSuXu();
         lichSu.setIdKhachHang(khachHang);
         lichSu.setSoXuThayDoi(-soXuDoi);
@@ -352,20 +457,23 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
-    public List<VoucherCuaKhachHangResponse> getVoucherCuaKhachHang(Integer idKhachHang) {
+    public List<VoucherCuaKhachHangResponse> getVoucherCuaKhachHang(Integer idInput) {
+        // Fix: Giải mã idInput thành khách hàng thực tế
+        KhachHang khachHang = khachHangRepository.findByIdTaiKhoan_Id(idInput)
+                .orElseGet(() -> khachHangRepository.findById(idInput)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"))
+                );
 
-        List<Object[]> list = voucherCuaKhachHangRepository.getVoucherResponse(idKhachHang);
+        List<Object[]> list = voucherCuaKhachHangRepository.getVoucherResponse(khachHang.getId());
 
         List<VoucherCuaKhachHangResponse> result = new ArrayList<>();
 
         for (Object[] row : list) {
-
             VoucherCuaKhachHangResponse dto = new VoucherCuaKhachHangResponse();
 
             dto.setIdVoucherKhachHang((Integer) row[0]);
             dto.setTrangThai((String) row[1]);
             dto.setNgayDoi((LocalDateTime) row[2]);
-
 
             dto.setIdKhoVoucher((Integer) row[3]);
             dto.setTenVoucher((String) row[4]);
@@ -381,15 +489,10 @@ public class GamificationServiceImpl implements GamificationService {
             dto.setNgayHetHan((LocalDateTime) row[12]);
 
             dto.setMoTa((String) row[13]);
-            // ====================
-// Xử lý dữ liệu hiển thị
-// ====================
 
             LocalDateTime now = LocalDateTime.now();
 
-// Hiển thị giá trị giảm
             if ("phan_tram".equalsIgnoreCase(dto.getLoaiGiamGia())) {
-
                 String hienThi = "Giảm "
                         + dto.getGiaTriGiam().stripTrailingZeros().toPlainString()
                         + "%";
@@ -401,16 +504,13 @@ public class GamificationServiceImpl implements GamificationService {
                 }
 
                 dto.setHienThiGiaTriGiam(hienThi);
-
             } else {
-
                 dto.setHienThiGiaTriGiam(
                         "Giảm "
                                 + dto.getGiaTriGiam().stripTrailingZeros().toPlainString()
                                 + "đ");
             }
 
-// Còn bao nhiêu ngày
             long soNgay = java.time.temporal.ChronoUnit.DAYS.between(
                     now.toLocalDate(),
                     dto.getNgayHetHan().toLocalDate()
@@ -421,10 +521,7 @@ public class GamificationServiceImpl implements GamificationService {
             }
 
             dto.setSoNgayConLai(soNgay);
-
-// Sắp hết hạn nếu còn <= 3 ngày
             dto.setSapHetHan(soNgay <= 3);
-
 
             result.add(dto);
         }
@@ -432,18 +529,30 @@ public class GamificationServiceImpl implements GamificationService {
         return result;
     }
 
-    // === ADMIN: Thêm mẫu kho voucher mới ===
     @Override
     @Transactional
     public KhoVoucher createKhoVoucher(KhoVoucher khoVoucher) {
-
         if (khoVoucher.getTrangThai() == null) {
             khoVoucher.setTrangThai(true);
         }
 
-        khoVoucher.setMaCode(generateMaCode());
+        // Set số lượng lớn để giả lập vô hạn tạm thời
+        khoVoucher.setSoLuongConLai(999999);
 
-        return khoVoucherRepository.save(khoVoucher);
+        khoVoucher.setMaCode(generateMaCode());
+        KhoVoucher saved = khoVoucherRepository.save(khoVoucher);
+
+        // Gửi Socket báo thêm mới
+        posSocketService.send(
+                new PosEvent(
+                        "KHO_VOUCHER_CREATED",
+                        null,
+                        saved.getId(),
+                        null
+                )
+        );
+
+        return saved;
     }
 
     @Override
@@ -457,17 +566,14 @@ public class GamificationServiceImpl implements GamificationService {
         existing.setGiaTriGiamToiDa(khoVoucherMoi.getGiaTriGiamToiDa());
         existing.setDieuKienToiThieu(khoVoucherMoi.getDieuKienToiThieu());
         existing.setSoXuDoi(khoVoucherMoi.getSoXuDoi());
-        existing.setSoLuongConLai(khoVoucherMoi.getSoLuongConLai());
+        existing.setSoLuongConLai(999999);
         existing.setNgayHetHan(khoVoucherMoi.getNgayHetHan());
         existing.setTrangThai(khoVoucherMoi.getTrangThai());
 
-
         KhoVoucher updated = khoVoucherRepository.save(existing);
 
-// cập nhật các hóa đơn đang dùng kho voucher
         hoaDonService.capNhatHoaDonTheoKhoVoucher(updated.getId());
 
-// bắn socket
         posSocketService.send(
                 new PosEvent(
                         "KHO_VOUCHER_UPDATED",
@@ -480,7 +586,6 @@ public class GamificationServiceImpl implements GamificationService {
         return updated;
     }
 
-    // === ADMIN: Xóa / Vô hiệu hóa kho voucher ===
     @Override
     @Transactional
     public void deleteKhoVoucher(Integer id) {
@@ -488,6 +593,16 @@ public class GamificationServiceImpl implements GamificationService {
             throw new RuntimeException("Không tìm thấy kho voucher để xóa!");
         }
         khoVoucherRepository.deleteById(id);
+
+        // Gửi Socket báo xóa
+        posSocketService.send(
+                new PosEvent(
+                        "KHO_VOUCHER_DELETED",
+                        null,
+                        id,
+                        null
+                )
+        );
     }
 
     private String generateMaCode() {

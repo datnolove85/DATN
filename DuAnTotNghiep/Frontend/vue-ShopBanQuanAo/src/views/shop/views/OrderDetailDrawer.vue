@@ -155,6 +155,12 @@
             <span>Tổng thanh toán</span>
             <span class="text-emerald-600">{{ formatMoney(info?.tongThanhToan) }}đ</span>
           </div>
+          <div class="flex justify-between text-slate-500">
+            <span>Phương thức TT</span>
+            <span class="font-bold text-slate-700">{{
+              info?.phuongThucThanhToan || 'Chưa xác định'
+            }}</span>
+          </div>
         </div>
       </div>
 

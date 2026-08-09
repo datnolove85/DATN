@@ -1,52 +1,39 @@
 <template>
   <div
-    class="space-y-6 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-6 bg-slate-50/50 min-h-screen text-slate-800 antialiased"
+    class="space-y-4 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-4 bg-slate-50/50 min-h-screen text-slate-800 antialiased"
   >
-    <!-- HEADER BANNER -->
+    <!-- HEADER BANNER ĐỒNG BỘ -->
     <div
-      class="relative p-6 sm:p-8 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl text-white shadow-xl shadow-slate-900/10 overflow-hidden border border-slate-800"
+      class="relative p-6 bg-white rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm"
     >
-      <div
-        class="absolute -right-10 -bottom-10 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"
-      ></div>
-      <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div
-            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-[11px] font-semibold tracking-wide uppercase mb-2"
-          >
-            <span class="relative flex h-2 w-2">
-              <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
-              ></span>
-              <span class="relative inline-block rounded-full h-2 w-2 bg-indigo-400"></span>
-            </span>
-            Hệ thống vận hành
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Quản lý đơn hàng Online
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">
-            Theo dõi, kiểm soát quy trình giao dịch và xử lý sự cố hàng hóa thời gian thực.
-          </p>
-        </div>
+      <div>
+        <span class="text-xs tracking-wide uppercase font-semibold text-indigo-600">
+          Hệ thống vận hành
+        </span>
+        <h1 class="text-2xl font-bold tracking-tight mt-1 text-slate-800">
+          Quản lý đơn hàng Online
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">
+          Theo dõi, kiểm soát quy trình giao dịch và xử lý sự cố hàng hóa thời gian thực.
+        </p>
+      </div>
 
-        <!-- ACTION BUTTON: XỬ LÝ SẢN PHẨM LỖI HÀNG LOẠT -->
-        <div class="flex items-center gap-3">
-          <button
-            @click="openDefectiveModal"
-            class="px-4 py-2.5 bg-rose-600/90 hover:bg-rose-600 text-white font-bold text-xs rounded-2xl shadow-lg shadow-rose-900/20 border border-rose-500/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-            ⚡ Xử lý SP Lỗi / Hủy hàng loạt
-          </button>
-        </div>
+      <!-- ACTION BUTTON -->
+      <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+        <button
+          @click="openDefectiveModal"
+          class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95 whitespace-nowrap"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          ⚡ Xử lý SP Lỗi / Hủy hàng loạt
+        </button>
       </div>
     </div>
 
@@ -109,14 +96,14 @@
     <!-- MAIN CARD CONTAINER -->
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
       <!-- TOP STATUS TABS -->
-      <div class="px-6 pt-5 pb-3 border-b border-slate-100 bg-slate-50/30">
-        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div class="px-6 pt-4 pb-2 border-b border-slate-100 bg-slate-50/30">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none">
           <button
             v-for="tab in tabs"
             :key="tab.key"
             @click="changeTab(tab.key)"
             :class="[
-              'px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer',
+              'px-3.5 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer',
               filters.trangThai === tab.key
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
                 : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80',
@@ -127,12 +114,12 @@
         </div>
       </div>
 
-      <!-- FILTER BAR -->
-      <div class="p-5 border-b border-slate-100 bg-white">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- FILTER BAR (GỌN GÀNG, GIẢM KHOẢNG TRẮNG) -->
+      <div class="p-3.5 border-b border-slate-100 bg-white">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 items-center">
           <!-- Tim kiem tu khoa -->
           <div
-            class="relative flex items-center bg-slate-50 border border-slate-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 rounded-xl px-3 py-2 transition-all"
+            class="relative flex items-center bg-slate-50 border border-slate-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 rounded-xl px-3 py-1.5 transition-all"
           >
             <svg
               class="w-4 h-4 text-slate-400 mr-2 shrink-0"
@@ -161,7 +148,7 @@
             <select
               v-model="filters.thanhToan"
               @change="fetchOrders"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 outline-none cursor-pointer appearance-none"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none cursor-pointer appearance-none"
             >
               <option value="">Tất cả thanh toán</option>
               <option value="da_thanh_toan">Đã thanh toán</option>
@@ -169,12 +156,12 @@
             </select>
           </div>
 
-          <!-- Loc thoi gian (DA FIX HOAT DONG CHUAN) -->
+          <!-- Loc thoi gian -->
           <div class="relative">
             <select
               v-model="filters.quickDate"
               @change="fetchOrders"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 outline-none cursor-pointer appearance-none"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none cursor-pointer appearance-none"
             >
               <option value="">Tất cả thời gian</option>
               <option value="today">Hôm nay</option>
@@ -186,7 +173,7 @@
 
           <button
             @click="resetFilters"
-            class="inline-flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs cursor-pointer"
           >
             Reset bộ lọc
           </button>
@@ -200,70 +187,76 @@
             <tr
               class="bg-slate-50/80 border-b border-slate-100 text-slate-400 uppercase text-[10px] font-extrabold tracking-wider"
             >
-              <th class="py-3.5 px-6">Mã Đơn</th>
-              <th class="py-3.5 px-6">Khách Hàng</th>
-              <th class="py-3.5 px-6">Địa Chỉ Giao Hàng</th>
-              <th class="py-3.5 px-6">Thành Tiền</th>
-              <th class="py-3.5 px-6">Trạng Thái</th>
-              <th class="py-3.5 px-6 text-center">Thao Tác</th>
+              <th class="py-3 px-6">Mã Đơn</th>
+              <th class="py-3 px-6">Khách Hàng</th>
+              <th class="py-3 px-6">Địa Chỉ</th>
+              <th class="py-3 px-6">Tổng Tiền</th>
+              <th class="py-3 px-6">Thanh Toán</th>
+              <th class="py-3 px-6">Trạng Thái</th>
+              <th class="py-3 px-6 text-center">Thao Tác</th>
             </tr>
           </thead>
-
           <tbody class="divide-y divide-slate-100 text-xs">
             <tr v-if="orders.length === 0">
-              <td colspan="6" class="py-16 text-center text-slate-400 font-semibold">
+              <td colspan="7" class="py-16 text-center text-slate-400 font-semibold">
                 Không tìm thấy đơn hàng nào
               </td>
             </tr>
 
             <tr v-for="o in orders" :key="o.id" class="hover:bg-slate-50/80 transition-colors">
-              <td class="py-4 px-6 font-bold text-indigo-600 font-mono">
-                <span
-                  class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700"
-                >
-                  #{{ o.maHoaDon }}
-                </span>
+              <!-- Mã Đơn -->
+              <td class="py-3.5 px-6 font-bold text-indigo-600 font-mono">#{{ o.maHoaDon }}</td>
+
+              <!-- Khách Hàng -->
+              <td class="py-3.5 px-6">
+                <div class="font-bold text-slate-800 text-xs">{{ o.tenNguoiNhan }}</div>
+                <div class="text-[10px] text-slate-400">{{ o.soDienThoaiNguoiNhan }}</div>
               </td>
 
-              <td class="py-4 px-6">
-                <div class="font-bold text-slate-800 text-xs">
-                  {{ o.tenNguoiNhan || 'Khách vãng lai' }}
-                </div>
-                <div class="text-[11px] font-mono text-slate-400 mt-0.5">
-                  {{ o.soDienThoaiNguoiNhan || 'N/A' }}
-                </div>
+              <!-- Địa Chỉ -->
+              <td
+                class="py-3.5 px-6 text-slate-600 max-w-[150px] truncate text-[11px]"
+                :title="o.diaChiGiaoHang"
+              >
+                {{ o.diaChiGiaoHang }}
               </td>
 
-              <td class="py-4 px-6 text-slate-600 max-w-xs truncate" :title="o.diaChiGiaoHang">
-                {{ o.diaChiGiaoHang || '---' }}
-              </td>
-
-              <td class="py-4 px-6 font-black text-slate-900 font-mono text-sm">
+              <!-- Tổng Tiền -->
+              <td class="py-3.5 px-6 font-black text-slate-900 font-mono text-sm">
                 {{ formatMoney(o.tongThanhToan) }}đ
               </td>
 
-              <td class="py-4 px-6">
-                <div class="flex flex-col gap-1.5 items-start">
-                  <span
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border"
-                    :class="statusClass(o.trangThai)"
-                  >
-                    {{ getStatusLabel(o.trangThai) }}
+              <!-- Thanh Toán -->
+              <td class="py-3.5 px-6">
+                <div class="flex flex-col gap-1">
+                  <span class="text-[10px] font-bold text-slate-500 uppercase">
+                    {{ o.phuongThucThanhToan || 'N/A' }}
                   </span>
                   <span
-                    class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold border"
+                    class="inline-flex w-fit items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
                     :class="paymentClass(o.trangThaiThanhToan)"
                   >
+                    <span class="w-1 h-1 rounded-full bg-current"></span>
                     {{ getPaymentLabel(o.trangThaiThanhToan) }}
                   </span>
                 </div>
               </td>
 
-              <td class="py-4 px-6 text-center action-menu-container">
+              <!-- Trạng Thái Đơn -->
+              <td class="py-3.5 px-6">
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border"
+                  :class="statusClass(o.trangThai)"
+                >
+                  {{ getStatusLabel(o.trangThai) }}
+                </span>
+              </td>
+
+              <td class="py-3.5 px-6 text-center action-menu-container">
                 <div class="relative inline-block text-left">
                   <button
                     @click.stop="toggleMenu(o)"
-                    class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                    class="px-3 py-1 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
                   >
                     Thao tác ▾
                   </button>
@@ -337,7 +330,7 @@
 
       <!-- FOOTER PAGINATION -->
       <div
-        class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center"
+        class="px-6 py-3.5 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center"
         v-if="totalPages > 0"
       >
         <p class="text-xs text-slate-500">
@@ -370,7 +363,7 @@
       @reload="fetchOrders"
     />
 
-    <!-- MODAL SP LỖI: TỰ ĐỘNG TÌM KIẾM KHI GÕ (LIVE DEBOUNCE SEARCH) -->
+    <!-- MODAL SP LỖI -->
     <div
       v-if="showDefectiveModal"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
@@ -399,11 +392,10 @@
         </div>
 
         <div class="p-6 space-y-5">
-          <!-- Ô Nhập Liệu Tự Động Load -->
           <div>
             <div class="flex justify-between items-center mb-2">
               <label class="block text-xs font-bold uppercase text-slate-500">
-                1. Nhập Mã SKU hoặc Tên Sản Phẩm bị lỗi
+                1. Nhập Mã Sản Phẩm hoặc Tên Sản Phẩm bị lỗi
               </label>
               <span
                 v-if="loadingDefectiveSearch"
@@ -422,7 +414,6 @@
             </div>
           </div>
 
-          <!-- Kết quả danh sách đơn dính SP lỗi -->
           <div>
             <div class="flex justify-between items-center mb-2">
               <label class="block text-xs font-bold uppercase text-slate-500">
@@ -450,7 +441,7 @@
                 v-if="!defectiveProductQuery.trim()"
                 class="p-8 text-center text-slate-400 text-xs"
               >
-                💡 Hãy nhập Mã SKU hoặc Tên SP lỗi vào ô trên để hệ thống tự động lọc đơn.
+                💡 Hãy nhập Mã SP hoặc Tên SP lỗi vào ô trên để hệ thống tự động lọc đơn.
               </div>
               <div
                 v-else-if="loadingDefectiveSearch"
@@ -494,7 +485,6 @@
             </div>
           </div>
 
-          <!-- Lý do hủy -->
           <div>
             <label class="block text-xs font-bold uppercase text-slate-500 mb-1"
               >3. Lý do hủy đơn gửi khách hàng</label
@@ -586,6 +576,10 @@ import { ref, watch, onMounted } from 'vue'
 import OrderDetailDrawer from './OrderDetailDrawer.vue'
 import { searchHoadonOnline, hoaDonService } from '@/service/HoaDonService'
 import { donHangLoiService } from '@/service/donHangLoiService'
+import { useToast } from 'vue-toastification'
+import { ElMessageBox } from 'element-plus'
+
+const toast = useToast()
 
 const orders = ref([])
 const showDrawer = ref(false)
@@ -641,15 +635,11 @@ const formatMoney = (val) => (val != null ? val.toLocaleString('vi-VN') : '0')
 const getStatusLabel = (st) => statusMap[st] || st || '---'
 const getPaymentLabel = (pm) => (pm === 'da_thanh_toan' ? 'Đã thanh toán' : 'Chưa thanh toán')
 
-// 🟢 FIX 1: TÍNH TOÁN NGÀY BẮT ĐẦU VÀ NGÀY KẾT THÚC CHÍNH XÁC THEO BỘ LỌC
-
-// 🟢 1. HÀM TÍNH TOÁN NGÀY RA CHUỖI YYYY-MM-DD CHUẨN LOCALDATE JAVA
 const calculateDateRange = (quickDateKey) => {
   if (!quickDateKey) return { fromDate: null, toDate: null }
 
   const now = new Date()
 
-  // Format ra dạng YYYY-MM-DD đúng chuẩn LocalDate
   const formatDate = (d) => {
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
@@ -660,17 +650,12 @@ const calculateDateRange = (quickDateKey) => {
   let startDate = new Date(now)
   let endDate = new Date(now)
 
-  if (quickDateKey === 'today') {
-    // Hôm nay: Từ ngày hôm nay -> Đến ngày hôm nay
-  } else if (quickDateKey === 'yesterday') {
-    // Hôm qua: Trừ 1 ngày cho cả từ ngày và đến ngày
+  if (quickDateKey === 'yesterday') {
     startDate.setDate(now.getDate() - 1)
     endDate.setDate(now.getDate() - 1)
   } else if (quickDateKey === '7days') {
-    // 7 ngày gần đây: Trừ 7 ngày -> Hôm nay
     startDate.setDate(now.getDate() - 7)
   } else if (quickDateKey === '30days') {
-    // 30 ngày gần đây: Trừ 30 ngày -> Hôm nay
     startDate.setDate(now.getDate() - 30)
   }
 
@@ -680,19 +665,17 @@ const calculateDateRange = (quickDateKey) => {
   }
 }
 
-// 🟢 2. HÀM FETCH ĐƠN HÀNG TRUYỀN PARAMS KHỚP DTO JAVA
 const fetchOrders = async () => {
   try {
     const dateRange = calculateDateRange(filters.value.quickDate)
 
-    // Khớp 100% key với HoaDonFilterRequest.java
     const params = {
       loaiHoaDon: 'online',
       keyword: filters.value.keyword || null,
       trangThai: filters.value.trangThai || null,
       trangThaiThanhToan: filters.value.thanhToan || null,
-      fromDate: dateRange.fromDate, // Tên key khớp với Java
-      toDate: dateRange.toDate, // Tên key khớp với Java
+      fromDate: dateRange.fromDate,
+      toDate: dateRange.toDate,
     }
 
     const res = await searchHoadonOnline(params, page.value, size.value)
@@ -717,13 +700,6 @@ const fetchOrders = async () => {
   }
 }
 
-// 🟢 3. SỰ KIỆN KHI ĐỔI MỤC LỌC THỜI GIAN
-const onDateFilterChange = () => {
-  page.value = 0 // Bắt buộc về trang 0
-  fetchOrders()
-}
-
-// 🟢 FIX 2: DEBOUNCE TỰ ĐỘNG TÌM ĐƠN KHI BẠN GÕ MÃ/TÊN SP LỖI
 watch(defectiveProductQuery, (newVal) => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
 
@@ -739,7 +715,6 @@ watch(defectiveProductQuery, (newVal) => {
     try {
       const res = await donHangLoiService.timKiemDonHang(newVal.trim(), 0, 100)
       const list = res?.content || []
-      // Chỉ lấy các đơn có thể hủy (Chờ xác nhận, Đã xác nhận, Chờ vận chuyển)
       const cancelableStatuses = ['cho_xac_nhan', 'da_xac_nhan', 'cho_van_chuyen']
       affectedOrders.value = list.filter((o) =>
         cancelableStatuses.includes(o.trangThai?.toLowerCase()),
@@ -750,7 +725,7 @@ watch(defectiveProductQuery, (newVal) => {
     } finally {
       loadingDefectiveSearch.value = false
     }
-  }, 400) // Tự động load sau 400ms dừng gõ
+  }, 400)
 })
 
 const openDefectiveModal = () => {
@@ -778,25 +753,37 @@ const toggleSelectAllAffected = () => {
 }
 
 const executeBulkCancel = async () => {
-  if (selectedAffectedIds.value.length === 0) return
-  if (
-    confirm(`Bạn có chắc muốn hủy ${selectedAffectedIds.value.length} đơn hàng dính SP lỗi này?`)
-  ) {
-    try {
-      const res = await donHangLoiService.huyHangLoatLoi(
-        selectedAffectedIds.value,
-        cancelReasonBulk.value,
-      )
-      alert(res.message || 'Đã hủy thành công các đơn hàng chọn!')
-      showDefectiveModal.value = false
-      fetchOrders()
-    } catch (err) {
-      alert('Có lỗi xảy ra khi thực hiện hủy hàng loạt!')
+  if (selectedAffectedIds.value.length === 0) {
+    toast.warning('Vui lòng chọn đơn hàng!')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `Bạn có chắc muốn hủy ${selectedAffectedIds.value.length} đơn hàng dính SP lỗi này?`,
+      'Xác nhận',
+      {
+        confirmButtonText: 'Hủy',
+        cancelButtonText: 'Đóng',
+        type: 'warning',
+      },
+    )
+
+    const res = await donHangLoiService.huyHangLoatLoi(
+      selectedAffectedIds.value,
+      cancelReasonBulk.value,
+    )
+
+    toast.success(res.message || 'Đã hủy thành công các đơn hàng chọn!')
+    showDefectiveModal.value = false
+    fetchOrders()
+  } catch (err) {
+    if (err !== 'cancel' && err !== 'close') {
+      toast.error('Có lỗi xảy ra khi thực hiện hủy hàng loạt!')
     }
   }
 }
 
-// HỦY ĐƠN LẺ
 const openCancelSingleModal = (order) => {
   targetCancelOrder.value = order
   cancelReasonSingle.value = presetReasons[0]
@@ -806,13 +793,15 @@ const openCancelSingleModal = (order) => {
 
 const confirmSingleCancel = async () => {
   if (!targetCancelOrder.value) return
+
   try {
     await donHangLoiService.huyDonLoiLe(targetCancelOrder.value.id, cancelReasonSingle.value)
-    alert('Hủy đơn thành công!')
+
+    toast.success('Hủy đơn thành công!')
     showSingleCancelModal.value = false
     fetchOrders()
   } catch (err) {
-    alert('Không thể hủy đơn!')
+    toast.error(err.response?.data?.message || 'Không thể hủy đơn!')
   }
 }
 

@@ -1,11 +1,9 @@
 <template>
-  <div class="payment-page min-h-screen bg-slate-50 text-slate-900">
+  <div class="payment-page min-h-screen bg-[#f7f4ee] text-slate-900">
     <div class="pointer-events-none fixed inset-0 overflow-hidden">
-      <div class="absolute -left-24 top-20 h-80 w-80 rounded-full bg-indigo-200/40 blur-3xl"></div>
-      <div class="absolute -right-24 top-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl"></div>
-      <div
-        class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-100/50 blur-3xl"
-      ></div>
+      <div class="absolute -left-24 top-20 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl"></div>
+      <div class="absolute -right-24 top-0 h-96 w-96 rounded-full bg-amber-200/30 blur-3xl"></div>
+      <div class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-rose-100/30 blur-3xl"></div>
     </div>
 
     <div class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
@@ -13,11 +11,11 @@
       <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <button
           type="button"
-          class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-indigo-700"
+          class="group inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-rose-900"
           @click="router.push('/san-pham')"
         >
           <span
-            class="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white shadow-sm transition group-hover:border-indigo-200 group-hover:bg-indigo-50"
+            class="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white shadow-sm transition group-hover:border-amber-200 group-hover:bg-amber-50"
           >
             <ArrowLeft :size="17" />
           </span>
@@ -26,7 +24,7 @@
 
         <RouterLink
           to="/tra-cuu-don-hang"
-          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-amber-200 hover:text-rose-900"
         >
           <Search :size="16" />
           Tra cứu đơn hàng
@@ -35,19 +33,19 @@
 
       <!-- HERO -->
       <section
-        class="relative overflow-hidden rounded-[28px] border border-white/70 bg-slate-950 px-6 py-7 text-white shadow-2xl shadow-slate-300/60 sm:px-8 lg:px-10 lg:py-9"
+        class="relative overflow-hidden rounded-[28px] border border-white/70 bg-[#201914] px-6 py-7 text-white shadow-2xl shadow-slate-300/60 sm:px-8 lg:px-10 lg:py-9"
       >
         <div
-          class="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-indigo-500/30 blur-2xl"
+          class="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-500/30 blur-2xl"
         ></div>
         <div
-          class="absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-cyan-400/20 blur-2xl"
+          class="absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-amber-400/20 blur-2xl"
         ></div>
 
         <div class="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <div
-              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-indigo-100"
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-amber-100"
             >
               <Lock :size="14" />
               Thanh toán an toàn
@@ -112,11 +110,9 @@
         </div>
 
         <div
-          class="flex items-center justify-center gap-2 rounded-xl bg-indigo-50 px-2 py-3 text-xs font-bold text-indigo-700 sm:text-sm"
+          class="flex items-center justify-center gap-2 rounded-xl bg-amber-50 px-2 py-3 text-xs font-bold text-rose-900 sm:text-sm"
         >
-          <span class="grid h-6 w-6 place-items-center rounded-full bg-indigo-600 text-white"
-            >2</span
-          >
+          <span class="grid h-6 w-6 place-items-center rounded-full bg-rose-800 text-white">2</span>
           Thanh toán
         </div>
 
@@ -152,7 +148,7 @@
         <p class="mt-2 text-slate-500">{{ loadError }}</p>
         <button
           type="button"
-          class="mt-6 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white transition hover:bg-indigo-700"
+          class="mt-6 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white transition hover:bg-rose-900"
           @click="router.push('/san-pham')"
         >
           Quay lại cửa hàng
@@ -171,7 +167,7 @@
           >
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Bước 1</p>
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-rose-800">Bước 1</p>
                 <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-900">
                   Chọn phương thức thanh toán
                 </h2>
@@ -180,7 +176,7 @@
                 </p>
               </div>
               <div
-                class="hidden h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-600 sm:grid"
+                class="hidden h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-rose-800 sm:grid"
               >
                 <CreditCard :size="24" />
               </div>
@@ -194,8 +190,8 @@
                 class="payment-option group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
                 :class="
                   paymentMethod === 'COD'
-                    ? 'border-indigo-600 bg-indigo-50/70 shadow-lg shadow-indigo-100'
-                    : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'
+                    ? 'border-rose-800 bg-amber-50/70 shadow-lg shadow-indigo-100'
+                    : 'border-slate-200 bg-white hover:border-amber-200 hover:bg-[#f7f4ee]'
                 "
                 @click="paymentMethod = 'COD'"
               >
@@ -220,8 +216,8 @@
                 class="payment-option group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
                 :class="
                   paymentMethod === 'BANK'
-                    ? 'border-indigo-600 bg-indigo-50/70 shadow-lg shadow-indigo-100'
-                    : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'
+                    ? 'border-rose-800 bg-amber-50/70 shadow-lg shadow-indigo-100'
+                    : 'border-slate-200 bg-white hover:border-amber-200 hover:bg-[#f7f4ee]'
                 "
                 @click="paymentMethod = 'BANK'"
               >
@@ -239,15 +235,15 @@
                 </div>
               </button>
 
-              <!-- Nút VNPAY -->
+              <!-- VNPAY -->
               <button
                 type="button"
                 :disabled="orderCancelled"
                 class="payment-option group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
                 :class="
                   paymentMethod === 'VNPAY'
-                    ? 'border-indigo-600 bg-indigo-50/70 shadow-lg shadow-indigo-100'
-                    : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'
+                    ? 'border-rose-800 bg-amber-50/70 shadow-lg shadow-indigo-100'
+                    : 'border-slate-200 bg-white hover:border-amber-200 hover:bg-[#f7f4ee]'
                 "
                 @click="paymentMethod = 'VNPAY'"
               >
@@ -268,7 +264,7 @@
 
             <div
               v-if="qrStarted && !qrExpired"
-              class="mt-4 flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-800"
+              class="mt-4 flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-indigo-800"
             >
               <Lock :size="18" class="mt-0.5 shrink-0" />
               <p>
@@ -281,16 +277,15 @@
           <Transition name="slide-fade">
             <section
               v-if="paymentMethod === 'BANK'"
-              class="rounded-[28px] border border-indigo-100 bg-white p-5 shadow-xl shadow-indigo-100/50 sm:p-7"
+              class="rounded-[28px] border border-amber-100 bg-white p-5 shadow-xl shadow-indigo-100/50 sm:p-7"
             >
               <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">
-                    Bước 2
-                  </p>
+                  <p class="text-xs font-black uppercase tracking-[0.16em] text-rose-800">Bước 2</p>
                   <h2 class="mt-1 text-2xl font-black tracking-tight">Thanh toán bằng VietQR</h2>
                   <p class="mt-2 text-sm text-slate-500">
-                    Mã QR có thời hạn theo thời gian giữ đơn của hệ thống.
+                    Mã QR có thời hạn theo thời gian giữ đơn của hệ thống. (Đang giả lập tự động
+                    thanh toán sau 10s)
                   </p>
                 </div>
 
@@ -305,18 +300,18 @@
               <!-- CREATE QR -->
               <div
                 v-if="!qrStarted && !qrExpired"
-                class="mt-7 overflow-hidden rounded-[26px] border border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-6 sm:p-8"
+                class="mt-7 overflow-hidden rounded-[26px] border border-dashed border-amber-200 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-6 sm:p-8"
               >
                 <div class="mx-auto max-w-xl text-center">
                   <span
-                    class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                    class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-rose-800 text-white shadow-lg shadow-rose-200"
                   >
                     <QrCode :size="31" />
                   </span>
                   <h3 class="mt-5 text-2xl font-black text-slate-900">Tạo mã QR thanh toán</h3>
                   <p class="mt-2 text-sm leading-6 text-slate-500">
-                    Sau khi tạo, đồng hồ đếm ngược sẽ hiển thị. Hết thời gian, đơn chưa xác nhận sẽ
-                    tự động bị hủy và hoàn lại tồn kho.
+                    Sau khi tạo, đồng hồ đếm ngược sẽ hiển thị. Hệ thống sẽ tự động giả lập thanh
+                    toán thành công sau 10 giây.
                   </p>
 
                   <div
@@ -329,7 +324,7 @@
                   <button
                     type="button"
                     :disabled="!qrUrl || orderCancelled"
-                    class="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-7 py-3.5 font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
+                    class="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 px-7 py-3.5 font-black text-white shadow-lg shadow-rose-200 transition hover:-translate-y-0.5 hover:bg-rose-900 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
                     @click="createQr"
                   >
                     <QrCode :size="20" />
@@ -354,7 +349,7 @@
                 </p>
                 <button
                   type="button"
-                  class="mt-5 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white transition hover:bg-indigo-700"
+                  class="mt-5 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white transition hover:bg-rose-900"
                   @click="router.push('/san-pham')"
                 >
                   Quay lại mua sắm
@@ -374,10 +369,10 @@
                     </span>
                     <div>
                       <p class="text-xs font-black uppercase tracking-[0.15em] text-red-500">
-                        Thời gian còn lại
+                        Đang chờ thanh toán tự động (10s)
                       </p>
                       <p class="mt-1 text-sm text-slate-600">
-                        Xác nhận chuyển khoản trước khi đồng hồ về 00:00.
+                        Hệ thống đang giả lập quét mã thành công...
                       </p>
                     </div>
                   </div>
@@ -408,17 +403,17 @@
                   </div>
 
                   <div class="space-y-4">
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="rounded-2xl border border-slate-200 bg-[#f7f4ee] p-4">
                       <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Nội dung chuyển khoản
                       </p>
                       <div class="mt-2 flex items-center justify-between gap-3">
-                        <span class="break-all text-xl font-black text-indigo-700">{{
+                        <span class="break-all text-xl font-black text-rose-900">{{
                           orderCode
                         }}</span>
                         <button
                           type="button"
-                          class="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-indigo-200 hover:text-indigo-700"
+                          class="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-amber-200 hover:text-rose-900"
                           title="Sao chép nội dung"
                           @click="copyOrderCode"
                         >
@@ -450,8 +445,8 @@
                           hàng.
                         </li>
                         <li class="flex gap-2">
-                          <Check :size="16" class="mt-1 shrink-0" /> Sau khi chuyển xong, bấm xác
-                          nhận đã chuyển khoản.
+                          <Check :size="16" class="mt-1 shrink-0" /> Hệ thống sẽ tự động xác nhận
+                          sau 10 giây (Giả lập).
                         </li>
                       </ul>
                     </div>
@@ -467,14 +462,10 @@
           >
             <div class="flex items-center justify-between gap-4">
               <div>
-                <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">
-                  Đơn hàng
-                </p>
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-rose-800">Đơn hàng</p>
                 <h2 class="mt-1 text-2xl font-black tracking-tight">Sản phẩm đã chọn</h2>
               </div>
-              <span
-                class="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-black text-indigo-700"
-              >
+              <span class="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-rose-900">
                 {{ orderItems.length }} sản phẩm
               </span>
             </div>
@@ -487,7 +478,7 @@
               >
                 <!-- Ảnh sản phẩm -->
                 <div
-                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-inner"
+                  class="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-[#f7f4ee] shadow-inner"
                 >
                   <img
                     :src="
@@ -614,7 +605,7 @@
               <div class="border-t border-dashed border-slate-200 pt-4">
                 <div class="flex items-end justify-between gap-4">
                   <span class="font-black text-slate-900">Tổng thanh toán</span>
-                  <span class="text-right text-2xl font-black text-indigo-700">
+                  <span class="text-right text-2xl font-black text-rose-900">
                     {{ formatMoney(orderInfo.tongThanhToan) }}
                   </span>
                 </div>
@@ -622,11 +613,11 @@
               </div>
             </div>
 
-            <div class="border-t border-slate-100 bg-slate-50/80 p-5">
+            <div class="border-t border-slate-100 bg-[#f7f4ee]/80 p-5">
               <button
                 type="button"
                 :disabled="payDisabled"
-                class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-4 text-base font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                class="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-800 px-5 py-4 text-base font-black text-white shadow-lg shadow-rose-200 transition hover:-translate-y-0.5 hover:bg-rose-900 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 @click="pay"
               >
                 <LoaderCircle v-if="isPaying" :size="20" class="animate-spin" />
@@ -673,7 +664,7 @@
 
           <RouterLink
             to="/donhang"
-            class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700"
+            class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 text-slate-700 shadow-sm transition hover:border-amber-200 hover:text-rose-900"
           >
             <span class="flex items-center gap-3 font-bold">
               <ShoppingBag :size="20" />
@@ -738,6 +729,7 @@ const qrStarted = ref(false)
 const qrExpired = ref(false)
 const remainingSeconds = ref(QR_VALIDITY_SECONDS)
 let countdownTimer = null
+let simulatedPaymentTimer = null // Timer giả lập thanh toán sau 10s
 
 const qrStorageKey = computed(() => `payment-qr-started-${orderId || 'unknown'}`)
 const orderCode = computed(() => orderInfo.value?.maHoaDon || route.query.maHoaDon || '')
@@ -784,11 +776,19 @@ const expirationTimestamp = computed(() => {
 
 const formatMoney = (money) => Number(money || 0).toLocaleString('vi-VN') + ' đ'
 
+const clearSimulatedPayment = () => {
+  if (simulatedPaymentTimer) {
+    window.clearTimeout(simulatedPaymentTimer)
+    simulatedPaymentTimer = null
+  }
+}
+
 const clearCountdown = () => {
   if (countdownTimer) {
     window.clearInterval(countdownTimer)
     countdownTimer = null
   }
+  clearSimulatedPayment()
 }
 
 const clearQrSession = () => {
@@ -824,7 +824,6 @@ const expireOrder = async () => {
   try {
     await huyHoaDonOnline(Number(orderId))
   } catch (error) {
-    // Scheduler phía backend có thể đã hủy trước đúng thời điểm này.
     console.warn('Đơn có thể đã được hệ thống hủy trước:', error)
   } finally {
     if (orderInfo.value) {
@@ -862,6 +861,17 @@ const startCountdown = () => {
   countdownTimer = window.setInterval(syncCountdown, 1000)
 }
 
+// Bắt đầu đếm ngược 10 giây để giả lập tự động thanh toán thành công
+const startSimulatedPayment = () => {
+  clearSimulatedPayment()
+  simulatedPaymentTimer = window.setTimeout(async () => {
+    if (qrStarted.value && !orderCancelled.value && paymentMethod.value === 'BANK') {
+      toast.info('Đang giả lập thanh toán tự động thành công sau 10 giây...')
+      await pay()
+    }
+  }, 10000) // 10000ms = 10 giây
+}
+
 const createQr = () => {
   if (!qrUrl) {
     toast.error('Không tạo được mã QR cho đơn hàng này')
@@ -877,6 +887,7 @@ const createQr = () => {
   qrStarted.value = true
   sessionStorage.setItem(qrStorageKey.value, 'true')
   startCountdown()
+  startSimulatedPayment() // Kích hoạt giả lập 10s khi tạo QR
 }
 
 const loadOrder = async () => {
@@ -911,6 +922,7 @@ const loadOrder = async () => {
     paymentMethod.value = 'BANK'
     qrStarted.value = true
     startCountdown()
+    startSimulatedPayment() // Kích hoạt lại giả lập nếu refresh trang khi đang mở QR
   }
 }
 
@@ -927,6 +939,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(clearCountdown)
+
 const pay = async () => {
   if (payDisabled.value) return
 
@@ -950,21 +963,17 @@ const pay = async () => {
     console.log('=== DỮ LIỆU GỬI LÊN BACKEND ===', body)
     const res = await thanhToan(body)
 
-    // Nếu là VNPay và Backend trả về link thanh toán (paymentUrl)
     if (res && res.paymentUrl && paymentMethod.value === 'VNPAY') {
       clearQrSession()
       sessionStorage.removeItem('checkoutData')
       toast.success('Đang chuyển hướng đến cổng thanh toán VNPay...')
-
-      // Chuyển hướng trình duyệt sang cổng thanh toán VNPay
       window.location.href = res.paymentUrl
       return
     }
 
-    // Trường hợp COD hoặc BANK
     clearQrSession()
     sessionStorage.removeItem('checkoutData')
-    toast.success(res.message || 'Đã ghi nhận phương thức thanh toán')
+    toast.success(res.message || 'Đã ghi nhận phương thức thanh toán thành công!')
     router.push('/san-pham')
   } catch (error) {
     console.error(error)
@@ -973,6 +982,7 @@ const pay = async () => {
     isPaying.value = false
   }
 }
+
 const handleCancel = async () => {
   if (isPaying.value || isCancelling.value || isExpiring.value || orderCancelled.value) return
 

@@ -1,21 +1,29 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import ThemSanPhamGiamGiaModal from '@/views/Admin/Layout/sales/ThemSanPhamGiamGiaModal.vue'
 import { useRouter } from 'vue-router'
-import { getAllDotGiamGia, getSanPhamChuaApDung } from '@/service/DotGiamGiaService'
-import { createDotGiamGia } from '@/service/DotGiamGiaService'
+import { useToast } from 'vue-toastification'
+import ThemSanPhamGiamGiaModal from '@/views/Admin/Layout/sales/ThemSanPhamGiamGiaModal.vue'
 import ThemDotGiamGiaModal from '@/views/Admin/Layout/sales/ThemDotGiamGiaModal.vue'
-import { updateDotGiamGia } from '@/service/DotGiamGiaService'
-import { deleteDotGiamGia } from '@/service/DotGiamGiaService'
-import { doiTrangThaiDotGiamGia } from '@/service/DotGiamGiaService'
 import QuanLySanPhamGiamGia from '@/views/Admin/Layout/sales/QuanLySanPhamTrongDot.vue'
+import {
+  getAllDotGiamGia,
+  getSanPhamChuaApDung,
+  createDotGiamGia,
+  updateDotGiamGia,
+  deleteDotGiamGia,
+  doiTrangThaiDotGiamGia,
+} from '@/service/DotGiamGiaService'
+
+const toast = useToast()
+const router = useRouter()
+
 const showModal = ref(false)
 const firstLoading = ref(true)
 const fromDate = ref('')
 const toDate = ref('')
+
 const filteredData = computed(() => {
   return danhSachDot.value.filter((dot) => {
-    // tìm kiếm
     const keyword = search.value.trim().toLowerCase()
 
     const matchKeyword =
@@ -23,10 +31,8 @@ const filteredData = computed(() => {
       dot.tenDotGiamGia?.toLowerCase().includes(keyword) ||
       dot.maDotGiamGia?.toLowerCase().includes(keyword)
 
-    // trạng thái
     const matchStatus = filterStatus.value === 'all' || dot.trangThai === filterStatus.value
 
-    // ngày bắt đầu
     let matchDate = true
 
     if (fromDate.value && toDate.value) {
@@ -37,7 +43,6 @@ const filteredData = computed(() => {
       const dotStart = new Date(dot.ngayBatDau)
       const dotEnd = new Date(dot.ngayKetThuc)
 
-      // Hai khoảng thời gian có giao nhau
       matchDate = dotStart <= filterEnd && dotEnd >= filterStart
     }
 
@@ -45,26 +50,33 @@ const filteredData = computed(() => {
   })
 })
 
-// Cập nhật hàm refresh
 const resetFilter = () => {
   search.value = ''
   filterStatus.value = 'all'
   fromDate.value = ''
   toDate.value = ''
 }
+
 const showEditModal = ref(false)
-
 const dotEdit = ref(null)
-
 const isEdit = ref(false)
-
 const form = ref({})
-
 const showAddModal = ref(false)
+
+// Confirm Modal State
+const confirmModal = ref({
+  show: false,
+  icon: '✕',
+  label: 'Xác nhận xóa',
+  title: 'Xóa đợt giảm giá?',
+  message: '',
+  code: '',
+  confirmText: 'Xóa đợt giảm',
+  payload: null,
+})
 
 const openCreate = () => {
   isEdit.value = false
-
   form.value = {
     tenDotGiamGia: '',
     loaiGiamGia: 'phan_tram',
@@ -73,64 +85,68 @@ const openCreate = () => {
     ngayBatDau: '',
     ngayKetThuc: '',
   }
-
   showModal.value = true
 }
+
 const suaDotGiamGia = (dot) => {
   dotEdit.value = dot
-
   showEditModal.value = true
 }
+
 const capNhatDotGiamGia = async (payload) => {
   try {
     await updateDotGiamGia(dotEdit.value.id, payload)
-
+    toast.success('Cập nhật đợt giảm giá thành công!')
     showEditModal.value = false
-
     await loadData()
   } catch (e) {
-    console.log(e)
+    toast.error(e.message || 'Cập nhật đợt giảm giá thất bại')
   }
 }
 
-const xoaDot = async (dot) => {
-  const ok = confirm(`Bạn có chắc muốn xóa ${dot.tenDotGiamGia}?`)
+const openDeleteConfirm = (dot) => {
+  confirmModal.value = {
+    show: true,
+    icon: '✕',
+    label: 'Xác nhận xóa',
+    title: 'Xóa đợt giảm giá?',
+    message: `Bạn có chắc chắn muốn xóa đợt giảm giá "${dot.tenDotGiamGia}" không?`,
+    code: dot.maDotGiamGia || '',
+    confirmText: 'Xóa đợt giảm',
+    payload: dot,
+  }
+}
 
-  if (!ok) return
+const closeConfirmModal = () => {
+  confirmModal.value.show = false
+}
+
+const handleConfirmAction = async () => {
+  const { payload } = confirmModal.value
+  closeConfirmModal()
+  if (!payload) return
 
   try {
-    await deleteDotGiamGia(dot.id)
+    const res = await deleteDotGiamGia(payload.id)
 
+    toast.success(res.message || 'Xóa đợt giảm giá thành công!')
     await loadData()
   } catch (e) {
-    console.log(e)
+    toast.error(e.message || 'Xóa đợt giảm giá thất bại')
   }
 }
 
-// =======================
 // DATA
-// =======================
-
 const loading = ref(false)
-
 const danhSachDot = ref([])
-
 const danhSachSanPham = ref([])
-
 const search = ref('')
-
 const filterStatus = ref('all')
-
 const showProductModal = ref(false)
-
 const dotSelected = ref(null)
 
-// =======================
 // PANEL QUẢN LÝ SẢN PHẨM
-// =======================
-
 const selectedDot = ref(null)
-
 const showProductManager = ref(false)
 
 const quanLySanPham = (dot) => {
@@ -153,41 +169,37 @@ const quanLySanPham = (dot) => {
 
 const themDotGiamGia = async (payload) => {
   try {
-    console.log(payload)
     await createDotGiamGia(payload)
-
+    toast.success('Thêm đợt giảm giá thành công!')
     showAddModal.value = false
-
     await loadData()
   } catch (e) {
-    console.log(e)
+    toast.error(e.message || 'Thêm đợt giảm giá thất bại')
   }
 }
-// =======================
-// LOAD DATA
-// =======================
 
+// LOAD DATA
 const loadData = async () => {
   try {
     if (firstLoading.value) {
       loading.value = true
     }
-
     danhSachDot.value = await getAllDotGiamGia()
+  } catch (e) {
+    toast.error('Không thể tải danh sách đợt giảm giá')
   } finally {
     loading.value = false
     firstLoading.value = false
   }
 }
+
 const doiTrangThai = async (dot) => {
   try {
     await doiTrangThaiDotGiamGia(dot.id)
-
+    toast.success('Thay đổi trạng thái đợt giảm giá thành công!')
     await loadData()
   } catch (e) {
-    console.log(e)
-
-    alert(e.message || 'Không thể đổi trạng thái')
+    toast.error(e.message || 'Không thể đổi trạng thái')
   }
 }
 
@@ -195,13 +207,9 @@ onMounted(() => {
   loadData()
 })
 
-// =======================
 // FORMAT
-// =======================
-
 const formatDate = (date) => {
   if (!date) return '--'
-
   return new Date(date).toLocaleDateString('vi-VN')
 }
 
@@ -213,18 +221,13 @@ const formatDiscount = (dot) => {
   if (dot.loaiGiamGia === 'phan_tram') {
     return `${dot.giaTriGiam}%`
   }
-
   if (dot.loaiGiamGia === 'tien_mat') {
     return `${money(dot.giaTriGiam)} đ`
   }
-
   return ''
 }
 
-// =======================
 // STATUS
-// =======================
-
 const formatStatus = (status) => {
   const map = {
     dang_dien_ra: 'Đang diễn ra',
@@ -232,68 +235,48 @@ const formatStatus = (status) => {
     tam_dung: 'Tạm dừng',
     da_ket_thuc: 'Đã kết thúc',
   }
-
   return map[status] || status
 }
 
 const statusStyle = (status) => {
   const map = {
     dang_dien_ra: 'bg-green-100 text-green-700 border border-green-200',
-
     sap_dien_ra: 'bg-amber-100 text-amber-700 border border-amber-200',
-
     tam_dung: 'bg-red-100 text-red-700 border border-red-200',
-
     da_ket_thuc: 'bg-slate-100 text-slate-600 border border-slate-200',
   }
-
   return map[status]
 }
 
-// =======================
 // THỐNG KÊ
-// =======================
-
 const tongDangDienRa = computed(
   () => danhSachDot.value.filter((x) => x.trangThai === 'dang_dien_ra').length,
 )
-
 const tongSapDienRa = computed(
   () => danhSachDot.value.filter((x) => x.trangThai === 'sap_dien_ra').length,
 )
-
 const tongTamDung = computed(
   () => danhSachDot.value.filter((x) => x.trangThai === 'tam_dung').length,
 )
-
 const tongKetThuc = computed(
   () => danhSachDot.value.filter((x) => x.trangThai === 'da_ket_thuc').length,
 )
 
-// =======================
-// FILTER
-// =======================
-
-// =======================
 // ACTION
-// =======================
-
 const openProduct = async (dot) => {
   try {
     loading.value = true
-
     dotSelected.value = dot.id
-
     danhSachSanPham.value = await getSanPhamChuaApDung(dot.id)
-
     showProductModal.value = true
   } catch (e) {
-    console.log(e)
+    toast.error(e.message || 'Không thể tải danh sách sản phẩm')
   } finally {
     loading.value = false
   }
 }
 </script>
+
 <template>
   <div class="min-h-screen bg-slate-100 p-4 md:p-6 text-slate-800">
     <div class="max-w-[1700px] mx-auto space-y-6">
@@ -326,7 +309,6 @@ const openProduct = async (dot) => {
 
       <!-- STATISTICS -->
       <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <!-- Card 1 -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
             <div>
@@ -339,7 +321,6 @@ const openProduct = async (dot) => {
           </div>
         </div>
 
-        <!-- Card 2 -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
             <div>
@@ -352,7 +333,6 @@ const openProduct = async (dot) => {
           </div>
         </div>
 
-        <!-- Card 3 -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
             <div>
@@ -365,7 +345,6 @@ const openProduct = async (dot) => {
           </div>
         </div>
 
-        <!-- Card 4 -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
             <div>
@@ -378,7 +357,6 @@ const openProduct = async (dot) => {
           </div>
         </div>
 
-        <!-- Card 5 -->
         <div
           class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm col-span-2 md:col-span-1"
         >
@@ -504,7 +482,7 @@ const openProduct = async (dot) => {
         </div>
       </div>
 
-      <!-- TABLE QUẢN LÝ DỮ LIỆU CHUYÊN NGHIỆP -->
+      <!-- TABLE -->
       <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div
           class="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50/50"
@@ -538,12 +516,10 @@ const openProduct = async (dot) => {
                 :key="dot.id"
                 class="hover:bg-slate-50 transition-colors"
               >
-                <!-- STT -->
                 <td class="px-4 py-3.5 text-center font-mono text-slate-400">
                   {{ index + 1 }}
                 </td>
 
-                <!-- Mã & Tên đợt giảm giá -->
                 <td class="px-4 py-3.5">
                   <div class="space-y-0.5">
                     <span
@@ -557,7 +533,6 @@ const openProduct = async (dot) => {
                   </div>
                 </td>
 
-                <!-- Loại giảm -->
                 <td class="px-4 py-3.5 text-center">
                   <span
                     v-if="dot.loaiGiamGia === 'phan_tram'"
@@ -573,14 +548,13 @@ const openProduct = async (dot) => {
                   </span>
                 </td>
 
-                <!-- Mức giảm -->
                 <td class="px-4 py-3.5 text-center">
                   <span class="font-bold text-slate-900 text-sm">
                     {{ formatDiscount(dot) }}
                   </span>
                 </td>
 
-                <!-- Giảm tối đa -->
+                <!-- Giảm tối đa định dạng abc.def (ví dụ: 100.000 đ) -->
                 <td class="px-4 py-3.5 text-center">
                   <span v-if="dot.giaTriGiamToiDa" class="font-medium text-slate-700">
                     {{ money(dot.giaTriGiamToiDa) }} đ
@@ -588,17 +562,14 @@ const openProduct = async (dot) => {
                   <span v-else class="text-slate-400 italic">Không giới hạn</span>
                 </td>
 
-                <!-- Ngày bắt đầu -->
                 <td class="px-4 py-3.5 text-center font-medium text-slate-700 whitespace-nowrap">
                   {{ formatDate(dot.ngayBatDau) }}
                 </td>
 
-                <!-- Ngày kết thúc -->
                 <td class="px-4 py-3.5 text-center font-medium text-slate-700 whitespace-nowrap">
                   {{ formatDate(dot.ngayKetThuc) }}
                 </td>
 
-                <!-- Trạng thái -->
                 <td class="px-4 py-3.5 text-center">
                   <span
                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border"
@@ -609,9 +580,9 @@ const openProduct = async (dot) => {
                   </span>
                 </td>
 
-                <!-- Hành động (Dạng Text Buttons gọn gàng, rõ nghĩa) -->
                 <td class="px-4 py-3.5 text-center">
                   <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                    <!-- Quản lý sản phẩm -->
                     <button
                       @click="quanLySanPham(dot)"
                       class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-700 font-medium transition text-[11px]"
@@ -619,6 +590,7 @@ const openProduct = async (dot) => {
                       Sản phẩm
                     </button>
 
+                    <!-- Sửa -->
                     <button
                       v-if="
                         dot.trangThai === 'sap_dien_ra' ||
@@ -631,14 +603,16 @@ const openProduct = async (dot) => {
                       Sửa
                     </button>
 
+                    <!-- Xóa -->
                     <button
                       v-if="dot.trangThai === 'sap_dien_ra' && dot.tongSanPham === 0"
-                      @click="xoaDot(dot)"
+                      @click="openDeleteConfirm(dot)"
                       class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-700 font-medium transition border border-red-200 text-[11px]"
                     >
                       Xóa
                     </button>
 
+                    <!-- Tạm dừng -->
                     <button
                       v-if="dot.trangThai === 'dang_dien_ra'"
                       @click="doiTrangThai(dot)"
@@ -647,6 +621,7 @@ const openProduct = async (dot) => {
                       Tạm dừng
                     </button>
 
+                    <!-- Tiếp tục -->
                     <button
                       v-if="dot.trangThai === 'tam_dung'"
                       @click="doiTrangThai(dot)"
@@ -658,7 +633,6 @@ const openProduct = async (dot) => {
                 </td>
               </tr>
 
-              <!-- Empty State -->
               <tr v-if="filteredData.length === 0">
                 <td colspan="9" class="py-12 text-center text-slate-400">
                   <div class="text-3xl mb-1">📭</div>
@@ -707,6 +681,61 @@ const openProduct = async (dot) => {
         </Transition>
       </Teleport>
 
+      <!-- CONFIRM MODAL -->
+      <Teleport to="body">
+        <div
+          v-if="confirmModal.show"
+          class="fixed inset-0 z-[999] flex items-center justify-center p-4"
+        >
+          <div
+            class="absolute inset-0 bg-black/30 backdrop-blur-xs"
+            @click="closeConfirmModal"
+          ></div>
+          <div
+            class="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-sm p-6 z-10 animate-scale-up text-center relative overflow-hidden"
+          >
+            <div
+              class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-black text-lg shadow-sm bg-rose-500 shadow-rose-500/10"
+            >
+              {{ confirmModal.icon }}
+            </div>
+            <span
+              class="inline-block px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-200 rounded-lg text-[10px] uppercase font-bold tracking-wider mb-2"
+            >
+              {{ confirmModal.label }}
+            </span>
+            <h3 class="text-sm font-bold text-slate-800 mb-1.5 uppercase tracking-tight">
+              {{ confirmModal.title }}
+            </h3>
+            <p class="text-[11px] text-slate-500 px-2 mb-4">
+              {{ confirmModal.message }}
+            </p>
+
+            <div
+              v-if="confirmModal.code"
+              class="inline-block px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs font-bold text-slate-700 uppercase tracking-wide mb-6"
+            >
+              {{ confirmModal.code }}
+            </div>
+
+            <div class="flex gap-2">
+              <button
+                @click="closeConfirmModal"
+                class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-bold transition-all"
+              >
+                HỦY BỎ
+              </button>
+              <button
+                @click="handleConfirmAction"
+                class="flex-1 py-2.5 text-white rounded-2xl text-xs font-bold transition-all shadow-md bg-rose-600 hover:bg-rose-700 shadow-rose-600/10"
+              >
+                {{ confirmModal.confirmText }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <ThemSanPhamGiamGiaModal
         :show="showProductModal"
         :idDot="dotSelected"
@@ -732,3 +761,19 @@ const openProduct = async (dot) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-up {
+  animation: scaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+</style>

@@ -1,5 +1,6 @@
 package com.example.backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -40,6 +41,7 @@ public class PhanThuongMinigame {
     @Column(name = "gia_tri_xu")
     private Integer giaTriXu = 0;
 
+    @JsonProperty("id_voucher")
     @Column(name = "id_voucher")
     private Integer idVoucher;
 

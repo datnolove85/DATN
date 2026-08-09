@@ -298,8 +298,20 @@ public class HoaDonServiceImpl implements HoaDonService {
 
             res.setNgayTao(hd.getNgayTao());
             res.setNgayCapNhat(hd.getNgayCapNhat());
-
             res.setGhiChu(hd.getGhiChu());
+            ttRepo
+                    .findFirstByIdHoaDon_IdOrderByNgayThanhToanDesc(hd.getId())
+                    .ifPresent(thanhToan -> {
+
+                        PhuongThucThanhToan phuongThuc =
+                                thanhToan.getIdPhuongThucThanhToan();
+
+                        if (phuongThuc != null) {
+                            res.setPhuongThucThanhToan(
+                                    phuongThuc.getTenPhuongThuc()
+                            );
+                        }
+                    });
 
             return res;
         });
@@ -501,6 +513,17 @@ public class HoaDonServiceImpl implements HoaDonService {
 
                 dsPhuongThucTraVe.add(pt);
             }
+
+            BigDecimal tienKhachDuaReq = req.getTienKhachDua() != null ? req.getTienKhachDua() : tongThanhToan;
+
+            // Nếu khách đưa tiền mặt thừa, tính tiền thối lại. Nếu không thì tiền thối = 0
+            BigDecimal tienThoiLai = tienKhachDuaReq.compareTo(tongThanhToan) > 0
+                    ? tienKhachDuaReq.subtract(tongThanhToan)
+                    : BigDecimal.ZERO;
+
+            // Set vào Entity HoaDon
+            hd.setTienKhachDua(tienKhachDuaReq);
+            hd.setTienThoiLai(tienThoiLai);
 
             // ================== 7. XỬ LÝ VOUCHER (CÁ NHÂN & HỆ THỐNG) ==================
             // ================== 7. TIÊU THỤ VOUCHER ==================
@@ -1815,6 +1838,8 @@ public class HoaDonServiceImpl implements HoaDonService {
 
             themSanPhamVaoHoaDon(them);
         }
+
+
 
 // 4. Áp voucher (hệ thống hoặc voucher khách hàng)
         // 4. Áp voucher (hệ thống hoặc voucher khách)

@@ -102,4 +102,10 @@ public class GamificationController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // --- CÁC API ADMIN: Quản lý số lượt lật thẻ ---
+
+    // 1. Cập nhật số lượt lật thẻ cho 1 khách hàng cụ thể
+    // URL: POST /api/gamification/admin/so-luot-lat-the/khach-hang/{idKhachHang}?soLuot=5
+
 }

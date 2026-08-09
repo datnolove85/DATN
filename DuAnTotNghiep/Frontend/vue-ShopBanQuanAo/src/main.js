@@ -5,7 +5,6 @@ import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import '@/assets/toast.css'
-import './style.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -13,6 +12,7 @@ import './socket'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import './style.css'
 //cấu hình
 const options = {
   position: 'top-right',

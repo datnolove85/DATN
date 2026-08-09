@@ -3,36 +3,37 @@
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl min-h-screen selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
     <div
-      class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-sm overflow-hidden"
+      class="relative p-6 bg-white rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm"
     >
-      <div class="relative z-10">
-        <span class="text-[10px] tracking-widest uppercase font-bold text-indigo-400"
-          >Hồ sơ lưu trữ giao dịch</span
-        >
-        <h1 class="text-2xl font-bold tracking-tight mt-1 text-white">Chi Tiết Hóa Đơn</h1>
-        <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-          Mã hóa đơn:
+      <div>
+        <span class="text-xs tracking-wide uppercase font-semibold text-indigo-600">
+          Hồ sơ lưu trữ giao dịch
+        </span>
+        <h1 class="text-2xl font-bold tracking-tight mt-1 text-slate-800">Chi Tiết Hóa Đơn</h1>
+        <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
+          <span>Mã hóa đơn:</span>
           <span
-            class="font-mono font-bold text-indigo-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/10"
+            class="font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100"
           >
             {{ invoice.code || 'Đang tải...' }}
           </span>
         </p>
       </div>
 
-      <div class="relative z-10 flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
-        <button
+      <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+        <!-- <button
           v-if="canReturn"
           @click="openTraHang"
-          class="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-xs font-bold"
+          class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm"
         >
           🔄 TRẢ HÀNG
-        </button>
+        </button> -->
+
         <div>
           <button
             @click="openPreview"
             :disabled="!rawInvoice"
-            class="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-2xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-md shadow-indigo-950/20"
+            class="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -50,13 +51,12 @@
             </svg>
             XUẤT HÓA ĐƠN
           </button>
-          <!-- Component Modal Hóa Đơn -->
           <InvoiceModal v-if="isPreviewOpen" :hoa-don="rawInvoice" @close="closePreview" />
         </div>
 
         <button
           @click="goBack"
-          class="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 hover:bg-rose-950/40 hover:border-rose-900/50 hover:text-rose-400 text-slate-300 rounded-2xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
+          class="flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -304,106 +304,6 @@
       </div>
     </div>
 
-    <!-- <Teleport to="body">
-      <div
-        v-if="isPreviewOpen && rawInvoice"
-        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in"
-      >
-        <div class="flex flex-col items-center gap-4 my-auto">
-          <div
-            id="invoice-area"
-            class="bg-white w-80 shadow-2xl p-6 font-mono text-[11px] text-slate-900 border border-slate-300 rounded-sm select-none"
-          >
-            <div class="text-center mb-4">
-              <div class="text-lg font-bold">HÓA ĐƠN BÁN HÀNG</div>
-              <div class="my-2 border-t border-b border-dashed border-slate-800 py-1">
-                ==============================
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <p class="m-0">Mã HD: {{ rawInvoice.maHoaDon }}</p>
-              <p class="m-0">
-                Ngày: {{ rawInvoice.ngayCapNhat ? formatDate(rawInvoice.ngayCapNhat) : '---' }}
-              </p>
-              <p class="m-0">Thu ngân: Admin</p>
-            </div>
-
-            <div class="mb-4">
-              <p class="m-0">Khách hàng: {{ rawInvoice.tenKhachHang || 'Khách vãng lai' }}</p>
-              <p class="m-0">SĐT: {{ rawInvoice.soDienThoaiKhachHang || '---' }}</p>
-            </div>
-
-            <div class="border-t border-dashed border-slate-800 pt-1 mb-2">
-              <table class="w-full text-[11px] border-collapse text-left">
-                <thead>
-                  <tr class="font-bold border-b border-dashed border-slate-800">
-                    <th class="w-[10%] pb-1">STT</th>
-                    <th class="w-[50%] pb-1">Tên SP</th>
-                    <th class="w-[10%] text-center pb-1">SL</th>
-                    <th class="w-[30%] text-right pb-1">Đơn giá</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(sp, index) in rawInvoice.sanPhams" :key="index">
-                    <td class="py-1.5 align-top">{{ index + 1 }}</td>
-                    <td class="py-1.5 align-top break-all">
-                      {{ sp.tenSanPhamChiTiet }}
-                      <div class="text-[9px] text-slate-500 mt-0.5">
-                        Mã: {{ sp.maSanPhamChiTiet }} | Size: {{ sp.tenKichThuoc }} | Màu:
-                        {{ sp.tenMauSac }}
-                      </div>
-                    </td>
-                    <td class="text-center py-1.5 align-top">{{ sp.soLuong }}</td>
-                    <td class="text-right py-1.5 align-top">
-                      {{ formatPriceNoCurrency(sp.donGia) }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="border-t border-dashed border-slate-800 pt-2 mt-2">
-              <div class="flex justify-between my-0.5">
-                <span>Tổng tiền hàng:</span>
-                <span>{{ formatPriceNoCurrency(rawInvoice.tongTienHang) }}</span>
-              </div>
-              <div class="flex justify-between my-0.5">
-                <span>Giảm giá:</span>
-                <span>{{ formatPriceNoCurrency(rawInvoice.tongGiamGia) }}</span>
-              </div>
-              <div
-                class="flex justify-between font-bold text-[12px] mt-1.5 border-t border-slate-800 pt-1.5"
-              >
-                <span>Tổng thanh toán:</span>
-                <span>{{ formatPriceNoCurrency(rawInvoice.tongThanhToan) }}</span>
-              </div>
-            </div>
-
-            <div class="text-center mt-4">
-              <p class="m-0">Thanh toán: {{ rawInvoice.phuongThucThanhToan }}</p>
-              <p class="mt-2 mb-0 font-bold">Xin cảm ơn quý khách!</p>
-              <div class="mt-1">==============================</div>
-            </div>
-          </div>
-
-          <div class="flex justify-center gap-2 w-full max-w-xs font-sans">
-            <button
-              @click="closePreview"
-              class="flex-1 py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs tracking-wider transition-all active:scale-95 border border-slate-700 shadow-xl"
-            >
-              HỦY / ĐÓNG
-            </button>
-            <button
-              @click="executePrint"
-              class="flex-1 py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs tracking-wider transition-all active:scale-95 shadow-xl shadow-indigo-950/30"
-            >
-              XÁC NHẬN IN
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport> -->
     <Teleport to="body">
       <div
         v-if="showTraHang"
@@ -523,7 +423,6 @@ const openTraHang = async () => {
 
     const res = await getTraHangByHoaDon(route.params.id)
 
-    // QUAN TRỌNG: chuẩn hoá data riêng
     traHangData.value = {
       sanPhams:
         res?.sanPhams?.map((sp) => ({
@@ -545,9 +444,9 @@ const submitTH = async () => {
   try {
     const payload = {
       hoaDonId: route.params.id,
-      maTraHang: 'TH' + Date.now(), // hoặc sinh UUID
+      maTraHang: 'TH' + Date.now(),
       tongTienHoan: totalRefund.value,
-      lyDo: 'Khách trả hàng', // optional
+      lyDo: 'Khách trả hàng',
       danhSachTra: traHangData.value.sanPhams
         .filter((sp) => sp.soLuongTra > 0)
         .map((sp) => ({
@@ -555,7 +454,6 @@ const submitTH = async () => {
           soLuongTra: sp.soLuongTra,
         })),
     }
-    console.log('PAYLOAD TRA HÀNG:', payload)
     await submitTraHang(payload)
 
     toast.success('Trả hàng thành công!')
@@ -592,7 +490,6 @@ const totalReturnQty = computed(() => {
   )
 })
 
-// Trạng thái bật/tắt Modal kiểm tra trước khi ra lệnh in
 const isPreviewOpen = ref(false)
 
 const goBack = () => {
@@ -607,16 +504,13 @@ const closePreview = () => {
   isPreviewOpen.value = false
 }
 
-// Bóc tách thương hiệu tự động
-
-// 1. Map cấu trúc dữ liệu hiển thị bảng lớn ngoài UI
 const invoice = computed(() => {
   if (!rawInvoice.value) return { items: [] }
 
   return {
     code: rawInvoice.value.maHoaDon,
-    customer: rawInvoice.value.tenKhachHang,
-    phone: rawInvoice.value.soDienThoaiKhachHang,
+    customer: rawInvoice.value.tenNguoiNhan,
+    phone: rawInvoice.value.soDienThoaiNguoiNhan,
     status: rawInvoice.value.trangThai,
     created: rawInvoice.value.ngayCapNhat
       ? (() => {
@@ -645,21 +539,8 @@ const invoice = computed(() => {
   }
 })
 
-// 2. Định dạng chuỗi tiền tệ và ngày tháng
 const formatMoney = (val) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0)
-}
-
-const formatPriceNoCurrency = (v) => new Intl.NumberFormat('vi-VN').format(v || 0)
-
-const formatDate = (d) => {
-  if (!d) return '---'
-  const dateObj = new Date(d)
-  return (
-    dateObj.toLocaleDateString('vi-VN') +
-    ' ' +
-    dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-  )
 }
 
 const statusClassModern = (status) => {
@@ -668,31 +549,6 @@ const statusClassModern = (status) => {
   return status === 'da_xac_nhan'
     ? `${base} bg-emerald-50 text-emerald-700 border-emerald-200`
     : `${base} bg-amber-50 text-amber-700 border-amber-200`
-}
-
-// 3. LOGIC KÍCH HOẠT LỆNH IN SAU KHI ĐÃ ĐỒNG Ý Ở KHÂU CHECK PREVIEW
-const executePrint = () => {
-  const content = document.getElementById('invoice-area').innerHTML
-  // Đóng modal preview lại cho sạch UI nền
-  isPreviewOpen.value = false
-
-  const win = window.open('', '_blank', 'width=400,height=600')
-  win.document.write(`
-    <html>
-      <head>
-        <title>In hóa đơn - ${rawInvoice.value?.maHoaDon || ''}</title>
-        <style>
-          body { font-family: monospace; padding: 10px; width: 280px; margin: 0 auto; }
-        </style>
-      </head>
-      <body>${content}</body>
-    </html>
-  `)
-  win.document.close()
-  setTimeout(() => {
-    win.print()
-    win.close()
-  }, 400)
 }
 
 const loadHoaDon = async () => {

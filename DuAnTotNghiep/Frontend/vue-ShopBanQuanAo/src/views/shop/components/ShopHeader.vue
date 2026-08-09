@@ -293,6 +293,10 @@ const menus = [
     path: '/san-pham',
   },
   {
+    name: 'Minigame & Ví Xu', // ✨ Thêm menu chuyển đến trang minigame
+    path: '/minigame',
+  },
+  {
     name: 'Khuyến mãi',
     path: '/promotion',
   },

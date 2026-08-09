@@ -1,30 +1,19 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+import axios from 'axios'
+
+const API_URL = 'http://localhost:8080/api/virtual-try-on' // Đổi port theo Spring Boot của bạn
 
 export const createVirtualTryOn = async ({ spctId, personImage, category }) => {
   const formData = new FormData()
-  formData.append('spctId', String(spctId))
+  formData.append('spctId', spctId)
   formData.append('personImage', personImage)
-  formData.append('category', category || 'upper_body')
+  formData.append('category', category)
 
-  const response = await fetch(`${API_BASE_URL}/api/virtual-try-on`, {
-    method: 'POST',
-    body: formData,
+  const response = await axios.post(API_URL, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    responseType: 'blob', // Quan trọng: Nhận binary image (PNG/JPEG) trả về
   })
 
-  if (!response.ok) {
-    const contentType = response.headers.get('content-type') || ''
-    let message = `Thử đồ thất bại (HTTP ${response.status})`
-
-    if (contentType.includes('application/json')) {
-      const data = await response.json().catch(() => null)
-      message = data?.message || message
-    } else {
-      const text = await response.text().catch(() => '')
-      if (text.trim()) message = text.trim()
-    }
-
-    throw new Error(message)
-  }
-
-  return await response.blob()
+  return response.data
 }

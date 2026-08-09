@@ -81,7 +81,7 @@
               @click="deleteSelectedItems"
               class="text-red-500 hover:text-red-700 font-medium transition flex items-center gap-1"
             >
-              <span>🗑️</span> Xóa đã chọn
+              <span></span> Xóa đã chọn
             </button>
           </div>
 
@@ -340,8 +340,6 @@ const validateQuantity = (item) => {
 }
 
 const deleteItem = async (id) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?')) return
-
   try {
     const token = sessionStorage.getItem('token')
     await axios.delete(`http://localhost:8080/giohang/${id}`, {

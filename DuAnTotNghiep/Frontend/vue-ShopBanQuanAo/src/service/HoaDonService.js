@@ -279,9 +279,19 @@ export const huyHoaDon = (id) => {
   })
 }
 
-export const apVoucher = async (idHoaDon, idVoucher) => {
+export const apVoucher = async (idHoaDon, idVoucher, idVoucherKhachHang) => {
   try {
-    const response = await fetch(`${API}/${idHoaDon}/voucher?idVoucher=${idVoucher}`, {
+    const params = new URLSearchParams()
+
+    // Chỉ append vào query nếu giá trị tồn tại và không null/undefined
+    if (idVoucher !== null && idVoucher !== undefined) {
+      params.append('idVoucher', idVoucher)
+    }
+    if (idVoucherKhachHang !== null && idVoucherKhachHang !== undefined) {
+      params.append('idVoucherKhachHang', idVoucherKhachHang)
+    }
+
+    const response = await fetch(`${API}/${idHoaDon}/voucher?${params.toString()}`, {
       method: 'POST',
     })
 
@@ -396,4 +406,14 @@ export const capNhatSoLuong = async (idHoaDonChiTiet, soLuong) => {
     console.error('capNhatSoLuong error:', error)
     throw error
   }
+}
+export const goKhachHang = async (idHoaDon) => {
+  const response = await fetch(`http://localhost:8080/hoadon/${idHoaDon}/go-khach-hang`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  return await handleResponse(response)
 }

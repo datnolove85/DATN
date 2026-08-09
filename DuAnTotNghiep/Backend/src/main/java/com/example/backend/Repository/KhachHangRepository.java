@@ -114,4 +114,6 @@ FROM KhachHang k
 WHERE k.trangThai=true
 """)
     Long countKhachThanhVien();
+
+
 }

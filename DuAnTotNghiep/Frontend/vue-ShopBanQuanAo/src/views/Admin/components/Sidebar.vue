@@ -42,6 +42,15 @@
           Quản lý Nhân viên
         </router-link>
 
+        <router-link
+          to="/admin/khachhang"
+          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
+        >
+          <span class="mr-3 text-base w-5 text-center">👤</span>
+          Quản lý Khách hàng
+        </router-link>
+
         <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider pt-4 mb-2">
           Kinh doanh
         </p>
@@ -63,7 +72,6 @@
           Đơn hàng Online
         </router-link>
 
-        <!-- 🟢 Đã sửa: Hóa đơn dạng link đơn, không có submenu/chi tiết hóa đơn -->
         <router-link
           to="/admin/hoadon"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
@@ -73,14 +81,50 @@
           Hóa đơn
         </router-link>
 
-        <router-link
-          to="/admin/khachhang"
-          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
-          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
-        >
-          <span class="mr-3 text-base w-5 text-center">👤</span>
-          Quản lý Khách hàng
-        </router-link>
+        <!-- ✨ MỤC GAMIFICATION ĐÃ CHUYỂN THÀNH DROPDOWN CHỨA KHO VOUCHER KH ✨ -->
+        <div class="space-y-1">
+          <button
+            @click="isOpenGamification = !isOpenGamification"
+            class="w-full flex items-center justify-between px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+            :class="[
+              isOpenGamification ? 'bg-slate-800/50 text-white' : '',
+              activeGamification
+                ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20'
+                : '',
+            ]"
+          >
+            <div class="flex items-center">
+              <span class="mr-3 text-base w-5 text-center">🎡</span>
+              <span>Quản lý Minigame</span>
+            </div>
+
+            <span
+              class="text-[10px] transition-transform duration-200"
+              :class="{ 'rotate-180': isOpenGamification }"
+            >
+              ▼
+            </span>
+          </button>
+          <div v-show="isOpenGamification" class="pl-4 space-y-1">
+            <router-link
+              to="/admin/gamification"
+              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
+              active-class="text-indigo-400 font-medium bg-slate-800/60"
+            >
+              <span class="mr-3 text-xs w-5 text-center">⚙️</span>
+              Cấu hình Minigame
+            </router-link>
+
+            <router-link
+              to="/admin/kho-voucher"
+              class="flex items-center px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-md text-sm transition-colors"
+              active-class="text-indigo-400 font-medium bg-slate-800/60"
+            >
+              <span class="mr-3 text-xs w-5 text-center">🗄️</span>
+              Kho Voucher KH
+            </router-link>
+          </div>
+        </div>
 
         <div class="space-y-1">
           <button
@@ -121,7 +165,7 @@
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs w-5 text-center">🎟️</span>
-              Voucher
+              Quản lý Voucher
             </router-link>
           </div>
         </div>
@@ -277,6 +321,10 @@ const route = useRoute()
 
 const activeDiscount = computed(() => ['/admin/sales', '/admin/voucher'].includes(route.path))
 
+const activeGamification = computed(() =>
+  ['/admin/gamification', '/admin/kho-voucher'].includes(route.path),
+)
+
 const activeCategory = computed(() => ['/admin/categories'].includes(route.path))
 
 const activeProduct = computed(() => ['/admin/sanpham', '/admin/spct'].includes(route.path))
@@ -286,6 +334,7 @@ const activeAttribute = computed(() =>
 )
 
 const isOpenDiscount = ref(activeDiscount.value)
+const isOpenGamification = ref(activeGamification.value)
 const isOpenCategory = ref(activeCategory.value)
 const isOpenProduct = ref(activeProduct.value)
 const isOpenAttribute = ref(activeAttribute.value)

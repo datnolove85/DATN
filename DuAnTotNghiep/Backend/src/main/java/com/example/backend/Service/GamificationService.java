@@ -35,6 +35,8 @@ public interface GamificationService {
     KhoVoucher updateKhoVoucher(Integer id, KhoVoucher khoVoucherMoi);
     void deleteKhoVoucher(Integer id);
 
+    void updateSoLuotLatTheChoKhachHang(Integer idKhachHang, Integer soLuotMoi);
 
+    void updateSoLuotLatTheChoToanBo(Integer soLuotMoi);
 
 }

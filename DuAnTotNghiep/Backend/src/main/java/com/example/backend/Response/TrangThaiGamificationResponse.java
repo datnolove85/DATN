@@ -18,4 +18,5 @@ public class TrangThaiGamificationResponse {
     private boolean daDiemDanhHomNay; // true nếu hôm nay đã điểm danh rồi
     // Thêm trường này vào class TrangThaiGamificationResponse
     private Integer soLuotLatTheConLai;
+    private int soLuotLatTheToiDa;
 }

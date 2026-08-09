@@ -78,6 +78,11 @@ public class KhachHang {
     private LocalDate ngayDiemDanhGanNhat;
     // =====================================
 
+    // === BỔ SUNG MỚI: Quản lý số lượt lật thẻ trong ngày ===
+
+    @Column(name = "so_luot_lat_the")
+    private Integer soLuotLatThe;
+
     @ColumnDefault("getdate()")
     @Column(name = "ngay_tao")
     private Instant ngayTao;

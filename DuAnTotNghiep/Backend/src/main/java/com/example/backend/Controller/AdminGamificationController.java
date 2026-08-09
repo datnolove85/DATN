@@ -113,4 +113,28 @@ public class AdminGamificationController {
     public ResponseEntity<List<LichSuXu>> getAllLichSuXu() {
         return ResponseEntity.ok(gamificationService.getAllLichSuXuSystem());
     }
+    @PostMapping("/so-luot-lat-the/khach-hang/{idKhachHang}")
+    public ResponseEntity<?> updateSoLuotLatTheKhachHang(
+            @PathVariable Integer idKhachHang,
+            @RequestParam Integer soLuot) {
+        try {
+            gamificationService.updateSoLuotLatTheChoKhachHang(idKhachHang, soLuot);
+            return ResponseEntity.ok("Cập nhật số lượt lật thẻ cho khách hàng thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 2. Cập nhật số lượt lật thẻ cho TOÀN BỘ hệ thống
+    // URL: POST /api/gamification/admin/so-luot-lat-the/toan-bo?soLuot=5
+    @PostMapping("/so-luot-lat-the/toan-bo")
+    public ResponseEntity<?> updateSoLuotLatTheToanBo(
+            @RequestParam Integer soLuot) {
+        try {
+            gamificationService.updateSoLuotLatTheChoToanBo(soLuot);
+            return ResponseEntity.ok("Cập nhật số lượt lật thẻ cho toàn bộ hệ thống thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

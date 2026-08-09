@@ -37,3 +37,19 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+.venv/
+**/venv/
+**/.venv/
+
+# Node
+node_modules/
+
+# Java
+target/
