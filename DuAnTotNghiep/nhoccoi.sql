@@ -1,7 +1,7 @@
-CREATE DATABASE umm
+CREATE DATABASE nhoc
 GO
 
-USE umm
+USE nhoc
 GO
 
 -- =========================================
@@ -168,6 +168,12 @@ CREATE TABLE nhan_vien (
     CONSTRAINT FK_nhan_vien_tai_khoan FOREIGN KEY (id_tai_khoan) REFERENCES tai_khoan(id)
 );
 
+
+
+-- =========================================
+-- 12. khach_hang (Đã tích hợp sẵn Ví Xu & Streak Điểm danh)
+-- =========================
+
 -- =========================================
 -- 12. khach_hang (Đã tích hợp sẵn Ví Xu & Streak Điểm danh)
 -- =========================
@@ -189,6 +195,8 @@ CREATE TABLE khach_hang (
     so_du_xu INT DEFAULT 0 CHECK (so_du_xu >= 0),
     chuoi_diem_danh INT DEFAULT 0 CHECK (chuoi_diem_danh >= 0),
     ngay_diem_danh_gan_nhat DATE NULL,
+
+	so_luot_lat_the INT DEFAULT 3 CHECK (so_luot_lat_the >= 0),
     
     ngay_tao DATETIME DEFAULT GETDATE(),
     ngay_cap_nhat DATETIME,
@@ -355,9 +363,13 @@ CREATE TABLE hoa_don (
     phi_van_chuyen DECIMAL(18,2) DEFAULT 0,
     tong_thanh_toan DECIMAL(18,2) DEFAULT 0,
     
-    -- TÍCH HỢP MỚI: Lưu thông tin dùng xu thanh toán đơn hàng
+    -- TÍCH HỢP: Lưu thông tin dùng xu thanh toán đơn hàng
     so_xu_su_dung INT DEFAULT 0,
     tien_giam_do_xu DECIMAL(18,2) DEFAULT 0,
+    
+    -- BỔ SUNG MỚI: Quản lý tiền mặt khách đưa & thối lại
+    tien_khach_dua DECIMAL(18,2) DEFAULT 0,
+    tien_thoi_lai DECIMAL(18,2) DEFAULT 0,
     
     ten_nguoi_nhan NVARCHAR(100),
     so_dien_thoai_nguoi_nhan VARCHAR(15),
@@ -558,6 +570,24 @@ CREATE TABLE lich_su_minigame (
     CONSTRAINT fk_ls_minigame_khach FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id),
     CONSTRAINT fk_ls_minigame_thuong FOREIGN KEY (id_phan_thuong) REFERENCES phan_thuong_minigame(id)
 );
+
+-- Tạo bảng cấu hình điểm danh hằng ngày
+CREATE TABLE cau_hinh_diem_danh (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    ngay_thu INT NOT NULL UNIQUE,      -- Ngày thứ mấy trong chuỗi (1, 2, 3,...)
+    so_xu_thuong INT NOT NULL,         -- Số xu thưởng tương ứng cho ngày đó
+    trang_thai BIT DEFAULT 1           -- Trạng thái (1: Hoạt động, 0: Tạm khóa)
+);
+
+
+INSERT INTO cau_hinh_diem_danh (ngay_thu, so_xu_thuong, trang_thai) VALUES
+(1, 10, 1),  -- Ngày 1 thưởng 10 xu
+(2, 15, 1),  -- Ngày 2 thưởng 15 xu
+(3, 20, 1),  -- Ngày 3 thưởng 20 xu
+(4, 25, 1),  -- Ngày 4 thưởng 25 xu
+(5, 30, 1),  -- Ngày 5 thưởng 30 xu
+(6, 40, 1),  -- Ngày 6 thưởng 40 xu
+(7, 50, 1);  -- Ngày 7 thưởng 50 xu
 GO
 
 
