@@ -958,6 +958,8 @@ public class SanPhamChiTietService {
 
             res.setSoLuongTon(spct.getSoLuongTon());
             res.setTrangThai(spct.getTrangThai());
+            res.setSoLuongKhaDung(spct.getSoLuongKhaDung());
+            res.setSoLuongTamGiu(spct.getSoLuongTamGiu());
 
             res.setImages(
                     imageMap.getOrDefault(spct.getId(), new ArrayList<>())

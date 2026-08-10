@@ -3,214 +3,37 @@
     class="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased selection:bg-indigo-600 selection:text-white p-4 sm:p-8 animate-fade-in"
   >
     <div class="max-w-[1500px] mx-auto space-y-8">
-      <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <!-- ================= HERO ================= -->
-        <div
-          class="xl:col-span-2 relative overflow-hidden rounded-[32px] bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 p-8 shadow-[0_25px_60px_rgba(15,23,42,.35)] flex flex-col justify-between min-h-[340px]"
-        >
-          <div
-            class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-indigo-500/20 blur-3xl"
-          ></div>
+      <!-- ================= BANNER QUẢN LÝ SẢN PHẨM ================= -->
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col xl:flex-row justify-between items-start xl:items-center gap-5"
+      >
+        <!-- Nội dung banner -->
+        <div class="flex items-start gap-4">
+          <!-- Icon -->
+          <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-box-open text-indigo-600 text-xl"></i>
+          </div>
 
-          <div
-            class="absolute -bottom-28 -left-20 w-80 h-80 rounded-full bg-cyan-400/10 blur-3xl"
-          ></div>
+          <div>
+            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+              Quản Lý Sản Phẩm
+            </h1>
 
-          <div class="relative z-10">
-            <div
-              class="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-indigo-200 backdrop-blur"
-            >
-              Dashboard Admin
-            </div>
-
-            <h1 class="mt-6 text-5xl font-black leading-tight text-white">Quản lý sản phẩm</h1>
-
-            <p class="mt-5 text-slate-300 leading-8">
-              Theo dõi toàn bộ dữ liệu sản phẩm, biến thể, danh mục và thương hiệu theo thời gian
-              thực trên cùng một màn hình.
+            <p class="text-sm text-slate-500 mt-1 max-w-3xl">
+              Quản lý toàn bộ sản phẩm, biến thể, danh mục, thương hiệu và chất liệu trong hệ thống
+              bán hàng.
             </p>
           </div>
-
-          <button
-            @click="openAddModal"
-            class="relative z-10 mt-8 h-14 rounded-2xl bg-white text-slate-900 font-bold hover:scale-[1.03] hover:shadow-2xl transition flex items-center justify-center gap-3"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-
-            Tạo sản phẩm mới
-          </button>
         </div>
 
-        <!-- ================= RIGHT ================= -->
-
-        <div class="xl:col-span-3 grid grid-cols-2 xl:grid-cols-4 gap-5">
-          <!-- Card -->
-          <div
-            class="group bg-white rounded-[28px] border border-slate-200 p-6 h-[150px] shadow-sm hover:shadow-xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                Danh mục
-              </div>
-
-              <div class="mt-5 text-4xl font-black text-slate-800">
-                {{ danhMucs.length }}
-              </div>
-            </div>
-
-            <div
-              class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-2xl group-hover:rotate-6 group-hover:scale-110 transition"
-            >
-              📁
-            </div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="group bg-white rounded-[28px] border border-slate-200 p-6 h-[150px] shadow-sm hover:shadow-xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                Thương hiệu
-              </div>
-
-              <div class="mt-5 text-4xl font-black text-slate-800">
-                {{ thuongHieus.length }}
-              </div>
-            </div>
-
-            <div
-              class="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl group-hover:rotate-6 group-hover:scale-110 transition"
-            >
-              🏷️
-            </div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="group bg-white rounded-[28px] border border-slate-200 p-6 h-[150px] shadow-sm hover:shadow-xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Tổng SP</div>
-
-              <div class="mt-5 text-4xl font-black text-slate-800">
-                {{ tongSanPham }}
-              </div>
-            </div>
-
-            <div
-              class="w-14 h-14 rounded-2xl bg-sky-50 flex items-center justify-center text-2xl group-hover:rotate-6 group-hover:scale-110 transition"
-            >
-              📦
-            </div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="group bg-gradient-to-br from-emerald-500 to-green-600 rounded-[28px] p-6 h-[150px] text-white shadow-lg hover:shadow-2xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs uppercase tracking-[0.2em] opacity-80">Đang KD</div>
-
-              <div class="mt-5 text-4xl font-black">
-                {{ tongSanPhamDangKD }}
-              </div>
-            </div>
-
-            <div class="text-3xl">🟢</div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="group bg-white rounded-[28px] border border-slate-200 p-6 h-[150px] shadow-sm hover:shadow-xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                Tổng SPCT
-              </div>
-
-              <div class="mt-5 text-4xl font-black text-slate-800">
-                {{ tongSPCT }}
-              </div>
-            </div>
-
-            <div
-              class="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center text-2xl"
-            >
-              📋
-            </div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="group bg-white rounded-[28px] border border-green-200 p-6 h-[150px] shadow-sm hover:shadow-xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">SPCT KD</div>
-
-              <div class="mt-5 text-4xl font-black text-green-600">
-                {{ tongSPCTDangKD }}
-              </div>
-            </div>
-
-            <div
-              class="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center text-2xl"
-            >
-              ✅
-            </div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="group bg-white rounded-[28px] border border-slate-200 p-6 h-[150px] shadow-sm hover:shadow-xl hover:-translate-y-1 duration-300 flex justify-between"
-          >
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                Chất liệu
-              </div>
-
-              <div class="mt-5 text-4xl font-black text-slate-800">
-                {{ chatLieus.length }}
-              </div>
-            </div>
-
-            <div
-              class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-2xl"
-            >
-              🧵
-            </div>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="rounded-[28px] bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 p-6 h-[150px] text-white shadow-xl hover:-translate-y-1 duration-300 flex flex-col justify-between"
-          >
-            <div class="text-xs uppercase tracking-[0.2em] opacity-80">Hiệu suất</div>
-
-            <div class="text-5xl font-black">
-              {{ tongSanPham ? Math.round((tongSanPhamDangKD / tongSanPham) * 100) : 0 }}%
-            </div>
-
-            <div class="h-2 rounded-full bg-white/20 overflow-hidden">
-              <div
-                class="h-full rounded-full bg-white"
-                :style="{
-                  width:
-                    (tongSanPham ? Math.round((tongSanPhamDangKD / tongSanPham) * 100) : 0) + '%',
-                }"
-              ></div>
-            </div>
-          </div>
-        </div>
+        <!-- Nút thao tác -->
+        <button
+          @click="openAddModal"
+          class="w-full xl:w-auto px-5 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300 flex items-center justify-center gap-2"
+        >
+          <i class="fa-solid fa-plus"></i>
+          Tạo sản phẩm mới
+        </button>
       </div>
 
       <div
@@ -351,95 +174,101 @@
                   </button>
                 </td>
               </tr>
-              <tr v-if="expandedProductId === product.id" class="bg-slate-100">
-                <td colspan="8" class="px-6 py-4">
+              <tr v-if="expandedProductId === product.id" class="bg-slate-50/80">
+                <td colspan="8" class="px-6 py-6">
                   <div class="flex justify-between items-center mb-4">
                     <div>
-                      <h3 class="font-bold text-sm">{{ product.tenSanPham }}</h3>
-                      <p class="text-xs text-slate-400">Danh sách biến thể</p>
+                      <h3 class="font-bold text-sm text-slate-800">{{ product.tenSanPham }}</h3>
+                      <p class="text-xs text-slate-400">Danh sách biến thể chi tiết kho hàng</p>
                     </div>
-                    <span class="text-xs text-slate-500 ml-2">
-                      ({{ product.thongKe }} đang kinh doanh)
-                    </span>
-                    <div class="flex gap-2">
-                      <!-- <button
-                        @click="openAddSPCTModal(product)"
-                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all"
+                    <div class="flex items-center gap-3">
+                      <span
+                        class="text-xs text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200"
                       >
-                        + Thêm biến thể
-                      </button> -->
+                        Đang kinh doanh:
+                        <strong class="text-indigo-600">{{ product.thongKe }}</strong>
+                      </span>
                       <button
                         @click="isBulkOpen = true"
-                        class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all"
+                        class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
                       >
                         ⚡ Tạo hàng loạt
                       </button>
                     </div>
                   </div>
                   <div
-                    class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+                    class="w-full bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden"
                   >
                     <table class="w-full text-sm">
-                      <thead class="bg-slate-50 border-b">
+                      <thead class="bg-slate-50/70 border-b border-slate-100">
                         <tr>
                           <th
-                            class="px-4 py-3 text-center text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
                             Hình ảnh
                           </th>
                           <th
-                            class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
                             Mã SPCT
                           </th>
-
                           <th
-                            class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
-                            Màu
+                            Màu sắc
                           </th>
                           <th
-                            class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
-                            Size
+                            Kích thước
                           </th>
                           <th
-                            class="px-4 py-3 text-center text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
-                            Tồn
+                            Tồn kho
                           </th>
                           <th
-                            class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                          >
+                            Tạm giữ
+                          </th>
+                          <th
+                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                          >
+                            Khả dụng
+                          </th>
+                          <th
+                            class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
                             Giá nhập
                           </th>
                           <th
-                            class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
                             Giá bán
                           </th>
                           <th
-                            class="px-4 py-3 text-center text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
                             Trạng thái
                           </th>
                           <th
-                            class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase"
+                            class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
                           >
                             Thao tác
                           </th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody class="divide-y divide-slate-100">
                         <tr
                           v-for="spct in spctList"
                           :key="spct.id"
-                          class="border-t hover:bg-slate-50 transition-colors"
+                          class="hover:bg-slate-50/80 transition-colors"
                         >
                           <td class="px-4 py-3 text-center">
                             <div class="flex flex-wrap gap-2 justify-center items-center">
                               <div
-                                class="w-12 h-12 rounded-lg border border-slate-200 overflow-hidden shadow-sm"
+                                class="w-11 h-11 rounded-xl border border-slate-200 overflow-hidden shadow-xs bg-slate-50"
                               >
                                 <img
                                   v-if="spct.images?.length"
@@ -449,7 +278,7 @@
 
                                 <div
                                   v-else
-                                  class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-[10px] font-medium"
+                                  class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-[9px] font-medium"
                                 >
                                   No Image
                                 </div>
@@ -457,30 +286,65 @@
 
                               <button
                                 @click="openImageManager(spct)"
-                                class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-100"
+                                class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-100 transition-colors"
                               >
-                                Quản lý ảnh
+                                Ảnh
                               </button>
                             </div>
                           </td>
                           <td class="px-4 py-3">
                             <span
-                              class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
+                              class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium"
                               >{{ spct.maSanPhamChiTiet }}</span
                             >
                           </td>
 
-                          <td class="px-4 py-3 text-xs">{{ spct.tenMauSac }}</td>
-                          <td class="px-4 py-3 text-xs">{{ spct.tenKichThuoc }}</td>
-                          <td class="px-4 py-3 text-center text-xs font-semibold">
+                          <td class="px-4 py-3 text-xs font-medium text-slate-700">
+                            {{ spct.tenMauSac }}
+                          </td>
+                          <td class="px-4 py-3 text-xs font-medium text-slate-700">
+                            {{ spct.tenKichThuoc }}
+                          </td>
+
+                          <!-- Tồn kho -->
+                          <td class="px-4 py-3 text-center text-xs font-semibold text-slate-700">
                             {{ spct.soLuongTon }}
                           </td>
-                          <td class="px-4 py-3 text-right text-xs">
+
+                          <!-- Tạm giữ -->
+                          <td class="px-4 py-3 text-center text-xs">
+                            <span
+                              class="inline-block px-2 py-0.5 rounded-md font-semibold"
+                              :class="
+                                spct.soLuongTamGiu > 0
+                                  ? 'bg-amber-50 text-amber-600'
+                                  : 'text-slate-400'
+                              "
+                            >
+                              {{ spct.soLuongTamGiu }}
+                            </span>
+                          </td>
+
+                          <!-- Khả dụng -->
+                          <td class="px-4 py-3 text-center text-xs">
+                            <span
+                              class="inline-block px-2.5 py-1 rounded-lg font-bold shadow-xs"
+                              :class="
+                                spct.soLuongKhaDung > 0
+                                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/60'
+                                  : 'bg-rose-50 text-rose-600 border border-rose-100/60'
+                              "
+                            >
+                              {{ spct.soLuongKhaDung }}
+                            </span>
+                          </td>
+
+                          <td class="px-4 py-3 text-right text-xs text-slate-600">
                             {{ formatCurrency(spct.giaNhap) }}
                           </td>
                           <td class="px-4 py-3 text-right text-xs">
                             <!-- Khi biến thể đang trong đợt giảm giá -->
-                            <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-1">
+                            <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-0.5">
                               <div class="flex items-center gap-1">
                                 <span
                                   class="inline-flex items-center gap-1 bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-rose-100"
@@ -513,25 +377,26 @@
                           </td>
                           <td class="px-4 py-3 text-center">
                             <span
-                              class="px-2 py-1 rounded-full text-[10px] font-bold"
+                              class="px-2.5 py-1 rounded-full text-[10px] font-bold shadow-2xs"
                               :class="
                                 spct.trangThai
-                                  ? 'bg-emerald-100 text-emerald-600'
+                                  ? 'bg-emerald-100 text-emerald-700'
                                   : 'bg-slate-100 text-slate-500'
                               "
                               >{{ spct.trangThai ? 'Đang bán' : 'Ngừng bán' }}</span
                             >
                           </td>
                           <td class="px-4 py-3">
-                            <div class="flex justify-end gap-2">
+                            <div class="flex justify-end gap-1.5">
                               <button
                                 @click="editSPCT(spct)"
-                                class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold"
+                                class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold transition-colors"
                               >
-                                Sửa</button
-                              ><button
+                                Sửa
+                              </button>
+                              <button
                                 @click="removeSPCT(spct.id)"
-                                class="px-3 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[10px] font-bold"
+                                class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[10px] font-bold transition-colors"
                               >
                                 Xóa
                               </button>
@@ -539,7 +404,7 @@
                           </td>
                         </tr>
                         <tr v-if="spctList.length === 0">
-                          <td colspan="9" class="text-center py-10 text-slate-400 text-xs">
+                          <td colspan="11" class="text-center py-10 text-slate-400 text-xs">
                             Chưa có biến thể nào
                           </td>
                         </tr>
@@ -1426,6 +1291,8 @@ const formData = ref({
   giaNhap: null,
   giaBan: null,
   soLuongTon: 0,
+  soLuongTamGiu: 0,
+  soLuongKhaDung: 0,
   trangThai: true,
 })
 const cancelEditSPCT = () => {
@@ -1442,6 +1309,8 @@ const cancelEditSPCT = () => {
     giaNhap: 0,
     giaBan: 0,
     soLuongTon: 0,
+    soLuongTamGiu: 0,
+    soLuongKhaDung: 0,
     trangThai: true,
   })
 }
@@ -1478,18 +1347,6 @@ const loadData = async () => {
       }),
     )
 
-    // gắn thống kê SPCT
-    products.value = await Promise.all(
-      productList.map(async (sp) => {
-        const thongKe = await getThongKeSPCT(sp.id)
-
-        return {
-          ...sp,
-          thongKe,
-        }
-      }),
-    )
-
     danhMucs.value = danhMuc
     thuongHieus.value = thuongHieu
     chatLieus.value = chatLieu
@@ -1503,7 +1360,6 @@ const loadData = async () => {
 
   tongSanPhamDangKD.value = products.value.filter((p) => p.trangThai === true).length
 
-  await calcThongKeSPCT()
   await calcThongKeSPCT()
 }
 
@@ -1523,7 +1379,7 @@ function subscribe() {
   stompClient.subscribe('/topic/products', (msg) => {
     console.log('NHẬN SOCKET:', msg.body)
 
-    loadData() // ✔ phải có ()
+    loadData()
   })
 }
 
@@ -1607,7 +1463,6 @@ const buildPreviewVariants = () => {
     selectedSizes.value.forEach((s) => {
       const size = kichThuocs.value.find((k) => k.id === s)
 
-      // nếu đã tồn tại thì giữ lại số lượng cũ
       const old = previewVariants.value.find((i) => i.colorId === c && i.sizeId === s)
 
       const existed = spctList.value.some(
@@ -1737,19 +1592,6 @@ const submitBulkSPCT = async () => {
   }
 }
 
-const openBulk = (product) => {
-  selectedProduct.value = product
-
-  formData.value.idSanPham = product.id
-
-  selectedColors.value = []
-  selectedSizes.value = []
-
-  previewVariants.value = []
-
-  isBulkOpen.value = true
-}
-
 const resetBulkForm = () => {
   selectedColors.value = []
   selectedSizes.value = []
@@ -1762,6 +1604,7 @@ const resetBulkForm = () => {
 
   isBulkOpen.value = false
 }
+
 // ========================
 // FILE UPLOAD PREVIEW
 // ========================
@@ -1832,7 +1675,6 @@ const isDuplicateVariant = () => {
   )
 }
 const submitSPCT = async () => {
-  // 1. Kiểm tra Validate (Đảm bảo bên trong validateSPCT đã có toast.warning nếu lỗi)
   if (!validateSPCT()) return
 
   if (isDuplicateVariant()) {
@@ -1857,24 +1699,18 @@ const submitSPCT = async () => {
 
     let responseData
 
-    // 🔴 THỰC HIỆN GỌI API
     if (isEditSPCT.value) {
       responseData = await updateSanPhamChiTiet(editingSPCTId.value, payload)
     } else {
       responseData = await createSanPhamChiTiet(payload)
     }
 
-    // 🟢 LẤY CÂU THÔNG BÁO CHI TIẾT TỪ BACKEND (VD: "Cập nhật thành công! Đã tự động giảm 2 sp...")
     const successMessage = responseData?.message || 'Cập nhật SPCT thành công!'
     toast.success(successMessage)
 
-    // =========================================================================
-    // Reload data & Đóng Modal
-    // =========================================================================
     await loadSPCT(formData.value.idSanPham)
     await loadData()
 
-    // Reset form & Đóng modal
     selectedFiles.value = []
     previewImages.value = []
     isEditSPCT.value = false
@@ -1885,12 +1721,12 @@ const submitSPCT = async () => {
       giaNhap: 0,
       giaBan: 0,
       soLuongTon: 0,
+      soLuongTamGiu: 0,
+      soLuongKhaDung: 0,
       trangThai: true,
     })
   } catch (e) {
     console.error('Lỗi khi lưu SPCT:', e)
-
-    // 🔴 e.message BÂY GIỜ ĐÃ CHỨA ĐÚNG CÂU BÁO LỖI CHI TIẾT TỪ BACKEND
     toast.error(e.message || 'Có lỗi xảy ra khi cập nhật!')
   }
 }
@@ -1898,14 +1734,12 @@ const editSPCT = (spct) => {
   isEditSPCT.value = true
   editingSPCTId.value = spct.id
 
-  // Copy toàn bộ dữ liệu biến thể vào formData (bao gồm cả dangGiamGia)
   formData.value = {
     ...spct,
   }
 
   previewImages.value = []
 
-  // Thông báo cho người dùng nếu sản phẩm đang trong đợt giảm giá
   if (spct.dangGiamGia) {
     toast.warning('Sản phẩm đang nằm trong đợt giảm giá! Giá bán sẽ bị khóa không thể sửa.')
   }
@@ -1913,9 +1747,6 @@ const editSPCT = (spct) => {
   isSPCTModalOpen.value = true
 }
 
-// ========================
-// DELETE SPCT (OPTIONAL)
-// ========================
 const removeSPCT = async (id) => {
   const result = await Swal.fire({
     title: 'Xóa sản phẩm chi tiết?',
@@ -1939,9 +1770,7 @@ const removeSPCT = async (id) => {
     toast.error(e.response?.data || e.message || 'Có lỗi xảy ra')
   }
 }
-// ========================
-// FILTER PRODUCT LIST
-// ========================
+
 const filters = reactive({
   search: '',
   idDanhMuc: null,
@@ -1966,9 +1795,6 @@ const filteredProducts = computed(() => {
   })
 })
 
-// ========================
-// UTILS
-// ========================
 const clearFilters = () => {
   filters.search = ''
   filters.idDanhMuc = null
@@ -1977,11 +1803,8 @@ const clearFilters = () => {
   filters.trangThai = null
 }
 
-//Sản phẩm
-
 const isModalOpen = ref(false)
 const isEditMode = ref(false)
-const isVariantMode = ref(false)
 
 const form = ref({
   tenSanPham: '',
@@ -1989,20 +1812,8 @@ const form = ref({
   idThuongHieu: null,
   idChatLieu: null,
   moTa: '',
-  trangThai: true, // mặc định
+  trangThai: true,
 })
-
-const resetForm = () => {
-  form.value = {
-    id: null,
-    idDanhMuc: null,
-    idThuongHieu: null,
-    idChatLieu: null,
-    tenSanPham: '',
-    trangThai: true,
-    image: '',
-  }
-}
 
 const openAddModal = () => {
   form.value = {
@@ -2011,12 +1822,13 @@ const openAddModal = () => {
     idThuongHieu: null,
     idChatLieu: null,
     moTa: '',
-    trangThai: true, // mặc định
+    trangThai: true,
   }
 
   isEditMode.value = false
   isModalOpen.value = true
 }
+
 const validateSP = () => {
   if (!form.value.tenSanPham?.trim()) {
     toast.error('Tên sản phẩm không được để trống')
@@ -2040,6 +1852,7 @@ const validateSP = () => {
 
   return true
 }
+
 const isDuplicateMaSP = () => {
   return products.value.some(
     (item) =>
@@ -2057,6 +1870,7 @@ const isDuplicateProduct = () => {
       item.id !== form.value.id,
   )
 }
+
 const handleSubmit = async () => {
   if (!validateSP()) return
 
@@ -2074,7 +1888,6 @@ const handleSubmit = async () => {
       idDanhMuc: form.value.idDanhMuc,
       idThuongHieu: form.value.idThuongHieu,
       idChatLieu: form.value.idChatLieu,
-
       tenSanPham: form.value.tenSanPham,
       trangThai: form.value.trangThai,
       moTa: form.value.moTa,
@@ -2121,6 +1934,7 @@ const openEditModal = async (product) => {
   isEditMode.value = true
   isModalOpen.value = true
 }
+
 const confirmModal = reactive({
   show: false,
   targetId: null,
@@ -2167,29 +1981,24 @@ const openImageManager = async (spct) => {
 
   try {
     await loadGallery()
-
     isImageManagerOpen.value = true
   } catch (e) {
     toast.error(e.message)
   }
 }
+
 const loadGallery = async () => {
   if (!selectedSPCT.value) return
-
   currentGallery.value = await getImagesBySPCT(selectedSPCT.value.id)
 }
 
 const handleUpload = async (event) => {
   try {
     const files = Array.from(event.target.files)
-
     await uploadImages(selectedSPCT.value.id, files)
-
     await reloadGallery()
     toast.success('Thêm ảnh thành công')
-
-    event.target.value = '' // 👈 QUAN TRỌNG
-
+    event.target.value = ''
     await loadSPCT(selectedProduct.value.id)
   } catch (e) {
     toast.error(e.message || 'Upload lỗi')
@@ -2199,22 +2008,18 @@ const handleUpload = async (event) => {
 const deleteImageAPI = async (id) => {
   try {
     await deleteImage(id)
-
     currentGallery.value = currentGallery.value.filter((img) => img.id !== id)
     await reloadGallery()
-
     await loadSPCT(selectedProduct.value.id)
     toast.success('Xóa ảnh thành công')
   } catch (e) {
     toast.error(e.message)
   }
 }
+
 const reloadGallery = async () => {
   if (!selectedSPCT.value) return
-
   currentGallery.value = await getImagesBySPCT(selectedSPCT.value.id)
-
-  console.log(currentGallery.value)
 }
 
 const calcThongKeSPCT = async () => {
@@ -2246,10 +2051,7 @@ const handleVariantImageUpload = (event, variant) => {
   if (!variant.files) variant.files = []
 
   files.forEach((file) => {
-    // lưu File thật
     variant.files.push(file)
-
-    // chỉ dùng để preview
     const reader = new FileReader()
 
     reader.onload = (e) => {
@@ -2266,12 +2068,11 @@ watch(isModalOpen, async (newValue) => {
     tenSanPhamInput.value?.focus()
   }
 })
+
 const changeMainImage = async (img) => {
   try {
     await setMainImage(img.id)
-
     await reloadGallery()
-
     toast.success('Đã đặt làm ảnh chính')
   } catch (e) {
     toast.error(e.message)

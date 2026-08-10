@@ -3,12 +3,35 @@
     class="w-64 bg-slate-900 text-white flex-col hidden md:flex shrink-0 shadow-xl border-r border-slate-800 h-screen overflow-y-auto custom-scrollbar"
   >
     <div class="flex-1">
+      <!-- ✨ LOGO THIẾT KẾ MỚI XỊN XÒ HƠN -->
       <div
-        class="h-16 flex items-center justify-center border-b border-slate-800 text-lg font-bold tracking-wider text-indigo-400 gap-2 shrink-0"
+        class="h-20 flex items-center px-6 border-b border-slate-800/80 bg-slate-950/40 shrink-0"
       >
-        <a href="#" class="text-2xl font-extrabold tracking-tight">
-          K-<span class="text-amber-500">Zo</span>ne
-        </a>
+        <router-link to="/admin/dashboard" class="flex items-center gap-3.5 group w-full">
+          <!-- Biểu tượng Logo dạng Badge Gradient -->
+          <div
+            class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-amber-500 shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-all duration-300 ring-1 ring-white/20"
+          >
+            <span class="text-white text-lg font-black tracking-tighter">K</span>
+            <div
+              class="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-[9px] font-bold text-slate-950 shadow"
+            >
+              Z
+            </div>
+          </div>
+
+          <!-- Tên thương hiệu & Subtitle -->
+          <div class="flex flex-col">
+            <span
+              class="text-xl font-black tracking-wider bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent"
+            >
+              K-<span class="text-amber-400">ZONE</span>
+            </span>
+            <span class="text-[10px] font-bold tracking-widest text-indigo-400 uppercase -mt-0.5">
+              Admin Portal
+            </span>
+          </div>
+        </router-link>
       </div>
 
       <nav class="mt-6 px-3 space-y-1 pb-6">
