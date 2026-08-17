@@ -7,17 +7,37 @@
   >
     <div class="max-w-[1700px] mx-auto h-20 px-8 flex items-center">
       <!-- ================= LOGO ================= -->
+      <div class="w-64 flex-shrink-0">
+        <RouterLink to="/home" class="flex items-center gap-3.5 group w-full">
+          <!-- Biểu tượng Logo dạng Badge Gradient -->
+          <div
+            class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-amber-500 shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-all duration-300 ring-1 ring-indigo-500/20"
+          >
+            <span class="text-white text-lg font-black tracking-tighter">K</span>
+            <div
+              class="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold text-slate-950 shadow"
+            >
+              Z
+            </div>
+          </div>
 
-      <div class="w-56 flex-shrink-0">
-        <RouterLink to="/home" class="text-3xl font-black tracking-tight select-none">
-          K-<span class="text-indigo-600">Zone</span>
+          <!-- Tên thương hiệu & Subtitle -->
+          <div class="flex flex-col">
+            <span
+              class="text-xl font-black tracking-wider bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-600 bg-clip-text text-transparent"
+            >
+              K-<span class="text-indigo-600">ZONE</span>
+            </span>
+            <span class="text-[10px] font-bold tracking-widest text-indigo-500 uppercase -mt-0.5">
+              Fashion Store
+            </span>
+          </div>
         </RouterLink>
       </div>
 
       <!-- ================= MENU ================= -->
-
       <nav
-        class="hidden xl:flex flex-1 justify-center items-center gap-12 font-semibold text-gray-700"
+        class="hidden xl:flex flex-1 justify-center items-center gap-12 font-semibold text-gray-700 -ml-20"
       >
         <RouterLink
           v-for="item in menus"
@@ -30,33 +50,36 @@
       </nav>
 
       <!-- ================= RIGHT ================= -->
-
-      <div class="flex-1 flex justify-end items-center gap-3 min-w-0">
-        <!-- SEARCH -->
+      <div class="flex-1 flex justify-end items-center gap-2 min-w-0">
+        <!-- MINIGAME & VÍ XU -->
+        <RouterLink
+          to="/minigame"
+          class="flex items-center gap-2 px-4 h-11 rounded-full hover:bg-gray-100 transition text-indigo-600"
+        >
+          <Sparkles class="w-5 h-5" />
+          <span class="hidden xl:block text-sm font-semibold whitespace-nowrap"
+            >Minigame & Ví Xu</span
+          >
+        </RouterLink>
 
         <!-- ORDER -->
-
         <RouterLink
           to="/donhang"
-          class="flex items-center gap-2 px-4 h-11 rounded-full hover:bg-gray-100 transition"
+          class="flex items-center gap-2 px-4 h-11 rounded-full hover:bg-gray-100 transition text-gray-700"
         >
           <Package class="w-5 h-5" />
-
-          <span class="hidden xl:block text-sm font-medium whitespace-nowrap"> Đơn hàng </span>
+          <span class="hidden xl:block text-sm font-medium whitespace-nowrap">Đơn hàng</span>
         </RouterLink>
 
         <!-- CART -->
-
         <div class="relative" @mouseenter="openCart" @mouseleave="closeCart">
           <button
             type="button"
-            class="relative flex items-center gap-2 px-4 h-11 rounded-full hover:bg-gray-100 transition"
+            class="relative flex items-center gap-2 px-4 h-11 rounded-full hover:bg-gray-100 transition text-gray-700"
             @click.stop="toggleCart"
           >
             <ShoppingBag class="w-5 h-5" />
-
-            <span class="hidden xl:block text-sm font-medium whitespace-nowrap"> Giỏ hàng </span>
-
+            <span class="hidden xl:block text-sm font-medium whitespace-nowrap">Giỏ hàng</span>
             <span
               v-if="cartCount > 0"
               class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] flex items-center justify-center"
@@ -66,7 +89,6 @@
           </button>
 
           <!-- CART DROPDOWN -->
-
           <transition
             enter-active-class="transition duration-200"
             leave-active-class="transition duration-150"
@@ -79,18 +101,15 @@
             >
               <div class="px-5 py-4 border-b flex justify-between">
                 <h3 class="font-bold text-lg">🛒 Giỏ hàng</h3>
-
-                <span class="text-sm text-gray-500"> {{ cartCount }} sản phẩm </span>
+                <span class="text-sm text-gray-500">{{ cartCount }} sản phẩm</span>
               </div>
 
               <div v-if="cart.length === 0" class="py-12 text-center text-gray-400">
                 <ShoppingBag class="mx-auto w-10 h-10 mb-3" />
-
                 <p>Giỏ hàng đang trống</p>
               </div>
 
               <!-- LIST CART -->
-
               <div v-else class="max-h-[380px] overflow-y-auto">
                 <div
                   v-for="item in cart"
@@ -103,7 +122,6 @@
                       :src="'http://localhost:8080' + item.anh"
                       class="w-full h-full object-cover"
                     />
-
                     <div v-else class="w-full h-full flex items-center justify-center">📦</div>
                   </div>
 
@@ -111,16 +129,12 @@
                     <p class="font-semibold text-sm truncate">
                       {{ item.tenSanPham }}
                     </p>
-
                     <p class="text-xs text-gray-500 mt-1">{{ item.mauSac }} • {{ item.kichCo }}</p>
 
                     <div class="flex justify-between mt-2">
                       <span class="text-xs text-gray-500">
-                        {{ item.soLuong }}
-                        ×
-                        {{ Number(item.giaBan).toLocaleString('vi-VN') }}đ
+                        {{ item.soLuong }} × {{ Number(item.giaBan).toLocaleString('vi-VN') }}đ
                       </span>
-
                       <span class="font-bold text-indigo-600 text-sm">
                         {{ Number(item.thanhTien).toLocaleString('vi-VN') }}đ
                       </span>
@@ -130,16 +144,13 @@
               </div>
 
               <!-- TOTAL -->
-
               <div v-if="cart.length" class="p-5 bg-gray-50 border-t">
                 <div class="flex justify-between mb-4">
-                  <span> Tổng tiền </span>
-
+                  <span>Tổng tiền</span>
                   <span class="font-bold text-indigo-600">
                     {{ totalPrice.toLocaleString('vi-VN') }}đ
                   </span>
                 </div>
-
                 <RouterLink
                   to="/giohang"
                   @click="closeCartImmediately"
@@ -153,7 +164,6 @@
         </div>
 
         <!-- USER -->
-
         <div class="relative" @mouseenter="openUser = true" @mouseleave="openUser = false">
           <button
             class="flex items-center gap-3 px-3 py-2 rounded-2xl bg-gray-100 hover:bg-gray-200 transition"
@@ -167,15 +177,12 @@
               <p class="text-sm font-semibold">
                 {{ user?.hoTen }}
               </p>
-
               <p class="text-xs text-gray-500">Khách hàng</p>
             </div>
-
             <ChevronDown class="w-4 h-4 text-gray-400" />
           </button>
 
           <!-- USER MENU -->
-
           <transition
             enter-active-class="transition duration-200"
             enter-from-class="opacity-0 scale-95"
@@ -193,12 +200,10 @@
                   >
                     {{ avatar }}
                   </div>
-
                   <div>
                     <p class="font-bold">
                       {{ user?.hoTen }}
                     </p>
-
                     <p class="text-sm opacity-80">
                       {{ user?.email }}
                     </p>
@@ -212,17 +217,13 @@
                 class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition"
               >
                 <component :is="item.icon" class="w-5 h-5 text-indigo-600" />
-
-                <span>
-                  {{ item.name }}
-                </span>
+                <span>{{ item.name }}</span>
               </RouterLink>
               <button
                 @click="logout"
-                class="w-full flex gap-3 px-5 py-3 text-red-500 hover:bg-red-50"
+                class="w-full flex gap-3 px-5 py-3 text-red-500 hover:bg-red-50 transition"
               >
                 <LogOut class="w-5 h-5" />
-
                 Đăng xuất
               </button>
             </div>
@@ -235,34 +236,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { RouterLink } from 'vue-router'
-import {
-  User,
-  Package,
-  MapPin,
-  Settings,
-  Heart,
-  LogOut,
-  ShoppingBag,
-  ChevronDown,
-} from 'lucide-vue-next'
+import { RouterLink, useRouter } from 'vue-router'
+import { User, Package, LogOut, ShoppingBag, ChevronDown, Sparkles } from 'lucide-vue-next'
 import axios from 'axios'
 import emitter from '@/utils/emitter'
 
-import { useRouter } from 'vue-router'
-
-const userMenus = [
-  {
-    name: 'Thông tin tài khoản',
-    path: '/tai-khoan',
-    icon: User,
-  },
-  {
-    name: 'Đơn mua của tôi',
-    path: '/donhang',
-    icon: Package,
-  },
-]
 const router = useRouter()
 
 const openUser = ref(false)
@@ -271,6 +249,20 @@ const user = computed(() => {
   const data = sessionStorage.getItem('user')
   return data ? JSON.parse(data) : null
 })
+
+// Chuyển userMenus thành computed để tự động lấy ID của user đăng nhập
+const userMenus = computed(() => [
+  {
+    name: 'Thông tin tài khoản',
+    path: `/admin/khach-hang/edit/${user.value?.id || user.value?.idKhachHang || 1}`,
+    icon: User,
+  },
+  {
+    name: 'Đơn mua của tôi',
+    path: '/donhang',
+    icon: Package,
+  },
+])
 
 const avatar = computed(() => {
   if (!user.value) return '?'
@@ -283,6 +275,7 @@ const logout = () => {
   router.push('/login')
 }
 
+// Menu chính ở giữa
 const menus = [
   {
     name: 'Trang chủ',
@@ -291,10 +284,6 @@ const menus = [
   {
     name: 'Sản phẩm',
     path: '/san-pham',
-  },
-  {
-    name: 'Minigame & Ví Xu', // ✨ Thêm menu chuyển đến trang minigame
-    path: '/minigame',
   },
   {
     name: 'Khuyến mãi',
@@ -307,27 +296,18 @@ const menus = [
 ]
 
 const scrolled = ref(false)
-
 const cart = ref([])
-
 const showCart = ref(false)
-
-let cartTimeout = null // Khai báo biến giữ thời gian chờ
+let cartTimeout = null
 
 const handleScroll = () => {
   scrolled.value = window.scrollY > 15
 }
 
-/**
- * Tổng số lượng sản phẩm
- */
 const cartCount = computed(() => {
   return cart.value.reduce((sum, item) => sum + Number(item.soLuong), 0)
 })
 
-/**
- * Tổng tiền
- */
 const totalPrice = computed(() => {
   return cart.value.reduce((sum, item) => {
     return sum + Number(item.thanhTien)
@@ -337,7 +317,6 @@ const totalPrice = computed(() => {
 const loadCart = async () => {
   try {
     const token = sessionStorage.getItem('token')
-
     if (!token) {
       cart.value = []
       return
@@ -352,7 +331,6 @@ const loadCart = async () => {
     cart.value = res.data || []
   } catch (err) {
     console.log(err)
-
     cart.value = []
   }
 }
@@ -360,8 +338,6 @@ const loadCart = async () => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   emitter.on('cart-updated', () => {
-    console.log('Header nhận được sự kiện')
-
     loadCart()
   })
   loadCart()
@@ -369,12 +345,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
-
   emitter.off('cart-updated', loadCart)
 })
 
 const openCart = () => {
-  // Nếu đang có lệnh đóng giỏ hàng chuẩn bị chạy, thì hủy bỏ lệnh đó đi
   if (cartTimeout) {
     clearTimeout(cartTimeout)
   }
@@ -382,10 +356,9 @@ const openCart = () => {
 }
 
 const closeCart = () => {
-  // Gán thời gian chờ vào biến cartTimeout để có thể hủy nếu người dùng rê chuột lại
   cartTimeout = setTimeout(() => {
     showCart.value = false
-  }, 250) // Tăng thời gian delay lên 250ms cho an toàn khi rê chuột qua khoảng trống
+  }, 250)
 }
 
 const toggleCart = () => {

@@ -109,4 +109,5 @@ public class HoaDon {
     @ColumnDefault("'chua_thanh_toan'")
     @Column(name = "trang_thai_thanh_toan", length = 30)
     private String trangThaiThanhToan;
+
 }

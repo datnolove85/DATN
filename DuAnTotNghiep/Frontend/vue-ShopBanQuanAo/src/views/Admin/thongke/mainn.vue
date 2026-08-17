@@ -104,7 +104,13 @@
             class="bg-transparent text-slate-200 text-xs font-semibold px-1 py-1 focus:outline-none cursor-pointer [color-scheme:dark]"
           />
         </div>
-
+        <button
+          @click="handleExport"
+          class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-2xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] active:scale-95"
+        >
+          <i class="fa-solid fa-file-excel"></i>
+          <span>Xuất Excel</span>
+        </button>
         <!-- NÚT REFRESH NEON (RESET VỀ HÔM NAY & TẤT CẢ KÊNH) -->
         <button
           @click="handleRefresh"
@@ -198,6 +204,21 @@ import TopCustomers from './components/TopCustomers.vue'
 
 import { useThongKe } from './composables/useThongKe.js'
 
+import { exportDashboardToExcel } from '@/utils/exportExcel'
+
+const handleExport = () => {
+  if (!dashboard.value) {
+    alert('Chưa có dữ liệu để xuất!')
+    return
+  }
+
+  exportDashboardToExcel({
+    dashboard: dashboard.value, // Dữ liệu từ statCard
+    orderStatus: orderStatus.value, // Dữ liệu từ biểu đồ tròn
+    topProducts: topProducts.value, // Dữ liệu từ bảng sản phẩm
+    topCustomers: topCustomers.value, // Dữ liệu từ bảng khách hàng
+  })
+}
 const { dashboard, revenue, orderStatus, topProducts, topCustomers, loading, loadAll } =
   useThongKe()
 

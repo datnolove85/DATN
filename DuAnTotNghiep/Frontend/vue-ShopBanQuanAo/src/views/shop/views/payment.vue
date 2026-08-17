@@ -172,7 +172,7 @@
                   Chọn phương thức thanh toán
                 </h2>
                 <p class="mt-2 text-sm text-slate-500">
-                  Bạn có thể thanh toán khi nhận hàng hoặc chuyển khoản qua VietQR.
+                  Bạn có thể thanh toán khi nhận hàng hoặc qua cổng thanh toán VNPay.
                 </p>
               </div>
               <div
@@ -182,11 +182,11 @@
               </div>
             </div>
 
-            <div class="mt-6 grid gap-4 md:grid-cols-3">
+            <div class="mt-6 grid gap-4 md:grid-cols-2">
               <!-- Nút COD -->
               <button
                 type="button"
-                :disabled="qrStarted || orderCancelled"
+                :disabled="orderCancelled"
                 class="payment-option group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
                 :class="
                   paymentMethod === 'COD'
@@ -204,32 +204,6 @@
                     <span class="block font-black text-slate-900">COD</span>
                     <span class="mt-1 block text-sm leading-5 text-slate-500"
                       >Thanh toán khi nhận hàng.</span
-                    >
-                  </span>
-                </div>
-              </button>
-
-              <!-- Nút BANK (VietQR) -->
-              <button
-                type="button"
-                :disabled="orderCancelled"
-                class="payment-option group relative overflow-hidden rounded-2xl border-2 p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-55"
-                :class="
-                  paymentMethod === 'BANK'
-                    ? 'border-rose-800 bg-amber-50/70 shadow-lg shadow-indigo-100'
-                    : 'border-slate-200 bg-white hover:border-amber-200 hover:bg-[#f7f4ee]'
-                "
-                @click="paymentMethod = 'BANK'"
-              >
-                <div class="flex items-start gap-4">
-                  <span
-                    class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sky-50 text-sky-600"
-                    ><Landmark :size="23"
-                  /></span>
-                  <span class="min-w-0 flex-1">
-                    <span class="block font-black text-slate-900">VietQR</span>
-                    <span class="mt-1 block text-sm leading-5 text-slate-500"
-                      >Quét mã chuyển khoản nhanh.</span
                     >
                   </span>
                 </div>
@@ -261,200 +235,7 @@
                 </div>
               </button>
             </div>
-
-            <div
-              v-if="qrStarted && !qrExpired"
-              class="mt-4 flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-indigo-800"
-            >
-              <Lock :size="18" class="mt-0.5 shrink-0" />
-              <p>
-                Mã QR đang hoạt động nên phương thức thanh toán được khóa ở chuyển khoản ngân hàng.
-              </p>
-            </div>
           </section>
-
-          <!-- QR PAYMENT -->
-          <Transition name="slide-fade">
-            <section
-              v-if="paymentMethod === 'BANK'"
-              class="rounded-[28px] border border-amber-100 bg-white p-5 shadow-xl shadow-indigo-100/50 sm:p-7"
-            >
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p class="text-xs font-black uppercase tracking-[0.16em] text-rose-800">Bước 2</p>
-                  <h2 class="mt-1 text-2xl font-black tracking-tight">Thanh toán bằng VietQR</h2>
-                  <p class="mt-2 text-sm text-slate-500">
-                    Mã QR có thời hạn theo thời gian giữ đơn của hệ thống. (Đang giả lập tự động
-                    thanh toán sau 10s)
-                  </p>
-                </div>
-
-                <span
-                  class="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-black text-sky-700"
-                >
-                  <QrCode :size="15" />
-                  VIETQR
-                </span>
-              </div>
-
-              <!-- CREATE QR -->
-              <div
-                v-if="!qrStarted && !qrExpired"
-                class="mt-7 overflow-hidden rounded-[26px] border border-dashed border-amber-200 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-6 sm:p-8"
-              >
-                <div class="mx-auto max-w-xl text-center">
-                  <span
-                    class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-rose-800 text-white shadow-lg shadow-rose-200"
-                  >
-                    <QrCode :size="31" />
-                  </span>
-                  <h3 class="mt-5 text-2xl font-black text-slate-900">Tạo mã QR thanh toán</h3>
-                  <p class="mt-2 text-sm leading-6 text-slate-500">
-                    Sau khi tạo, đồng hồ đếm ngược sẽ hiển thị. Hệ thống sẽ tự động giả lập thanh
-                    toán thành công sau 10 giây.
-                  </p>
-
-                  <div
-                    class="mx-auto mt-5 flex max-w-sm items-center justify-center gap-3 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800"
-                  >
-                    <Clock3 :size="18" />
-                    Thời gian giữ đơn tối đa: {{ QR_VALIDITY_MINUTES }} phút
-                  </div>
-
-                  <button
-                    type="button"
-                    :disabled="!qrUrl || orderCancelled"
-                    class="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 px-7 py-3.5 font-black text-white shadow-lg shadow-rose-200 transition hover:-translate-y-0.5 hover:bg-rose-900 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
-                    @click="createQr"
-                  >
-                    <QrCode :size="20" />
-                    Tạo mã QR
-                  </button>
-                </div>
-              </div>
-
-              <!-- QR EXPIRED -->
-              <div
-                v-else-if="qrExpired || orderCancelled"
-                class="mt-7 rounded-[26px] border border-red-100 bg-red-50 p-7 text-center"
-              >
-                <span
-                  class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white text-red-600 shadow-sm"
-                >
-                  <TimerOff :size="31" />
-                </span>
-                <h3 class="mt-4 text-2xl font-black text-red-700">Mã QR đã hết hạn</h3>
-                <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-red-700/75">
-                  Đơn hàng đã được hủy tự động. Bạn cần tạo đơn mới nếu vẫn muốn mua sản phẩm.
-                </p>
-                <button
-                  type="button"
-                  class="mt-5 rounded-xl bg-slate-900 px-6 py-3 font-bold text-white transition hover:bg-rose-900"
-                  @click="router.push('/san-pham')"
-                >
-                  Quay lại mua sắm
-                </button>
-              </div>
-
-              <!-- ACTIVE QR -->
-              <div v-else class="mt-7">
-                <div
-                  class="mb-6 grid gap-4 rounded-[24px] border border-red-100 bg-gradient-to-r from-red-50 to-amber-50 p-5 sm:grid-cols-[1fr_auto] sm:items-center"
-                >
-                  <div class="flex items-start gap-3">
-                    <span
-                      class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-red-600 shadow-sm"
-                    >
-                      <Clock3 :size="23" />
-                    </span>
-                    <div>
-                      <p class="text-xs font-black uppercase tracking-[0.15em] text-red-500">
-                        Đang chờ thanh toán tự động (10s)
-                      </p>
-                      <p class="mt-1 text-sm text-slate-600">
-                        Hệ thống đang giả lập quét mã thành công...
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="text-left sm:text-right">
-                    <div class="font-mono text-4xl font-black tabular-nums text-red-600">
-                      {{ countdownText }}
-                    </div>
-                    <p class="mt-1 text-xs font-semibold text-red-500">Đơn tự hủy khi hết giờ</p>
-                  </div>
-                </div>
-
-                <div class="grid gap-7 md:grid-cols-[280px_1fr] md:items-center">
-                  <div class="mx-auto w-full max-w-[280px]">
-                    <div
-                      class="rounded-[26px] border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/70"
-                    >
-                      <img
-                        v-if="qrUrl"
-                        :src="qrUrl"
-                        alt="Mã QR thanh toán"
-                        class="aspect-square w-full rounded-2xl object-contain"
-                      />
-                    </div>
-                    <p class="mt-3 text-center text-xs text-slate-400">
-                      Dùng ứng dụng ngân hàng hỗ trợ VietQR
-                    </p>
-                  </div>
-
-                  <div class="space-y-4">
-                    <div class="rounded-2xl border border-slate-200 bg-[#f7f4ee] p-4">
-                      <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Nội dung chuyển khoản
-                      </p>
-                      <div class="mt-2 flex items-center justify-between gap-3">
-                        <span class="break-all text-xl font-black text-rose-900">{{
-                          orderCode
-                        }}</span>
-                        <button
-                          type="button"
-                          class="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-amber-200 hover:text-rose-900"
-                          title="Sao chép nội dung"
-                          @click="copyOrderCode"
-                        >
-                          <Check v-if="copied" :size="17" />
-                          <Copy v-else :size="17" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="rounded-2xl border border-red-100 bg-red-50 p-4">
-                      <p class="text-xs font-bold uppercase tracking-wider text-red-400">
-                        Số tiền cần chuyển
-                      </p>
-                      <p class="mt-1 text-3xl font-black text-red-600">
-                        {{ formatMoney(orderInfo.tongThanhToan) }}
-                      </p>
-                    </div>
-
-                    <div
-                      class="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm leading-6 text-amber-900"
-                    >
-                      <p class="font-black">Lưu ý khi chuyển khoản</p>
-                      <ul class="mt-2 space-y-1.5">
-                        <li class="flex gap-2">
-                          <Check :size="16" class="mt-1 shrink-0" /> Chuyển đúng số tiền hiển thị.
-                        </li>
-                        <li class="flex gap-2">
-                          <Check :size="16" class="mt-1 shrink-0" /> Giữ nguyên nội dung là mã đơn
-                          hàng.
-                        </li>
-                        <li class="flex gap-2">
-                          <Check :size="16" class="mt-1 shrink-0" /> Hệ thống sẽ tự động xác nhận
-                          sau 10 giây (Giả lập).
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </Transition>
 
           <!-- PRODUCTS -->
           <section
@@ -626,16 +407,9 @@
                 {{ payButtonLabel }}
               </button>
 
-              <p
-                v-if="paymentMethod === 'BANK' && !qrStarted && !qrExpired"
-                class="mt-2 text-center text-xs text-amber-600"
-              >
-                Hãy tạo mã QR trước khi xác nhận chuyển khoản.
-              </p>
-
               <button
                 type="button"
-                :disabled="isPaying || isCancelling || isExpiring || orderCancelled"
+                :disabled="isPaying || isCancelling || orderCancelled"
                 class="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                 @click="handleCancel"
               >
@@ -679,24 +453,20 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeft,
   Check,
-  Clock3,
   Copy,
   CreditCard,
-  Landmark,
   LoaderCircle,
   Lock,
   PackageCheck,
-  QrCode,
   ReceiptText,
   Search,
   ShieldCheck,
   ShoppingBag,
-  TimerOff,
   Truck,
   X,
 } from 'lucide-vue-next'
@@ -704,36 +474,24 @@ import { huyHoaDonOnline } from '@/service/HoaDonService'
 import { useToast } from 'vue-toastification'
 import { thanhToan } from '@/service/PaymentService'
 
-const QR_VALIDITY_MINUTES = 15
-const QR_VALIDITY_SECONDS = QR_VALIDITY_MINUTES * 60
-
 const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 
 const orderId = route.query.id
-const qrUrl = route.query.qrUrl
 
 const loading = ref(true)
 const loadError = ref('')
 const isPaying = ref(false)
 const isCancelling = ref(false)
-const isExpiring = ref(false)
 const copied = ref(false)
 
 const orderItems = ref([])
 const orderInfo = ref(null)
 const paymentMethod = ref('COD')
 
-const qrStarted = ref(false)
-const qrExpired = ref(false)
-const remainingSeconds = ref(QR_VALIDITY_SECONDS)
-let countdownTimer = null
-let simulatedPaymentTimer = null // Timer giả lập thanh toán sau 10s
-
-const qrStorageKey = computed(() => `payment-qr-started-${orderId || 'unknown'}`)
 const orderCode = computed(() => orderInfo.value?.maHoaDon || route.query.maHoaDon || '')
-const orderCancelled = computed(() => qrExpired.value || orderInfo.value?.trangThai === 'da_huy')
+const orderCancelled = computed(() => orderInfo.value?.trangThai === 'da_huy')
 
 const payButtonLabel = computed(() => {
   if (isPaying.value) return 'Đang xử lý...'
@@ -744,57 +502,17 @@ const payButtonLabel = computed(() => {
       return 'Xác nhận đặt hàng'
     case 'VNPAY':
       return 'Thanh toán qua VNPay'
-    case 'BANK':
-      return 'Quét mã VietQR chuyển khoản'
     default:
       return 'Chọn phương thức thanh toán!'
   }
 })
 
 const payDisabled = computed(() => {
-  if (isPaying.value || isCancelling.value || isExpiring.value || orderCancelled.value) return true
-  if (paymentMethod.value === 'BANK' && !qrStarted.value) return true
+  if (isPaying.value || isCancelling.value || orderCancelled.value) return true
   return false
 })
 
-const countdownText = computed(() => {
-  const minutes = Math.floor(remainingSeconds.value / 60)
-  const seconds = remainingSeconds.value % 60
-
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-})
-
-const expirationTimestamp = computed(() => {
-  const source = orderInfo.value?.ngayCapNhat || orderInfo.value?.ngayTao
-  if (!source) return null
-
-  const createdAt = new Date(source).getTime()
-  if (Number.isNaN(createdAt)) return null
-
-  return createdAt + QR_VALIDITY_SECONDS * 1000
-})
-
 const formatMoney = (money) => Number(money || 0).toLocaleString('vi-VN') + ' đ'
-
-const clearSimulatedPayment = () => {
-  if (simulatedPaymentTimer) {
-    window.clearTimeout(simulatedPaymentTimer)
-    simulatedPaymentTimer = null
-  }
-}
-
-const clearCountdown = () => {
-  if (countdownTimer) {
-    window.clearInterval(countdownTimer)
-    countdownTimer = null
-  }
-  clearSimulatedPayment()
-}
-
-const clearQrSession = () => {
-  clearCountdown()
-  sessionStorage.removeItem(qrStorageKey.value)
-}
 
 const copyOrderCode = async () => {
   if (!orderCode.value) return
@@ -811,83 +529,6 @@ const copyOrderCode = async () => {
     console.error(error)
     toast.error('Không thể sao chép mã đơn hàng')
   }
-}
-
-const expireOrder = async () => {
-  if (isExpiring.value || orderCancelled.value) return
-
-  isExpiring.value = true
-  qrExpired.value = true
-  remainingSeconds.value = 0
-  clearQrSession()
-
-  try {
-    await huyHoaDonOnline(Number(orderId))
-  } catch (error) {
-    console.warn('Đơn có thể đã được hệ thống hủy trước:', error)
-  } finally {
-    if (orderInfo.value) {
-      orderInfo.value.trangThai = 'da_huy'
-    }
-
-    isExpiring.value = false
-    toast.warning('Mã QR đã hết hạn. Đơn hàng đã được hủy tự động.')
-  }
-}
-
-const syncCountdown = () => {
-  if (!expirationTimestamp.value) {
-    loadError.value = 'Không xác định được thời hạn giữ đơn'
-    clearCountdown()
-    return
-  }
-
-  const seconds = Math.max(0, Math.ceil((expirationTimestamp.value - Date.now()) / 1000))
-
-  remainingSeconds.value = seconds
-
-  if (seconds <= 0) {
-    clearCountdown()
-    expireOrder()
-  }
-}
-
-const startCountdown = () => {
-  clearCountdown()
-  syncCountdown()
-
-  if (remainingSeconds.value <= 0) return
-
-  countdownTimer = window.setInterval(syncCountdown, 1000)
-}
-
-// Bắt đầu đếm ngược 10 giây để giả lập tự động thanh toán thành công
-const startSimulatedPayment = () => {
-  clearSimulatedPayment()
-  simulatedPaymentTimer = window.setTimeout(async () => {
-    if (qrStarted.value && !orderCancelled.value && paymentMethod.value === 'BANK') {
-      toast.info('Đang giả lập thanh toán tự động thành công sau 10 giây...')
-      await pay()
-    }
-  }, 10000) // 10000ms = 10 giây
-}
-
-const createQr = () => {
-  if (!qrUrl) {
-    toast.error('Không tạo được mã QR cho đơn hàng này')
-    return
-  }
-
-  if (orderCancelled.value) {
-    toast.error('Đơn hàng đã bị hủy')
-    return
-  }
-
-  paymentMethod.value = 'BANK'
-  qrStarted.value = true
-  sessionStorage.setItem(qrStorageKey.value, 'true')
-  startCountdown()
-  startSimulatedPayment() // Kích hoạt giả lập 10s khi tạo QR
 }
 
 const loadOrder = async () => {
@@ -911,18 +552,7 @@ const loadOrder = async () => {
   orderItems.value = Array.isArray(data.sanPhams) ? data.sanPhams : []
 
   if (data.trangThai === 'da_huy') {
-    qrExpired.value = true
-    clearQrSession()
     return
-  }
-
-  const savedQrSession = sessionStorage.getItem(qrStorageKey.value) === 'true'
-
-  if (savedQrSession) {
-    paymentMethod.value = 'BANK'
-    qrStarted.value = true
-    startCountdown()
-    startSimulatedPayment() // Kích hoạt lại giả lập nếu refresh trang khi đang mở QR
   }
 }
 
@@ -938,18 +568,8 @@ onMounted(async () => {
   }
 })
 
-onBeforeUnmount(clearCountdown)
-
 const pay = async () => {
   if (payDisabled.value) return
-
-  if (paymentMethod.value === 'BANK') {
-    syncCountdown()
-    if (remainingSeconds.value <= 0) {
-      await expireOrder()
-      return
-    }
-  }
 
   try {
     isPaying.value = true
@@ -964,14 +584,12 @@ const pay = async () => {
     const res = await thanhToan(body)
 
     if (res && res.paymentUrl && paymentMethod.value === 'VNPAY') {
-      clearQrSession()
       sessionStorage.removeItem('checkoutData')
       toast.success('Đang chuyển hướng đến cổng thanh toán VNPay...')
       window.location.href = res.paymentUrl
       return
     }
 
-    clearQrSession()
     sessionStorage.removeItem('checkoutData')
     toast.success(res.message || 'Đã ghi nhận phương thức thanh toán thành công!')
     router.push('/san-pham')
@@ -984,13 +602,12 @@ const pay = async () => {
 }
 
 const handleCancel = async () => {
-  if (isPaying.value || isCancelling.value || isExpiring.value || orderCancelled.value) return
+  if (isPaying.value || isCancelling.value || orderCancelled.value) return
 
   try {
     isCancelling.value = true
 
     await huyHoaDonOnline(Number(orderId))
-    clearQrSession()
 
     if (orderInfo.value) {
       orderInfo.value.trangThai = 'da_huy'
@@ -1031,16 +648,5 @@ const handleCancel = async () => {
 
 .payment-option:hover::after {
   transform: scale(1.15);
-}
-
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 240ms ease;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 </style>

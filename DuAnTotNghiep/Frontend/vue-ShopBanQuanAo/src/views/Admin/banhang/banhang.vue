@@ -115,10 +115,28 @@
                   </p>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs font-black text-indigo-600">
-                    {{ formatPrice(sp.dangGiamGia ? sp.giaSauGiam : sp.giaBan) }}
-                  </p>
-                  <span class="text-[9px] text-emerald-600 font-medium"
+                  <template v-if="sp.dangGiamGia">
+                    <p class="text-xs font-black text-rose-600">
+                      {{ formatPrice(sp.giaSauGiam) }}
+                    </p>
+                    <div class="flex items-center justify-end gap-1">
+                      <span
+                        v-if="getVariantDiscountPercent(sp) > 0"
+                        class="text-[9px] text-rose-600 font-bold"
+                      >
+                        -{{ getVariantDiscountPercent(sp) }}%
+                      </span>
+                      <span class="text-[10px] text-slate-400 line-through">
+                        {{ formatPrice(sp.giaBan) }}
+                      </span>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <p class="text-xs font-black text-indigo-600">
+                      {{ formatPrice(sp.giaBan) }}
+                    </p>
+                  </template>
+                  <span class="text-[9px] text-emerald-600 font-medium block"
                     >Kho: {{ sp.soLuongKhaDung ?? sp.soLuongTon }}</span
                   >
                 </div>
@@ -210,9 +228,11 @@
                 : 'border-slate-200 bg-slate-50/80 opacity-60',
             ]"
           >
-            <!-- Badge Giảm Giá nếu có ít nhất 1 biến thể giảm giá -->
-            <!-- Badge Giảm Giá nếu có ít nhất 1 biến thể giảm giá -->
-            <div v-if="master.hasDiscount" class="absolute top-2 right-2 z-20">
+            <!-- Badge Giảm Giá (chỉ hiện khi có giảm giá và % > 0) -->
+            <div
+              v-if="master.hasDiscount && master.maxDiscountPercent > 0"
+              class="absolute top-2 right-2 z-20"
+            >
               <span
                 class="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs flex items-center gap-0.5"
               >
@@ -445,9 +465,28 @@
                     {{ item.product.tenMauSac }} / {{ item.product.tenKichThuoc }}
                   </span>
                 </div>
-                <p class="text-xs font-black text-indigo-600 mt-1">
-                  {{ formatPrice(item.product.giaBan) }}
-                </p>
+                <!-- Hiển thị giá trước và sau giảm trong giỏ hàng -->
+                <div class="mt-1">
+                  <template v-if="item.product.dangGiamGia">
+                    <p class="text-xs font-black text-rose-600 flex items-center gap-1.5 flex-wrap">
+                      <span>{{ formatPrice(item.product.giaSauGiam) }}</span>
+                      <span
+                        v-if="getVariantDiscountPercent(item.product) > 0"
+                        class="text-[9px] bg-rose-100 text-rose-700 font-bold px-1 py-0.2 rounded"
+                      >
+                        -{{ getVariantDiscountPercent(item.product) }}%
+                      </span>
+                      <span class="text-[10px] text-slate-400 line-through font-normal">
+                        {{ formatPrice(item.product.giaBan) }}
+                      </span>
+                    </p>
+                  </template>
+                  <template v-else>
+                    <p class="text-xs font-black text-indigo-600">
+                      {{ formatPrice(item.product.giaBan) }}
+                    </p>
+                  </template>
+                </div>
               </div>
 
               <!-- Tăng / Giảm Số Lượng -->
@@ -841,7 +880,7 @@
             </div>
           </div>
 
-          <!-- Thông tin biến thể đang chọn -->
+          <!-- Thông tin biến thể đang chọn (Hiển thị giá trước & sau giảm rõ ràng) -->
           <div
             v-if="selectedVariant"
             class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100 flex items-center justify-between mt-2"
@@ -863,16 +902,28 @@
               </div>
             </div>
             <div class="text-right">
-              <p class="text-sm font-black text-rose-600">
-                {{
-                  formatPrice(
-                    selectedVariant.dangGiamGia
-                      ? selectedVariant.giaSauGiam
-                      : selectedVariant.giaBan,
-                  )
-                }}
-              </p>
-              <span class="text-[10px] font-bold text-emerald-600"
+              <template v-if="selectedVariant.dangGiamGia">
+                <p class="text-sm font-black text-rose-600">
+                  {{ formatPrice(selectedVariant.giaSauGiam) }}
+                </p>
+                <div class="flex items-center justify-end gap-1.5 mt-0.5">
+                  <span
+                    v-if="getVariantDiscountPercent(selectedVariant) > 0"
+                    class="bg-rose-100 text-rose-700 text-[10px] font-bold px-1.5 py-0.2 rounded"
+                  >
+                    -{{ getVariantDiscountPercent(selectedVariant) }}%
+                  </span>
+                  <span class="text-xs text-slate-400 line-through font-medium">
+                    {{ formatPrice(selectedVariant.giaBan) }}
+                  </span>
+                </div>
+              </template>
+              <template v-else>
+                <p class="text-sm font-black text-indigo-600">
+                  {{ formatPrice(selectedVariant.giaBan) }}
+                </p>
+              </template>
+              <span class="text-[10px] font-bold text-emerald-600 block mt-1"
                 >Kho: {{ selectedVariant.soLuongKhaDung ?? selectedVariant.soLuongTon }}</span
               >
             </div>
@@ -1029,7 +1080,7 @@ const ptttList = ref([])
 const isLoading = ref(true)
 const defaultPTTTId = ref(null)
 
-// --- STATE MODAL CHỌN PHÂN LOẠI (MỚI) ---
+// --- STATE MODAL CHỌN PHÂN LOẠI ---
 const showVariantModal = ref(false)
 const activeMasterProduct = ref(null)
 const selectedColorId = ref(null)
@@ -1042,6 +1093,16 @@ const pendingCheckoutPayload = ref(null)
 
 const tienKhachDua = ref(0)
 const displayTienKhachDua = ref('')
+
+// Helper tính phần trăm giảm giá chính xác (ưu tiên phanTramGiam từ API, nếu không có tự tính dựa trên giaBan và giaSauGiam)
+const getVariantDiscountPercent = (v) => {
+  if (!v.dangGiamGia) return 0
+  if (v.phanTramGiam && v.phanTramGiam > 0) return v.phanTramGiam
+  if (v.giaBan > 0 && v.giaSauGiam < v.giaBan) {
+    return Math.round(((v.giaBan - v.giaSauGiam) / v.giaBan) * 100)
+  }
+  return 0
+}
 
 const handleBankInput = () => {
   const bank = Number(paymentBank.value) || 0
@@ -1128,28 +1189,10 @@ const voucherRef = ref(null)
 const pendingPaidOrderId = ref(null)
 
 const showQrDialog = ref(false)
-let qrTimeout = null
 const qrData = ref({
   qrUrl: '',
   maHoaDon: '',
   tongTien: 0,
-})
-
-watch(showQrDialog, (val) => {
-  if (val) {
-    if (qrTimeout) clearTimeout(qrTimeout)
-    qrTimeout = setTimeout(async () => {
-      if (showQrDialog.value) {
-        toast.success('Giả lập: Đã nhận được thanh toán qua QR sau 10 giây!')
-        await xacNhanDaThanhToan()
-      }
-    }, 10000)
-  } else {
-    if (qrTimeout) {
-      clearTimeout(qrTimeout)
-      qrTimeout = null
-    }
-  }
 })
 
 const totalNeedPay = computed(() => {
@@ -1243,7 +1286,8 @@ const filteredProducts = computed(() => {
     return matchSearch && matchCategory && matchBrand && matchColor && matchSize
   })
 })
-// --- GOM NHÓM SẢN PHẨM THEO SẢN PHẨM GỐC (MỚI) ---
+
+// --- GOM NHÓM SẢN PHẨM THEO SẢN PHẨM GỐC ---
 const groupedMasterProducts = computed(() => {
   const map = new Map()
 
@@ -1258,7 +1302,7 @@ const groupedMasterProducts = computed(() => {
         minPrice: Infinity,
         maxPrice: 0,
         hasDiscount: false,
-        maxDiscountPercent: 0, // Thêm biến lưu phần trăm giảm lớn nhất
+        maxDiscountPercent: 0,
       })
     }
 
@@ -1274,12 +1318,9 @@ const groupedMasterProducts = computed(() => {
 
     if (sp.dangGiamGia) {
       group.hasDiscount = true
-      // Tính % giảm giá của biến thể này: ((giaBan - giaSauGiam) / giaBan) * 100
-      if (sp.giaBan > 0 && sp.giaSauGiam < sp.giaBan) {
-        const percent = Math.round(((sp.giaBan - sp.giaSauGiam) / sp.giaBan) * 100)
-        if (percent > group.maxDiscountPercent) {
-          group.maxDiscountPercent = percent
-        }
+      const percent = getVariantDiscountPercent(sp)
+      if (percent > group.maxDiscountPercent) {
+        group.maxDiscountPercent = percent
       }
     }
   })
@@ -1451,21 +1492,32 @@ const loadChiTietHoaDon = async (idHoaDon) => {
     const order = allOrders.value.find((o) => o.id === idHoaDon)
     if (!order) return
 
-    order.cart = data.sanPhams.map((item) => ({
-      id: item.id,
-      product: {
-        idSanPhamChiTiet: item.idSanPhamChiTiet,
-        maSPCT: item.maSanPhamChiTiet,
-        id: item.idSanPhamChiTiet,
-        tenSanPhamChiTiet: item.tenSanPham,
-        giaBan: item.donGia,
-        tenMauSac: item.tenMauSac,
-        tenKichThuoc: item.tenKichThuoc,
-        image: item.anh,
-      },
-      soLuong: item.soLuong,
-      thanhTien: item.thanhTien,
-    }))
+    order.cart = data.sanPhams.map((item) => {
+      const foundSp = products.value.find(
+        (p) =>
+          Number(p.id) === Number(item.idSanPhamChiTiet) ||
+          Number(p.idSanPhamChiTiet) === Number(item.idSanPhamChiTiet),
+      )
+
+      return {
+        id: item.id,
+        product: {
+          idSanPhamChiTiet: item.idSanPhamChiTiet,
+          maSPCT: item.maSanPhamChiTiet,
+          id: item.idSanPhamChiTiet,
+          tenSanPhamChiTiet: item.tenSanPham,
+          giaBan: foundSp ? foundSp.giaBan : item.donGia,
+          giaSauGiam: foundSp ? foundSp.giaSauGiam : item.donGia,
+          dangGiamGia: foundSp ? foundSp.dangGiamGia : false,
+          phanTramGiam: foundSp ? foundSp.phanTramGiam : 0,
+          tenMauSac: item.tenMauSac,
+          tenKichThuoc: item.tenKichThuoc,
+          image: item.anh,
+        },
+        soLuong: item.soLuong,
+        thanhTien: item.thanhTien,
+      }
+    })
 
     order.cart.forEach((item) => {
       editingQty[item.id] = item.soLuong
@@ -1563,6 +1615,26 @@ const subscribePos = () => {
           if (currentOrder.value?.id) await loadChiTietHoaDon(currentOrder.value.id)
           return
         }
+
+        if (eventType === 'DISCOUNT_UPDATED') {
+          await loadProducts()
+          if (currentOrder.value?.id) {
+            await loadChiTietHoaDon(currentOrder.value.id)
+          }
+          toast.info('Đợt giảm giá vừa được cập nhật!')
+          return
+        }
+
+        if (eventType === 'VOUCHER_REMOVED') {
+          vouchers.value = await getAllVoucher()
+
+          if (currentOrder.value?.id) {
+            await loadChiTietHoaDon(currentOrder.value.id)
+          }
+
+          toast.warning('Voucher đã bị xóa. Danh sách voucher đã được cập nhật!')
+          return
+        }
         if (eventType === 'KHO_VOUCHER_UPDATED') {
           vouchers.value = await getAllVoucher()
           if (currentOrder.value?.id) await loadChiTietHoaDon(currentOrder.value.id)
@@ -1652,7 +1724,7 @@ const onBankInput = (e) => {
 
   const cash = needed - numVal
   paymentCash.value = cash > 0 ? cash : 0
-  displayCash.value = formatCurrencyInput(paymentCash.value)
+  displayCash.value = formatCurrencyInput(cash)
 }
 
 const handlePaymentMethod = async () => {
@@ -1881,17 +1953,39 @@ const xacNhanDaThanhToan = async () => {
 
 const addToCart = async (product) => {
   try {
-    if (!currentOrder.value?.id) return toast.error('Chưa có hóa đơn')
+    if (!currentOrder.value?.id) {
+      return toast.error('Chưa có hóa đơn')
+    }
+
     const payload = {
       idHoaDon: currentOrder.value.id,
       idSanPhamChiTiet: product.idSanPhamChiTiet || product.id,
       soLuong: 1,
     }
+
     await themSanPhamVaoHoaDon(payload)
+
+    // Thêm thành công thì reload chi tiết hóa đơn
     await loadChiTietHoaDon(currentOrder.value.id)
+
     toast.success('Đã thêm sản phẩm vào giỏ')
   } catch (error) {
-    toast.error(error?.message || 'Không thể thêm sản phẩm')
+    console.error('Lỗi thêm sản phẩm:', error)
+
+    const errorMessage = error?.response?.data?.message || error?.message || ''
+
+    // BE báo không đủ số lượng khả dụng
+    if (errorMessage.includes('không đủ số lượng') || errorMessage.includes('số lượng khả dụng')) {
+      // Reload lại danh sách sản phẩm
+      // để cập nhật số lượng tồn / số lượng khả dụng
+      await loadProducts()
+
+      toast.warning('Sản phẩm không đủ số lượng khả dụng. Danh sách sản phẩm đã được cập nhật!')
+
+      return
+    }
+
+    toast.error(errorMessage || 'Không thể thêm sản phẩm')
   }
 }
 
@@ -2157,15 +2251,12 @@ const handleRemoveVoucher = async () => {
   }
 }
 
-// --- XỬ LÝ PHÍM TẮT TOÀN CỤC ---
 const handleKeyDown = (e) => {
-  // F1: Tạo hóa đơn mới
   if (e.key === 'F1') {
     e.preventDefault()
     createNewOrder()
   }
 
-  // Ctrl + F: Focus vào ô tìm kiếm sản phẩm
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
     e.preventDefault()
     if (searchInput.value) {
@@ -2174,12 +2265,18 @@ const handleKeyDown = (e) => {
     }
   }
 
-  // Ctrl + D: Hủy hóa đơn hiện tại
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
     e.preventDefault()
     if (allOrders.value.length > 0 && currentOrderIndex.value >= 0) {
       removeOrder(currentOrderIndex.value)
     }
+  }
+}
+
+// Xử lý click ra ngoài để đóng dropdown voucher
+const handleClickOutside = (event) => {
+  if (voucherRef.value && !voucherRef.value.contains(event.target)) {
+    showVoucherDropdown.value = false
   }
 }
 
@@ -2206,17 +2303,14 @@ onMounted(async () => {
   }
 
   connectSocket()
-
-  // Đăng ký sự kiện lắng nghe bàn phím
   window.addEventListener('keydown', handleKeyDown)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onBeforeUnmount(() => {
   if (socketSubscription) socketSubscription.unsubscribe()
-  if (qrTimeout) clearTimeout(qrTimeout)
-
-  // Gỡ sự kiện khi component unmount
   window.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 

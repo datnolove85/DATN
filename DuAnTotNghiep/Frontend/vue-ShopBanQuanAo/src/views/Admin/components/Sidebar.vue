@@ -40,14 +40,6 @@
         </p>
 
         <router-link
-          to="/admin/dashboard"
-          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
-          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
-        >
-          <span class="mr-3 text-base w-5 text-center">📊</span>
-          Bảng điều khiển
-        </router-link>
-        <router-link
           to="/admin/thongke"
           class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
           active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
@@ -72,6 +64,14 @@
         >
           <span class="mr-3 text-base w-5 text-center">👤</span>
           Quản lý Khách hàng
+        </router-link>
+        <router-link
+          to="/admin/cauhinh"
+          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
+          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
+        >
+          <span class="mr-3 text-base w-5 text-center">⚙️</span>
+          Cấu hình Hệ thống
         </router-link>
 
         <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider pt-4 mb-2">

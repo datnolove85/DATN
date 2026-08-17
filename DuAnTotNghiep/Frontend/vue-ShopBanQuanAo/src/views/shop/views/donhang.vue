@@ -12,9 +12,8 @@
         </div>
       </div>
 
-      <el-button type="primary" class="refresh-btn" :icon="Refresh" @click="loadOrders">
-        Làm mới
-      </el-button>
+      <!-- Đã bỏ type="primary" để nút Làm mới gọn gàng, không bị chói -->
+      <el-button class="refresh-btn" :icon="Refresh" @click="loadOrders"> Làm mới </el-button>
     </div>
 
     <!-- ================= TAB ================= -->
@@ -103,9 +102,17 @@
               </div>
 
               <div class="product-price">
-                <span class="unit-price">{{ money(sp.donGia) }}</span>
-                <span class="quantity">x{{ sp.soLuong }}</span>
-                <strong class="total-price">{{ money(sp.thanhTien) }}</strong>
+                <div class="price-row">
+                  <span class="unit-price">
+                    {{ money(sp.donGia) }}
+                  </span>
+
+                  <span class="quantity"> × {{ sp.soLuong }} </span>
+                </div>
+
+                <strong class="total-price">
+                  {{ money(sp.thanhTien) }}
+                </strong>
               </div>
             </div>
           </el-checkbox-group>
@@ -157,7 +164,14 @@
 
           <div class="action-buttons">
             <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
-
+            <el-button
+              v-if="canPayOrder(order)"
+              type="primary"
+              :icon="CreditCard"
+              @click="handlePayOrder(order)"
+            >
+              Thanh toán
+            </el-button>
             <!-- Nút Hủy đơn hàng -->
             <el-button
               type="danger"
@@ -180,7 +194,8 @@
               Đã nhận được hàng
             </el-button>
 
-            <el-button plain type="primary" @click="handleRebuy(order)"> Mua lại </el-button>
+            <!-- Đổi từ type="primary" sang type="warning" để nút Mua lại nổi bật và hợp lý hơn -->
+            <el-button type="warning" @click="handleRebuy(order)"> Mua lại </el-button>
           </div>
         </div>
       </div>
@@ -189,10 +204,11 @@
     <!-- ================= DETAIL DIALOG ================= -->
     <el-dialog
       v-model="dialogVisible"
-      width="800px"
+      width="720px"
       title="Chi tiết đơn hàng"
       destroy-on-close
       class="custom-dialog"
+      align-center
     >
       <div v-if="selectedOrder" class="dialog-content">
         <!-- TOP: MÃ ĐƠN & TRẠNG THÁI -->
@@ -326,7 +342,7 @@
             <span>Phí vận chuyển</span>
             <span>{{ money(selectedOrder.thongTinDonHang.phiVanChuyen) }}</span>
           </div>
-          <el-divider style="margin: 12px 0" />
+          <el-divider style="margin: 8px 0" />
           <div class="row total-row">
             <span>Tổng thanh toán</span>
             <span class="highlight-total">{{
@@ -349,6 +365,7 @@
       title="Xác nhận hủy đơn hàng"
       width="500px"
       destroy-on-close
+      align-center
     >
       <div v-if="orderToCancel" class="cancel-dialog-content">
         <p class="cancel-subtitle">
@@ -434,13 +451,13 @@ import {
   Phone,
   InfoFilled,
   Warning,
+  CreditCard,
   Goods,
 } from '@element-plus/icons-vue'
 import donHangService from '@/service/DonHangService'
 
 const router = useRouter()
 
-// Alias toast chuẩn Element Plus
 const toast = {
   success: (msg) => ElMessage.success(msg),
   info: (msg) => ElMessage.info(msg),
@@ -448,21 +465,14 @@ const toast = {
   error: (msg) => ElMessage.error(msg),
 }
 
-// State lưu danh sách idSanPham được chọn cho từng đơn hàng: { [idHoaDon]: [id1, id2] }
 const selectedProductsMap = ref({})
-
-// ======================
-// STATE
-// ======================
 const loading = ref(false)
 const activeTab = ref('all')
 const orders = ref([])
 
-// Chi tiết đơn
 const dialogVisible = ref(false)
 const selectedOrder = ref(null)
 
-// Hủy đơn
 const cancelDialogVisible = ref(false)
 const orderToCancel = ref(null)
 const selectedCancelReason = ref('Thay đổi địa chỉ nhận hàng')
@@ -475,11 +485,8 @@ const imageUrl = (path) => {
   return `http://localhost:8080${path}`
 }
 
-// ==========================================
-// SOCKET REALTIME (KHÔNG DÙNG SOCKJS -> DÙNG NATIVE WS)
-// ==========================================
 const stompClient = new Client({
-  brokerURL: 'ws://localhost:8080/ws', // Đường dẫn WebSocket trực tiếp từ Spring Boot
+  brokerURL: 'ws://localhost:8080/ws',
   reconnectDelay: 5000,
   onStompError: (frame) => {
     console.error('🔴 Lỗi kết nối WebSocket:', frame.headers['message'])
@@ -489,18 +496,13 @@ const stompClient = new Client({
 let socketSubscription = null
 
 const subscribePos = () => {
-  // 1. Hủy đăng ký cũ nếu đã tồn tại (chống lặp sự kiện)
   if (socketSubscription) {
     socketSubscription.unsubscribe()
   }
 
-  // 2. Đăng ký nhận tin mới từ Socket
   socketSubscription = stompClient.subscribe('/topic/orders', async (msg) => {
     try {
-      // Tải lại danh sách đơn hàng ngầm
       await loadOrders()
-
-      // 🔔 XỬ LÝ THÔNG BÁO TỪ BACKEND
       if (msg && msg.body) {
         let data = {}
         let isJson = false
@@ -508,13 +510,10 @@ const subscribePos = () => {
         try {
           data = JSON.parse(msg.body)
           isJson = true
-        } catch (e) {
-          // Chuỗi Text thuần
-        }
+        } catch (e) {}
 
         const eventType = isJson ? data.type || data.eventType || data.action : ''
 
-        // Trường hợp bị từ chối hủy đơn
         if (eventType === 'CANCEL_REJECTED') {
           cancelDialogVisible.value = false
           canceling.value = false
@@ -526,12 +525,9 @@ const subscribePos = () => {
           return
         }
 
-        // 🟢 TH1: Riêng sự kiện THANH TOÁN -> Hiện thông báo cố định màu xanh
         if (eventType === 'INVOICE_PAID') {
           toast.success('Thanh toán thành công!')
-        }
-        // 🔵 TH2: Tất cả sự kiện khác -> Lấy nguyên văn thông báo từ BE gửi sang
-        else {
+        } else {
           const noiDungThongBao = isJson
             ? data.message || data.noiDung || data.content || msg.body
             : msg.body
@@ -558,9 +554,6 @@ const connectSocket = () => {
   }
 }
 
-// ======================
-// LOAD DANH SÁCH ĐƠN HÀNG
-// ======================
 async function loadOrders() {
   loading.value = true
   try {
@@ -579,9 +572,6 @@ async function loadOrders() {
   }
 }
 
-// ======================
-// LOGIC CHỌN TẤT CẢ (SELECT ALL)
-// ======================
 function isAllSelected(order) {
   const orderId = order.thongTinDonHang.id
   const selected = selectedProductsMap.value[orderId] || []
@@ -603,9 +593,6 @@ function toggleSelectAll(val, order) {
   }
 }
 
-// ======================
-// XỬ LÝ MUA LẠI
-// ======================
 const handleRebuy = (order) => {
   const orderId = order.thongTinDonHang.id
   const selectedIds = selectedProductsMap.value[orderId] || []
@@ -619,27 +606,89 @@ const handleRebuy = (order) => {
 
   const checkoutData = {
     items: selectedItems.map((sp) => {
-      const gia = Number(sp.donGia || sp.giaBan || 0)
-      const qty = Number(sp.soLuong || 1)
+      // Ưu tiên giá bán thực tế của sản phẩm
+      // Không để donGia ghi đè giaBan
+      const gia = Number(sp.giaBan ?? sp.donGia ?? 0)
+
+      const qty = Number(sp.soLuong ?? 1)
 
       return {
         productDetailId: sp.idChiTietSanPham || sp.idSanPhamChiTiet || sp.idSanPham,
+
         quantity: qty,
+
         tenSanPham: sp.tenSanPham,
         maSanPhamChiTiet: sp.maSanPhamChiTiet || sp.maSanPham || '',
+
         giaBan: gia,
+
         mauSac: sp.mauSac || '',
         kichCo: sp.kichCo || sp.kichThuoc || '',
         anh: sp.anh || '',
+
         soLuongTon: sp.soLuongTon ?? 99,
-        thanhTien: gia * qty,
         soLuongKhaDung: sp.soLuongKhaDung ?? 1,
+
+        thanhTien: gia * qty,
       }
     }),
   }
 
   sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData))
+
   router.push('/xacnhan')
+}
+
+const canPayOrder = (order) => {
+  const info = order?.thongTinDonHang
+
+  if (!info) return false
+
+  // 1. Chỉ xét các đơn đang chờ xác nhận
+  if (info.trangThai !== 'cho_xac_nhan') {
+    return false
+  }
+
+  // 2. Nếu đã thanh toán rồi thì không hiện
+  if (info.trangTinThanhToan !== 'chua_thanh_toan') {
+    // (Lưu ý tên biến trangThaiThanhToan trong code gốc của bạn)
+    return false
+  }
+
+  const phuongThuc =
+    info.phuongThucThanhToan || info.tenPhuongThucThanhToan || info.maPhuongThucThanhToan || ''
+
+  const method = String(phuongThuc).toLowerCase()
+
+  // 3. NẾU KHÁCH ĐÃ CHỌN COD/TIỀN MẶT RỒI -> KHÔNG HIỆN NÚT THANH TOÁN ONLINE
+  if (
+    method.includes('cod') ||
+    method.includes('tiền mặt') ||
+    method.includes('tien mat') ||
+    method.includes('cash')
+  ) {
+    return false
+  }
+
+  // 4. NẾU CHƯA CÓ PHƯƠNG THỨC THANH TOÁN (hoặc dữ liệu trống/chưa chọn)
+  // -> Sẽ cho phép hiển thị nút Thanh toán để khách chọn phương thức mới
+  return true
+}
+const handlePayOrder = (order) => {
+  const info = order?.thongTinDonHang
+
+  if (!info?.id) {
+    toast.error('Không tìm thấy hóa đơn!')
+    return
+  }
+
+  router.push({
+    path: '/payment',
+    query: {
+      id: info.id,
+      maHoaDon: info.maHoaDon,
+    },
+  })
 }
 
 function goToProductDetail(id) {
@@ -653,9 +702,6 @@ function goToProductDetail(id) {
   })
 }
 
-// ======================
-// HELPERS
-// ======================
 function money(value) {
   if (value == null) return '0 ₫'
   return Number(value).toLocaleString('vi-VN') + ' ₫'
@@ -672,9 +718,6 @@ function formatDate(date) {
   })
 }
 
-// ======================
-// FILTER & SORT
-// ======================
 const filteredOrders = computed(() => {
   let list = orders.value
 
@@ -692,9 +735,6 @@ const filteredOrders = computed(() => {
   })
 })
 
-// ======================
-// TAG STATUS
-// ======================
 function statusType(status) {
   const s = (status || '').toLowerCase()
   switch (s) {
@@ -750,9 +790,6 @@ function getStep(order) {
   }
 }
 
-// ======================
-// ACTION HANDLERS
-// ======================
 function openDetail(order) {
   selectedOrder.value = order
   dialogVisible.value = true
@@ -813,9 +850,6 @@ async function handleHuyDonHang() {
   }
 }
 
-// ======================
-// LIFECYCLE HOOKS
-// ======================
 onMounted(() => {
   loadOrders()
   connectSocket()
@@ -832,20 +866,43 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ===========================
-   CSS VARIABLES & DESIGN TOKENS
-=========================== */
+.refresh-btn {
+  background-color: #e9a02e !important;
+  border-color: #e9a02e !important;
+  color: #fff !important;
+  border-radius: 12px;
+  font-weight: 600;
+  height: 40px;
+  padding: 0 20px;
+  transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+  background-color: #d99124 !important;
+  border-color: #d99124 !important;
+  color: #fff !important;
+}
+
+.refresh-btn:active {
+  background-color: #c98520 !important;
+  border-color: #c98520 !important;
+}
+
+.refresh-btn :deep(.el-icon) {
+  color: #fff !important;
+}
+
 .product-list-container {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .select-all-bar {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background-color: #f8f9fa;
   border-radius: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   border: 1px solid #ebedf0;
 }
 
@@ -859,7 +916,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 10px 0;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -893,9 +950,6 @@ onUnmounted(() => {
   color: var(--text-main);
 }
 
-/* ===========================
-   HEADER
-=========================== */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -936,15 +990,6 @@ onUnmounted(() => {
   font-size: 14px;
 }
 
-.refresh-btn {
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-/* ===========================
-   TABS STYLING
-=========================== */
 .tabs-wrapper {
   background: #ffffff;
   padding: 4px 16px 0 16px;
@@ -983,9 +1028,6 @@ onUnmounted(() => {
   height: 3px;
 }
 
-/* ===========================
-   LOADING & EMPTY STATE
-=========================== */
 .loading-box {
   background: #ffffff;
   border-radius: 12px;
@@ -993,9 +1035,6 @@ onUnmounted(() => {
   border: 1px solid var(--border-color);
 }
 
-/* ===========================
-   ORDER LIST & CARD
-=========================== */
 .order-list {
   display: flex;
   flex-direction: column;
@@ -1016,14 +1055,11 @@ onUnmounted(() => {
   border-color: #cbd5e1;
 }
 
-/* ===========================
-   CARD HEADER
-=========================== */
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 20px;
+  padding: 12px 16px;
   background: #f8fafc;
   border-bottom: 1px solid var(--border-color);
 }
@@ -1056,22 +1092,15 @@ onUnmounted(() => {
   gap: 8px;
 }
 
-/* ===========================
-   PRODUCTS CONTAINER & CHECKBOX
-=========================== */
 .product-list-container {
-  padding: 0 20px;
-}
-
-.el-checkbox-group {
-  width: 100%;
+  padding: 0 16px;
 }
 
 .product-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 0;
+  gap: 12px;
+  padding: 12px 0;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -1091,8 +1120,8 @@ onUnmounted(() => {
 }
 
 .product-image {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid var(--border-color);
@@ -1106,8 +1135,8 @@ onUnmounted(() => {
 }
 
 .product-info h4 {
-  margin: 0 0 6px;
-  font-size: 15px;
+  margin: 0 0 4px;
+  font-size: 14px;
   color: var(--text-main);
   font-weight: 600;
   line-height: 1.4;
@@ -1119,94 +1148,86 @@ onUnmounted(() => {
 .product-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   color: var(--text-sub);
-  font-size: 13px;
+  font-size: 12px;
 }
 
-/* ===========================
-   PHẦN GIÁ SẢN PHẨM
-=========================== */
 .product-price {
+  width: 140px;
+  min-width: 140px;
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-end !important;
   justify-content: center;
   gap: 4px !important;
-  height: auto !important;
   flex-shrink: 0;
 }
 
-.product-price .unit-price,
-.product-price .quantity,
-.product-price .total-price {
-  position: static !important;
-  display: block !important;
-  margin: 0 !important;
-  line-height: 1.4 !important;
-  height: auto !important;
-}
-
 .unit-price {
-  color: #94a3b8;
-  font-size: 13px;
-  text-decoration: line-through;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .quantity {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .total-price {
   color: #ef4444;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
-/* ===========================
-   TIMELINE & RETURN BANNER
-=========================== */
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  white-space: nowrap;
+}
 .timeline-container {
-  padding: 20px;
+  padding: 14px 16px;
   background: #fafafa;
   border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #f1f5f9;
 }
 
 :deep(.el-step__title) {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .cancel-banner {
-  padding: 12px 20px;
+  padding: 10px 16px;
   background: #fef2f2;
 }
 
 .return-box {
-  padding: 12px 20px;
+  padding: 10px 16px;
 }
 
-/* ===========================
-   CARD FOOTER
-=========================== */
 .order-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   background: #ffffff;
 }
 
 .order-summary-mini {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-sub);
 }
 
 .highlight-total {
   color: var(--danger-color);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   margin-left: 4px;
 }
@@ -1214,52 +1235,60 @@ onUnmounted(() => {
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .action-buttons .el-button {
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 6px 14px;
   font-weight: 500;
 }
 
 /* ===========================
-   DIALOG STYLING & POLISH
+   COMPACT & CENTERED DIALOG STYLING
 =========================== */
 .custom-dialog :deep(.el-dialog) {
   border-radius: 12px;
   overflow: hidden;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .custom-dialog :deep(.el-dialog__header) {
   margin-right: 0;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .custom-dialog :deep(.el-dialog__title) {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-main);
 }
 
 .custom-dialog :deep(.el-dialog__body) {
-  padding: 20px;
+  padding: 12px 16px;
   background: var(--bg-main);
-  max-height: 70vh;
   overflow-y: auto;
+  flex: 1;
+}
+
+.custom-dialog :deep(.el-dialog__footer) {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-color);
 }
 
 .dialog-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .detail-banner {
   background: #ffffff;
-  padding: 14px 18px;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
@@ -1269,48 +1298,48 @@ onUnmounted(() => {
 .banner-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
   color: var(--text-sub);
 }
 
 .banner-left .code {
   color: var(--text-main);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .banner-right {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 10px;
 }
 
 .detail-section {
   background: #ffffff;
-  padding: 16px;
-  border-radius: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid #f1f5f9;
   color: var(--primary-color);
 }
 
 .section-title h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-main);
   font-weight: 600;
 }
@@ -1322,40 +1351,40 @@ onUnmounted(() => {
 .receiver-info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
+  gap: 4px;
+  font-size: 12px;
   color: var(--text-sub);
 }
 
 .receiver-name {
   margin: 0;
   color: var(--text-main);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .receiver-phone {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .receiver-address {
   margin: 0;
   color: var(--text-sub);
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .info-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-sub);
 }
 
@@ -1369,18 +1398,17 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-/* LIST ITEM IN DIALOG */
 .dialog-product-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .dialog-product-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
+  gap: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -1390,8 +1418,8 @@ onUnmounted(() => {
 }
 
 .dialog-image {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 6px;
   object-fit: cover;
   border: 1px solid var(--border-color);
@@ -1403,8 +1431,8 @@ onUnmounted(() => {
 }
 
 .dialog-info h5 {
-  margin: 0 0 6px;
-  font-size: 14px;
+  margin: 0 0 4px;
+  font-size: 13px;
   color: var(--text-main);
   font-weight: 600;
 }
@@ -1412,13 +1440,13 @@ onUnmounted(() => {
 .dialog-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tag-badge {
   background: #f1f5f9;
   color: var(--text-sub);
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 4px;
   font-size: 11px;
 }
@@ -1431,12 +1459,12 @@ onUnmounted(() => {
 }
 
 .dialog-price .calc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
 .dialog-price .subtotal {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--danger-color);
   font-weight: 600;
 }
@@ -1448,8 +1476,8 @@ onUnmounted(() => {
 .payment-summary-box .row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 13px;
+  margin-bottom: 6px;
+  font-size: 12px;
   color: var(--text-sub);
 }
 
@@ -1459,36 +1487,33 @@ onUnmounted(() => {
 }
 
 .total-row {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-main);
 }
 
-/* ===========================
-   CANCEL DIALOG CUSTOM
-=========================== */
 .cancel-dialog-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .cancel-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-sub);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .cancel-reasons-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
 .cancel-reasons-list .el-radio {
   width: 100%;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background-color: #ffffff;
@@ -1511,12 +1536,9 @@ onUnmounted(() => {
 }
 
 .custom-reason-input {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-/* ===========================
-   RESPONSIVE DESIGN
-=========================== */
 @media (max-width: 768px) {
   .order-page {
     padding: 12px;

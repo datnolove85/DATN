@@ -10,11 +10,13 @@
       >
         <!-- Header -->
         <div class="text-center mb-2">
-          <div class="text-lg font-bold uppercase tracking-widest">Velora</div>
+          <div class="text-lg font-bold uppercase tracking-widest">K-Zone</div>
           <div class="text-[10px]">58 Nguyễn Khánh Toàn, Cầu Giấy, Hà Nội</div>
           <div class="text-[10px]">Hotline: 0377 28 0805</div>
 
-          <div class="my-1 border-y border-dashed border-slate-800 py-1">HÓA ĐƠN BÁN HÀNG</div>
+          <div class="my-1 border-y border-dashed border-slate-800 py-1">
+            {{ hoaDon.loaiHoaDon === 'ONLINE' ? 'HÓA ĐƠN ONLINE' : 'HÓA ĐƠN BÁN HÀNG' }}
+          </div>
         </div>
 
         <!-- Thông tin hóa đơn -->
@@ -29,8 +31,8 @@
           </div>
         </div>
 
-        <!-- Thông tin khách hàng -->
-        <div class="border-y border-dashed border-slate-800 py-1 mb-2 text-[10px]">
+        <!-- Thông tin khách hàng & Giao hàng -->
+        <div class="border-y border-dashed border-slate-800 py-1 mb-2 text-[10px] space-y-0.5">
           <div>
             KH:
             <span class="font-semibold">
@@ -41,6 +43,11 @@
           <div>
             SĐT:
             {{ hoaDon.soDienThoai || '---' }}
+          </div>
+
+          <div v-if="hoaDon.diaChiGiaoHang">
+            ĐC:
+            {{ hoaDon.diaChiGiaoHang }}
           </div>
         </div>
 
@@ -92,7 +99,7 @@
         </div>
 
         <!-- Tổng tiền -->
-        <div class="border-t border-dashed border-slate-800 pt-1 text-[10px]">
+        <div class="border-t border-dashed border-slate-800 pt-1 text-[10px] space-y-0.5">
           <div class="flex justify-between">
             <span>Tổng tiền hàng:</span>
             <span>
@@ -103,6 +110,12 @@
           <div class="flex justify-between text-red-600">
             <span>Giảm giá:</span>
             <span> -{{ formatPriceNoCurrency(hoaDon.tongGiamGia) }} </span>
+          </div>
+
+          <!-- Phí vận chuyển (chỉ hiện khi có phí ship > 0) -->
+          <div v-if="hoaDon.phiVanChuyen > 0" class="flex justify-between">
+            <span>Phí vận chuyển:</span>
+            <span> +{{ formatPriceNoCurrency(hoaDon.phiVanChuyen) }} </span>
           </div>
 
           <div class="flex justify-between font-bold text-[12px] border-t mt-1 pt-1">

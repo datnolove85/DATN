@@ -25,6 +25,8 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
     private final VoucherRepository voucherRepository;
     private final VoucherCuaKhachHangRepository voucherCuaKhachHangRepository;
     private final KhoVoucherRepository khoVoucherRepository;
+    private final NhanVienRepository nhanVienRepo;
+    private final LichSuHoaDonRepository lichSuHoaDonRepository;
 
     @Override
     public Page<HoaDon> timDonHangChuaGiaoChuaSanPhamLoi(String keyword, int page, int size) {
@@ -33,36 +35,48 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
 
     @Override
     @Transactional
-    public void huyDonLoiLe(Integer hoaDonId, HuyDonLoiRequest request) {
+    public void huyDonLoiLe(
+            Integer hoaDonId,
+            HuyDonLoiRequest request,
+            Integer idNhanVien
+    ) {
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn ID: " + hoaDonId));
 
-        xuLyHuyDonVaHoanKho(hoaDon, request.getLyDoLoi());
+        xuLyHuyDonVaHoanKho(
+                hoaDon,
+                request.getLyDoLoi(),
+                idNhanVien
+        );
+
         hoaDonRepository.save(hoaDon);
     }
+//
+//    @Override
+//    @Transactional
+//    public void huyHangLoatLoi(HuyHangLoatLoiRequest request, Integer idNhanVien) {
+//        List<HoaDon> danhSachHoaDon = hoaDonRepository.findByIdIn(request.getDanhSachHoaDonId());
+//
+//        for (HoaDon hoaDon : danhSachHoaDon) {
+//            xuLyHuyDonVaHoanKho(hoaDon, request.getLyDoLoi(), idNhanVien);
+//        }
+//
+//        hoaDonRepository.saveAll(danhSachHoaDon);
+//    }
 
-    @Override
-    @Transactional
-    public void huyHangLoatLoi(HuyHangLoatLoiRequest request) {
-        List<HoaDon> danhSachHoaDon = hoaDonRepository.findByIdIn(request.getDanhSachHoaDonId());
-
-        for (HoaDon hoaDon : danhSachHoaDon) {
-            xuLyHuyDonVaHoanKho(hoaDon, request.getLyDoLoi());
-        }
-
-        hoaDonRepository.saveAll(danhSachHoaDon);
-    }
-
-    // 🟢 Logic dùng chung: Đổi trạng thái, nối ghi chú lỗi, GIẢI PHÓNG TẠM GIỮ
-    private void xuLyHuyDonVaHoanKho(HoaDon hoaDon, String lyDoLoi) {
+    // 🟢 Logic dùng chung: Đổi trạng thái, nối ghi chú lỗi, GIẢI PHÓNG TẠM GIỮ & GHI LỊCH SỬ
+    private void xuLyHuyDonVaHoanKho(HoaDon hoaDon, String lyDoLoi, Integer idNhanVien) {
         // Nếu đã hủy hoặc đã hoàn thành thì bỏ qua
         if (TrangThaiHoaDon.DA_HUY.getValue().equalsIgnoreCase(hoaDon.getTrangThai()) ||
                 TrangThaiHoaDon.HOAN_THANH.getValue().equalsIgnoreCase(hoaDon.getTrangThai())) {
             return;
         }
 
+        String trangThaiCu = hoaDon.getTrangThai();
+        String trangThaiMoi = TrangThaiHoaDon.DA_HUY.getValue();
+
         // 1. Cập nhật trạng thái và thời gian cập nhật
-        hoaDon.setTrangThai(TrangThaiHoaDon.DA_HUY.getValue());
+        hoaDon.setTrangThai(trangThaiMoi);
         hoaDon.setNgayCapNhat(LocalDateTime.now());
 
         // 2. Ghi lý do hủy vào trường ghiChu
@@ -91,21 +105,18 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
                 sanPhamChiTietRepository.save(spct);
             }
         }
+
         // 4. Hoàn voucher nếu có
         HoaDonVoucher hdVoucher = hoaDonVoucherRepository
                 .findByIdHoaDon_Id(hoaDon.getId())
                 .orElse(null);
 
         if (hdVoucher != null) {
-
             // Nếu voucher đã consume thì hoàn lại
             if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
-
                 // Voucher hệ thống
                 if (hdVoucher.getIdVoucher() != null) {
-
                     Voucher voucher = hdVoucher.getIdVoucher();
-
                     Integer daDung = voucher.getSoLuongDaDung() == null
                             ? 0
                             : voucher.getSoLuongDaDung();
@@ -118,18 +129,65 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
 
                 // Voucher của khách
                 if (hdVoucher.getVoucherCuaKhachHang() != null) {
-
-                    VoucherCuaKhachHang voucherKhach =
-                            hdVoucher.getVoucherCuaKhachHang();
-
+                    VoucherCuaKhachHang voucherKhach = hdVoucher.getVoucherCuaKhachHang();
                     voucherKhach.setTrangThai("CHUA_DUNG");
                     voucherCuaKhachHangRepository.save(voucherKhach);
-
                 }
             }
 
             // Xóa bản ghi hóa đơn voucher
             hoaDonVoucherRepository.delete(hdVoucher);
         }
+
+        // 5. Ghi nhận lịch sử hóa đơn (LichSuHoaDon) với nguồn là "STAFF"
+        LichSuHoaDon lichSu = new LichSuHoaDon();
+        lichSu.setHoaDon(hoaDon);
+        lichSu.setTrangThaiCu(trangThaiCu);
+        lichSu.setTrangThaiMoi(trangThaiMoi);
+        lichSu.setThoiGian(LocalDateTime.now());
+        lichSu.setGhiChu(ghiChuMoi);
+        lichSu.setNguonThaoTac("STAFF");
+
+        if (idNhanVien != null) {
+            NhanVien nhanVien = nhanVienRepo.findById(idNhanVien)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên ID: " + idNhanVien));
+            lichSu.setNhanVien(nhanVien);
+        }
+
+        lichSuHoaDonRepository.save(lichSu);
+    }
+
+    @Transactional
+    public void thayDoiTrangThai(
+            Integer idHoaDon,
+            String trangThaiMoi,
+            String ghiChu,
+            String nguonThaoTac,
+            Integer idNhanVien) {
+
+        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn ID: " + idHoaDon));
+
+        String trangThaiCu = hoaDon.getTrangThai();
+
+        hoaDon.setTrangThai(trangThaiMoi);
+        hoaDonRepository.save(hoaDon);
+
+        LichSuHoaDon lichSu = new LichSuHoaDon();
+        lichSu.setHoaDon(hoaDon);
+        lichSu.setTrangThaiCu(trangThaiCu);
+        lichSu.setTrangThaiMoi(trangThaiMoi);
+        lichSu.setThoiGian(LocalDateTime.now());
+        lichSu.setGhiChu(ghiChu);
+        lichSu.setNguonThaoTac(nguonThaoTac);
+
+        if (idNhanVien != null) {
+            NhanVien nhanVien = nhanVienRepo.findById(idNhanVien)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+
+            lichSu.setNhanVien(nhanVien);
+        }
+
+        lichSuHoaDonRepository.save(lichSu);
     }
 }

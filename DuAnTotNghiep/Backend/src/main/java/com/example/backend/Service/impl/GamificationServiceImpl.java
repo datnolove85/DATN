@@ -175,8 +175,8 @@ public class GamificationServiceImpl implements GamificationService {
         }
 
         // 4. Thuật toán quay ngẫu nhiên dựa theo tỷ lệ trúng (ty_le_trung)
-        double tongTyLe = dsPhanThuong.stream().mapToDouble(p -> p.getTyLeTrung().doubleValue()).sum();
-        double randomVal = new Random().nextDouble() * tongTyLe;
+        Random random = new Random();
+        double randomVal = random.nextDouble() * 100;
 
         double currentSum = 0;
         PhanThuongMinigame phanThuongTrung = dsPhanThuong.get(0);
@@ -245,7 +245,7 @@ public class GamificationServiceImpl implements GamificationService {
                 // INSERT VÀO VÍ VOUCHER CỦA KHÁCH HÀNG
                 VoucherCuaKhachHang vckh = new VoucherCuaKhachHang();
                 vckh.setIdKhachHang(idKhachHangThucTe);
-                vckh.setIdKhoVoucher(phanThuongTrung.getIdVoucher());
+                vckh.setIdVoucherMinigame(phanThuongTrung.getIdVoucher());
                 vckh.setTrangThai("CHUA_DUNG");
                 vckh.setNgayDoi(LocalDateTime.now());
                 voucherCuaKhachHangRepository.save(vckh);
@@ -345,9 +345,12 @@ public class GamificationServiceImpl implements GamificationService {
     @Override
     @Transactional
     public PhanThuongMinigame createPhanThuong(PhanThuongMinigame phanThuong) {
+        // 🛡 Ép id về null để chắc chắn tạo bản ghi mới (INSERT),
+        // tránh việc dính id cũ dẫn đến UPDATE ghi đè vào 7 bản ghi có sẵn.
+        phanThuong.setId(null);
+
         if ("voucher".equals(phanThuong.getLoaiPhanThuong())) {
             phanThuong.setGiaTriXu(0);
-            // idVoucher đã được map tự động nhờ @JsonProperty ở Entity
         } else if ("xu".equals(phanThuong.getLoaiPhanThuong())) {
             phanThuong.setIdVoucher(null);
         } else {
@@ -433,7 +436,7 @@ public class GamificationServiceImpl implements GamificationService {
 
         VoucherCuaKhachHang vckh = new VoucherCuaKhachHang();
         vckh.setIdKhachHang(khachHang.getId()); // Dùng ID chuẩn của khách hàng
-        vckh.setIdKhoVoucher(idKhoVoucher);
+        vckh.setIdVoucherMinigame(idKhoVoucher);
         vckh.setTrangThai("CHUA_DUNG");
         vckh.setNgayDoi(LocalDateTime.now());
         VoucherCuaKhachHang savedVoucher = voucherCuaKhachHangRepository.save(vckh);

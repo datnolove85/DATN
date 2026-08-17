@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -54,6 +55,11 @@ public class KhachHang {
     @ColumnDefault("0")
     @Column(name = "so_lan_mua")
     private Integer soLanMua;
+
+    @ColumnDefault("0")
+    @Column(name = "tong_chi_tieu", precision = 18, scale = 2)
+    private BigDecimal tongChiTieu = BigDecimal.ZERO;
+    // ==================================================
 
     @Column(name = "ngay_mua_cuoi")
     private Instant ngayMuaCuoi;

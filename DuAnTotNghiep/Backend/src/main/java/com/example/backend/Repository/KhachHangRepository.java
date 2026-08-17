@@ -116,4 +116,12 @@ WHERE k.trangThai=true
     Long countKhachThanhVien();
 
 
+    @Query(value = """
+    SELECT TOP 1 ma_khach_hang
+    FROM khach_hang
+    WHERE ma_khach_hang LIKE 'KH%'
+    ORDER BY ma_khach_hang DESC
+    """, nativeQuery = true)
+    String findLastMaKhachHang();
+
 }

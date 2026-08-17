@@ -22,7 +22,6 @@ public class DonHangServiceImpl implements DonHangService {
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final ThanhToanRepository thanhToanRepository;
-    private final TraHangRepository traHangRepository;
     private final HinhAnhRepository hinhAnhRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final HoaDonVoucherRepository hoaDonVoucherRepository;
@@ -30,6 +29,7 @@ public class DonHangServiceImpl implements DonHangService {
     private final VoucherCuaKhachHangRepository voucherCuaKhachHangRepository;
     private final KhoVoucherRepository khoVoucherRepository;
     private final VoucherConsumeService voucherConsumeService;
+private  final LichSuHoaDonRepository lichSuHoaDonRepository;
 
     @Override
     public List<DonHangResponse> layDanhSachDonHang(Integer idTaiKhoan) {
@@ -38,7 +38,10 @@ public class DonHangServiceImpl implements DonHangService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
 
         List<HoaDon> hoaDons = hoaDonRepository
-                .findByIdKhachHang_Id(khachHang.getId());
+                .findByIdKhachHang_Id(khachHang.getId())
+                .stream()
+                .filter(hd -> "ONLINE".equalsIgnoreCase(hd.getLoaiHoaDon()))
+                .toList();
 
         List<DonHangResponse> result = new ArrayList<>();
         for (HoaDon hoaDon : hoaDons) {
@@ -68,16 +71,12 @@ public class DonHangServiceImpl implements DonHangService {
         return convertDonHang(hoaDon);
     }
 
-    // ==================================================
-    // HÀM MỚI BỔ SUNG CHO ADMIN
-    // ==================================================
     @Override
     public DonHangResponse layChiTietDonHangChoAdmin(Integer idHoaDon) {
         HoaDon hoaDon = hoaDonRepository
                 .findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-        // Admin được phép xem mọi hóa đơn nên convert trực tiếp và trả về luôn
         return convertDonHang(hoaDon);
     }
 
@@ -193,22 +192,6 @@ public class DonHangServiceImpl implements DonHangService {
             response.setThanhToan(dto);
         }
 
-        /*
-         * TRẢ HÀNG
-         */
-        List<TraHang> traHangs = traHangRepository.findByHoaDonId(hoaDon.getId());
-        TraHangDTO traHangDTO = new TraHangDTO();
-        traHangDTO.setCoTraHang(!traHangs.isEmpty());
-
-        if (!traHangs.isEmpty()) {
-            TraHang traHang = traHangs.get(0);
-            traHangDTO.setMaTraHang(traHang.getMaTraHang());
-            traHangDTO.setTrangThai(traHang.getTrangThai());
-            traHangDTO.setTongTienHoan(traHang.getTongTienHoan());
-            traHangDTO.setLyDo(traHang.getLyDo());
-        }
-        response.setTraHang(traHangDTO);
-
         return response;
     }
 
@@ -255,51 +238,58 @@ public class DonHangServiceImpl implements DonHangService {
         hoaDonRepository.save(hoaDon);
     }
 
-
-
     @Transactional
     public void huyDonHang(Integer idTaiKhoan, Integer idHoaDon, String lyDoHuy) {
-        // 1. Kiểm tra tài khoản khách hàng
         KhachHang khachHang = khachHangRepository
                 .findByIdTaiKhoan_Id(idTaiKhoan)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng"));
 
-        // 2. Tìm hóa đơn
         HoaDon hoaDon = hoaDonRepository
                 .findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-        // 3. Kiểm tra hóa đơn có đúng của khách hàng này không
         if (hoaDon.getIdKhachHang() == null || !hoaDon.getIdKhachHang().getId().equals(khachHang.getId())) {
             throw new RuntimeException("Bạn không có quyền hủy đơn hàng này!");
         }
 
-        // 4. Kiểm tra điều kiện trạng thái cho phép hủy
         String trangThai = hoaDon.getTrangThai() != null ? hoaDon.getTrangThai().toLowerCase() : "";
 
         if (!"cho_xac_nhan".equals(trangThai) && !"da_xac_nhan".equals(trangThai)) {
-
-            // Tạo dữ liệu thông báo
             Map<String, Object> socketPayload = new HashMap<>();
             socketPayload.put("type", "CANCEL_REJECTED");
             socketPayload.put("idHoaDon", idHoaDon);
             socketPayload.put("trangThaiMoi", hoaDon.getTrangThai());
             socketPayload.put("message", "Đơn hàng đã chuyển sang trạng thái '" + hoaDon.getTrangThai() + "', không thể hủy!");
 
-            // 🟢 Thêm (Object) ở đây để không bị lỗi Ambiguous method call
             messagingTemplate.convertAndSend("/topic/orders", (Object) socketPayload);
 
             throw new RuntimeException("Đơn hàng đang giao hoặc đã hoàn tất, không thể hủy!");
         }
 
-        // 5. Cập nhật trạng thái hóa đơn sang "da_huy"
+
+        // 1. Lưu lại trạng thái cũ trước khi đổi
+        String trangThaiCu = hoaDon.getTrangThai();
+
+        // 2. Cập nhật trạng thái mới cho hóa đơn
         hoaDon.setTrangThai("da_huy");
-        hoaDon.setGhiChu(lyDoHuy != null && !lyDoHuy.trim().isEmpty()
+        String noiDungGhiChu = lyDoHuy != null && !lyDoHuy.trim().isEmpty()
                 ? "Khách hủy: " + lyDoHuy
-                : "Khách tự hủy đơn hàng");
+                : "Khách tự hủy đơn hàng";
+        hoaDon.setGhiChu(noiDungGhiChu);
         hoaDon.setNgayCapNhat(LocalDateTime.now());
 
-        // 6. Trả lại tạm giữ / tồn kho
+        // 3. 🔴 TẠO VÀ LƯU LỊCH SỬ HÓA ĐƠN ĐÚNG VỚI ENTITY CỦA BẠN
+        LichSuHoaDon lichSu = new LichSuHoaDon();
+        lichSu.setHoaDon(hoaDon);
+        lichSu.setTrangThaiCu(trangThaiCu);
+        lichSu.setTrangThaiMoi("da_huy");
+        lichSu.setThoiGian(LocalDateTime.now());
+        lichSu.setNguonThaoTac("CUSTOMER"); // Nguồn là khách hàng
+        lichSu.setNhanVien(null);           // Do khách hủy nên không gắn nhân viên nào cả
+        lichSu.setGhiChu(noiDungGhiChu);
+
+        lichSuHoaDonRepository.save(lichSu);
+
         List<HoaDonChiTiet> chiTietList = hoaDonChiTietRepository.findByIdHoaDon_Id(hoaDon.getId());
         for (HoaDonChiTiet ct : chiTietList) {
             SanPhamChiTiet spct = ct.getIdSanPhamChiTiet();
@@ -315,24 +305,15 @@ public class DonHangServiceImpl implements DonHangService {
                 }
             }
         }
-        // 7. Hoàn voucher nếu có
-        // 7. Hoàn voucher nếu có
+
         HoaDonVoucher hdVoucher = hoaDonVoucherRepository
                 .findByIdHoaDon_Id(hoaDon.getId())
                 .orElse(null);
 
         if (hdVoucher != null) {
-
-            // Chỉ hoàn nếu voucher đã được consume
             if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
-
-                // ==========================
-                // Voucher hệ thống
-                // ==========================
                 if (hdVoucher.getIdVoucher() != null) {
-
                     Voucher voucher = hdVoucher.getIdVoucher();
-
                     int daDung = voucher.getSoLuongDaDung() == null
                             ? 0
                             : voucher.getSoLuongDaDung();
@@ -343,11 +324,7 @@ public class DonHangServiceImpl implements DonHangService {
                     voucherRepository.save(voucher);
                 }
 
-                // ==========================
-                // Voucher khách
-                // ==========================
                 if (hdVoucher.getVoucherCuaKhachHang() != null) {
-
                     VoucherCuaKhachHang voucherKhach =
                             hdVoucher.getVoucherCuaKhachHang();
 
@@ -355,27 +332,21 @@ public class DonHangServiceImpl implements DonHangService {
                     voucherCuaKhachHangRepository.save(voucherKhach);
 
                     if (hdVoucher.getIdKhoVoucher() != null) {
-
                         KhoVoucher khoVoucher = hdVoucher.getIdKhoVoucher();
-
                         int conLai = khoVoucher.getSoLuongConLai() == null
                                 ? 0
                                 : khoVoucher.getSoLuongConLai();
 
                         khoVoucher.setSoLuongConLai(conLai + 1);
-
                         khoVoucherRepository.save(khoVoucher);
                     }
                 }
             }
-
-            // Dù consume hay chưa thì đều xóa bản ghi hóa đơn voucher
             hoaDonVoucherRepository.delete(hdVoucher);
         }
 
         hoaDonRepository.save(hoaDon);
 
-        // 🟢 Bắn Socket hủy thành công độc lập
         Map<String, Object> successPayload = new HashMap<>();
         successPayload.put("type", "CANCEL_SUCCESS");
         successPayload.put("idHoaDon", idHoaDon);

@@ -304,6 +304,13 @@
                         🎉 Giao thành công
                       </button>
                       <button
+                        v-if="canChangeStatus(o.trangThai, 'giao_that_bai')"
+                        @click="handleAction(o, 'giao_that_bai')"
+                        class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                      >
+                        ❌ Giao thất bại
+                      </button>
+                      <button
                         v-if="canChangeStatus(o.trangThai, 'hoan_thanh')"
                         @click="handleAction(o, 'hoan_thanh')"
                         class="w-full text-left px-4 py-2 text-xs font-semibold text-green-600 hover:bg-green-50"
@@ -629,6 +636,7 @@ const statusMap = {
   giao_thanh_cong: 'Giao thành công',
   hoan_thanh: 'Hoàn thành',
   da_huy: 'Đã hủy',
+  giao_that_bai: 'Giao thất bại',
 }
 
 const formatMoney = (val) => (val != null ? val.toLocaleString('vi-VN') : '0')

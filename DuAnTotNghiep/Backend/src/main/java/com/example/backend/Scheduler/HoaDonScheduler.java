@@ -3,14 +3,14 @@ package com.example.backend.Scheduler;
 import com.example.backend.Entity.HoaDon;
 import com.example.backend.Entity.HoaDonChiTiet;
 import com.example.backend.Entity.HoaDonVoucher;
+import com.example.backend.Entity.LichSuHoaDon;
 import com.example.backend.Entity.SanPhamChiTiet;
 import com.example.backend.Repository.HoaDonChiTietRepository;
 import com.example.backend.Repository.HoaDonRepository;
 import com.example.backend.Repository.HoaDonVoucherRepository;
+import com.example.backend.Repository.LichSuHoaDonRepository;
 import com.example.backend.Repository.SanPhamChiTietRepository;
 import com.example.backend.Service.payment.VoucherConsumeService;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,25 +22,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 @Component
 @RequiredArgsConstructor
 public class HoaDonScheduler {
 
     private final HoaDonRepository hoaDonRepo;
-
     private final HoaDonChiTietRepository hdctRepo;
-
     private final SanPhamChiTietRepository spctRepo;
-
     private final SimpMessagingTemplate messagingTemplate;
-
     private final HoaDonVoucherRepository hoaDonVoucherRepo;
-
     private final VoucherConsumeService voucherConsumeService;
+    private final LichSuHoaDonRepository lichSuHoaDonRepository; // 🟢 Thêm repository lịch sử hóa đơn
 
     @Transactional
-    @Scheduled(fixedRate = 5000) //5 giây
+    @Scheduled(fixedRate = 5000) // 5 giây
     public void autoCancelHoaDon() {
 
         // POS: 15 phút
@@ -79,24 +74,45 @@ public class HoaDonScheduler {
                 spctRepo.save(sp);
             }
 
-            hd.setTrangThai("da_huy");
+            String trangThaiCu = hd.getTrangThai();
+            String trangThaiMoi = "da_huy";
 
+            hd.setTrangThai(trangThaiMoi);
+
+            String ghiChuTbl;
             if ("tai_quay".equalsIgnoreCase(hd.getLoaiHoaDon())) {
-                hd.setGhiChu("Tự động hủy do quá 15 phút không thao tác.");
+                ghiChuTbl = "Tự động hủy do quá 15 phút không thao tác.";
             } else {
-                hd.setGhiChu("Tự động hủy do quá 12 giờ không hoàn tất đơn hàng.");
+                ghiChuTbl = "Tự động hủy do quá 12 giờ không hoàn tất đơn hàng.";
+            }
+
+            // Gộp hoặc gán ghi chú
+            if (hd.getGhiChu() != null && !hd.getGhiChu().isBlank()) {
+                hd.setGhiChu(hd.getGhiChu() + " | " + ghiChuTbl);
+            } else {
+                hd.setGhiChu(ghiChuTbl);
             }
 
             hd.setNgayCapNhat(LocalDateTime.now());
-
             hoaDonRepo.save(hd);
+
+            // 🟢 Ghi nhận lịch sử hóa đơn với nguồn là "HỆ THỐNG"
+            LichSuHoaDon lichSu = new LichSuHoaDon();
+            lichSu.setHoaDon(hd);
+            lichSu.setTrangThaiCu(trangThaiCu);
+            lichSu.setTrangThaiMoi(trangThaiMoi);
+            lichSu.setThoiGian(LocalDateTime.now());
+            lichSu.setGhiChu(ghiChuTbl);
+            lichSu.setNguonThaoTac("SYSTEM");
+            lichSu.setNhanVien(null); // Do hệ thống tự động chạy nên không có nhân viên cụ thể
+
+            lichSuHoaDonRepository.save(lichSu);
 
             HoaDonVoucher hdVoucher = hoaDonVoucherRepo
                     .findByIdHoaDon_Id(hd.getId())
                     .orElse(null);
 
             if (hdVoucher != null) {
-
                 if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
                     voucherConsumeService.returnVoucher(hd.getId());
                 }
@@ -118,5 +134,4 @@ public class HoaDonScheduler {
             System.out.println("Đã tự động hủy hóa đơn " + hd.getMaHoaDon());
         }
     }
-
 }

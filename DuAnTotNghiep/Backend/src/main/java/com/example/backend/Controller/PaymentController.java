@@ -7,6 +7,7 @@ import com.example.backend.Repository.ThanhToanRepository;
 import com.example.backend.Request.PaymentRequest;
 import com.example.backend.Response.PaymentResponse;
 
+import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.payment.PaymentFactory;
 import com.example.backend.Service.payment.PaymentService;
 import com.example.backend.Service.payment.VoucherConsumeService;
@@ -34,6 +35,8 @@ public class PaymentController {
 
     private final VoucherConsumeService voucherConsumeService; // thêm dòng này
 
+    private final HoaDonService hoaDonService;
+
     @PostMapping("/pay")
     public PaymentResponse pay(@RequestBody PaymentRequest request) {
 
@@ -60,7 +63,13 @@ public class PaymentController {
                 HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElse(null);
                 if (hoaDon != null) {
                     // Cập nhật trạng thái Hóa đơn
-                    hoaDon.setTrangThai("da_xac_nhan");
+                    hoaDonService.thayDoiTrangThai(
+                            hoaDon.getId(),
+                            "da_xac_nhan",
+                            "Thanh toán VNPay thành công",
+                            "CUSTOMER",
+                            null
+                    );
                     hoaDon.setTrangThaiThanhToan("da_thanh_toan");
                     hoaDon.setNgayCapNhat(LocalDateTime.now());
                     hoaDonRepository.save(hoaDon);
@@ -98,7 +107,13 @@ public class PaymentController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
             // 2. Cập nhật trạng thái Hóa đơn thành đã thanh toán / đã xác nhận
-            hoaDon.setTrangThai("da_xac_nhan");
+            hoaDonService.thayDoiTrangThai(
+                    hoaDon.getId(),
+                    "da_xac_nhan",
+                    "Thanh toán VNPay thành công",
+                    "CUSTOMER",
+                    null
+            );
             hoaDon.setTrangThaiThanhToan("da_thanh_toan");
             hoaDon.setNgayCapNhat(LocalDateTime.now());
             hoaDonRepository.save(hoaDon);

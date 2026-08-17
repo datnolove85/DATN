@@ -243,6 +243,11 @@ const router = createRouter({
           name: 'AdminKhoVoucher',
           component: () => import('../views/Admin/Layout/wards/QuanLyKhoVoucher.vue'), // ⚠️ Sửa lại đường dẫn import nếu bạn lưu file .vue ở thư mục khác nhé!
         },
+        {
+          path: 'cauhinh',
+          name: 'AdminCauHinh',
+          component: () => import('@/views/Admin/settings/cauhinh.vue'),
+        },
       ],
     },
 

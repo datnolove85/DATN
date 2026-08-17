@@ -2,6 +2,7 @@
   <div
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl min-h-screen selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
+    <!-- HEADER -->
     <div
       class="relative p-6 bg-white rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm"
     >
@@ -21,21 +22,20 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
-        <!-- <button
-          v-if="canReturn"
-          @click="openTraHang"
-          class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm"
-        >
-          🔄 TRẢ HÀNG
-        </button> -->
-
         <div>
           <button
             @click="openPreview"
-            :disabled="!rawInvoice"
-            class="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
+            :disabled="!rawInvoice || ['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)"
+            :class="[
+              'flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
+              ['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)
+                ? 'bg-slate-100 text-slate-800 border border-slate-300 cursor-not-allowed shadow-none'
+                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm active:scale-95',
+            ]"
           >
+            <!-- Icon máy in khi bình thường -->
             <svg
+              v-if="!['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -49,7 +49,27 @@
                 d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.617 0-1.11-.51-1.07-1.122L6.34 18m11.32 0h-11.32M9 11V5.25A2.25 2.25 0 0 1 11.25 3h1.5A2.25 2.25 0 0 1 15 5.25V11m-6 0h6a2.25 2.25 0 0 1 2.25 2.25v1.875c0 .621-.504 1.125-1.125 1.125H6.875A1.125 1.125 0 0 1 5.625 16.25V13.25A2.25 2.25 0 0 1 7.875 11h.25Z"
               />
             </svg>
-            XUẤT HÓA ĐƠN
+            <!-- Icon ổ khóa khi bị vô hiệu hóa -->
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2.5"
+              stroke="currentColor"
+              class="w-4 h-4 text-slate-700"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+              />
+            </svg>
+            {{
+              ['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)
+                ? 'ĐƠN ĐÃ HỦY'
+                : 'XUẤT HÓA ĐƠN'
+            }}
           </button>
           <InvoiceModal v-if="isPreviewOpen" :hoa-don="rawInvoice" @close="closePreview" />
         </div>
@@ -77,8 +97,10 @@
       </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- MAIN CONTAINER -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-8">
+      <!-- TOP INFO GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           class="p-5 bg-slate-50/60 rounded-xl border border-slate-200/60 transition-all hover:bg-slate-50"
         >
@@ -88,10 +110,10 @@
             👤 Hồ sơ đối tác
           </p>
           <p class="font-bold text-slate-800 text-sm capitalize">
-            {{ invoice.customer || 'Khách vãng lai' }}
+            {{ invoice.customer }}
           </p>
           <p class="text-xs text-slate-500 font-mono mt-0.5">
-            {{ invoice.phone || 'Không để lại số' }}
+            {{ invoice.phone }}
           </p>
         </div>
 
@@ -108,13 +130,7 @@
               <span
                 :class="['w-1.5 h-1.5 rounded-full mr-2 transition-all bg-current animate-pulse']"
               ></span>
-              {{
-                invoice.status === 'da_xac_nhan'
-                  ? 'Đã xác nhận'
-                  : invoice.status === 'cho_xac_nhan'
-                    ? 'Chờ xác nhận'
-                    : invoice.status
-              }}
+              {{ formatStatusName(invoice.status) }}
             </span>
           </div>
         </div>
@@ -125,16 +141,128 @@
           <p
             class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"
           >
-            📅 Biên niên ký tạo
+            📅 Thời gian đặt hàng
           </p>
           <p class="font-bold text-slate-800 text-sm font-mono flex items-center gap-2">
-            {{ invoice.created }}
+            {{ invoice.createdAt }}
           </p>
-          <p class="text-[11px] text-slate-400 mt-0.5">Thời gian cập nhật gần nhất</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Ngày giờ khởi tạo hóa đơn</p>
         </div>
       </div>
 
-      <div class="mb-8">
+      <!-- ================= LỊCH SỬ TIẾN TRÌNH HÓA ĐƠN (TIMELINE) ================= -->
+      <div class="p-6 bg-slate-50/40 rounded-2xl border border-slate-200/70">
+        <div class="flex items-center justify-between mb-6 select-none">
+          <h3
+            class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-2"
+          >
+            <span class="inline-block w-1.5 h-3.5 bg-indigo-600 rounded-sm"></span>
+            Lịch sử tiến trình hóa đơn (Timeline)
+          </h3>
+          <span
+            class="text-[11px] font-bold text-slate-400 font-mono bg-white px-2.5 py-0.5 rounded-md border border-slate-200"
+          >
+            Tổng số bước: {{ invoice.history?.length || 0 }}
+          </span>
+        </div>
+
+        <div
+          v-if="invoice.history && invoice.history.length > 0"
+          class="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200"
+        >
+          <div
+            v-for="hist in invoice.history"
+            :key="hist.id"
+            class="relative flex items-start gap-4 group"
+          >
+            <div
+              class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center shadow-xs"
+            >
+              <div class="w-2 h-2 rounded-full bg-indigo-600"></div>
+            </div>
+
+            <div
+              class="flex-1 bg-white border border-slate-200/80 rounded-xl p-4 transition-all hover:shadow-sm"
+            >
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span
+                    v-if="hist.trangThaiCu"
+                    class="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px]"
+                  >
+                    {{ formatStatusName(hist.trangThaiCu) }}
+                  </span>
+                  <svg
+                    v-if="hist.trangThaiCu"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2.5"
+                    stroke="currentColor"
+                    class="w-3.5 h-3.5 text-slate-400"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                  <span
+                    class="px-2.5 py-1 bg-indigo-600 text-white font-bold rounded-lg text-[11px] shadow-xs"
+                  >
+                    {{ hist.hienThiTrangThai || formatStatusName(hist.trangThaiMoi) }}
+                  </span>
+                </div>
+
+                <span class="text-xs font-mono font-semibold text-slate-500">
+                  {{ formatDateTime(hist.thoiGian) }}
+                </span>
+              </div>
+
+              <div
+                class="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-3 pt-2 border-t border-slate-100"
+              >
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400 font-medium">Người thực hiện:</span>
+                  <span class="font-bold text-slate-800">
+                    {{ hist.tenNhanVienHienThi }}
+                  </span>
+                </div>
+
+                <span class="text-slate-300">•</span>
+
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400 font-medium">Nguồn:</span>
+                  <span
+                    :class="[
+                      'px-2 py-0.5 rounded font-mono font-bold text-[10px] border uppercase',
+                      getSourceBadgeClass(hist.nguonThaoTac),
+                    ]"
+                  >
+                    {{ hist.nguonThaoTac }}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                v-if="hist.ghiChu"
+                class="mt-2.5 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 italic"
+              >
+                <span class="font-bold text-slate-700 not-italic mr-1">Ghi chú:</span>
+                {{ hist.ghiChu }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-6 text-slate-400 italic text-xs">
+          Chưa có lịch sử thay đổi trạng thái cho hóa đơn này.
+        </div>
+      </div>
+      <!-- ======================================================================= -->
+
+      <!-- ITEMS TABLE -->
+      <div>
         <div class="flex items-center justify-between mb-4 select-none">
           <h3
             class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-2"
@@ -222,6 +350,7 @@
         </div>
       </div>
 
+      <!-- BOTTOM SUMMARY & NOTE GRID -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
         <div class="space-y-4 text-xs">
           <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">
@@ -303,101 +432,6 @@
         </div>
       </div>
     </div>
-
-    <Teleport to="body">
-      <div
-        v-if="showTraHang"
-        class="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center"
-      >
-        <div class="bg-white w-[900px] rounded-2xl shadow-2xl overflow-hidden">
-          <!-- HEADER -->
-          <div class="bg-red-500 text-white px-5 py-3 flex justify-between items-center">
-            <h2 class="font-bold">🔄 Trả hàng hóa đơn</h2>
-            <button @click="showTraHang = false" class="text-white font-bold">✕</button>
-          </div>
-
-          <!-- BODY -->
-          <div class="p-5 grid grid-cols-3 gap-4">
-            <!-- LEFT: TABLE -->
-            <div class="col-span-2">
-              <table class="w-full text-xs border">
-                <thead class="bg-slate-100 text-[11px]">
-                  <tr>
-                    <th class="p-2 text-left">Sản phẩm</th>
-                    <th>Đã mua</th>
-                    <th>Đã trả</th>
-                    <th>Còn lại</th>
-                    <th>Trả</th>
-                    <th>Tiền hoàn</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr v-for="sp in traHangData?.sanPhams || []" :key="sp.hdctId">
-                    <td class="p-2 font-semibold">{{ sp.tenSanPham }}</td>
-
-                    <td>{{ sp.soLuongMua }}</td>
-                    <td class="text-rose-500 font-bold">{{ sp.daTra }}</td>
-
-                    <td class="text-green-600 font-bold">
-                      {{ sp.conLai }}
-                    </td>
-
-                    <td>
-                      <input
-                        type="number"
-                        v-model.number="sp.soLuongTra"
-                        :max="sp.conLai"
-                        min="0"
-                        class="border px-2 py-1 w-16"
-                        @input="calcRefund"
-                      />
-                    </td>
-
-                    <td class="text-right font-bold text-indigo-600">
-                      {{ formatMoney((sp.soLuongTra || 0) * sp.donGia) }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- RIGHT: SUMMARY -->
-            <div class="col-span-1 border rounded-xl p-4 bg-slate-50">
-              <h3 class="font-bold mb-3">📊 Tổng hoàn tiền</h3>
-
-              <div class="space-y-2 text-xs">
-                <div class="flex justify-between">
-                  <span>Tổng trả:</span>
-                  <span class="font-bold text-red-600">{{ totalReturnQty }}</span>
-                </div>
-
-                <div class="flex justify-between">
-                  <span>Tiền hoàn:</span>
-                  <span class="font-bold text-indigo-600">
-                    {{ formatMoney(totalRefund) }}
-                  </span>
-                </div>
-
-                <div class="border-t pt-2 mt-2 flex justify-between">
-                  <span class="font-bold">Thực nhận lại:</span>
-                  <span class="text-green-600 font-black">
-                    {{ formatMoney(totalRefund) }}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg font-bold"
-                @click="submitTH"
-              >
-                Xác nhận trả hàng
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -405,91 +439,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getHoadonById } from '@/service/HoaDonService'
-import { useToast } from 'vue-toastification'
-import { getTraHangByHoaDon, submitTraHang } from '@/service/HoaDonService'
 import InvoiceModal from './InvoiceModal.vue'
+
 const route = useRoute()
 const router = useRouter()
 const rawInvoice = ref(null)
-
-const toast = useToast()
-
-const showTraHang = ref(false)
-const traHangData = ref(null)
-
-const openTraHang = async () => {
-  try {
-    showTraHang.value = true
-
-    const res = await getTraHangByHoaDon(route.params.id)
-
-    traHangData.value = {
-      sanPhams:
-        res?.sanPhams?.map((sp) => ({
-          ...sp,
-          soLuongTra: 0,
-          conLai: sp.conLai || 0,
-        })) || [],
-    }
-  } catch (e) {
-    console.error(e)
-    showTraHang.value = false
-  }
-}
-const canReturn = computed(() => {
-  const s = invoice.value?.status?.trim()
-  return ['da_giao', 'da_xac_nhan'].includes(s)
-})
-const submitTH = async () => {
-  try {
-    const payload = {
-      hoaDonId: route.params.id,
-      maTraHang: 'TH' + Date.now(),
-      tongTienHoan: totalRefund.value,
-      lyDo: 'Khách trả hàng',
-      danhSachTra: traHangData.value.sanPhams
-        .filter((sp) => sp.soLuongTra > 0)
-        .map((sp) => ({
-          hdctId: sp.hdctId,
-          soLuongTra: sp.soLuongTra,
-        })),
-    }
-    await submitTraHang(payload)
-
-    toast.success('Trả hàng thành công!')
-    showTraHang.value = false
-
-    loadHoaDon()
-  } catch (e) {
-    console.error(e)
-    toast.error('Trả hàng thất bại!')
-  }
-}
-
-const calcRefund = () => {
-  if (!traHangData.value?.sanPhams) return
-
-  traHangData.value.sanPhams.forEach((sp) => {
-    if (!sp.soLuongTra || sp.soLuongTra < 0) sp.soLuongTra = 0
-    if (sp.soLuongTra > sp.conLai) sp.soLuongTra = sp.conLai
-  })
-}
-const totalRefund = computed(() => {
-  return (
-    traHangData.value?.sanPhams?.reduce((sum, sp) => {
-      return sum + (sp.soLuongTra || 0) * (sp.donGia || 0)
-    }, 0) || 0
-  )
-})
-
-const totalReturnQty = computed(() => {
-  return (
-    traHangData.value?.sanPhams?.reduce((sum, sp) => {
-      return sum + (sp.soLuongTra || 0)
-    }, 0) || 0
-  )
-})
-
 const isPreviewOpen = ref(false)
 
 const goBack = () => {
@@ -497,6 +451,8 @@ const goBack = () => {
 }
 
 const openPreview = () => {
+  // Chặn mở modal xuất hóa đơn nếu đơn hàng ở trạng thái hủy hoặc trả hàng
+  if (['huy', 'da_huy', 'da_tra_hang'].includes(invoice.value.status)) return
   isPreviewOpen.value = true
 }
 
@@ -504,38 +460,138 @@ const closePreview = () => {
   isPreviewOpen.value = false
 }
 
+// Format tên trạng thái tiếng Việt
+const formatStatusName = (status) => {
+  if (!status) return 'N/A'
+  const map = {
+    cho_xac_nhan: 'Chờ xác nhận',
+    da_xac_nhan: 'Đã xác nhận',
+    cho_van_chuyen: 'Chờ vận chuyển',
+    dang_giao: 'Đang giao',
+    hoan_thanh: 'Hoàn thành',
+    huy: 'Đã hủy',
+    da_huy: 'Đã hủy',
+    da_tra_hang: 'Đã trả hàng',
+  }
+  return map[status] || status
+}
+
+// Format ngày giờ chi tiết
+const formatDateTime = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return isNaN(date.getTime()) ? dateString : date.toLocaleString('vi-VN')
+}
+
+// Màu sắc badge nguồn thao tác
+const getSourceBadgeClass = (source) => {
+  switch (source) {
+    case 'STAFF':
+      return 'bg-blue-50 text-blue-600 border-blue-200'
+    case 'CUSTOMER':
+      return 'bg-purple-50 text-purple-600 border-purple-200'
+    case 'SYSTEM':
+      return 'bg-slate-100 text-slate-600 border-slate-200'
+    default:
+      return 'bg-slate-50 text-slate-500 border-slate-200'
+  }
+}
+
 const invoice = computed(() => {
-  if (!rawInvoice.value) return { items: [] }
+  if (!rawInvoice.value) return { items: [], history: [] }
+
+  const ngayTaoDon = rawInvoice.value.ngayTao
+  let listHistory = rawInvoice.value.lichSuHoaDons ? [...rawInvoice.value.lichSuHoaDons] : []
+  const isOnline = rawInvoice.value.loaiHoaDon === 'online'
+
+  // Đảm bảo có mốc khởi tạo ở đầu timeline nếu có ngày tạo
+  if (ngayTaoDon) {
+    const hasCreationMilestone = listHistory.some(
+      (h) => h.trangThaiCu === null || h.thoiGian === ngayTaoDon || h.ghiChu?.includes('Khởi tạo'),
+    )
+
+    if (!hasCreationMilestone) {
+      const initialStatus =
+        listHistory.length > 0 && listHistory[0].trangThaiCu
+          ? listHistory[0].trangThaiCu
+          : isOnline
+            ? 'cho_xac_nhan'
+            : 'da_xac_nhan'
+
+      listHistory.unshift({
+        id: 'always-created-milestone',
+        trangThaiCu: null,
+        trangThaiMoi: initialStatus,
+        thoiGian: ngayTaoDon,
+        tenNhanVien: isOnline
+          ? rawInvoice.value.tenKhachHang || 'Khách hàng'
+          : rawInvoice.value.tenNhanVien || 'Nhân viên bán hàng',
+        nguonThaoTac: isOnline ? 'CUSTOMER' : 'STAFF',
+        ghiChu: isOnline
+          ? 'Khách hàng đặt hàng thành công'
+          : 'Khởi tạo hóa đơn tại quầy thành công',
+      })
+    }
+  }
+
+  // Chuẩn hóa và gán tên người thực hiện / tên nhãn timeline tùy theo loại hóa đơn và nguồn thao tác
+  const processedHistory = listHistory.map((hist) => {
+    let hienThiTrangThai = null
+    let tenNhanVienHienThi = hist.tenNhanVien
+
+    // Mốc khởi tạo (trangThaiCu === null)
+    if (!hist.trangThaiCu) {
+      hienThiTrangThai = isOnline ? 'Đặt hàng' : 'Tạo hóa đơn'
+      tenNhanVienHienThi = isOnline
+        ? rawInvoice.value.tenKhachHang || 'Khách hàng'
+        : hist.tenNhanVien || 'Nhân viên bán hàng'
+    } else if (hist.nguonThaoTac === 'CUSTOMER') {
+      // Thao tác do khách hàng thực hiện (ví dụ khách hủy đơn)
+      tenNhanVienHienThi = rawInvoice.value.tenKhachHang
+        ? `(${rawInvoice.value.tenKhachHang})`
+        : 'Khách hàng'
+    } else {
+      tenNhanVienHienThi = hist.tenNhanVien || 'Hệ thống tự động'
+    }
+
+    return {
+      ...hist,
+      hienThiTrangThai,
+      tenNhanVienHienThi,
+    }
+  })
+
+  // Sắp xếp lịch sử theo thời gian tăng dần để mốc tạo đơn luôn nằm ở trên cùng
+  const sortedHistory = processedHistory.sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian))
 
   return {
     code: rawInvoice.value.maHoaDon,
-    customer: rawInvoice.value.tenNguoiNhan,
-    phone: rawInvoice.value.soDienThoaiNguoiNhan,
+    customer:
+      rawInvoice.value.tenKhachHang || rawInvoice.value.tenNguoiNhan || 'Khách lẻ (Tại quầy)',
+    phone:
+      rawInvoice.value.soDienThoaiKhachHang || rawInvoice.value.soDienThoaiNguoiNhan || 'Không có',
     status: rawInvoice.value.trangThai,
-    created: rawInvoice.value.ngayCapNhat
-      ? (() => {
-          const [year, month, day] = rawInvoice.value.ngayCapNhat.split('T')[0].split('-')
-          return `${day}/${month}/${year}`
-        })()
-      : 'N/A',
-    address: rawInvoice.value.diaChiGiaoHang,
-    paymentMethod: rawInvoice.value.phuongThucThanhToan,
+    createdAt: ngayTaoDon ? formatDateTime(ngayTaoDon) : 'N/A',
+    address: rawInvoice.value.diaChiGiaoHang || 'Mua trực tiếp tại cửa hàng',
+    paymentMethod: rawInvoice.value.phuongThucThanhToan || 'Chưa thanh toán',
     note: rawInvoice.value.ghiChu,
     totalOriginal: rawInvoice.value.tongTienHang,
     discount: rawInvoice.value.tongGiamGia,
     shippingFee: rawInvoice.value.phiVanChuyen || 0,
     final: rawInvoice.value.tongThanhToan,
-    items: rawInvoice.value.sanPhams.map((sp) => ({
-      id: sp.id,
-      sku: sp.maSanPhamChiTiet,
-      name: sp.tenSanPham,
-      brand: sp.tenThuongHieu,
-      color: sp.tenMauSac,
-      size: sp.tenKichThuoc,
-      quantity: sp.soLuong,
-      price: sp.donGia,
-      total: sp.thanhTien,
-    })),
+    items:
+      rawInvoice.value.sanPhams?.map((sp) => ({
+        id: sp.id,
+        sku: sp.maSanPhamChiTiet,
+        name: sp.tenSanPham,
+        brand: sp.tenThuongHieu,
+        color: sp.tenMauSac,
+        size: sp.tenKichThuoc,
+        quantity: sp.soLuong,
+        price: sp.donGia,
+        total: sp.thanhTien,
+      })) || [],
+    history: sortedHistory,
   }
 })
 
@@ -546,9 +602,13 @@ const formatMoney = (val) => {
 const statusClassModern = (status) => {
   const base =
     'px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center w-fit border select-none min-w-[120px] justify-center '
-  return status === 'da_xac_nhan'
-    ? `${base} bg-emerald-50 text-emerald-700 border-emerald-200`
-    : `${base} bg-amber-50 text-amber-700 border-amber-200`
+  if (status === 'da_xac_nhan' || status === 'hoan_thanh') {
+    return `${base} bg-emerald-50 text-emerald-700 border-emerald-200`
+  }
+  if (status === 'huy' || status === 'da_huy' || status === 'da_tra_hang') {
+    return `${base} bg-rose-50 text-rose-700 border-rose-200`
+  }
+  return `${base} bg-amber-50 text-amber-700 border-amber-200`
 }
 
 const loadHoaDon = async () => {

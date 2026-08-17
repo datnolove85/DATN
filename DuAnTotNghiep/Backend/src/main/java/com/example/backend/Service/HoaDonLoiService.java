@@ -7,6 +7,6 @@ import org.springframework.data.domain.Page;
 
 public interface HoaDonLoiService {
     Page<HoaDon> timDonHangChuaGiaoChuaSanPhamLoi(String keyword, int page, int size);
-    void huyDonLoiLe(Integer hoaDonId, HuyDonLoiRequest request);
-    void huyHangLoatLoi(HuyHangLoatLoiRequest request);
+    void huyDonLoiLe(Integer hoaDonId, HuyDonLoiRequest request, Integer idNhanVien);
+//    void huyHangLoatLoi(HuyHangLoatLoiRequest request);
 }

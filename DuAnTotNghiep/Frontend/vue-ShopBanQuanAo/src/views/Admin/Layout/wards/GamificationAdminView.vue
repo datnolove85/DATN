@@ -917,9 +917,18 @@
               />
             </div>
             <div :class="rewardForm.loaiPhanThuong === 'xu' ? '' : 'col-span-2'">
-              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1"
-                >Tỷ Lệ Trúng (%)</label
-              >
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-semibold text-slate-500 uppercase"
+                  >Tỷ Lệ Trúng (%)</label
+                >
+                <button
+                  type="button"
+                  @click="autoFillRemainingPercentage"
+                  class="text-[11px] text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1 transition"
+                >
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Lấy % còn thiếu bù đầy 100%
+                </button>
+              </div>
               <input
                 v-model.number="rewardForm.tyLeTrung"
                 type="number"
@@ -1444,9 +1453,10 @@ const formatDate = (dateStr) => {
 }
 
 const totalPercentage = computed(() => {
-  return filteredRewards.value
+  const sum = filteredRewards.value
     .filter((item) => item.trangThai)
-    .reduce((sum, item) => sum + (Number(item.tyLeTrung) || 0), 0)
+    .reduce((acc, item) => acc + (Number(item.tyLeTrung) || 0), 0)
+  return Math.round(sum * 100) / 100
 })
 
 const showModal = ref(false)
@@ -1532,16 +1542,38 @@ const fetchVouchers = async () => {
   }
 }
 
+// Tự động tính toán phần trăm còn thiếu để đạt chuẩn 100%
+const autoFillRemainingPercentage = () => {
+  const activeRewards = rewardList.value.filter((item) => {
+    if (item.loaiGame !== rewardForm.loaiGame || !item.trangThai) return false
+    if (isEditMode.value && item.id === currentId.value) return false
+    return true
+  })
+  const currentTotal = activeRewards.reduce((sum, item) => sum + (Number(item.tyLeTrung) || 0), 0)
+  const remaining = Math.max(0, Math.round((100 - currentTotal) * 100) / 100)
+
+  rewardForm.tyLeTrung = remaining
+  ElMessage.info(`Đã tự động điền tỷ lệ còn thiếu: ${remaining}%`)
+}
+
 const openAddModal = () => {
   isEditMode.value = false
   currentId.value = null
+
+  // Tự động tính % còn thiếu khi mở modal thêm mới
+  const activeRewards = rewardList.value.filter(
+    (item) => item.loaiGame === gameSubTab.value && item.trangThai,
+  )
+  const currentTotal = activeRewards.reduce((sum, item) => sum + (Number(item.tyLeTrung) || 0), 0)
+  const remaining = Math.max(0, Math.round((100 - currentTotal) * 100) / 100)
+
   Object.assign(rewardForm, {
     tenPhanThuong: '',
     loaiGame: gameSubTab.value,
     loaiPhanThuong: 'xu',
     giaTriXu: 0,
     id_voucher: null,
-    tyLeTrung: 10.0,
+    tyLeTrung: remaining > 0 ? remaining : 10.0,
     trangThai: true,
   })
   showModal.value = true
@@ -1559,6 +1591,33 @@ const closeModal = () => {
 }
 
 const saveReward = async () => {
+  // Kiểm tra nếu phần thưởng đang được bật (trangThai = true)
+  if (rewardForm.trangThai) {
+    const activeRewards = rewardList.value.filter((item) => {
+      if (item.loaiGame !== rewardForm.loaiGame || !item.trangThai) return false
+      if (isEditMode.value && item.id === currentId.value) return false
+      return true
+    })
+    const otherTotal = activeRewards.reduce((sum, item) => sum + (Number(item.tyLeTrung) || 0), 0)
+    const expectedTotal = Math.round((otherTotal + (Number(rewardForm.tyLeTrung) || 0)) * 100) / 100
+
+    if (expectedTotal !== 100) {
+      try {
+        await ElMessageBox.confirm(
+          `Cảnh báo: Tổng tỷ lệ trúng thưởng của game này sau khi lưu sẽ là ${expectedTotal}% (chưa đủ hoặc vượt quá 100%). Thuật toán quay thưởng yêu cầu tổng tỷ lệ phải chính xác bằng 100%. Bạn có muốn tiếp tục lưu không?`,
+          'Cảnh báo tỷ lệ trúng thưởng',
+          {
+            confirmButtonText: 'Vẫn lưu',
+            cancelButtonText: 'Kiểm tra lại',
+            type: 'warning',
+          },
+        )
+      } catch {
+        return // Người dùng bấm Hủy để chỉnh sửa lại tỷ lệ
+      }
+    }
+  }
+
   try {
     if (isEditMode.value) {
       await adminService.updatePhanThuong(currentId.value, rewardForm)

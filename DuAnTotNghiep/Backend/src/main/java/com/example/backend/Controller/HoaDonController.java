@@ -2,11 +2,13 @@ package com.example.backend.Controller;
 
 import com.example.backend.Entity.HoaDon;
 import com.example.backend.Entity.KhoVoucher;
+import com.example.backend.Repository.NhanVienRepository;
 import com.example.backend.Request.*;
 import com.example.backend.Response.HoaDonResponse;
 import com.example.backend.Response.VoucherKhachHangResponse;
 import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.TraHangService;
+import com.example.backend.secutity.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +33,10 @@ public class HoaDonController {
 
     private final TraHangService traHangService;
 
+    private final JwtService jwtService;
+
+    private final NhanVienRepository nhanVienRepo;
+
     // ================= GET ALL =================
     @GetMapping
     public List<HoaDonResponse> getAll() {
@@ -39,11 +45,25 @@ public class HoaDonController {
 
     @PostMapping("/thanh-toan")
     public ResponseEntity<?> thanhToan(
-            @RequestBody ThanhToanHoaDonRequest req
+            @RequestBody ThanhToanHoaDonRequest req,
+            HttpServletRequest request // 1. Thêm HttpServletRequest để đọc Header
     ) {
+        // 2. Lấy token từ header Authorization (giống hệt cách bạn đã làm)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Thiếu hoặc sai định dạng Token xác thực!");
+        }
+        String token = authHeader.substring(7);
 
+        // 3. Extract id tài khoản từ token, sau đó tìm id nhân viên tương ứng trong DB
+        Integer idTaiKhoan = jwtService.extractId(token);
+        Integer idNhanVien = nhanVienRepo.findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên ứng với tài khoản này"))
+                .getId();
+
+        // 4. Truyền thêm idNhanVien xuống tầng Service
         return ResponseEntity.ok(
-                service.thanhToanHoaDon(req)
+                service.thanhToanHoaDon(req, idNhanVien)
         );
     }
 
@@ -124,9 +144,21 @@ public class HoaDonController {
 
     @PostMapping("online/{id}/cancel")
     public ResponseEntity<?> huyHoaDonOnline(
-            @PathVariable Integer id
+            @PathVariable Integer id,
+            HttpServletRequest request
     ) {
-        service.huyHoaDon(id);
+
+        String token = request.getHeader("Authorization").substring(7);
+
+        Integer idTaiKhoan = jwtService.extractId(token);
+
+        Integer idNhanVien = nhanVienRepo
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"))
+                .getId();
+
+        service.huyHoaDon(id, idNhanVien);
+
         return ResponseEntity.ok("Hủy hóa đơn thành công");
     }
 
@@ -202,8 +234,22 @@ public class HoaDonController {
     }
 
     @PutMapping("/huy/{id}")
-    public ResponseEntity<?> huyHoaDon(@PathVariable Integer id) {
-        service.huyHoaDon(id);
+    public ResponseEntity<?> huyHoaDon(
+            @PathVariable Integer id,
+            HttpServletRequest request
+    ) {
+
+        String token = request.getHeader("Authorization").substring(7);
+
+        Integer idTaiKhoan = jwtService.extractId(token);
+
+        Integer idNhanVien = nhanVienRepo
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"))
+                .getId();
+
+        service.huyHoaDon(id, idNhanVien);
+
         return ResponseEntity.ok("Hủy hóa đơn thành công");
     }
 
@@ -244,9 +290,21 @@ public class HoaDonController {
     @PatchMapping("/{id}/trang-thai")
     public ResponseEntity<?> updateTrangThai(
             @PathVariable Integer id,
-            @RequestBody Map<String, String> body
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request
     ) {
-        service.updateTrangThai(id, body.get("trangThai"));
+
+        String token = request.getHeader("Authorization").substring(7);
+
+        Integer idTaiKhoan = jwtService.extractId(token);
+
+        Integer idNhanVien =nhanVienRepo
+                .findByIdTaiKhoan_Id(idTaiKhoan)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"))
+                .getId();
+
+        service.updateTrangThai(id, body.get("trangThai"), idNhanVien);
+
         return ResponseEntity.ok("Cập nhật trạng thái thành công");
     }
 

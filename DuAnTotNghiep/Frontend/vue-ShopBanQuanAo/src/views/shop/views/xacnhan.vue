@@ -34,11 +34,9 @@
 
       <!-- HERO -->
       <section
-        class="relative overflow-hidden rounded-[28px] border border-white/70 bg-slate-950 px-6 py-7 text-white shadow-2xl shadow-slate-300/60 sm:px-8 lg:px-10 lg:py-9"
+        class="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-6 py-7 text-white shadow-xl shadow-indigo-500/20 sm:px-8 lg:px-10 lg:py-9"
       >
-        <div
-          class="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-indigo-500/30 blur-2xl"
-        ></div>
+        <div class="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl"></div>
         <div
           class="absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-cyan-400/20 blur-2xl"
         ></div>
@@ -46,30 +44,32 @@
         <div class="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <div
-              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-indigo-100"
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md"
             >
               <ClipboardCheck :size="14" />
               Xác nhận đơn hàng
             </div>
 
-            <h1 class="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+            <h1
+              class="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl text-white"
+            >
               Kiểm tra lần cuối trước khi đặt hàng
             </h1>
 
-            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-indigo-100 sm:text-base">
               Hoàn thiện thông tin nhận hàng, vận chuyển và ưu đãi. Bạn sẽ chọn phương thức thanh
               toán ở bước tiếp theo.
             </p>
           </div>
 
           <div
-            class="min-w-[250px] rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"
+            class="min-w-[250px] rounded-2xl border border-white/20 bg-white/10 p-4 shadow-lg backdrop-blur-md"
           >
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-300">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-indigo-100">
               Tổng thanh toán dự kiến
             </p>
             <p class="mt-2 text-3xl font-black text-white">{{ formatMoney(total) }}</p>
-            <div class="mt-3 flex items-center gap-2 text-xs text-emerald-300">
+            <div class="mt-3 flex items-center gap-2 text-xs text-emerald-300 font-medium">
               <ShieldCheck :size="15" />
               Giá được kiểm tra lại ở máy chủ
             </div>
@@ -489,7 +489,10 @@
                         <button
                           type="button"
                           class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
-                          :disabled="item.quantity <= 1"
+                          :disabled="
+                            item.quantity <= 1 ||
+                            (item.soLuongKhaDung ?? item.soLuongTon ?? 0) === 0
+                          "
                           @click="decreaseCartQty(item)"
                         >
                           -
@@ -500,15 +503,15 @@
                           v-model.number="item.quantity"
                           @input="validateCartQty(item)"
                           @blur="onCartQtyBlur(item)"
-                          min="1"
-                          :max="item.soLuongKhaDung ?? item.soLuongTon ?? 1"
+                          min="0"
+                          :max="item.soLuongKhaDung ?? item.soLuongTon ?? 0"
                           class="h-8 w-11 border-x border-slate-200 bg-white text-center text-sm font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
 
                         <button
                           type="button"
                           class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
-                          :disabled="item.quantity >= (item.soLuongKhaDung ?? item.soLuongTon ?? 1)"
+                          :disabled="item.quantity >= (item.soLuongKhaDung ?? item.soLuongTon ?? 0)"
                           @click="increaseCartQty(item)"
                         >
                           +
@@ -616,7 +619,7 @@
                         <button
                           type="button"
                           class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
-                          :disabled="quantity <= 1"
+                          :disabled="quantity <= 1 || maxAvailable === 0"
                           @click="decreaseQty"
                         >
                           -
@@ -627,7 +630,7 @@
                           v-model.number="quantity"
                           @input="validateQty"
                           @blur="onQtyBlur"
-                          min="1"
+                          min="0"
                           :max="maxAvailable"
                           class="h-8 w-11 border-x border-slate-200 bg-white text-center text-sm font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
@@ -635,7 +638,7 @@
                         <button
                           type="button"
                           class="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-30"
-                          :disabled="quantity >= maxAvailable"
+                          :disabled="quantity >= maxAvailable || maxAvailable === 0"
                           @click="increaseQty"
                         >
                           +
@@ -802,7 +805,7 @@
             <div class="border-t border-slate-100 bg-slate-50/80 p-5">
               <button
                 type="button"
-                :disabled="isPlacingOrder || shippingLoading"
+                :disabled="isPlacingOrder || shippingLoading || maxAvailable === 0"
                 class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-4 text-base font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 @click="placeOrder"
               >
@@ -1260,14 +1263,15 @@ import 'leaflet/dist/leaflet.css'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import shadow from 'leaflet/dist/images/marker-shadow.png'
 
-// 1. Tính số lượng khả dụng tối đa cho "Mua Ngay"
+// 1. Tính số lượng khả dụng tối đa cho "Mua Ngay" (nếu hết hàng trả về 0)
 const maxAvailable = computed(() => {
-  if (!product.value) return 1
-  return product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 1
+  if (!product.value) return 0
+  return product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
 })
 
 // ================= LOGIC MUA NGAY =================
 const increaseQty = () => {
+  if (maxAvailable.value === 0) return
   if (quantity.value < maxAvailable.value) {
     quantity.value++
   } else {
@@ -1280,6 +1284,10 @@ const decreaseQty = () => {
 }
 
 const validateQty = () => {
+  if (maxAvailable.value === 0) {
+    quantity.value = 0
+    return
+  }
   if (quantity.value > maxAvailable.value) {
     quantity.value = maxAvailable.value
     toast.warning(`Số lượng vượt quá số lượng khả dụng (${maxAvailable.value})`)
@@ -1287,6 +1295,10 @@ const validateQty = () => {
 }
 
 const onQtyBlur = () => {
+  if (maxAvailable.value === 0) {
+    quantity.value = 0
+    return
+  }
   if (!quantity.value || quantity.value < 1) {
     quantity.value = 1
   }
@@ -1294,7 +1306,8 @@ const onQtyBlur = () => {
 
 // ================= LOGIC GIỎ HÀNG =================
 const increaseCartQty = (item) => {
-  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 1
+  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 0
+  if (max === 0) return
   if (item.quantity < max) {
     item.quantity++
   } else {
@@ -1309,7 +1322,11 @@ const decreaseCartQty = (item) => {
 }
 
 const validateCartQty = (item) => {
-  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 1
+  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 0
+  if (max === 0) {
+    item.quantity = 0
+    return
+  }
   if (item.quantity > max) {
     item.quantity = max
     toast.warning(`Số lượng vượt quá số lượng khả dụng (${max})`)
@@ -1317,14 +1334,18 @@ const validateCartQty = (item) => {
 }
 
 const onCartQtyBlur = (item) => {
+  const max = item.soLuongKhaDung ?? item.soLuongTon ?? 0
+  if (max === 0) {
+    item.quantity = 0
+    return
+  }
   if (!item.quantity || item.quantity < 1) {
     item.quantity = 1
   }
 }
 
-// ================= LOGIC VOUCHER (ĐÃ KHẮC PHỤC TRÙNG ID) =================
+// ================= LOGIC VOUCHER =================
 const fetchVouchers = async () => {
-  // Voucher hệ thống
   const voucherHeThong = (await getAllVoucher())
     .filter((v) => v.trangThai === 1)
     .map((v) => ({
@@ -1333,7 +1354,6 @@ const fetchVouchers = async () => {
       loaiVoucher: 'HE_THONG',
     }))
 
-  // Voucher cá nhân
   let voucherCaNhan = []
   const currentUser = JSON.parse(sessionStorage.getItem('user'))
 
@@ -1374,11 +1394,9 @@ const selectedVoucher = computed(() => {
 
 const sortedVouchers = computed(() => {
   return [...vouchers.value].sort((a, b) => {
-    // 1. Voucher đang dùng luôn lên đầu
     if (a.uid === selectedVoucherId.value) return -1
     if (b.uid === selectedVoucherId.value) return 1
 
-    // 2. Voucher đủ điều kiện đứng trước
     const aValid = subtotal.value >= a.giaTriDonHangToiThieu
     const bValid = subtotal.value >= b.giaTriDonHangToiThieu
 
@@ -1386,7 +1404,6 @@ const sortedVouchers = computed(() => {
       return bValid - aValid
     }
 
-    // 3. Trong các voucher đủ điều kiện thì sắp theo số tiền giảm
     return getVoucherDiscount(b) - getVoucherDiscount(a)
   })
 })
@@ -1501,10 +1518,13 @@ const vouchers = ref([])
 async function loadData() {
   product.value = await getSanPhamChiTietById(spctId.value)
 
-  const maxAvailable = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
+  const max = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
 
-  if (quantity.value > maxAvailable) {
-    quantity.value = maxAvailable > 0 ? maxAvailable : 1
+  if (max === 0) {
+    quantity.value = 0
+    toast.warning('Sản phẩm này hiện đã hết hàng.')
+  } else if (quantity.value > max) {
+    quantity.value = max
     toast.warning('Số lượng sản phẩm vượt quá hàng sẵn có, đã tự động điều chỉnh.')
   }
 
@@ -1528,7 +1548,13 @@ onMounted(async () => {
 
   if (checkout) {
     isCartCheckout.value = true
-    checkoutItems.value = JSON.parse(checkout).items
+    checkoutItems.value = JSON.parse(checkout).items.map((item) => {
+      const max = item.soLuongKhaDung ?? item.soLuongTon ?? 0
+      return {
+        ...item,
+        quantity: max === 0 ? 0 : item.quantity || 1,
+      }
+    })
 
     await fetchVouchers()
 
@@ -1562,6 +1588,11 @@ function subscribeOrder() {
     switch (event.type) {
       case 'DISCOUNT_UPDATED':
         product.value = await getSanPhamChiTietById(spctId.value)
+        const max = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
+        if (max === 0) {
+          quantity.value = 0
+          toast.warning('Sản phẩm đã hết hàng!')
+        }
         break
 
       case 'VOUCHER_UPDATED':
@@ -1589,7 +1620,6 @@ function subscribeOrder() {
           const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
           const now = new Date()
 
-          // Kiểm tra 1: Voucher bị xóa, ngừng hoạt động (trangThai = false), hoặc hết số lượng
           if (
             !latest ||
             latest.trangThai === false ||
@@ -1602,14 +1632,12 @@ function subscribeOrder() {
             break
           }
 
-          // Kiểm tra 2: Voucher đã quá hạn sử dụng so với thời gian thực tế
           if (latest.ngayHetHan && new Date(latest.ngayHetHan) < now) {
             selectedVoucherId.value = null
             toast.warning('Voucher bạn đang chọn đã hết hạn sử dụng.')
             break
           }
 
-          // Kiểm tra 3: Giá trị đơn hàng hiện tại không còn đạt điều kiện tối thiểu mới
           const dieuKienToiThieu = latest.dieuKienToiThieu ? Number(latest.dieuKienToiThieu) : 0
           if (subtotal.value < dieuKienToiThieu) {
             selectedVoucherId.value = null
@@ -1619,7 +1647,6 @@ function subscribeOrder() {
             break
           }
 
-          // Kiểm tra 4: Nếu thông tin chi tiết (giá trị giảm) bị thay đổi
           toast.info('Thông tin hoặc mức giảm của voucher vừa được Admin cập nhật lại.')
         }
         break
@@ -1738,9 +1765,21 @@ const placeOrder = async () => {
     })
   } catch (error) {
     toast.error(error.message || 'Đặt hàng thất bại ❌')
-    setTimeout(() => {
-      window.location.reload()
-    }, 2000)
+    // Thay vì refresh cả trang bằng window.location.reload(), chỉ gọi lại loadData để cập nhật phần sản phẩm
+    if (spctId.value) {
+      await loadData()
+    } else if (isCartCheckout.value) {
+      const checkout = sessionStorage.getItem('checkoutData')
+      if (checkout) {
+        checkoutItems.value = JSON.parse(checkout).items.map((item) => {
+          const max = item.soLuongKhaDung ?? item.soLuongTon ?? 0
+          return {
+            ...item,
+            quantity: max === 0 ? 0 : item.quantity || 1,
+          }
+        })
+      }
+    }
   } finally {
     isPlacingOrder.value = false
   }
@@ -1797,7 +1836,6 @@ const addressForm = ref({
   longitude: null,
   macDinh: false,
 })
-
 const getCurrentLocation = () => {
   loading.value = true
 
@@ -1829,90 +1867,96 @@ const getCurrentLocation = () => {
         if (!data.address) return
         const a = data.address
 
+        // 1. Lấy địa chỉ cụ thể (số nhà, tên đường, khu vực xung quanh)
         addressForm.value.diaChiCuThe = [
           a.house_number,
           a.road,
           a.neighbourhood,
-          a.quarter,
           a.residential,
+          a.quarter,
         ]
           .filter(Boolean)
           .join(', ')
 
-        const city = a.city || a.state || a.province || ''
-        addressForm.value.thanhPho = city
-        addressForm.value.quan = a.city_district || a.district || a.county || ''
-        addressForm.value.phuong =
-          a.city_district || a.suburb || a.town || a.village || a.neighbourhood || ''
+        // Nếu không tìm thấy tên đường cụ thể, gán tạm display_name hoặc bỏ trống để người dùng nhập
+        if (!addressForm.value.diaChiCuThe) {
+          addressForm.value.diaChiCuThe = a.road || ''
+        }
 
-        const cleanCity = city.replace('Thành phố ', '').replace('Tỉnh ', '').trim().toLowerCase()
+        // 2. Gom nhóm các ứng viên Tỉnh/Thành phố, Quận/Huyện, Phường/Xã từ mọi trường có thể của OSM
+        const rawProvince = a.state || a.province || a.region || ''
+        const rawDistrict =
+          a.county || a.city_district || a.district || a.municipality || a.city || ''
+        const rawWard = a.suburb || a.ward || a.town || a.village || a.neighbourhood || ''
 
-        selectedProvince.value = provinces.value.find((p) => {
-          const name = p.ProvinceName.replace('Thành phố ', '')
-            .replace('Tỉnh ', '')
+        // Hàm làm sạch tên để so khớp chính xác không phân biệt hoa thường và các từ tiền tố hành chính
+        const cleanText = (str) =>
+          str
+            .replace(/^(thành phố|tỉnh|quận|huyện|thị xã|phường|xã|thị trấn)\s+/i, '')
             .trim()
             .toLowerCase()
-          return name.includes(cleanCity) || cleanCity.includes(name)
+
+        const targetProvince = cleanText(rawProvince)
+        const targetDistrict = cleanText(rawDistrict)
+        const targetWard = cleanText(rawWard)
+
+        // 3. Tìm và chọn Tỉnh/Thành phố trong danh mục GHN
+        const foundProvince = provinces.value.find((p) => {
+          const pName = cleanText(p.ProvinceName)
+          return pName.includes(targetProvince) || targetProvince.includes(pName)
         })
 
-        if (!selectedProvince.value) return
+        if (!foundProvince) {
+          toast.warning('Không tự động xác định được Tỉnh/Thành phố. Vui lòng chọn thủ công.')
+          return
+        }
 
-        districts.value = await getDistricts(selectedProvince.value.ProvinceID)
+        selectedProvince.value = foundProvince
+        addressForm.value.thanhPho = foundProvince.ProvinceName
 
-        const cleanWard = addressForm.value.phuong
-          .replace('Phường ', '')
-          .replace('Xã ', '')
-          .replace('Thị trấn ', '')
-          .trim()
-          .toLowerCase()
+        // Lấy danh sách Quận/Huyện theo Tỉnh tìm được
+        districts.value = await getDistricts(foundProvince.ProvinceID)
 
-        const wardResults = await Promise.all(
-          districts.value.map(async (district) => {
-            const list = await getWardsCached(district.DistrictID)
-            return { district, list }
-          }),
-        )
+        // 4. Tìm và chọn Quận/Huyện
+        const foundDistrict = districts.value.find((d) => {
+          const dName = cleanText(d.DistrictName)
+          return dName.includes(targetDistrict) || targetDistrict.includes(dName)
+        })
 
-        let foundDistrict = null
-        let foundWard = null
+        if (foundDistrict) {
+          selectedDistrict.value = foundDistrict
+          addressForm.value.quan = foundDistrict.DistrictName
+          addressForm.value.districtId = foundDistrict.DistrictID
 
-        for (const item of wardResults) {
-          const ward = item.list.find((w) => {
-            const name = w.WardName.replace('Phường ', '')
-              .replace('Xã ', '')
-              .replace('Thị trấn ', '')
-              .trim()
-              .toLowerCase()
-            return name === cleanWard || name.includes(cleanWard) || cleanWard.includes(name)
+          // Lấy danh sách Phường/Xã theo Quận tìm được
+          wards.value = await getWardsCached(foundDistrict.DistrictID)
+
+          // 5. Tìm và chọn Phường/Xã
+          const foundWard = wards.value.find((w) => {
+            const wName = cleanText(w.WardName)
+            return wName.includes(targetWard) || targetWard.includes(wName)
           })
 
-          if (ward) {
-            foundDistrict = item.district
-            foundWard = ward
-            wards.value = item.list
-            break
+          if (foundWard) {
+            selectedWard.value = foundWard
+            addressForm.value.phuong = foundWard.WardName
+            addressForm.value.wardCode = foundWard.WardCode
           }
         }
 
-        if (foundDistrict && foundWard) {
-          selectedDistrict.value = foundDistrict
-          selectedWard.value = foundWard
-          addressForm.value.thanhPho = selectedProvince.value.ProvinceName
-          addressForm.value.quan = foundDistrict.DistrictName
-          addressForm.value.phuong = foundWard.WardName
-          addressForm.value.districtId = foundDistrict.DistrictID
-          addressForm.value.wardCode = foundWard.WardCode
-        }
+        toast.success('Đã định vị và điền địa chỉ thành công!')
       } catch (error) {
         console.error('Lỗi lấy vị trí:', error)
+        toast.error('Không thể tự động phân giải vị trí hiện tại.')
       } finally {
         loading.value = false
       }
     },
     () => {
-      alert('Không thể lấy vị trí')
+      toast.error('Vui lòng cấp quyền truy cập vị trí trên trình duyệt.')
       loading.value = false
     },
+    { enableHighAccuracy: true },
   )
 }
 

@@ -21,6 +21,7 @@ public class HoaDonDetailResponse {
     private Integer idKhachHang;
     private String tenKhachHang;
     private String soDienThoaiKhachHang;
+    private String tenNhanVien;
 
     // Giao hàng
     private String tenNguoiNhan;
@@ -46,5 +47,6 @@ public class HoaDonDetailResponse {
 
     // Danh sách sản phẩm
     private List<HoaDonChiTietResponse> sanPhams;
+    private List<LichSuHoaDonResponse> lichSuHoaDons;
     private Voucher voucher;
 }

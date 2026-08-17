@@ -54,11 +54,15 @@ export const searchHoadonOnline = async (filters, page = 0, size = 20) => {
 // ================= THANH TOAN =================
 export const thanhToanHoaDon = async (payload) => {
   try {
-    // Sửa lại URL cho khớp: không truyền id ở URL vì đã có trong payload
+    // 1. Lấy token từ sessionStorage (giống như hàm updateTrangThai)
+    const token = sessionStorage.getItem('token')
+
     const response = await fetch(`${API}/thanh-toan`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // 2. Bổ sung thêm Authorization header ở đây để backend đọc được token
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     })
@@ -267,16 +271,23 @@ export const ganKhachHang = async (idHoaDon, idKhachHang) => {
 
   return await response.text()
 }
-export const huyHoaDon = (id) => {
-  return fetch(`http://localhost:8080/hoadon/huy/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((r) => {
-    if (!r.ok) throw new Error('Hủy hóa đơn thất bại')
-    return r.text()
-  })
+export const huyHoaDon = async (id) => {
+  try {
+    const token = sessionStorage.getItem('token')
+
+    const response = await fetch(`${API}/huy/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('huyHoaDon error:', error)
+    throw error
+  }
 }
 
 export const apVoucher = async (idHoaDon, idVoucher, idVoucherKhachHang) => {
@@ -343,27 +354,36 @@ export const submitTraHang = async (payload) => {
   }
 }
 // Hủy hóa đơn online
-export const huyHoaDonOnline = async (idHoaDon) => {
-  const res = await fetch(`http://localhost:8080/hoadon/online/${idHoaDon}/cancel`, {
-    method: 'POST',
-  })
+export const huyHoaDonOnline = async (id) => {
+  try {
+    const token = sessionStorage.getItem('token')
 
-  if (!res.ok) {
-    const message = await res.text()
-    throw new Error(message || 'Hủy hóa đơn thất bại')
+    const response = await fetch(`${API}/online/${id}/cancel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('huyHoaDonOnline error:', error)
+    throw error
   }
-
-  return await res.text()
 }
 export const hoaDonService = {
   async updateTrangThai(id, trangThai) {
+    const token = sessionStorage.getItem('token')
+
     const response = await fetch(`${API}/${id}/trang-thai`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        trangThai: trangThai,
+        trangThai,
       }),
     })
 
@@ -372,7 +392,7 @@ export const hoaDonService = {
       throw new Error(errorText || 'Lỗi cập nhật trạng thái')
     }
 
-    return await response.text() // backend trả "OK"
+    return await response.text()
   },
 }
 export const taoQr = async (hoaDonId, soTien) => {

@@ -30,7 +30,7 @@ public class HoaDonVoucher {
 
     // Kho voucher (voucher đổi xu)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_kho_voucher")
+    @JoinColumn(name = "id_voucher_minigame")
     private KhoVoucher idKhoVoucher;
 
     // Voucher cụ thể của khách

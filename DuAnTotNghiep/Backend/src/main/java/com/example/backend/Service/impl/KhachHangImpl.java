@@ -287,7 +287,14 @@ public class KhachHangImpl implements KhachHangService {
     }
 
     private String generateMaKhachHang() {
-        return "KH" + System.currentTimeMillis();
+        String lastCode = khachHangRepository.findLastMaKhachHang();
+
+        if (lastCode == null) {
+            return "KH001";
+        }
+
+        int number = Integer.parseInt(lastCode.substring(2));
+        return String.format("KH%03d", number + 1);
     }
 
     private boolean isBlank(String value) {
@@ -303,15 +310,43 @@ public class KhachHangImpl implements KhachHangService {
 
     }
     @Override
+    @Transactional
     public KhachHang addQuick(KhachHangRequest request) {
+
+        VaiTro vaiTro = vaiTroRepository.findById(3)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò khách hàng"));
+
+        TaiKhoan taiKhoan = new TaiKhoan();
+        taiKhoan.setIdVaiTro(vaiTro);
+
+        // sinh username nếu không nhập
+        String phone = request.getSoDienThoai().trim();
+
+        taiKhoan.setTenTaiKhoan(phone);
+        taiKhoan.setSoDienThoai(phone);
+
+        // email tạm vì cột email thường unique
+        taiKhoan.setEmail("kh" + System.currentTimeMillis() + "@quick.com");
+
+        taiKhoan.setMatKhau("123456");
+        taiKhoan.setTrangThai(1);
+        taiKhoan.setNgayTao(Instant.now());
+        taiKhoan.setNgayCapNhat(Instant.now());
+
+        taiKhoan = taiKhoanRepository.save(taiKhoan);
 
         KhachHang kh = new KhachHang();
 
-        kh.setHoTen(request.getHoTen());
-        kh.setSoDienThoai(request.getSoDienThoai());
+        kh.setIdTaiKhoan(taiKhoan);
+        kh.setMaKhachHang(generateMaKhachHang());
 
-        // Các giá trị mặc định
+        kh.setHoTen(request.getHoTen().trim());
+        kh.setSoDienThoai(phone);
+
         kh.setTrangThai(true);
+
+        kh.setNgayTao(Instant.now());
+        kh.setNgayCapNhat(Instant.now());
 
         return khachHangRepository.save(kh);
     }

@@ -119,6 +119,11 @@ import { ElMessage } from 'element-plus'
 
 const handlePaid = () => {
   clearInterval(timer)
+
+  // Báo cho component cha biết người dùng đã xác nhận thanh toán
+  emit('paid')
+
+  // Đóng dialog
   emit('update:visible', false)
 }
 const props = defineProps({

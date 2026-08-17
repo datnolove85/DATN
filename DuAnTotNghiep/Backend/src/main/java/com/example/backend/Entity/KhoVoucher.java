@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "kho_voucher")
+@Table(name = "voucher_minigame")
 public class KhoVoucher {
 
     @Id

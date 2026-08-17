@@ -11,4 +11,6 @@ public interface LichSuXuRepository extends JpaRepository<LichSuXu, Integer> {
 
     // Lấy danh sách lịch sử xu của một khách hàng, sắp xếp mới nhất lên đầu
     List<LichSuXu> findByIdKhachHang_IdOrderByNgayTaoDesc(Integer idKhachHang);
+
+    boolean existsByMoTaContaining(String keyword);
 }

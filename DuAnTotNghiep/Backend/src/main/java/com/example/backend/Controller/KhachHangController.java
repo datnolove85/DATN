@@ -34,18 +34,21 @@ public class KhachHangController {
 
 
     @GetMapping("/page")
-    public List<KhachHangResponse> getKhachHang(@RequestParam(value = "pageNo",defaultValue = "0") Integer pageNo,
-                                                @RequestParam(value = "pageSize",defaultValue = "5") Integer pageSize) {
+    public List<KhachHangResponse> getKhachHang(@RequestParam(value = "pageNo", defaultValue = "0") Integer pageNo,
+                                                @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize) {
         return khachHangServcie.phanTrangKhachHang(pageNo, pageSize).getContent();
     }
+
     @DeleteMapping("/delete/{id}")
     public void deleteKhachHang(@PathVariable Integer id) {
         khachHangServcie.detailKhachHang(id);
     }
+
     @GetMapping("/detail/{id}")
     public KhachHangResponse detailKhachHang(@PathVariable Integer id) {
         return khachHangServcie.detailKhachHang(id);
     }
+
     @PostMapping("/add")
     public void addKhachHang(@RequestPart("data") KhachHangRequest khachHangRequest, @RequestPart(value = "file", required = false) MultipartFile file) {
         khachHangServcie.addKhachHang(khachHangRequest, file);
@@ -57,14 +60,17 @@ public class KhachHangController {
     ) {
         return khachHangServcie.addQuick(request);
     }
+
     @PutMapping("/update/{id}")
     public void updateKhachHang(@PathVariable Integer id, @RequestPart("data") KhachHangRequest khachHangRequest, @RequestPart(value = "file", required = false) MultipartFile file) {
         khachHangServcie.updateKhachHang(id, khachHangRequest, file);
     }
+
     @GetMapping("/search")
     public List<KhachHangResponse> timKiem(@RequestParam String keyword) {
         return khachHangServcie.searchFullKhachHang(keyword);
     }
+
     @GetMapping("/uploads/{filename:.+}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) {
         try {
