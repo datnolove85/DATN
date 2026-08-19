@@ -13,7 +13,6 @@
     </div>
 
     <!-- Header -->
-    <!-- Header -->
     <div
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white rounded-2xl shadow-sm border border-slate-200 px-6 py-4 gap-4 mb-6"
     >
@@ -27,7 +26,8 @@
         <div>
           <h1 class="text-xl font-bold text-slate-800">Quản lý cấu hình hệ thống</h1>
           <p class="text-slate-500 text-xs">
-            Thiết lập quy đổi xu và quản lý hạng thành viên của toàn hệ thống.
+            Thiết lập quy đổi xu, chính sách thanh toán và quản lý hạng thành viên của toàn hệ
+            thống.
           </p>
         </div>
       </div>
@@ -36,8 +36,34 @@
         class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-medium flex items-center gap-2"
       >
         <span>💰</span>
-        <span>Cấu hình tích xu & hạng thành viên</span>
+        <span>Hệ thống tích xu & phân hạng</span>
       </div>
+    </div>
+
+    <!-- Hệ thống Tabs chuyển đổi -->
+    <div class="flex border-b border-gray-200 mb-6 bg-white px-4 rounded-t-2xl shadow-sm">
+      <button
+        @click="activeTab = 'xu'"
+        :class="[
+          'px-6 py-4 font-bold text-sm border-b-2 flex items-center gap-2 transition-all cursor-pointer',
+          activeTab === 'xu'
+            ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+            : 'border-transparent text-gray-500 hover:text-gray-700',
+        ]"
+      >
+        <span>🪙</span> Cấu Hình Xu & Thanh Toán
+      </button>
+      <button
+        @click="activeTab = 'hang'"
+        :class="[
+          'px-6 py-4 font-bold text-sm border-b-2 flex items-center gap-2 transition-all cursor-pointer',
+          activeTab === 'hang'
+            ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+            : 'border-transparent text-gray-500 hover:text-gray-700',
+        ]"
+      >
+        <span>👑</span> Cấu Hình Hạng Thành Viên
+      </button>
     </div>
 
     <!-- Loading chung -->
@@ -45,72 +71,267 @@
       <span class="animate-spin text-2xl">⏳</span> Đang tải dữ liệu...
     </div>
 
-    <div v-else class="space-y-6">
-      <!-- PHẦN 1: CẤU HÌNH TÍCH XU HỆ THỐNG -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-          <div>
-            <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
-              <span>💰</span> Định mức quy đổi xu tự động
-            </h3>
-            <p class="text-xs text-gray-500 mt-0.5">
-              Thiết lập số tiền mua hàng tương ứng để quy đổi ra 1 xu gốc cho toàn hệ thống.
-            </p>
+    <div v-else>
+      <!-- TAB 1: CẤU HÌNH XU -->
+      <div v-show="activeTab === 'xu'" class="space-y-6">
+        <!-- 1. Tỷ lệ tích xu -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+            <div>
+              <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                <span>💰</span> Định mức quy đổi tích xu tự động
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                Thiết lập số tiền mua hàng tương ứng để quy đổi ra 1 xu gốc cho toàn hệ thống.
+              </p>
+            </div>
           </div>
+
+          <form
+            @submit.prevent="handleUpdateConfig('TI_LE_TICH_XU', xuForm.tiLeTichXu)"
+            class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end"
+          >
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">
+                Mức tiền quy đổi (VNĐ / 1 Xu) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  type="text"
+                  v-model="xuForm.tiLeTichXu.displayValue"
+                  @input="(e) => handleInputNumber(e, xuForm.tiLeTichXu, 'tiLeTichXu')"
+                  class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
+                  placeholder="Ví dụ: 300.000"
+                  autocomplete="off"
+                />
+                <span class="absolute right-4 text-sm font-bold text-gray-400">VNĐ</span>
+              </div>
+              <small
+                v-if="xuForm.tiLeTichXu.error"
+                class="text-rose-500 text-xs mt-1 block font-medium"
+              >
+                ⚠️ Giá trị phải lớn hơn 0!
+              </small>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1"
+                >Mô tả hiển thị</label
+              >
+              <div
+                class="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl text-indigo-900 font-medium text-xs flex items-center gap-2 min-h-[42px]"
+              >
+                <span>💡</span>
+                <span>{{ xuForm.tiLeTichXu.moTa }}</span>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>💾</span> Lưu Cấu Hình Tích Xu
+              </button>
+            </div>
+          </form>
         </div>
 
-        <form
-          @submit.prevent="handleUpdateHeThong"
-          class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end"
-        >
-          <!-- Giá trị số -->
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Mức tiền quy đổi (VNĐ / 1 Xu) <span class="text-rose-500">*</span>
-            </label>
-            <div class="relative flex items-center">
-              <input
-                type="text"
-                v-model="heThongForm.displayValue"
-                @input="handleInputTienQuyDoi"
-                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
-                placeholder="Ví dụ: 20.000"
-                autocomplete="off"
-              />
-              <span class="absolute right-4 text-sm font-bold text-gray-400">VNĐ</span>
-            </div>
-            <small v-if="heThongForm.error" class="text-rose-500 text-xs mt-1 block font-medium">
-              ⚠️ Giá trị quy đổi phải là số lớn hơn 0!
-            </small>
-          </div>
-
-          <!-- Mô tả tự động -->
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">
-              Mô tả hiển thị
-            </label>
-            <div
-              class="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl text-indigo-900 font-medium text-xs flex items-center gap-2 min-h-[42px]"
-            >
-              <span>💡</span>
-              <span>{{ heThongForm.moTa }}</span>
+        <!-- 2. Tỷ lệ giảm tối đa xu -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+            <div>
+              <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                <span>📉</span> Giới hạn sử dụng xu thanh toán
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                Thiết lập tỷ lệ phần trăm tối đa giá trị đơn hàng được phép thanh toán bằng xu.
+              </p>
             </div>
           </div>
 
-          <!-- Nút lưu cấu hình hệ thống -->
-          <div>
-            <button
-              type="submit"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center gap-2"
-            >
-              <span>💾</span> Lưu Cấu Hình Hệ Thống
-            </button>
+          <form
+            @submit.prevent="handleUpdateConfig('TY_LE_GIAM_TOI_DA_XU', xuForm.tyLeGiamToiDa)"
+            class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end"
+          >
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">
+                Tỷ lệ giảm tối đa (%) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  type="text"
+                  v-model="xuForm.tyLeGiamToiDa.displayValue"
+                  @input="(e) => handleInputNumber(e, xuForm.tyLeGiamToiDa, 'percent')"
+                  class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
+                  placeholder="Ví dụ: 50"
+                  autocomplete="off"
+                />
+                <span class="absolute right-4 text-sm font-bold text-gray-400">%</span>
+              </div>
+              <small
+                v-if="xuForm.tyLeGiamToiDa.error"
+                class="text-rose-500 text-xs mt-1 block font-medium"
+              >
+                ⚠️ Tỷ lệ phải từ 0 đến 100!
+              </small>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1"
+                >Mô tả hiển thị</label
+              >
+              <div
+                class="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl text-indigo-900 font-medium text-xs flex items-center gap-2 min-h-[42px]"
+              >
+                <span>💡</span>
+                <span>{{ xuForm.tyLeGiamToiDa.moTa }}</span>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>💾</span> Lưu Cấu Hình Giới Hạn
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 3. Tỷ lệ quy đổi xu -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+            <div>
+              <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                <span>🔄</span> Tỷ lệ quy đổi xu ra tiền mặt
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                Xác định giá trị bằng tiền khi khách hàng sử dụng 1 xu để thanh toán đơn hàng.
+              </p>
+            </div>
           </div>
-        </form>
+
+          <form
+            @submit.prevent="handleUpdateConfig('TY_LE_QUY_DOI_XU', xuForm.tyLeQuyDoi)"
+            class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end"
+          >
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">
+                Giá trị quy đổi (VNĐ / 1 Xu) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  type="text"
+                  v-model="xuForm.tyLeQuyDoi.displayValue"
+                  @input="(e) => handleInputNumber(e, xuForm.tyLeQuyDoi, 'currency')"
+                  class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
+                  placeholder="Ví dụ: 1.000"
+                  autocomplete="off"
+                />
+                <span class="absolute right-4 text-sm font-bold text-gray-400">VNĐ</span>
+              </div>
+              <small
+                v-if="xuForm.tyLeQuyDoi.error"
+                class="text-rose-500 text-xs mt-1 block font-medium"
+              >
+                ⚠️ Giá trị phải lớn hơn 0!
+              </small>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1"
+                >Mô tả hiển thị</label
+              >
+              <div
+                class="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl text-indigo-900 font-medium text-xs flex items-center gap-2 min-h-[42px]"
+              >
+                <span>💡</span>
+                <span>{{ xuForm.tyLeQuyDoi.moTa }}</span>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>💾</span> Lưu Tỷ Lệ Quy Đổi
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 4. Chu kỳ xét hạng (MỚI) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+            <div>
+              <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                <span>📅</span> Chu kỳ xét hạng thành viên
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                Thiết lập số tháng định kỳ để hệ thống tự động quét và xét lại hạng cho khách hàng.
+              </p>
+            </div>
+          </div>
+
+          <form
+            @submit.prevent="handleUpdateConfig('CHU_KY_XET_HANG', xuForm.chuKyXetHang)"
+            class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end"
+          >
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">
+                Số tháng (Tháng) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  type="text"
+                  v-model="xuForm.chuKyXetHang.displayValue"
+                  @input="(e) => handleInputNumber(e, xuForm.chuKyXetHang, 'month')"
+                  class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-gray-800"
+                  placeholder="Ví dụ: 12"
+                  autocomplete="off"
+                />
+                <span class="absolute right-4 text-sm font-bold text-gray-400">Tháng</span>
+              </div>
+              <small
+                v-if="xuForm.chuKyXetHang.error"
+                class="text-rose-500 text-xs mt-1 block font-medium"
+              >
+                ⚠️ Số tháng phải lớn hơn 0!
+              </small>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1"
+                >Mô tả hiển thị</label
+              >
+              <div
+                class="p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl text-indigo-900 font-medium text-xs flex items-center gap-2 min-h-[42px]"
+              >
+                <span>💡</span>
+                <span>{{ xuForm.chuKyXetHang.moTa }}</span>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>💾</span> Lưu Chu Kỳ
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
-      <!-- PHẦN 2: CẤU HÌNH HẠNG THÀNH VIÊN -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <!-- TAB 2: CẤU HÌNH HẠNG THÀNH VIÊN -->
+      <div
+        v-show="activeTab === 'hang'"
+        class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+      >
         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
           <div>
             <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
@@ -122,7 +343,7 @@
           </div>
           <button
             @click="handleOpenModal(null)"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md transition flex items-center gap-2"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md transition flex items-center gap-2 cursor-pointer"
           >
             <span>➕</span> Thêm Hạng Thành Viên
           </button>
@@ -184,7 +405,7 @@
                   <div class="inline-flex items-center justify-center gap-2">
                     <button
                       @click="handleOpenModal(hang)"
-                      class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium text-xs transition inline-flex items-center gap-1.5 shadow-sm"
+                      class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium text-xs transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                       title="Chỉnh sửa hạng"
                     >
                       <span>✏️</span> Sửa
@@ -192,7 +413,7 @@
                     <button
                       @click="confirmToggleStatus(hang)"
                       :class="[
-                        'px-3 py-1.5 rounded-xl font-medium text-xs transition inline-flex items-center gap-1.5 shadow-sm',
+                        'px-3 py-1.5 rounded-xl font-medium text-xs transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer',
                         hang.trangThai
                           ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
                           : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
@@ -226,7 +447,7 @@
           </span>
           <button
             @click="showModal = false"
-            class="text-white hover:text-gray-200 text-2xl font-bold"
+            class="text-white hover:text-gray-200 text-2xl font-bold cursor-pointer"
           >
             &times;
           </button>
@@ -275,9 +496,9 @@
               type="checkbox"
               id="trangThai"
               v-model="formData.trangThai"
-              class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+              class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
             />
-            <label for="trangThai" class="text-sm font-medium text-gray-700"
+            <label for="trangThai" class="text-sm font-medium text-gray-700 cursor-pointer"
               >Kích hoạt hạng này</label
             >
           </div>
@@ -285,13 +506,13 @@
             <button
               type="button"
               @click="showModal = false"
-              class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition flex items-center gap-1.5"
+              class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition flex items-center gap-1.5 cursor-pointer"
             >
               <span>❌</span> Hủy
             </button>
             <button
               type="submit"
-              class="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition shadow-md flex items-center gap-1.5"
+              class="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>💾</span> Lưu Lại
             </button>
@@ -318,13 +539,13 @@
         <div class="flex justify-center space-x-3">
           <button
             @click="showConfirmModal = false"
-            class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition"
+            class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition cursor-pointer"
           >
             Hủy bỏ
           </button>
           <button
             @click="executeConfirmedAction"
-            class="flex-1 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition shadow-md"
+            class="flex-1 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition shadow-md cursor-pointer"
           >
             Xác nhận
           </button>
@@ -338,14 +559,35 @@
 import { ref, reactive, onMounted } from 'vue'
 import { cauHinhService } from '@/service/cauHinhService'
 
+const activeTab = ref('xu')
 const danhSachHang = ref([])
 const loading = ref(false)
 
-const heThongForm = reactive({
-  giaTriSo: 20000,
-  displayValue: '20.000',
-  moTa: 'Cứ 20.000đ mua hàng được 1 xu',
-  error: false,
+const xuForm = reactive({
+  tiLeTichXu: {
+    giaTriSo: 300000,
+    displayValue: '300.000',
+    moTa: 'Cứ 300.000đ mua hàng được 1 xu',
+    error: false,
+  },
+  tyLeGiamToiDa: {
+    giaTriSo: 50,
+    displayValue: '50',
+    moTa: 'Tối đa được dùng xu thanh toán 50% giá trị đơn hàng',
+    error: false,
+  },
+  tyLeQuyDoi: {
+    giaTriSo: 1000,
+    displayValue: '1.000',
+    moTa: '1 xu được quy đổi thành 1.000đ khi thanh toán',
+    error: false,
+  },
+  chuKyXetHang: {
+    giaTriSo: 12,
+    displayValue: '12',
+    moTa: 'Chu kỳ xét hạng thành viên là 12 tháng',
+    error: false,
+  },
 })
 
 const notification = reactive({
@@ -396,29 +638,55 @@ const showNotify = (type, message) => {
   }, 3000)
 }
 
-const handleInputTienQuyDoi = (e) => {
+const handleInputNumber = (e, targetObj, type) => {
   let raw = e.target.value.replace(/[^0-9]/g, '')
   if (!raw) {
-    heThongForm.displayValue = ''
-    heThongForm.giaTriSo = 0
-    heThongForm.moTa = 'Vui lòng nhập giá trị hợp lệ'
-    heThongForm.error = true
+    targetObj.displayValue = ''
+    targetObj.giaTriSo = 0
+    targetObj.error = true
     return
   }
 
   let num = parseInt(raw, 10)
-  if (num <= 0) {
-    heThongForm.error = true
+  if (type === 'percent') {
+    if (num < 0 || num > 100) {
+      targetObj.error = true
+    } else {
+      targetObj.error = false
+    }
+    targetObj.giaTriSo = num
+    targetObj.displayValue = num.toString()
+    targetObj.moTa = `Tối đa được dùng xu thanh toán ${targetObj.displayValue}% giá trị đơn hàng`
+  } else if (type === 'currency') {
+    if (num <= 0) {
+      targetObj.error = true
+    } else {
+      targetObj.error = false
+    }
+    targetObj.giaTriSo = num
+    targetObj.displayValue = num.toLocaleString('vi-VN')
+    targetObj.moTa = `1 xu được quy đổi thành ${targetObj.displayValue}đ khi thanh toán`
+  } else if (type === 'month') {
+    if (num <= 0) {
+      targetObj.error = true
+    } else {
+      targetObj.error = false
+    }
+    targetObj.giaTriSo = num
+    targetObj.displayValue = num.toString()
+    targetObj.moTa = `Chu kỳ xét hạng thành viên là ${targetObj.displayValue} tháng`
   } else {
-    heThongForm.error = false
+    if (num <= 0) {
+      targetObj.error = true
+    } else {
+      targetObj.error = false
+    }
+    targetObj.giaTriSo = num
+    targetObj.displayValue = num.toLocaleString('vi-VN')
+    targetObj.moTa = `Cứ ${targetObj.displayValue}đ mua hàng được 1 xu`
   }
-
-  heThongForm.giaTriSo = num
-  heThongForm.displayValue = num.toLocaleString('vi-VN')
-  heThongForm.moTa = `Cứ ${heThongForm.displayValue}đ mua hàng được 1 xu`
 }
 
-// Tải đồng thời cả 2 loại dữ liệu khi vừa vào trang
 const loadData = async () => {
   loading.value = true
   try {
@@ -428,12 +696,30 @@ const loadData = async () => {
     ])
 
     if (resHeThong && Array.isArray(resHeThong)) {
-      const item = resHeThong.find((x) => x.maCauHinh === 'TI_LE_TICH_XU')
-      if (item) {
-        heThongForm.giaTriSo = Number(item.giaTriSo) || 0
-        heThongForm.displayValue = heThongForm.giaTriSo.toLocaleString('vi-VN')
-        heThongForm.moTa = item.moTa || `Cứ ${heThongForm.displayValue}đ mua hàng được 1 xu`
-      }
+      resHeThong.forEach((item) => {
+        if (item.maCauHinh === 'TI_LE_TICH_XU') {
+          xuForm.tiLeTichXu.giaTriSo = Number(item.giaTriSo) || 0
+          xuForm.tiLeTichXu.displayValue = xuForm.tiLeTichXu.giaTriSo.toLocaleString('vi-VN')
+          xuForm.tiLeTichXu.moTa =
+            item.moTa || `Cứ ${xuForm.tiLeTichXu.displayValue}đ mua hàng được 1 xu`
+        } else if (item.maCauHinh === 'TY_LE_GIAM_TOI_DA_XU') {
+          xuForm.tyLeGiamToiDa.giaTriSo = Number(item.giaTriSo) || 0
+          xuForm.tyLeGiamToiDa.displayValue = xuForm.tyLeGiamToiDa.giaTriSo.toString()
+          xuForm.tyLeGiamToiDa.moTa =
+            item.moTa ||
+            `Tối đa được dùng xu thanh toán ${xuForm.tyLeGiamToiDa.displayValue}% giá trị đơn hàng`
+        } else if (item.maCauHinh === 'TY_LE_QUY_DOI_XU') {
+          xuForm.tyLeQuyDoi.giaTriSo = Number(item.giaTriSo) || 0
+          xuForm.tyLeQuyDoi.displayValue = xuForm.tyLeQuyDoi.giaTriSo.toLocaleString('vi-VN')
+          xuForm.tyLeQuyDoi.moTa =
+            item.moTa || `1 xu được quy đổi thành ${xuForm.tyLeQuyDoi.displayValue}đ khi thanh toán`
+        } else if (item.maCauHinh === 'CHU_KY_XET_HANG') {
+          xuForm.chuKyXetHang.giaTriSo = Number(item.giaTriSo) || 0
+          xuForm.chuKyXetHang.displayValue = xuForm.chuKyXetHang.giaTriSo.toString()
+          xuForm.chuKyXetHang.moTa =
+            item.moTa || `Chu kỳ xét hạng thành viên là ${xuForm.chuKyXetHang.displayValue} tháng`
+        }
+      })
     }
 
     if (resHang) {
@@ -450,23 +736,23 @@ onMounted(() => {
   loadData()
 })
 
-const handleUpdateHeThong = async () => {
+const handleUpdateConfig = async (maCauHinh, targetObj) => {
   if (
-    heThongForm.giaTriSo === null ||
-    heThongForm.giaTriSo === undefined ||
-    isNaN(heThongForm.giaTriSo) ||
-    heThnoForm.giaTriSo <= 0
+    targetObj.giaTriSo === null ||
+    targetObj.giaTriSo === undefined ||
+    isNaN(targetObj.giaTriSo) ||
+    targetObj.giaTriSo <= 0
   ) {
-    heThongForm.error = true
-    showNotify('error', 'Giá trị cấu hình phải là số lớn hơn 0!')
+    targetObj.error = true
+    showNotify('error', 'Giá trị cấu hình phải lớn hơn 0!')
     return
   }
 
-  heThongForm.error = false
+  targetObj.error = false
 
   try {
-    await cauHinhService.updateCauHinhHeThong('TI_LE_TICH_XU', heThongForm.giaTriSo)
-    showNotify('success', 'Cập nhật cấu hình hệ thống thành công!')
+    await cauHinhService.updateCauHinhHeThong(maCauHinh, targetObj.giaTriSo)
+    showNotify('success', 'Cập nhật cấu hình thành công!')
     loadData()
   } catch (error) {
     showNotify('error', 'Lỗi khi cập nhật cấu hình!')

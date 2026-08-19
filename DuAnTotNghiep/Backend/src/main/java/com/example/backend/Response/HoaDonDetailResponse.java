@@ -3,6 +3,7 @@ package com.example.backend.Response;
 import com.example.backend.Entity.HoaDonVoucher;
 import com.example.backend.Entity.Voucher;
 import lombok.*;
+import org.apache.poi.hpsf.Decimal;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,6 +33,8 @@ public class HoaDonDetailResponse {
     private String loaiHoaDon;
     private String trangThai;
     private String ghiChu;
+    private Integer soXuSuDung;
+    private BigDecimal tienGiamDoXuSuDung;
 
     // Thanh toán
     private String phuongThucThanhToan;
@@ -48,5 +51,5 @@ public class HoaDonDetailResponse {
     // Danh sách sản phẩm
     private List<HoaDonChiTietResponse> sanPhams;
     private List<LichSuHoaDonResponse> lichSuHoaDons;
-    private Voucher voucher;
+    private HoaDonVoucherResponse voucher;
 }

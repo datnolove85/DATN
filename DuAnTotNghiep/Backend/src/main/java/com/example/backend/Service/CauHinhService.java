@@ -5,13 +5,13 @@ import com.example.backend.Entity.CauHinhHeThong;
 import com.example.backend.Repository.CauHinhHangThanhVienRepository;
 import com.example.backend.Repository.CauHinhHeThongRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.text.DecimalFormat; // Nhớ import thư viện này
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +20,20 @@ public class CauHinhService {
     private final CauHinhHeThongRepository cauHinhHeThongRepository;
     private final CauHinhHangThanhVienRepository cauHinhHangThanhVienRepository;
 
+    // Đọc trực tiếp các mã cấu hình từ file application.properties (Không fix cứng nữa)
+    @Value("${app.config.ma-tich-xu:TI_LE_TICH_XU}")
+    private String maTichXu;
+
+    @Value("${app.config.ma-giam-toi-da-xu:TY_LE_GIAM_TOI_DA_XU}")
+    private String maGiamToiDaXu;
+
+    @Value("${app.config.ma-quy-doi-xu:TY_LE_QUY_DOI_XU}")
+    private String maQuyDoiXu;
+
     // ================= CẤU HÌNH HỆ THỐNG =================
     public List<CauHinhHeThong> getAllCauHinhHeThong() {
         return cauHinhHeThongRepository.findAll();
     }
-
 
     public CauHinhHeThong updateCauHinhHeThong(String maCauHinh, BigDecimal giaTriSo) {
         CauHinhHeThong config = cauHinhHeThongRepository.findByMaCauHinh(maCauHinh)
@@ -33,14 +42,18 @@ public class CauHinhService {
         // Cập nhật giá trị số
         config.setGiaTriSo(giaTriSo);
 
-        // Tạo mô tả chuẩn hóa cho mã cấu hình 'TI_LE_TICH_XU'
-        if ("TI_LE_TICH_XU".equals(maCauHinh)) {
-            DecimalFormat df = new DecimalFormat("#,###");
+        DecimalFormat df = new DecimalFormat("#,###");
+
+        // So sánh bằng biến động từ properties thay vì chuỗi fix cứng
+        if (maCauHinh.equals(maTichXu)) {
             String formattedValue = df.format(giaTriSo);
             config.setMoTa("Cứ " + formattedValue + "đ mua hàng được 1 xu");
+        } else if (maCauHinh.equals(maGiamToiDaXu)) {
+            config.setMoTa("Tối đa được dùng xu thanh toán " + giaTriSo.stripTrailingZeros().toPlainString() + "% giá trị đơn hàng");
+        } else if (maCauHinh.equals(maQuyDoiXu)) {
+            String formattedValue = df.format(giaTriSo);
+            config.setMoTa("1 xu được quy đổi thành " + formattedValue + "đ khi thanh toán");
         }
-
-        // Nếu bạn có thêm các cấu hình khác, có thể dùng else if tại đây
 
         return cauHinhHeThongRepository.save(config);
     }
@@ -51,7 +64,6 @@ public class CauHinhService {
     }
 
     public CauHinhHangThanhVien saveHangThanhVien(CauHinhHangThanhVien hangThanhVien) {
-        // Có thể thêm logic validate: Ngưỡng chi tiêu hạng sau phải lớn hơn hạng trước
         return cauHinhHangThanhVienRepository.save(hangThanhVien);
     }
 
@@ -72,7 +84,6 @@ public class CauHinhService {
         CauHinhHangThanhVien existing = cauHinhHangThanhVienRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng thành viên ID: " + id));
 
-        // Thực hiện xóa mềm: Chuyển trạng thái thành false (Ngừng áp dụng) thay vì xóa khỏi DB
         existing.setTrangThai(false);
         cauHinhHangThanhVienRepository.save(existing);
     }

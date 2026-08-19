@@ -25,7 +25,12 @@ public class CreateOnlineOrderRequest {
 
     private Integer voucherId;
 
+
+
     private Integer voucherKhachHangId;
+
+    private Integer soXuSuDung;
+
     private String note;
 
     private List<Item> items;
@@ -36,5 +41,4 @@ public class CreateOnlineOrderRequest {
         private Integer quantity;
         private BigDecimal price;
     }
-
 }

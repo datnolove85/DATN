@@ -107,4 +107,12 @@ public class KhachHang {
     @ColumnDefault("0")
     @Column(name = "trang_thai_xoa")
     private Boolean trangThai;
+
+    // === BỔ SUNG MỚI: Quản lý chu kỳ xét hạng thành viên ===
+    @Column(name = "ngay_bat_dau_chu_ky")
+    private Instant ngayBatDauChuKy;
+
+    @Column(name = "ngay_het_han_hang")
+    private Instant ngayHetHanHang;
+
 }

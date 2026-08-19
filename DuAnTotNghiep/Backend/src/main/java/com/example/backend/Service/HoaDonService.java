@@ -98,5 +98,6 @@ public interface HoaDonService {
 
     List<KhoVoucher> goKhachHang(Integer idHoaDon);
 
+    void apDungXu(Integer idHoaDon, Integer soXuSuDung);
     void thayDoiTrangThai(Integer idHoaDon, String trangThaiMoi, String ghiChu, String nguonThaoTac, Integer idNhanVien);
 }

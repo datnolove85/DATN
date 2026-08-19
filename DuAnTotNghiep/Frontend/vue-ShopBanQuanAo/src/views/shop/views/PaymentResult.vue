@@ -56,8 +56,8 @@
             <RouterLink v-if="isSuccess" to="/donhang" class="btn-primary min-w-[200px]"
               >Xem đơn hàng</RouterLink
             >
-            <RouterLink v-else to="/giohang" class="btn-primary min-w-[200px]"
-              >Quay lại giỏ hàng</RouterLink
+            <RouterLink v-else to="/don-hang" class="btn-primary min-w-[200px]"
+              >Quay lại đơn hàng</RouterLink
             >
             <RouterLink to="/san-pham" class="btn-secondary min-w-[200px]"
               >Tiếp tục mua sắm</RouterLink

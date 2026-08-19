@@ -148,16 +148,16 @@ public class HoaDonController {
             HttpServletRequest request
     ) {
 
-        String token = request.getHeader("Authorization").substring(7);
+//        String token = request.getHeader("Authorization").substring(7);
+//
+//        Integer idTaiKhoan = jwtService.extractId(token);
+//
+//        Integer idNhanVien = nhanVienRepo
+//                .findByIdTaiKhoan_Id(idTaiKhoan)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"))
+//                .getId();
 
-        Integer idTaiKhoan = jwtService.extractId(token);
-
-        Integer idNhanVien = nhanVienRepo
-                .findByIdTaiKhoan_Id(idTaiKhoan)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"))
-                .getId();
-
-        service.huyHoaDon(id, idNhanVien);
+        service.huyHoaDonOnline(id);
 
         return ResponseEntity.ok("Hủy hóa đơn thành công");
     }
@@ -328,5 +328,15 @@ public class HoaDonController {
     @PutMapping("/{idHoaDon}/go-khach-hang")
     public ResponseEntity<List<KhoVoucher>> goKhachHang(@PathVariable Integer idHoaDon) {
         return ResponseEntity.ok(service.goKhachHang(idHoaDon));
+    }
+
+    @PostMapping("/{idHoaDon}/ap-dung-xu")
+    public ResponseEntity<?> apDungXu(@PathVariable Integer idHoaDon, @RequestParam Integer soXu) {
+        try {
+            service.apDungXu(idHoaDon, soXu);
+            return ResponseEntity.ok("Áp dụng xu thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

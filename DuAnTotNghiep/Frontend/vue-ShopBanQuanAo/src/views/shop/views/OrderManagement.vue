@@ -882,4 +882,16 @@ const paymentClass = (status) =>
 onMounted(() => {
   fetchOrders()
 })
+
+let keywordDebounceTimer = null
+watch(
+  () => filters.value.keyword,
+  () => {
+    if (keywordDebounceTimer) clearTimeout(keywordDebounceTimer)
+    keywordDebounceTimer = setTimeout(() => {
+      page.value = 0
+      fetchOrders()
+    }, 400) // Đợi 400ms sau khi ngừng gõ để gọi API
+  },
+)
 </script>

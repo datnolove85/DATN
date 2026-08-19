@@ -15,6 +15,8 @@ public class DonHangChiTietDTO {
 
     private String maSanPham;
 
+    private String maSPCT;
+
     private String tenSanPham;
 
     private String mauSac;

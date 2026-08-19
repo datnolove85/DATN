@@ -158,7 +158,8 @@ private  final LichSuHoaDonRepository lichSuHoaDonRepository;
             dto.setIdHoaDonChiTiet(ct.getId());
             dto.setIdSanPhamChiTiet(spct.getId());
             dto.setIdSanPham(spct.getIdSanPham().getId());
-            dto.setMaSanPham(spct.getMaSanPhamChiTiet());
+            dto.setMaSanPham(spct.getIdSanPham().getMaSanPham());
+            dto.setMaSPCT(spct.getMaSanPhamChiTiet());
             dto.setTenSanPham(spct.getIdSanPham().getTenSanPham());
             dto.setMauSac(spct.getIdMauSac().getTenMauSac());
             dto.setKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
@@ -189,6 +190,9 @@ private  final LichSuHoaDonRepository lichSuHoaDonRepository;
             dto.setSoTien(thanhToan.getSoTien());
             dto.setTrangThai(thanhToan.getTrangThai());
             dto.setNgayThanhToan(thanhToan.getNgayThanhToan());
+            if (thanhToan.getIdPhuongThucThanhToan() != null) {
+                dto.setPhuongThucThanhToan(thanhToan.getIdPhuongThucThanhToan().getTenPhuongThuc());
+            }
             response.setThanhToan(dto);
         }
 

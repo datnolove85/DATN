@@ -2,7 +2,6 @@
   <div
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl min-h-screen selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
-    <!-- HEADER -->
     <div
       class="relative p-6 bg-white rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm"
     >
@@ -33,7 +32,6 @@
                 : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm active:scale-95',
             ]"
           >
-            <!-- Icon máy in khi bình thường -->
             <svg
               v-if="!['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)"
               xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +47,6 @@
                 d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.617 0-1.11-.51-1.07-1.122L6.34 18m11.32 0h-11.32M9 11V5.25A2.25 2.25 0 0 1 11.25 3h1.5A2.25 2.25 0 0 1 15 5.25V11m-6 0h6a2.25 2.25 0 0 1 2.25 2.25v1.875c0 .621-.504 1.125-1.125 1.125H6.875A1.125 1.125 0 0 1 5.625 16.25V13.25A2.25 2.25 0 0 1 7.875 11h.25Z"
               />
             </svg>
-            <!-- Icon ổ khóa khi bị vô hiệu hóa -->
             <svg
               v-else
               xmlns="http://www.w3.org/2000/svg"
@@ -97,9 +94,7 @@
       </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-8">
-      <!-- TOP INFO GRID -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           class="p-5 bg-slate-50/60 rounded-xl border border-slate-200/60 transition-all hover:bg-slate-50"
@@ -150,7 +145,6 @@
         </div>
       </div>
 
-      <!-- ================= LỊCH SỬ TIẾN TRÌNH HÓA ĐƠN (TIMELINE) ================= -->
       <div class="p-6 bg-slate-50/40 rounded-2xl border border-slate-200/70">
         <div class="flex items-center justify-between mb-6 select-none">
           <h3
@@ -259,9 +253,6 @@
           Chưa có lịch sử thay đổi trạng thái cho hóa đơn này.
         </div>
       </div>
-      <!-- ======================================================================= -->
-
-      <!-- ITEMS TABLE -->
       <div>
         <div class="flex items-center justify-between mb-4 select-none">
           <h3
@@ -350,7 +341,6 @@
         </div>
       </div>
 
-      <!-- BOTTOM SUMMARY & NOTE GRID -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
         <div class="space-y-4 text-xs">
           <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">
@@ -408,12 +398,29 @@
                 formatMoney(invoice.totalOriginal)
               }}</span>
             </div>
+
+            <!-- Chỉ hiển thị voucher nếu voucher tồn tại và có giá trị giảm -->
             <div
+              v-if="invoice.hasVoucher && invoice.voucherDiscount > 0"
               class="flex justify-between items-center text-rose-600 bg-rose-50/60 px-3 py-1.5 rounded-xl border border-rose-100"
             >
               <span class="font-medium">Ưu đãi giảm giá (Voucher):</span>
-              <span class="font-mono font-extrabold">- {{ formatMoney(invoice.discount) }}</span>
+              <span class="font-mono font-extrabold"
+                >- {{ formatMoney(invoice.voucherDiscount) }}</span
+              >
             </div>
+
+            <!-- Hiển thị tiền giảm do xu sử dụng nếu có -->
+            <div
+              v-if="invoice.usedCoins > 0 && invoice.coinDiscount > 0"
+              class="flex justify-between items-center text-amber-700 bg-amber-50/60 px-3 py-1.5 rounded-xl border border-amber-100"
+            >
+              <span class="font-medium">Xu sử dụng ({{ invoice.usedCoins }} xu):</span>
+              <span class="font-mono font-extrabold"
+                >- {{ formatMoney(invoice.coinDiscount) }}</span
+              >
+            </div>
+
             <div class="flex justify-between items-center text-slate-600">
               <span>Cước phí vận chuyển:</span>
               <span class="font-mono font-bold text-slate-700">{{
@@ -451,7 +458,6 @@ const goBack = () => {
 }
 
 const openPreview = () => {
-  // Chặn mở modal xuất hóa đơn nếu đơn hàng ở trạng thái hủy hoặc trả hàng
   if (['huy', 'da_huy', 'da_tra_hang'].includes(invoice.value.status)) return
   isPreviewOpen.value = true
 }
@@ -460,7 +466,6 @@ const closePreview = () => {
   isPreviewOpen.value = false
 }
 
-// Format tên trạng thái tiếng Việt
 const formatStatusName = (status) => {
   if (!status) return 'N/A'
   const map = {
@@ -476,14 +481,12 @@ const formatStatusName = (status) => {
   return map[status] || status
 }
 
-// Format ngày giờ chi tiết
 const formatDateTime = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return isNaN(date.getTime()) ? dateString : date.toLocaleString('vi-VN')
 }
 
-// Màu sắc badge nguồn thao tác
 const getSourceBadgeClass = (source) => {
   switch (source) {
     case 'STAFF':
@@ -504,7 +507,6 @@ const invoice = computed(() => {
   let listHistory = rawInvoice.value.lichSuHoaDons ? [...rawInvoice.value.lichSuHoaDons] : []
   const isOnline = rawInvoice.value.loaiHoaDon === 'online'
 
-  // Đảm bảo có mốc khởi tạo ở đầu timeline nếu có ngày tạo
   if (ngayTaoDon) {
     const hasCreationMilestone = listHistory.some(
       (h) => h.trangThaiCu === null || h.thoiGian === ngayTaoDon || h.ghiChu?.includes('Khởi tạo'),
@@ -534,19 +536,16 @@ const invoice = computed(() => {
     }
   }
 
-  // Chuẩn hóa và gán tên người thực hiện / tên nhãn timeline tùy theo loại hóa đơn và nguồn thao tác
   const processedHistory = listHistory.map((hist) => {
     let hienThiTrangThai = null
     let tenNhanVienHienThi = hist.tenNhanVien
 
-    // Mốc khởi tạo (trangThaiCu === null)
     if (!hist.trangThaiCu) {
       hienThiTrangThai = isOnline ? 'Đặt hàng' : 'Tạo hóa đơn'
       tenNhanVienHienThi = isOnline
         ? rawInvoice.value.tenKhachHang || 'Khách hàng'
         : hist.tenNhanVien || 'Nhân viên bán hàng'
     } else if (hist.nguonThaoTac === 'CUSTOMER') {
-      // Thao tác do khách hàng thực hiện (ví dụ khách hủy đơn)
       tenNhanVienHienThi = rawInvoice.value.tenKhachHang
         ? `(${rawInvoice.value.tenKhachHang})`
         : 'Khách hàng'
@@ -561,8 +560,13 @@ const invoice = computed(() => {
     }
   })
 
-  // Sắp xếp lịch sử theo thời gian tăng dần để mốc tạo đơn luôn nằm ở trên cùng
   const sortedHistory = processedHistory.sort((a, b) => new Date(a.thoiGian) - new Date(b.thoiGian))
+
+  const totalDiscount = rawInvoice.value.tongGiamGia || 0
+  const coinDiscount = rawInvoice.value.tienGiamDoXuSuDung || 0
+  const hasVoucher = !!rawInvoice.value.voucher
+  // Tính phần giảm giá của voucher bằng tổng giảm giá trừ đi phần giảm do xu (nếu có voucher)
+  const voucherDiscount = hasVoucher ? Math.max(0, totalDiscount - coinDiscount) : 0
 
   return {
     code: rawInvoice.value.maHoaDon,
@@ -576,9 +580,13 @@ const invoice = computed(() => {
     paymentMethod: rawInvoice.value.phuongThucThanhToan || 'Chưa thanh toán',
     note: rawInvoice.value.ghiChu,
     totalOriginal: rawInvoice.value.tongTienHang,
-    discount: rawInvoice.value.tongGiamGia,
+    discount: totalDiscount,
     shippingFee: rawInvoice.value.phiVanChuyen || 0,
     final: rawInvoice.value.tongThanhToan,
+    usedCoins: rawInvoice.value.soXuSuDung || 0,
+    coinDiscount: coinDiscount,
+    hasVoucher: hasVoucher,
+    voucherDiscount: voucherDiscount,
     items:
       rawInvoice.value.sanPhams?.map((sp) => ({
         id: sp.id,

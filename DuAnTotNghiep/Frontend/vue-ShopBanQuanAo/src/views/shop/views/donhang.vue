@@ -12,7 +12,6 @@
         </div>
       </div>
 
-      <!-- Đã bỏ type="primary" để nút Làm mới gọn gàng, không bị chói -->
       <el-button class="refresh-btn" :icon="Refresh" @click="loadOrders"> Làm mới </el-button>
     </div>
 
@@ -66,7 +65,6 @@
 
         <!-- PRODUCTS -->
         <div class="product-list-container">
-          <!-- Thanh Chọn tất cả sản phẩm trong hóa đơn này -->
           <div class="select-all-bar">
             <el-checkbox
               :model-value="isAllSelected(order)"
@@ -79,7 +77,6 @@
             </el-checkbox>
           </div>
 
-          <!-- Checkbox group từng sản phẩm -->
           <el-checkbox-group v-model="selectedProductsMap[order.thongTinDonHang.id]">
             <div class="product-item" v-for="sp in order.sanPham" :key="sp.idHoaDonChiTiet">
               <el-checkbox :value="sp.idSanPham" class="product-checkbox" />
@@ -92,10 +89,12 @@
                 @error="$event.target.src = 'https://placehold.co/80x80?text=No+Image'"
               />
 
+              <!-- HIỂN THỊ ĐẦY ĐỦ MÃ SP & MÃ SPCT -->
               <div class="product-info">
                 <h4>{{ sp.tenSanPham }}</h4>
                 <div class="product-meta">
-                  <span>Mã: {{ sp.maSanPham }}</span>
+                  <span>Mã SP: {{ sp.maSanPham }}</span>
+                  <span v-if="sp.maSPCT">Mã SPCT: {{ sp.maSPCT }}</span>
                   <span>Màu: {{ sp.mauSac }}</span>
                   <span>Size: {{ sp.kichThuoc }}</span>
                 </div>
@@ -106,10 +105,8 @@
                   <span class="unit-price">
                     {{ money(sp.donGia) }}
                   </span>
-
                   <span class="quantity"> × {{ sp.soLuong }} </span>
                 </div>
-
                 <strong class="total-price">
                   {{ money(sp.thanhTien) }}
                 </strong>
@@ -118,7 +115,7 @@
           </el-checkbox-group>
         </div>
 
-        <!-- TIMELINE (6 bước chuẩn) -->
+        <!-- TIMELINE -->
         <div class="timeline-container" v-if="order.thongTinDonHang.trangThai !== 'da_huy'">
           <el-steps
             :active="getStep(order)"
@@ -153,7 +150,7 @@
           </el-alert>
         </div>
 
-        <!-- CARD FOOTER / SUMMARY & ACTION -->
+        <!-- CARD FOOTER -->
         <div class="order-footer">
           <div class="order-summary-mini">
             <span>Tổng số tiền ({{ order.sanPham.length }} sản phẩm): </span>
@@ -166,13 +163,12 @@
             <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
             <el-button
               v-if="canPayOrder(order)"
-              type="primary"
+              class="pay-btn"
               :icon="CreditCard"
               @click="handlePayOrder(order)"
             >
               Thanh toán
             </el-button>
-            <!-- Nút Hủy đơn hàng -->
             <el-button
               type="danger"
               plain
@@ -185,7 +181,6 @@
               Hủy đơn
             </el-button>
 
-            <!-- Nút Xác nhận đã nhận hàng -->
             <el-button
               type="success"
               v-if="order.thongTinDonHang.trangThai === 'giao_thanh_cong'"
@@ -194,7 +189,6 @@
               Đã nhận được hàng
             </el-button>
 
-            <!-- Đổi từ type="primary" sang type="warning" để nút Mua lại nổi bật và hợp lý hơn -->
             <el-button type="warning" @click="handleRebuy(order)"> Mua lại </el-button>
           </div>
         </div>
@@ -257,16 +251,89 @@
             <div class="info-list">
               <div class="info-row">
                 <span>Loại đơn:</span>
-                <b>{{ selectedOrder.thongTinDonHang.loaiHoaDon || 'Trực tuyến' }}</b>
+                <b>
+                  {{
+                    selectedOrder.thongTinDonHang.loaiHoaDon
+                      ? selectedOrder.thongTinDonHang.loaiHoaDon.charAt(0).toUpperCase() +
+                        selectedOrder.thongTinDonHang.loaiHoaDon.slice(1)
+                      : 'Online'
+                  }}
+                </b>
               </div>
               <div class="info-row">
                 <span>Ngày tạo:</span>
                 <span>{{ formatDate(selectedOrder.thongTinDonHang.ngayTao) }}</span>
               </div>
               <div class="info-row">
-                <span>Thanh toán:</span>
+                <span>Trạng thái TT:</span>
                 <span>{{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- THÔNG TIN THANH TOÁN CHI TIẾT ĐÃ ĐƯỢC TỐI ƯU LOGIC RÕ RÀNG HƠN -->
+        <div class="detail-section">
+          <div class="section-title">
+            <el-icon><CreditCard /></el-icon>
+            <h4>Thông tin thanh toán chi tiết</h4>
+          </div>
+
+          <!-- TRƯỜNG HỢP CÓ DỮ LIỆU THANH TOÁN (ĐÃ THANH TOÁN / CÓ GIAO DỊCH) -->
+          <div class="info-list" v-if="selectedOrder.thanhToan">
+            <div class="info-row">
+              <span>Phương thức thanh toán:</span>
+              <b>{{ selectedOrder.thanhToan.phuongThucThanhToan || 'Chưa cập nhật' }}</b>
+            </div>
+            <div class="info-row">
+              <span>Trạng thái giao dịch:</span>
+              <el-tag
+                size="small"
+                :type="
+                  selectedOrder.thanhToan.trangThai === 'da_thanh_toan' ? 'success' : 'warning'
+                "
+              >
+                {{ formatPaymentStatus(selectedOrder.thanhToan.trangThai) }}
+              </el-tag>
+            </div>
+            <div class="info-row" v-if="selectedOrder.thanhToan.ngayThanhToan">
+              <span>Thời gian thanh toán:</span>
+              <span>{{ formatDate(selectedOrder.thanhToan.ngayThanhToan) }}</span>
+            </div>
+            <div class="info-row" v-if="selectedOrder.thanhToan.maGiaoDich">
+              <span>Mã giao dịch:</span>
+              <span class="code-text">{{ selectedOrder.thanhToan.maGiaoDich }}</span>
+            </div>
+            <div class="info-row">
+              <span>Số tiền thanh toán:</span>
+              <strong class="text-danger">{{ money(selectedOrder.thanhToan.soTien) }}</strong>
+            </div>
+          </div>
+
+          <!-- TRƯỜNG HỢP CHƯA CÓ BẢN GHI THANH TOÁN (VÍ DỤ ĐƠN CHỜ XÁC NHẬN / CHƯA THANH TOÁN TRỰC TUYẾN) -->
+          <div class="info-list" v-else>
+            <div class="info-row">
+              <span>Trạng thái thanh toán:</span>
+              <el-tag
+                size="small"
+                :type="paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)"
+              >
+                {{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}
+              </el-tag>
+            </div>
+            <div class="info-row">
+              <span>Hình thức thanh toán:</span>
+              <b>{{
+                selectedOrder.thongTinDonHang.loaiHoaDon === 'online'
+                  ? 'Thanh toán trực tuyến (Chưa thanh toán)'
+                  : 'Thanh toán khi nhận hàng (COD)'
+              }}</b>
+            </div>
+            <div class="info-row">
+              <span>Tổng tiền cần thanh toán:</span>
+              <strong class="text-danger">{{
+                money(selectedOrder.thongTinDonHang.tongThanhToan)
+              }}</strong>
             </div>
           </div>
         </div>
@@ -292,7 +359,7 @@
           </div>
         </div>
 
-        <!-- DANH SÁCH SẢN PHẨM -->
+        <!-- DANH SÁCH SẢN PHẨM TRONG DIALOG (HIỂN THỊ MÃ SP VÀ MÃ SPCT) -->
         <div class="detail-section">
           <div class="section-title">
             <el-icon><Goods /></el-icon>
@@ -314,7 +381,8 @@
               <div class="dialog-info">
                 <h5>{{ sp.tenSanPham }}</h5>
                 <div class="dialog-meta">
-                  <span class="tag-badge">Mã: {{ sp.maSanPham }}</span>
+                  <span class="tag-badge">Mã SP: {{ sp.maSanPham }}</span>
+                  <span class="tag-badge" v-if="sp.maSPCT">Mã SPCT: {{ sp.maSPCT }}</span>
                   <span class="tag-badge">Màu: {{ sp.mauSac }}</span>
                   <span class="tag-badge">Size: {{ sp.kichThuoc }}</span>
                 </div>
@@ -374,7 +442,6 @@
           >:
         </p>
 
-        <!-- COMBO LÝ DO HỦY -->
         <el-radio-group v-model="selectedCancelReason" class="cancel-reasons-list">
           <el-radio
             label="Thay đổi địa chỉ nhận hàng"
@@ -414,7 +481,6 @@
           <el-radio label="Khác" value="Khác" size="large"> Lý do khác... </el-radio>
         </el-radio-group>
 
-        <!-- Ô NHẬP LÝ DO RIÊNG NẾU CHỌN KHÁC -->
         <div v-if="selectedCancelReason === 'Khác'" class="custom-reason-input">
           <el-input
             v-model="customCancelReason"
@@ -606,74 +672,63 @@ const handleRebuy = (order) => {
 
   const checkoutData = {
     items: selectedItems.map((sp) => {
-      // Ưu tiên giá bán thực tế của sản phẩm
-      // Không để donGia ghi đè giaBan
       const gia = Number(sp.giaBan ?? sp.donGia ?? 0)
-
       const qty = Number(sp.soLuong ?? 1)
 
       return {
         productDetailId: sp.idChiTietSanPham || sp.idSanPhamChiTiet || sp.idSanPham,
-
         quantity: qty,
-
         tenSanPham: sp.tenSanPham,
-        maSanPhamChiTiet: sp.maSanPhamChiTiet || sp.maSanPham || '',
-
+        maSanPhamChiTiet: sp.maSanPhamChiTiet || sp.maSPCT || sp.maSanPham || '',
         giaBan: gia,
-
         mauSac: sp.mauSac || '',
         kichCo: sp.kichCo || sp.kichThuoc || '',
         anh: sp.anh || '',
-
         soLuongTon: sp.soLuongTon ?? 99,
         soLuongKhaDung: sp.soLuongKhaDung ?? 1,
-
         thanhTien: gia * qty,
       }
     }),
   }
 
   sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData))
-
   router.push('/xacnhan')
 }
 
 const canPayOrder = (order) => {
   const info = order?.thongTinDonHang
-
   if (!info) return false
 
-  // 1. Chỉ xét các đơn đang chờ xác nhận
   if (info.trangThai !== 'cho_xac_nhan') {
     return false
   }
 
-  // 2. Nếu đã thanh toán rồi thì không hiện
-  if (info.trangTinThanhToan !== 'chua_thanh_toan') {
-    // (Lưu ý tên biến trangThaiThanhToan trong code gốc của bạn)
+  if (info.trangThaiThanhToan === 'da_thanh_toan') {
     return false
   }
 
-  const phuongThuc =
-    info.phuongThucThanhToan || info.tenPhuongThucThanhToan || info.maPhuongThucThanhToan || ''
+  const thanhToan = order?.thanhToan
+  if (thanhToan) {
+    const phuongThuc = String(thanhToan.phuongThucThanhToan || '').toLowerCase()
 
-  const method = String(phuongThuc).toLowerCase()
+    if (
+      phuongThuc.includes('cod') ||
+      phuongThuc.includes('tiền mặt') ||
+      phuongThuc.includes('tien mat') ||
+      phuongThuc.includes('cash') ||
+      phuongThuc.includes('khi nhận hàng')
+    ) {
+      return false
+    }
 
-  // 3. NẾU KHÁCH ĐÃ CHỌN COD/TIỀN MẶT RỒI -> KHÔNG HIỆN NÚT THANH TOÁN ONLINE
-  if (
-    method.includes('cod') ||
-    method.includes('tiền mặt') ||
-    method.includes('tien mat') ||
-    method.includes('cash')
-  ) {
-    return false
+    if (thanhToan.trangThai === 'da_thanh_toan' || thanhToan.trangThai === 'hoan_tat') {
+      return false
+    }
   }
 
-  // 4. NẾU CHƯA CÓ PHƯƠNG THỨC THANH TOÁN (hoặc dữ liệu trống/chưa chọn)
-  // -> Sẽ cho phép hiển thị nút Thanh toán để khách chọn phương thức mới
   return true
 }
+
 const handlePayOrder = (order) => {
   const info = order?.thongTinDonHang
 
@@ -716,6 +771,27 @@ function formatDate(date) {
     month: '2-digit',
     year: 'numeric',
   })
+}
+
+function formatPaymentStatus(status) {
+  if (!status) return 'Chờ thanh toán'
+  const s = String(status).toLowerCase()
+  switch (s) {
+    case 'cho_thanh_toan':
+      return 'Chờ thanh toán'
+    case 'da_thanh_toan':
+      return 'Đã thanh toán'
+    case 'chua_thanh_toan':
+      return 'Chưa thanh toán'
+    case 'hoan_tat':
+      return 'Hoàn tất'
+    case 'that_bai':
+      return 'Thất bại'
+    case 'da_huy':
+      return 'Đã hủy'
+    default:
+      return status
+  }
 }
 
 const filteredOrders = computed(() => {
@@ -866,6 +942,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Giữ nguyên toàn bộ phần CSS cũ của bạn */
 .refresh-btn {
   background-color: #e9a02e !important;
   border-color: #e9a02e !important;
@@ -922,6 +999,22 @@ onUnmounted(() => {
 
 .product-checkbox {
   margin-right: 4px;
+}
+
+:deep(.el-checkbox__inner) {
+  border-color: #64748b !important;
+  border-width: 1.5px !important;
+  width: 16px;
+  height: 16px;
+}
+
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner),
+:deep(.el-checkbox__input.is-indeterminate .el-checkbox__inner) {
+  border-color: var(--primary-color) !important;
+}
+
+:deep(.el-checkbox:hover .el-checkbox__inner) {
+  border-color: var(--primary-color) !important;
 }
 
 .el-checkbox-group {
@@ -1191,6 +1284,7 @@ onUnmounted(() => {
   gap: 5px;
   white-space: nowrap;
 }
+
 .timeline-container {
   padding: 14px 16px;
   background: #fafafa;
@@ -1244,9 +1338,6 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-/* ===========================
-   COMPACT & CENTERED DIALOG STYLING
-=========================== */
 .custom-dialog :deep(.el-dialog) {
   border-radius: 12px;
   overflow: hidden;
@@ -1588,5 +1679,19 @@ onUnmounted(() => {
     padding: 12px 8px;
     overflow-x: auto;
   }
+}
+.pay-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.25s;
+}
+
+.pay-btn:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35);
 }
 </style>

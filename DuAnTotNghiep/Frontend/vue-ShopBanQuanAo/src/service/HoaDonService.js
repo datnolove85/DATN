@@ -437,3 +437,20 @@ export const goKhachHang = async (idHoaDon) => {
 
   return await handleResponse(response)
 }
+
+// ================= AP DUNG XU =================
+export const apDungXu = async (idHoaDon, soXu) => {
+  try {
+    const response = await fetch(`${API}/${idHoaDon}/ap-dung-xu?soXu=${soXu}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('apDungXu error:', error)
+    throw error
+  }
+}

@@ -1,15 +1,15 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Entity.HoaDon;
+import com.example.backend.Entity.PhuongThucThanhToan;
 import com.example.backend.Entity.ThanhToan;
 import com.example.backend.Repository.HoaDonRepository;
+import com.example.backend.Repository.PhuongThucThanhToanRepository;
 import com.example.backend.Repository.ThanhToanRepository;
 import com.example.backend.Request.PaymentRequest;
 import com.example.backend.Response.PaymentResponse;
-
 import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.payment.PaymentFactory;
-import com.example.backend.Service.payment.PaymentService;
 import com.example.backend.Service.payment.VoucherConsumeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,9 +33,16 @@ public class PaymentController {
 
     private final ThanhToanRepository thanhToanRepository;
 
-    private final VoucherConsumeService voucherConsumeService; // thêm dòng này
+    private final PhuongThucThanhToanRepository phuongThucRepository;
+
+    private final VoucherConsumeService voucherConsumeService;
 
     private final HoaDonService hoaDonService;
+
+
+    // ============================================================
+    // 1. TẠO THANH TOÁN
+    // ============================================================
 
     @PostMapping("/pay")
     public PaymentResponse pay(@RequestBody PaymentRequest request) {
@@ -43,70 +50,187 @@ public class PaymentController {
         return paymentFactory
                 .get(request.getMethod())
                 .pay(request);
-
     }
+
+
+    // ============================================================
+    // 2. VNPAY RETURN
+    // ============================================================
 
     @GetMapping("/vnpay-return")
-    public void vnpayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
-        String vnp_TxnRef = request.getParameter("vnp_TxnRef"); // Chính là idHoaDon mà ta đã truyền vào ở trên!
-        String vnp_TransactionNo = request.getParameter("vnp_TransactionNo"); // Mã giao dịch tại VNPAY
-        String vnp_BankCode = request.getParameter("vnp_BankCode");           // Ngân hàng khách dùng (VD: NCB)
-        boolean isSuccess = "00".equals(vnp_ResponseCode);
+    public void vnpayReturn(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
 
-        // Nếu thanh toán thành công từ VNPay trả về
-        if (isSuccess && vnp_TxnRef != null) {
-            try {
-                Integer idHoaDon = Integer.valueOf(vnp_TxnRef);
+        // --------------------------------------------------------
+        // Lấy thông tin VNPay trả về
+        // --------------------------------------------------------
 
-                // 1. Tìm hóa đơn trong CSDL
-                HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElse(null);
-                if (hoaDon != null) {
-                    // Cập nhật trạng thái Hóa đơn
-                    hoaDonService.thayDoiTrangThai(
-                            hoaDon.getId(),
-                            "da_xac_nhan",
-                            "Thanh toán VNPay thành công",
-                            "CUSTOMER",
-                            null
-                    );
-                    hoaDon.setTrangThaiThanhToan("da_thanh_toan");
-                    hoaDon.setNgayCapNhat(LocalDateTime.now());
-                    hoaDonRepository.save(hoaDon);
-                    voucherConsumeService.consumeVoucher(hoaDon.getId());
+        String vnpResponseCode =
+                request.getParameter("vnp_ResponseCode");
 
-                    // Cập nhật bảng ThanhToan sang "da_thanh_toan"
-                    List<ThanhToan> listThanhToan = thanhToanRepository.getDanhSachThanhToanTheoHoaDon(hoaDon.getId());
-                    for (ThanhToan tt : listThanhToan) {
-                        if ("cho_thanh_toan".equals(tt.getTrangThai())) {
-                            tt.setTrangThai("da_thanh_toan");
-                            tt.setMaGiaoDich(vnp_TransactionNo);
-                            thanhToanRepository.save(tt);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Lỗi cập nhật CSDL tự động từ vnpay-return: " + e.getMessage());
-            }
+        String vnpTransactionStatus =
+                request.getParameter("vnp_TransactionStatus");
+
+        String vnpTxnRef =
+                request.getParameter("vnp_TxnRef");
+
+        String vnpTransactionNo =
+                request.getParameter("vnp_TransactionNo");
+
+        String vnpBankCode =
+                request.getParameter("vnp_BankCode");
+
+
+        System.out.println("========== VNPAY RETURN ==========");
+        System.out.println("ResponseCode       = " + vnpResponseCode);
+        System.out.println("TransactionStatus  = " + vnpTransactionStatus);
+        System.out.println("TxnRef             = " + vnpTxnRef);
+        System.out.println("TransactionNo      = " + vnpTransactionNo);
+        System.out.println("BankCode            = " + vnpBankCode);
+        System.out.println("==================================");
+
+
+        // ========================================================
+        // 1. KIỂM TRA KHÁCH HỦY THANH TOÁN
+        // ========================================================
+
+        if ("24".equals(vnpResponseCode)) {
+
+            System.out.println(
+                    "Khách hàng đã hủy thanh toán VNPay"
+            );
+
+            /*
+             * QUAN TRỌNG:
+             *
+             * Không:
+             * - Tạo ThanhToan
+             * - Update ThanhToan
+             * - set da_thanh_toan
+             * - consume voucher
+             *
+             * Vì lúc tạo link VNPay chúng ta cũng chưa tạo
+             * ThanhToan.
+             */
+
+            response.sendRedirect(
+                    "http://localhost:5173/payment-result?status=cancel"
+            );
+
+            return;
         }
 
-        // Điều hướng (Redirect) người dùng về trang kết quả ở Frontend
-        String frontendUrl = isSuccess
-                ? "http://localhost:5173/payment-result?status=success"
-                : "http://localhost:5173/payment-result?status=failed";
 
-        response.sendRedirect(frontendUrl);
-    }
+        // ========================================================
+        // 2. KIỂM TRA THANH TOÁN THẤT BẠI
+        // ========================================================
 
-    // API nhận xác nhận kết quả thanh toán từ Frontend hoặc từ cổng trả về để chốt đơn vào DB
-    @PostMapping("/verify-payment")
-    public ResponseEntity<?> verifyPayment(@RequestBody PaymentRequest request) {
+        boolean isSuccess =
+                "00".equals(vnpResponseCode)
+                        && "00".equals(vnpTransactionStatus);
+
+
+        if (!isSuccess) {
+
+            System.out.println(
+                    "Thanh toán VNPay thất bại. "
+                            + "ResponseCode = "
+                            + vnpResponseCode
+                            + ", TransactionStatus = "
+                            + vnpTransactionStatus
+            );
+
+            /*
+             * Không tạo ThanhToan
+             * Không cập nhật ThanhToan
+             * Không consume voucher
+             */
+
+            response.sendRedirect(
+                    "http://localhost:5173/payment-result?status=failed"
+            );
+
+            return;
+        }
+
+
+        // ========================================================
+        // 3. THANH TOÁN THÀNH CÔNG
+        // ========================================================
+
+        if (vnpTxnRef == null || vnpTxnRef.isBlank()) {
+
+            System.err.println(
+                    "VNPay trả về nhưng không có vnp_TxnRef"
+            );
+
+            response.sendRedirect(
+                    "http://localhost:5173/payment-result?status=failed"
+            );
+
+            return;
+        }
+
+
         try {
-            // 1. Tìm hóa đơn
-            HoaDon hoaDon = hoaDonRepository.findById(request.getIdHoaDon())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-            // 2. Cập nhật trạng thái Hóa đơn thành đã thanh toán / đã xác nhận
+            Integer idHoaDon =
+                    Integer.valueOf(vnpTxnRef);
+
+
+            // ====================================================
+            // 4. TÌM HÓA ĐƠN
+            // ====================================================
+
+            HoaDon hoaDon =
+                    hoaDonRepository
+                            .findById(idHoaDon)
+                            .orElse(null);
+
+
+            if (hoaDon == null) {
+
+                System.err.println(
+                        "Không tìm thấy hóa đơn ID = "
+                                + idHoaDon
+                );
+
+                response.sendRedirect(
+                        "http://localhost:5173/payment-result?status=failed"
+                );
+
+                return;
+            }
+
+
+            // ====================================================
+            // 5. KIỂM TRA ĐÃ THANH TOÁN TRƯỚC ĐÓ CHƯA
+            // ====================================================
+
+            if ("da_thanh_toan".equals(
+                    hoaDon.getTrangThaiThanhToan()
+            )) {
+
+                System.out.println(
+                        "Hóa đơn "
+                                + idHoaDon
+                                + " đã được thanh toán trước đó."
+                );
+
+                response.sendRedirect(
+                        "http://localhost:5173/payment-result?status=success"
+                );
+
+                return;
+            }
+
+
+            // ====================================================
+            // 6. CẬP NHẬT TRẠNG THÁI HÓA ĐƠN
+            // ====================================================
+
             hoaDonService.thayDoiTrangThai(
                     hoaDon.getId(),
                     "da_xac_nhan",
@@ -114,24 +238,171 @@ public class PaymentController {
                     "CUSTOMER",
                     null
             );
-            hoaDon.setTrangThaiThanhToan("da_thanh_toan");
-            hoaDon.setNgayCapNhat(LocalDateTime.now());
-            hoaDonRepository.save(hoaDon);
-            voucherConsumeService.consumeVoucher(hoaDon.getId());
 
-            // 3. Cập nhật bản ghi ThanhToan tương ứng sang "da_thanh_toan"
-            List<ThanhToan> listThanhToan = thanhToanRepository.getDanhSachThanhToanTheoHoaDon(hoaDon.getId());
-            for (ThanhToan tt : listThanhToan) {
-                if ("cho_thanh_toan".equals(tt.getTrangThai())) {
-                    tt.setTrangThai("da_thanh_toan");
-                    thanhToanRepository.save(tt);
-                }
+
+            hoaDon.setTrangThaiThanhToan(
+                    "da_thanh_toan"
+            );
+
+            hoaDon.setNgayCapNhat(
+                    LocalDateTime.now()
+            );
+
+            hoaDonRepository.save(hoaDon);
+
+
+            // ====================================================
+            // 7. TÌM PHƯƠNG THỨC THANH TOÁN VNPAY
+            // ====================================================
+
+            PhuongThucThanhToan pttt =
+                    phuongThucRepository
+                            .findByMaPhuongThuc("VNPAY")
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Không tìm thấy phương thức VNPAY trong CSDL"
+                                    )
+                            );
+
+
+            // ====================================================
+            // 8. KIỂM TRA THANH TOÁN ĐÃ TỒN TẠI CHƯA
+            // ====================================================
+
+            List<ThanhToan> danhSachThanhToan =
+                    thanhToanRepository
+                            .getDanhSachThanhToanTheoHoaDon(
+                                    hoaDon.getId()
+                            );
+
+
+            boolean daCoThanhToan =
+                    danhSachThanhToan
+                            .stream()
+                            .anyMatch(tt ->
+                                    "da_thanh_toan".equals(
+                                            tt.getTrangThai()
+                                    )
+                            );
+
+
+            // ====================================================
+            // 9. CHỈ TẠO THANH TOÁN KHI VNPAY THÀNH CÔNG
+            // ====================================================
+
+            if (!daCoThanhToan) {
+
+                ThanhToan thanhToan =
+                        new ThanhToan();
+
+                thanhToan.setIdHoaDon(
+                        hoaDon
+                );
+
+                thanhToan.setIdPhuongThucThanhToan(
+                        pttt
+                );
+
+                thanhToan.setSoTien(
+                        hoaDon.getTongThanhToan()
+                );
+
+                thanhToan.setTrangThai(
+                        "da_thanh_toan"
+                );
+
+                thanhToan.setMaGiaoDich(
+                        vnpTransactionNo
+                );
+
+                thanhToan.setNgayThanhToan(
+                        LocalDateTime.now()
+                );
+
+                thanhToanRepository.save(
+                        thanhToan
+                );
+
+
+                System.out.println(
+                        "Đã tạo ThanhToan thành công "
+                                + "cho hóa đơn "
+                                + hoaDon.getId()
+                );
             }
 
-            return ResponseEntity.ok(new PaymentResponse(true, "Xác nhận thanh toán thành công", null));
+
+            // ====================================================
+            // 10. CONSUME VOUCHER
+            // ====================================================
+
+            voucherConsumeService.consumeVoucher(
+                    hoaDon.getId()
+            );
+
+
+            // ====================================================
+            // 11. REDIRECT VỀ FRONTEND - THÀNH CÔNG
+            // ====================================================
+
+            response.sendRedirect(
+                    "http://localhost:5173/payment-result?status=success"
+            );
+
+        } catch (NumberFormatException e) {
+
+            System.err.println(
+                    "vnp_TxnRef không hợp lệ: "
+                            + vnpTxnRef
+            );
+
+            response.sendRedirect(
+                    "http://localhost:5173/payment-result?status=failed"
+            );
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new PaymentResponse(false, e.getMessage(), null));
+
+            System.err.println(
+                    "Lỗi xử lý VNPay return: "
+                            + e.getMessage()
+            );
+
+            e.printStackTrace();
+
+            response.sendRedirect(
+                    "http://localhost:5173/payment-result?status=failed"
+            );
         }
     }
 
+
+    // ============================================================
+    // 3. VERIFY PAYMENT
+    // ============================================================
+    //
+    // Không dùng API này cho VNPay nữa.
+    //
+    // Khi VNPay thanh toán thành công:
+    // /vnpay-return sẽ tự động xử lý.
+    //
+    // Khi VNPay hủy:
+    // /vnpay-return sẽ không tạo ThanhToan.
+    // ============================================================
+
+    @PostMapping("/verify-payment")
+    public ResponseEntity<?> verifyPayment(
+            @RequestBody PaymentRequest request
+    ) {
+
+        return ResponseEntity.badRequest()
+                .body(
+                        new PaymentResponse(
+                                false,
+                                "Không cần gọi verify-payment đối với VNPay. "
+                                        + "Hệ thống tự động xác nhận khi VNPay "
+                                        + "trả về kết quả thanh toán thành công.",
+                                null
+                        )
+                );
+    }
 }

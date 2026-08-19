@@ -114,6 +114,7 @@
           <section
             class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
           >
+            <!-- (Phần Địa chỉ giữ nguyên như cũ của bạn) -->
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="flex items-start gap-3">
                 <span
@@ -380,6 +381,7 @@
           <section
             class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
           >
+            <!-- (Phần sản phẩm giữ nguyên như cũ của bạn) -->
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-3">
                 <span
@@ -733,6 +735,73 @@
             </section>
           </div>
 
+          <!-- ==================== TÍCH XU & ĐỔI THƯỞNG ==================== -->
+          <section
+            v-if="isLoggedIn"
+            class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <span
+                  class="grid h-11 w-11 place-items-center rounded-2xl bg-amber-50 text-amber-600"
+                >
+                  <span class="text-xl">🪙</span>
+                </span>
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.15em] text-amber-600">
+                    Tích điểm
+                  </p>
+                  <h2 class="font-black text-slate-900">Sử dụng Xu giảm giá</h2>
+                </div>
+              </div>
+              <span class="text-sm font-medium text-slate-600">
+                Số dư khả dụng:
+                <strong class="text-amber-600">{{ customerInfo?.soDuXu || 0 }} xu</strong>
+              </span>
+            </div>
+
+            <div v-if="customerInfo && customerInfo.soDuXu > 0" class="space-y-3">
+              <div class="flex items-center gap-3">
+                <input
+                  type="number"
+                  v-model.number="soXuCanDung"
+                  min="0"
+                  :max="customerInfo.soDuXu"
+                  placeholder="Nhập số xu muốn dùng..."
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                />
+                <button
+                  type="button"
+                  @click="apDungSoXu"
+                  class="shrink-0 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-md shadow-amber-100 transition hover:bg-amber-600"
+                >
+                  Áp dụng xu
+                </button>
+                <button
+                  v-if="soXuSuDung > 0"
+                  type="button"
+                  @click="huyBoSoXu"
+                  class="shrink-0 rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200"
+                >
+                  Bỏ chọn
+                </button>
+              </div>
+
+              <div
+                v-if="tienGiamDoXu > 0"
+                class="text-xs text-emerald-600 font-medium flex items-center gap-1"
+              >
+                <span
+                  >✓ Đã dùng <strong>{{ soXuSuDung }} xu</strong> để giảm trừ:</span
+                >
+                <span class="font-bold">-{{ formatMoney(tienGiamDoXu) }}</span>
+              </div>
+            </div>
+            <div v-else class="text-sm text-slate-400 italic">
+              Khách hàng hiện không có xu tích lũy để sử dụng.
+            </div>
+          </section>
+
           <!-- NOTE -->
           <section
             class="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7"
@@ -791,6 +860,10 @@
                 <span class="text-slate-500">Voucher giảm</span>
                 <span class="font-bold text-emerald-600">-{{ formatMoney(voucherDiscount) }}</span>
               </div>
+              <div v-if="tienGiamDoXu > 0" class="flex items-center justify-between gap-4">
+                <span class="text-slate-500">Xu giảm giá</span>
+                <span class="font-bold text-amber-600">-{{ formatMoney(tienGiamDoXu) }}</span>
+              </div>
 
               <div class="border-t border-dashed border-slate-200 pt-4">
                 <div class="flex items-end justify-between gap-4">
@@ -805,7 +878,11 @@
             <div class="border-t border-slate-100 bg-slate-50/80 p-5">
               <button
                 type="button"
-                :disabled="isPlacingOrder || shippingLoading || maxAvailable === 0"
+                :disabled="
+                  isPlacingOrder ||
+                  shippingLoading ||
+                  (isCartCheckout ? checkoutItems.length === 0 : maxAvailable === 0)
+                "
                 class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-4 text-base font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 @click="placeOrder"
               >
@@ -838,6 +915,7 @@
         </aside>
       </div>
 
+      <!-- Các Modal (Địa chỉ, Voucher) giữ nguyên bên dưới -->
       <!-- ADDRESS MODAL -->
       <Teleport to="body">
         <div
@@ -845,9 +923,11 @@
           class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
           @click.self="showAddressModal = false"
         >
+          <!-- (Nội dung Modal địa chỉ của bạn) -->
           <div
             class="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-[30px] border border-white/70 bg-white shadow-2xl"
           >
+            <!-- Header modal -->
             <div
               class="flex items-center justify-between border-b border-slate-100 px-6 py-5 sm:px-8"
             >
@@ -868,6 +948,7 @@
               </button>
             </div>
 
+            <!-- Body modal -->
             <div class="grid gap-7 p-6 sm:p-8 lg:grid-cols-[1fr_380px]">
               <div class="space-y-5">
                 <div class="grid gap-5 md:grid-cols-2">
@@ -1002,10 +1083,10 @@
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           @click.self="showVoucherModal = false"
         >
+          <!-- (Nội dung Modal Voucher giữ nguyên của bạn) -->
           <div
             class="w-full max-w-lg rounded-2xl bg-slate-50 overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
           >
-            <!-- Header -->
             <div
               class="flex items-center justify-between bg-white px-6 py-4 border-b border-slate-100"
             >
@@ -1020,18 +1101,15 @@
               </button>
             </div>
 
-            <!-- Notification Banner -->
             <div
               class="bg-indigo-50/70 px-6 py-2.5 text-xs text-indigo-700 border-b border-indigo-100 flex items-center gap-1.5 font-medium shrink-0"
             >
               <span>💡 Nhấn vào voucher để chọn và áp dụng ngay cho đơn hàng</span>
             </div>
 
-            <!-- Danh sách Voucher -->
             <div
               class="p-4 space-y-3 overflow-y-auto flex-1 max-h-[420px] overscroll-contain custom-scrollbar"
             >
-              <!-- Không sử dụng voucher -->
               <div
                 @click="clearVoucher"
                 :class="[
@@ -1053,7 +1131,6 @@
                   </div>
                   <p class="text-xs text-slate-500 mt-1">Thanh toán theo giá gốc của đơn hàng</p>
                 </div>
-
                 <input
                   type="radio"
                   name="voucher-selection"
@@ -1063,7 +1140,6 @@
                 />
               </div>
 
-              <!-- Danh sách voucher đã sắp xếp qua uid -->
               <div
                 v-for="v in sortedVouchers"
                 :key="v.uid"
@@ -1082,7 +1158,6 @@
                         : 'opacity-55 cursor-not-allowed border-slate-200 bg-slate-100/60',
                 ]"
               >
-                <!-- Ô bên trái: Hiển thị mức giảm giá -->
                 <div
                   :class="[
                     'w-28 py-3 rounded-xl text-white flex flex-col items-center justify-center text-center shrink-0 shadow-md',
@@ -1103,7 +1178,6 @@
                   </span>
                 </div>
 
-                <!-- Phần giữa & phải: Thông tin & Điều kiện -->
                 <div class="flex-1 flex flex-col justify-between">
                   <div class="flex items-start justify-between gap-2">
                     <div>
@@ -1111,28 +1185,24 @@
                         <h3 class="font-bold text-slate-800 text-sm line-clamp-1">
                           {{ v.tenVoucher }}
                         </h3>
-
                         <span
                           v-if="v.loaiVoucher === 'CA_NHAN'"
                           class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold"
                         >
                           🎁 Voucher của bạn
                         </span>
-
                         <span
                           v-else
                           class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold"
                         >
                           🏷️ Hệ thống
                         </span>
-
                         <span
                           v-if="selectedVoucherId === v.uid"
                           class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold"
                         >
                           ✓ Đang áp dụng
                         </span>
-
                         <span
                           v-else-if="bestVoucher && bestVoucher.uid === v.uid"
                           class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold"
@@ -1148,7 +1218,6 @@
                         <p class="text-xs text-emerald-600 font-semibold mt-1">
                           Tiết kiệm {{ formatCurrency(getVoucherDiscount(v)) }}
                         </p>
-
                         <span
                           v-if="v.loaiGiamGia === 'phan_tram' && v.giaTriGiamToiDa"
                           class="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium"
@@ -1158,7 +1227,6 @@
                       </div>
                     </div>
 
-                    <!-- Radio chọn -->
                     <div class="shrink-0 pt-0.5">
                       <input
                         type="radio"
@@ -1174,7 +1242,6 @@
                     </div>
                   </div>
 
-                  <!-- Điều kiện đơn hàng tối thiểu -->
                   <div
                     class="mt-3 flex items-center justify-between text-xs pt-2 border-t border-dashed border-slate-100"
                   >
@@ -1197,7 +1264,6 @@
               </div>
             </div>
 
-            <!-- Footer Modal -->
             <div
               class="bg-white px-6 py-3 border-t border-slate-100 flex items-center justify-end shrink-0"
             >
@@ -1263,7 +1329,104 @@ import 'leaflet/dist/leaflet.css'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import shadow from 'leaflet/dist/images/marker-shadow.png'
 
-// 1. Tính số lượng khả dụng tối đa cho "Mua Ngay" (nếu hết hàng trả về 0)
+import { detailKhachHangService } from '@/service/KhachHangService'
+
+import { cauHinhService } from '@/service/cauHinhService'
+
+const systemConfig = ref({})
+
+const loadSystemConfig = async () => {
+  try {
+    const data = await cauHinhService.getCauHinhHeThong()
+
+    // Chuyển mảng thành Object để dễ truy xuất
+    // Từ [{ maCauHinh: "A", giaTriSo: 100 }, ...] -> { A: 100, ... }
+    systemConfig.value = data.reduce((acc, item) => {
+      acc[item.maCauHinh] = item.giaTriSo
+      return acc
+    }, {})
+
+    console.log('Config đã load:', systemConfig.value)
+  } catch (error) {
+    console.error('Lỗi load config:', error)
+  }
+}
+
+// State bổ sung cho tính năng Tích Xu & Giảm giá bằng xu
+const customerInfo = ref(null) // Chứa thông tin khách hàng (bao gồm soDuXu)
+const soXuCanDung = ref(0)
+const soXuSuDung = ref(0)
+const tienGiamDoXu = ref(0)
+
+// Hàm áp dụng số xu (giả định 1 xu = 1000 VNĐ hoặc theo cấu hình hệ thống của bạn)
+const apDungSoXu = () => {
+  const tyLeQuyDoi = Number(systemConfig.value['TY_LE_QUY_DOI_XU'] || 1000)
+  const tyLeGiamToiDa = Number(systemConfig.value['TY_LE_GIAM_TOI_DA_XU'] || 50)
+  const soDuHienTai = customerInfo.value?.soDuXu || 0
+
+  let soXuMuonDung = Number(soXuCanDung.value)
+
+  if (!soXuMuonDung || soXuMuonDung === 0) {
+    huyBoSoXu()
+    return
+  }
+
+  if (soXuMuonDung < 0) {
+    toast.warning('Số xu sử dụng không hợp lệ!')
+    soXuCanDung.value = 0
+    return
+  }
+
+  // 1. Kiểm tra đủ xu trong tài khoản khách
+  if (soDuHienTai < soXuMuonDung) {
+    toast.warning(`Số dư xu của quý khách không đủ (Hiện có: ${soDuHienTai} xu)`)
+    soXuCanDung.value = soDuHienTai
+    soXuMuonDung = soDuHienTai
+  }
+
+  // 2. Tính số tiền giảm tối đa theo % đơn hàng (subtotal tương đương hd.getTongTienHang())
+  const tienGiamToiDaTheoPhanTram = (subtotal.value * tyLeGiamToiDa) / 100
+
+  // 3. Quy đổi mức trần % ra số xu tối đa (Làm tròn xuống)
+  const maxXuTheoPhanTram = Math.floor(tienGiamToiDaTheoPhanTram / tyLeQuyDoi)
+
+  // 4. Số xu tối đa không được vượt quá tổng tiền hàng hiện tại
+  const maxXuTheoTongTien = Math.floor(subtotal.value / tyLeQuyDoi)
+
+  // 5. Kiểm tra nếu đơn hàng quá nhỏ mà mức trần không đủ 1 xu
+  if (soXuMuonDung > 0 && maxXuTheoPhanTram === 0) {
+    toast.error(
+      'Đơn hàng quá nhỏ, không đủ điều kiện để sử dụng xu (Mức giảm tối đa không đủ 1 xu quy đổi)!',
+    )
+    soXuCanDung.value = 0
+    soXuSuDung.value = 0
+    tienGiamDoXu.value = 0
+    return
+  }
+
+  // 6. Giới hạn số xu thực tế được phép sử dụng (lấy min các điều kiện giống BE)
+  let xuThucTeSuDung = Math.min(soXuMuonDung, soDuHienTai)
+  xuThucTeSuDung = Math.min(xuThucTeSuDung, maxXuTheoPhanTram)
+  xuThucTeSuDung = Math.min(xuThucTeSuDung, maxXuTheoTongTien)
+
+  // Gán lại giá trị chuẩn xác cho các biến hiển thị
+  soXuCanDung.value = xuThucTeSuDung
+  soXuSuDung.value = xuThucTeSuDung
+
+  // 7. Tính tiền giảm chính xác dựa trên số xu nguyên vẹn thực tế
+  tienGiamDoXu.value = xuThucTeSuDung * tyLeQuyDoi
+
+  toast.success(`Đã áp dụng ${soXuSuDung.value} xu (Giảm ${formatMoney(tienGiamDoXu.value)})`)
+}
+
+const huyBoSoXu = () => {
+  soXuCanDung.value = 0
+  soXuSuDung.value = 0
+  tienGiamDoXu.value = 0
+  toast.info('Đã hủy sử dụng xu.')
+}
+
+// 1. Tính số lượng khả dụng tối đa cho "Mua Ngay"
 const maxAvailable = computed(() => {
   if (!product.value) return 0
   return product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
@@ -1345,6 +1508,7 @@ const onCartQtyBlur = (item) => {
 }
 
 // ================= LOGIC VOUCHER =================
+
 const fetchVouchers = async () => {
   const voucherHeThong = (await getAllVoucher())
     .filter((v) => v.trangThai === 1)
@@ -1358,6 +1522,7 @@ const fetchVouchers = async () => {
   const currentUser = JSON.parse(sessionStorage.getItem('user'))
 
   if (currentUser?.idKhachHang) {
+    // ❌ ĐÃ XÓA dòng: customerInfo.value = currentUser ở đây để tránh ghi đè dữ liệu soDuXu
     try {
       const res = await gamificationApi.getVoucherCuaToi(currentUser.idKhachHang)
       voucherCaNhan = (res.data || [])
@@ -1537,6 +1702,27 @@ async function loadData() {
 }
 
 onMounted(async () => {
+  loadSystemConfig()
+
+  const userSession = sessionStorage.getItem('user')
+
+  if (userSession) {
+    try {
+      const user = JSON.parse(userSession)
+
+      // Gọi api detail bằng ID của khách hàng
+      // Lưu ý: Nếu user object không có id trực tiếp, hãy kiểm tra xem nó là user.id hay user.idKhachHang
+      const data = await detailKhachHangService(user.idKhachHang)
+
+      // Gán dữ liệu vào biến customerInfo
+      customerInfo.value = data
+
+      console.log('Thông tin khách hàng:', data)
+    } catch (error) {
+      console.error('Lỗi khi tải thông tin khách hàng:', error)
+    }
+  }
+
   if (spctId.value) {
     isCartCheckout.value = false
     await loadData()
@@ -1674,8 +1860,9 @@ const voucherDiscount = computed(() => {
     : v.giaTriGiam
 })
 
+// Tổng thanh toán đã bao gồm trừ tiền từ xu
 const total = computed(() =>
-  Math.max(subtotal.value + shippingFee.value - voucherDiscount.value, 0),
+  Math.max(subtotal.value + shippingFee.value - voucherDiscount.value - tienGiamDoXu.value, 0),
 )
 
 const formatMoney = (value) => Number(value || 0).toLocaleString('vi-VN') + ' đ'
@@ -1719,6 +1906,7 @@ const placeOrder = async () => {
 
   const selectedVoucherObj = selectedVoucher.value
 
+  // Payload gửi lên backend (đã tích hợp thêm thông tin sử dụng xu)
   const body = {
     addressId: isLoggedIn ? selectedAddressId.value : null,
     tenNguoiNhan: isLoggedIn ? null : addressForm.value.tenNguoiNhan,
@@ -1734,6 +1922,8 @@ const placeOrder = async () => {
       selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? null : (selectedVoucherObj?.id ?? null),
     voucherKhachHangId:
       selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? selectedVoucherObj.idVoucherKhachHang : null,
+    soXuSuDung: soXuSuDung.value,
+    tienGiamDoXu: tienGiamDoXu.value,
     note: note.value,
     items: isCartCheckout.value
       ? checkoutItems.value.map((item) => ({
@@ -1765,7 +1955,6 @@ const placeOrder = async () => {
     })
   } catch (error) {
     toast.error(error.message || 'Đặt hàng thất bại ❌')
-    // Thay vì refresh cả trang bằng window.location.reload(), chỉ gọi lại loadData để cập nhật phần sản phẩm
     if (spctId.value) {
       await loadData()
     } else if (isCartCheckout.value) {
@@ -1836,6 +2025,7 @@ const addressForm = ref({
   longitude: null,
   macDinh: false,
 })
+
 const getCurrentLocation = () => {
   loading.value = true
 
@@ -1867,7 +2057,6 @@ const getCurrentLocation = () => {
         if (!data.address) return
         const a = data.address
 
-        // 1. Lấy địa chỉ cụ thể (số nhà, tên đường, khu vực xung quanh)
         addressForm.value.diaChiCuThe = [
           a.house_number,
           a.road,
@@ -1878,18 +2067,15 @@ const getCurrentLocation = () => {
           .filter(Boolean)
           .join(', ')
 
-        // Nếu không tìm thấy tên đường cụ thể, gán tạm display_name hoặc bỏ trống để người dùng nhập
         if (!addressForm.value.diaChiCuThe) {
           addressForm.value.diaChiCuThe = a.road || ''
         }
 
-        // 2. Gom nhóm các ứng viên Tỉnh/Thành phố, Quận/Huyện, Phường/Xã từ mọi trường có thể của OSM
         const rawProvince = a.state || a.province || a.region || ''
         const rawDistrict =
           a.county || a.city_district || a.district || a.municipality || a.city || ''
         const rawWard = a.suburb || a.ward || a.town || a.village || a.neighbourhood || ''
 
-        // Hàm làm sạch tên để so khớp chính xác không phân biệt hoa thường và các từ tiền tố hành chính
         const cleanText = (str) =>
           str
             .replace(/^(thành phố|tỉnh|quận|huyện|thị xã|phường|xã|thị trấn)\s+/i, '')
@@ -1900,7 +2086,6 @@ const getCurrentLocation = () => {
         const targetDistrict = cleanText(rawDistrict)
         const targetWard = cleanText(rawWard)
 
-        // 3. Tìm và chọn Tỉnh/Thành phố trong danh mục GHN
         const foundProvince = provinces.value.find((p) => {
           const pName = cleanText(p.ProvinceName)
           return pName.includes(targetProvince) || targetProvince.includes(pName)
@@ -1914,10 +2099,8 @@ const getCurrentLocation = () => {
         selectedProvince.value = foundProvince
         addressForm.value.thanhPho = foundProvince.ProvinceName
 
-        // Lấy danh sách Quận/Huyện theo Tỉnh tìm được
         districts.value = await getDistricts(foundProvince.ProvinceID)
 
-        // 4. Tìm và chọn Quận/Huyện
         const foundDistrict = districts.value.find((d) => {
           const dName = cleanText(d.DistrictName)
           return dName.includes(targetDistrict) || targetDistrict.includes(dName)
@@ -1928,10 +2111,8 @@ const getCurrentLocation = () => {
           addressForm.value.quan = foundDistrict.DistrictName
           addressForm.value.districtId = foundDistrict.DistrictID
 
-          // Lấy danh sách Phường/Xã theo Quận tìm được
           wards.value = await getWardsCached(foundDistrict.DistrictID)
 
-          // 5. Tìm và chọn Phường/Xã
           const foundWard = wards.value.find((w) => {
             const wName = cleanText(w.WardName)
             return wName.includes(targetWard) || targetWard.includes(wName)
