@@ -1446,17 +1446,32 @@ const decreaseQty = () => {
   if (quantity.value > 1) quantity.value--
 }
 
-const validateQty = () => {
+const validateQty = async () => {
   if (maxAvailable.value === 0) {
     quantity.value = 0
     return
   }
+
   if (quantity.value > maxAvailable.value) {
-    quantity.value = maxAvailable.value
-    toast.warning(`Số lượng vượt quá số lượng khả dụng (${maxAvailable.value})`)
+    // Load lại sản phẩm trước
+    try {
+      product.value = await getSanPhamChiTietById(spctId.value)
+
+      const max = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
+
+      if (max === 0) {
+        quantity.value = 0
+        return
+      }
+
+      if (quantity.value > max) {
+        quantity.value = max
+      }
+    } catch (error) {
+      console.error('Lỗi load lại sản phẩm:', error)
+    }
   }
 }
-
 const onQtyBlur = () => {
   if (maxAvailable.value === 0) {
     quantity.value = 0
@@ -1687,10 +1702,10 @@ async function loadData() {
 
   if (max === 0) {
     quantity.value = 0
-    toast.warning('Sản phẩm này hiện đã hết hàng.')
+    // toast.warning('Sản phẩm này hiện đã hết hàng.')
   } else if (quantity.value > max) {
     quantity.value = max
-    toast.warning('Số lượng sản phẩm vượt quá hàng sẵn có, đã tự động điều chỉnh.')
+    // toast.warning('Số lượng sản phẩm vượt quá hàng sẵn có, đã tự động điều chỉnh.')
   }
 
   await fetchVouchers()

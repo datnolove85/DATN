@@ -95,8 +95,12 @@ public class TichXuVaNangHangServiceImpl implements TichXuVaNangHangService {
         }
 
         // 7. Cập nhật số dư xu và số lần mua
+        // Lấy số xu khách đã dùng trên hóa đơn này
+        int soXuDaDung = hoaDon.getSoXuSuDung() != null ? hoaDon.getSoXuSuDung() : 0;
+
+// Cập nhật số dư: (Số dư cũ - Số xu đã dùng + Số xu mới nhận)
         int soDuCu = khachHang.getSoDuXu() != null ? khachHang.getSoDuXu() : 0;
-        int soDuSau = soDuCu + soXuNhan;
+        int soDuSau = soDuCu - soXuDaDung + soXuNhan; // 5 - 1 + 3 = 7 xu
         khachHang.setSoDuXu(soDuSau);
 
         int soLanMuaCu = khachHang.getSoLanMua() != null ? khachHang.getSoLanMua() : 0;

@@ -561,8 +561,10 @@ public class GamificationServiceImpl implements GamificationService {
     @Override
     @Transactional
     public KhoVoucher updateKhoVoucher(Integer id, KhoVoucher khoVoucherMoi) {
+
         KhoVoucher existing = khoVoucherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy kho voucher có ID: " + id));
+                .orElseThrow(() ->
+                        new RuntimeException("Không tìm thấy kho voucher có ID: " + id));
 
         existing.setTenVoucher(khoVoucherMoi.getTenVoucher());
         existing.setGiaTriGiam(khoVoucherMoi.getGiaTriGiam());
@@ -571,7 +573,17 @@ public class GamificationServiceImpl implements GamificationService {
         existing.setSoXuDoi(khoVoucherMoi.getSoXuDoi());
         existing.setSoLuongConLai(999999);
         existing.setNgayHetHan(khoVoucherMoi.getNgayHetHan());
-        existing.setTrangThai(khoVoucherMoi.getTrangThai());
+        existing.setLoaiGiamGia(khoVoucherMoi.getLoaiGiamGia());
+
+        // Nếu ngày hết hạn đã qua thì tự động chuyển sang ngừng
+        if (khoVoucherMoi.getNgayHetHan() != null
+                && khoVoucherMoi.getNgayHetHan().isBefore(LocalDateTime.now())) {
+
+            existing.setTrangThai(false);
+
+        } else {
+            existing.setTrangThai(khoVoucherMoi.getTrangThai());
+        }
 
         KhoVoucher updated = khoVoucherRepository.save(existing);
 

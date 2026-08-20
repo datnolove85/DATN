@@ -1,16 +1,14 @@
 <template>
-  <div class="min-h-screen bg-[#f6f7fb] text-slate-950">
+  <div class="product-catalog-page min-h-screen bg-[#f7f4ef] text-[#211d1a]">
     <!-- HERO: lấy độ hiện đại của V1, màu sắc của V3 và khoảng thở của V2 -->
-    <section class="relative overflow-hidden bg-slate-950">
+    <section class="product-hero relative overflow-hidden bg-[#211d1a]">
       <div class="signature-grid absolute inset-0 opacity-70"></div>
       <div
-        class="absolute -left-28 top-16 h-80 w-80 rounded-full bg-fuchsia-500/25 blur-[90px]"
+        class="absolute -left-28 top-16 h-80 w-80 rounded-full bg-[#8b3a4a]/25 blur-[90px]"
       ></div>
+      <div class="absolute right-0 top-0 h-96 w-96 rounded-full bg-[#b28a4a]/20 blur-[110px]"></div>
       <div
-        class="absolute right-0 top-0 h-96 w-96 rounded-full bg-indigo-500/30 blur-[110px]"
-      ></div>
-      <div
-        class="absolute bottom-0 left-1/2 h-56 w-96 -translate-x-1/2 rounded-full bg-cyan-400/20 blur-[100px]"
+        class="absolute bottom-0 left-1/2 h-56 w-96 -translate-x-1/2 rounded-full bg-[#d7c1a3]/10 blur-[100px]"
       ></div>
 
       <div class="relative mx-auto max-w-[1440px] px-4 pb-9 pt-6 md:px-6 md:pb-12 md:pt-9">
@@ -33,7 +31,7 @@
 
         <div class="grid gap-7 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end">
           <div>
-            <p class="mb-3 text-[11px] font-black uppercase tracking-[0.24em] text-cyan-300">
+            <p class="mb-3 text-[11px] font-black uppercase tracking-[0.24em] text-[#d7c1a3]">
               Phong cách bắt đầu từ lựa chọn của bạn
             </p>
             <h1
@@ -51,7 +49,7 @@
               class="mt-6 max-w-2xl rounded-[20px] border border-white/10 bg-white/10 p-1.5 shadow-2xl shadow-black/30 backdrop-blur-xl"
             >
               <div class="flex items-center rounded-2xl bg-white px-4">
-                <Search :size="21" class="shrink-0 text-indigo-500" />
+                <Search :size="21" class="shrink-0 text-[#8b3a4a]" />
                 <input
                   v-model="filters.keyword"
                   type="search"
@@ -72,17 +70,17 @@
           </div>
 
           <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-2">
-            <div class="stat-card border-cyan-300/20 bg-cyan-300/10">
-              <PackageOpen :size="22" class="text-cyan-300" />
+            <div class="stat-card border-[#d7c1a3]/20 bg-[#d7c1a3]/10">
+              <PackageOpen :size="22" class="text-[#d7c1a3]" />
               <strong>{{ stats.products }}</strong>
               <span>Sản phẩm</span>
             </div>
-            <div class="stat-card border-violet-300/20 bg-violet-300/10">
+            <div class="stat-card border-[#c8a9b2]/20 bg-[#8b3a4a]/10">
               <BadgeCheck :size="22" class="text-violet-300" />
               <strong>{{ stats.brands }}</strong>
               <span>Thương hiệu</span>
             </div>
-            <div class="stat-card border-rose-300/20 bg-rose-300/10">
+            <div class="stat-card border-[#b28a4a]/20 bg-[#b28a4a]/10">
               <BadgePercent :size="22" class="text-rose-300" />
               <strong>{{ stats.onSale }}</strong>
               <span>Đang ưu đãi</span>
@@ -108,7 +106,7 @@
             class="inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-black transition"
             :class="
               filters.categories.length === 0
-                ? 'bg-slate-950 text-white shadow-lg shadow-slate-300'
+                ? 'bg-[#211d1a] text-white shadow-lg shadow-slate-300'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             "
             @click="filters.categories.splice(0)"
@@ -123,7 +121,7 @@
             :class="
               filters.categories.includes(category.name)
                 ? quickCategoryActiveClasses[index % quickCategoryActiveClasses.length]
-                : 'border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-700'
+                : 'border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-[#b28a4a] hover:text-[#8b3a4a]'
             "
             @click="toggleQuickCategory(category.name)"
           >
@@ -144,13 +142,13 @@
           <div class="flex items-center gap-3">
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[13px] font-black transition hover:border-indigo-300 hover:text-indigo-700 lg:hidden"
+              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[13px] font-black transition hover:border-[#b28a4a] hover:text-[#7c3041] lg:hidden"
               @click="mobileFiltersOpen = true"
             >
               <SlidersHorizontal :size="18" /> Bộ lọc
               <span
                 v-if="activeFilterChips.length"
-                class="grid h-5 min-w-5 place-items-center rounded-full bg-indigo-600 px-1 text-[10px] text-white"
+                class="grid h-5 min-w-5 place-items-center rounded-full bg-[#8b3a4a] px-1 text-[10px] text-white"
               >
                 {{ activeFilterChips.length }}
               </span>
@@ -178,7 +176,7 @@
               Còn hàng
             </label>
             <label
-              class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-[11px] font-black text-rose-700"
+              class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#f8eef0] px-3 py-2 text-[11px] font-black text-rose-700"
             >
               <input
                 v-model="filters.onSaleOnly"
@@ -206,7 +204,7 @@
                 class="rounded-lg p-2 transition"
                 :class="
                   gridColumns === 3
-                    ? 'bg-white text-indigo-600 shadow-sm'
+                    ? 'bg-white text-[#8b3a4a] shadow-sm'
                     : 'text-slate-400 hover:text-slate-900'
                 "
                 aria-label="Hiển thị 3 cột"
@@ -219,7 +217,7 @@
                 class="rounded-lg p-2 transition"
                 :class="
                   gridColumns === 4
-                    ? 'bg-white text-indigo-600 shadow-sm'
+                    ? 'bg-white text-[#8b3a4a] shadow-sm'
                     : 'text-slate-400 hover:text-slate-900'
                 "
                 aria-label="Hiển thị 4 cột"
@@ -240,14 +238,14 @@
           v-for="chip in activeFilterChips"
           :key="`${chip.key}-${chip.value}`"
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-[11px] font-bold text-indigo-700 transition hover:bg-indigo-100"
+          class="inline-flex items-center gap-1.5 rounded-full border border-[#ead8dc] bg-[#f8eef0] px-3 py-1.5 text-[11px] font-bold text-[#7c3041] transition hover:bg-indigo-100"
           @click="removeFilter(chip)"
         >
           {{ chip.label }} <X :size="13" />
         </button>
         <button
           type="button"
-          class="ml-1 text-xs font-black text-rose-600 hover:underline"
+          class="ml-1 text-xs font-black text-[#8b3a4a] hover:underline"
           @click="clearFilters"
         >
           Xóa tất cả
@@ -262,12 +260,12 @@
           >
             <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
               <div class="flex items-center gap-2 font-black">
-                <SlidersHorizontal :size="18" class="text-indigo-600" /> Bộ lọc thông minh
+                <SlidersHorizontal :size="18" class="text-[#8b3a4a]" /> Bộ lọc thông minh
               </div>
               <button
                 v-if="hasActiveFilters"
                 type="button"
-                class="text-xs font-black text-rose-600 hover:underline"
+                class="text-xs font-black text-[#8b3a4a] hover:underline"
                 @click="clearFilters"
               >
                 Đặt lại
@@ -285,7 +283,7 @@
                   class="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-semibold transition hover:bg-slate-50"
                   :class="
                     filters.priceRange === price.value
-                      ? 'bg-indigo-50 text-indigo-700'
+                      ? 'bg-[#f4e8ea] text-[#7c3041]'
                       : 'text-slate-600'
                   "
                 >
@@ -293,7 +291,7 @@
                     v-model="filters.priceRange"
                     type="radio"
                     :value="price.value"
-                    class="accent-indigo-600"
+                    class="accent-[#8b3a4a]"
                   />
                   {{ price.label }}
                 </label>
@@ -321,7 +319,7 @@
                         v-model="filters[group.key]"
                         type="checkbox"
                         :value="option.name"
-                        class="h-4 w-4 rounded accent-indigo-600"
+                        class="h-4 w-4 rounded accent-[#8b3a4a]"
                       />
                       {{ option.name }}
                     </span>
@@ -356,12 +354,12 @@
             v-else-if="errorMessage"
             class="rounded-3xl border border-rose-200 bg-white px-6 py-16 text-center shadow-sm"
           >
-            <CircleAlert class="mx-auto text-rose-500" :size="44" />
+            <CircleAlert class="mx-auto text-[#8b3a4a]" :size="44" />
             <h2 class="mt-4 text-xl font-black">Không tải được sản phẩm</h2>
             <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">{{ errorMessage }}</p>
             <button
               type="button"
-              class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-indigo-600"
+              class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#8b3a4a]"
               @click="reload"
             >
               <RefreshCw :size="17" /> Thử lại
@@ -413,7 +411,7 @@
                   <div class="flex flex-col items-start gap-2">
                     <span
                       v-if="product.dangGiamGia && product.maxDiscountPercent > 0"
-                      class="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-black text-white shadow-lg shadow-rose-500/30"
+                      class="inline-flex items-center gap-1 rounded-full bg-[#8b3a4a] px-2.5 py-1 text-[10px] font-black text-white shadow-lg shadow-[#8b3a4a]/20"
                     >
                       <Zap :size="12" fill="currentColor" /> GIẢM ĐẾN
                       {{ product.maxDiscountPercent }}%
@@ -428,8 +426,8 @@
 
                   <button
                     type="button"
-                    class="grid h-9 w-9 place-items-center rounded-full border border-white/70 bg-white/90 text-slate-600 shadow-lg backdrop-blur transition hover:scale-105 hover:text-rose-500"
-                    :class="isFavorite(product.id) ? 'text-rose-500' : ''"
+                    class="grid h-9 w-9 place-items-center rounded-full border border-white/70 bg-white/90 text-slate-600 shadow-lg backdrop-blur transition hover:scale-105 hover:text-[#8b3a4a]"
+                    :class="isFavorite(product.id) ? 'text-[#8b3a4a]' : ''"
                     :aria-label="isFavorite(product.id) ? 'Bỏ yêu thích' : 'Thêm yêu thích'"
                     @click.stop="toggleFavorite(product.id)"
                   >
@@ -444,8 +442,8 @@
                     class="rounded-full px-3 py-1 text-[10px] font-black shadow-lg backdrop-blur"
                     :class="
                       Number(product.soLuong || 0) > 0
-                        ? 'bg-emerald-500/90 text-white'
-                        : 'bg-slate-950/85 text-white'
+                        ? 'bg-emerald-600/90 text-white'
+                        : 'bg-[#211d1a]/90 text-white'
                     "
                   >
                     {{ Number(product.soLuong || 0) > 0 ? `Còn ${product.soLuong}` : 'Hết hàng' }}
@@ -463,7 +461,7 @@
               <div class="flex flex-1 flex-col px-1.5 pb-1.5 pt-3">
                 <div class="flex min-h-[20px] items-center justify-between gap-2">
                   <span
-                    class="truncate text-[11px] font-black uppercase tracking-[0.12em] text-indigo-600"
+                    class="truncate text-[11px] font-black uppercase tracking-[0.12em] text-[#8b3a4a]"
                   >
                     {{ product.idThuongHieu?.tenThuongHieu || 'HD Fashion' }}
                   </span>
@@ -473,7 +471,7 @@
                 </div>
 
                 <h3
-                  class="mt-1.5 min-h-[40px] line-clamp-2 text-[15px] font-black leading-5 text-slate-950 transition group-hover:text-indigo-700"
+                  class="mt-1.5 min-h-[40px] line-clamp-2 text-[15px] font-black leading-5 text-slate-950 transition group-hover:text-[#7c3041]"
                 >
                   {{ product.tenSanPham }}
                 </h3>
@@ -487,7 +485,7 @@
 
                 <div class="mt-2 min-h-[28px] flex flex-wrap content-start gap-1.5">
                   <span
-                    class="rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-black text-indigo-700"
+                    class="rounded-md bg-[#f4e8ea] px-2 py-1 text-[10px] font-black text-[#7c3041]"
                   >
                     {{ product.idDanhMuc?.tenDanhMuc || 'Sản phẩm' }}
                   </span>
@@ -508,7 +506,7 @@
                 <div class="mt-auto border-t border-slate-100 pt-2.5">
                   <div class="flex items-end justify-between gap-2">
                     <div class="min-h-[48px] min-w-0 flex-1">
-                      <div class="truncate text-[18px] font-black tracking-tight text-rose-600">
+                      <div class="truncate text-[18px] font-black tracking-tight text-[#8b3a4a]">
                         {{ priceLabel(product) }}
                       </div>
 
@@ -531,7 +529,7 @@
 
                       <div
                         v-else-if="product.dangGiamGia"
-                        class="mt-0.5 min-h-[18px] truncate text-[11px] font-black text-rose-500"
+                        class="mt-0.5 min-h-[18px] truncate text-[11px] font-black text-[#8b3a4a]"
                         :title="`Một số lựa chọn đang giảm đến ${product.maxDiscountPercent}%`"
                       >
                         Một số lựa chọn đang giảm đến {{ product.maxDiscountPercent }}%
@@ -541,7 +539,7 @@
                     </div>
 
                     <div
-                      class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-950 text-white transition group-hover:rotate-[-4deg] group-hover:bg-indigo-600"
+                      class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#211d1a] text-white transition group-hover:rotate-[-4deg] group-hover:bg-[#8b3a4a]"
                     >
                       <ArrowUpRight :size="18" />
                     </div>
@@ -558,7 +556,7 @@
           >
             <button
               type="button"
-              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-[#b28a4a] hover:text-[#7c3041] disabled:cursor-not-allowed disabled:opacity-40"
               :disabled="currentPage === 1"
               @click="currentPage--"
             >
@@ -571,8 +569,8 @@
               class="grid h-10 min-w-10 place-items-center rounded-2xl px-3 text-sm font-black transition"
               :class="
                 currentPage === page
-                  ? 'bg-slate-950 text-white shadow-lg shadow-slate-300'
-                  : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-700'
+                  ? 'bg-[#211d1a] text-white shadow-lg shadow-slate-300'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-[#b28a4a] hover:text-[#7c3041]'
               "
               @click="currentPage = page"
             >
@@ -580,7 +578,7 @@
             </button>
             <button
               type="button"
-              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-[#b28a4a] hover:text-[#7c3041] disabled:cursor-not-allowed disabled:opacity-40"
               :disabled="currentPage === totalPages"
               @click="currentPage++"
             >
@@ -602,7 +600,7 @@
           <aside class="ml-auto flex h-full w-[min(90vw,360px)] flex-col bg-white shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 px-4 py-4">
               <div>
-                <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-[#8b3a4a]">
                   Tùy chỉnh kết quả
                 </p>
                 <h2 class="mt-1 text-lg font-black">Bộ lọc sản phẩm</h2>
@@ -628,7 +626,7 @@
                     class="cursor-pointer rounded-lg border px-2.5 py-2.5 text-[11px] font-bold transition"
                     :class="
                       filters.priceRange === price.value
-                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                        ? 'border-indigo-500 bg-[#f4e8ea] text-[#7c3041]'
                         : 'border-slate-200 text-slate-600'
                     "
                   >
@@ -636,7 +634,7 @@
                       v-model="filters.priceRange"
                       type="radio"
                       :value="price.value"
-                      class="mr-2 accent-indigo-600"
+                      class="mr-2 accent-[#8b3a4a]"
                     />
                     {{ price.shortLabel || price.label }}
                   </label>
@@ -661,7 +659,7 @@
                       v-model="filters[group.key]"
                       type="checkbox"
                       :value="option.name"
-                      class="accent-indigo-600"
+                      class="accent-[#8b3a4a]"
                     />
                     <span class="truncate">{{ option.name }}</span>
                   </label>
@@ -754,7 +752,7 @@ const priceRanges = [
 ]
 
 const quickCategoryActiveClasses = [
-  'border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-200',
+  'border-indigo-500 bg-[#8b3a4a] text-white shadow-lg shadow-indigo-200',
   'border-fuchsia-500 bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-200',
   'border-cyan-500 bg-cyan-600 text-white shadow-lg shadow-cyan-200',
   'border-rose-500 bg-rose-600 text-white shadow-lg shadow-rose-200',
@@ -804,7 +802,7 @@ const toggleFavorite = (id) => {
 }
 
 .hero-accent {
-  background: linear-gradient(90deg, #67e8f9 0%, #a5b4fc 42%, #f0abfc 72%, #fda4af 100%);
+  background: linear-gradient(90deg, #d7c1a3 0%, #f0dfc5 52%, #b28a4a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -842,9 +840,9 @@ const toggleFavorite = (id) => {
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.1),
+    rgba(139, 58, 74, 0.08),
     transparent 35%,
-    rgba(236, 72, 153, 0.08)
+    rgba(178, 138, 74, 0.08)
   );
   content: '';
   opacity: 0;
@@ -859,7 +857,7 @@ const toggleFavorite = (id) => {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  /* -webkit-line-clamp: 2; */
+  -webkit-line-clamp: 2;
 }
 
 .hide-scrollbar {
@@ -892,5 +890,43 @@ summary::-webkit-details-marker {
 .drawer-enter-from aside,
 .drawer-leave-to aside {
   transform: translateX(100%);
+}
+
+.product-catalog-page {
+  --luxury-wine: #8b3a4a;
+  --luxury-gold: #b28a4a;
+  --luxury-ink: #211d1a;
+  --luxury-paper: #f7f4ef;
+}
+
+.product-hero {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(139, 58, 74, 0.14), transparent 28%),
+    radial-gradient(circle at 88% 10%, rgba(178, 138, 74, 0.14), transparent 30%);
+}
+
+.product-card {
+  box-shadow: 0 8px 28px rgba(33, 29, 26, 0.055);
+}
+
+.product-card:hover {
+  box-shadow: 0 18px 45px rgba(33, 29, 26, 0.12);
+}
+
+.product-card h3 {
+  letter-spacing: -0.015em;
+}
+
+.product-card img {
+  background: #eee9e1;
+}
+
+@media (max-width: 640px) {
+  .product-card {
+    border-radius: 18px;
+  }
+  .product-card h3 {
+    font-size: 14px;
+  }
 }
 </style>

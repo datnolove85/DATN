@@ -19,8 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -32,61 +34,58 @@ public class HoaDonScheduler {
     private final SimpMessagingTemplate messagingTemplate;
     private final HoaDonVoucherRepository hoaDonVoucherRepo;
     private final VoucherConsumeService voucherConsumeService;
-    private final LichSuHoaDonRepository lichSuHoaDonRepository; // 🟢 Thêm repository lịch sử hóa đơn
+    private final LichSuHoaDonRepository lichSuHoaDonRepository;
 
     @Transactional
-    @Scheduled(fixedRate = 5000) // 5 giây
+    @Scheduled(fixedRate = 5000) // 5 giây chạy 1 lần
     public void autoCancelHoaDon() {
 
-        // POS: 15 phút
-        LocalDateTime posExpiredTime = LocalDateTime.now().minusMinutes(15);
+        // 1. Mốc thời gian
+        LocalDateTime posExpiredTime = LocalDateTime.now().minusMinutes(15);         // POS: 15 phút
+        LocalDateTime onlineNoPaymentTime = LocalDateTime.now().minusMinutes(10);    // Online chưa chọn PTTT: 10 phút
+        LocalDateTime onlineExpiredTime = LocalDateTime.now().minusHours(12);        // Online đã chọn PTTT: 12 tiếng
 
-        // Online: 12 tiếng
-        LocalDateTime onlineExpiredTime = LocalDateTime.now().minusHours(12);
+        // 2. Lấy dữ liệu từ các hàm repository có sẵn
+        List<HoaDon> taiQuayList = hoaDonRepo.findExpiredHoaDonByLoai("tai_quay", posExpiredTime);
+        List<HoaDon> onlineNoPaymentList = hoaDonRepo.findOnlineWithoutPayment(onlineNoPaymentTime);
+        List<HoaDon> onlineWithPaymentList = hoaDonRepo.findOnlineWithPayment(onlineExpiredTime);
 
-        List<HoaDon> hoaDons = new java.util.ArrayList<>();
-
-        hoaDons.addAll(
-                hoaDonRepo.findExpiredHoaDonByLoai("tai_quay", posExpiredTime)
-        );
-
-        hoaDons.addAll(
-                hoaDonRepo.findExpiredHoaDonByLoai("online", onlineExpiredTime)
-        );
+        // 3. Gom vào Set để chống trùng lặp đơn hàng nếu thỏa nhiều điều kiện
+        Set<HoaDon> hoaDons = new LinkedHashSet<>();
+        hoaDons.addAll(taiQuayList);
+        hoaDons.addAll(onlineNoPaymentList);
+        hoaDons.addAll(onlineWithPaymentList);
 
         for (HoaDon hd : hoaDons) {
 
+            // Hoàn lại số lượng tồn kho tạm giữ
             List<HoaDonChiTiet> ds = hdctRepo.findByIdHoaDon_Id(hd.getId());
 
             for (HoaDonChiTiet ct : ds) {
-
                 SanPhamChiTiet sp = ct.getIdSanPhamChiTiet();
                 if (sp == null) continue;
 
                 int soLuongHuy = ct.getSoLuong();
-
-                int tamGiuHienTai = sp.getSoLuongTamGiu() != null
-                        ? sp.getSoLuongTamGiu()
-                        : 0;
+                int tamGiuHienTai = sp.getSoLuongTamGiu() != null ? sp.getSoLuongTamGiu() : 0;
 
                 sp.setSoLuongTamGiu(Math.max(0, tamGiuHienTai - soLuongHuy));
-
                 spctRepo.save(sp);
             }
 
             String trangThaiCu = hd.getTrangThai();
             String trangThaiMoi = "da_huy";
-
             hd.setTrangThai(trangThaiMoi);
 
+            // Ghi chú chi tiết cho từng loại hủy
             String ghiChuTbl;
-            if ("tai_quay".equalsIgnoreCase(hd.getLoaiHoaDon())) {
+            if (taiQuayList.contains(hd)) {
                 ghiChuTbl = "Tự động hủy do quá 15 phút không thao tác.";
+            } else if (onlineNoPaymentList.contains(hd)) {
+                ghiChuTbl = "Tự động hủy do quá 10 phút không chọn phương thức thanh toán.";
             } else {
                 ghiChuTbl = "Tự động hủy do quá 12 giờ không hoàn tất đơn hàng.";
             }
 
-            // Gộp hoặc gán ghi chú
             if (hd.getGhiChu() != null && !hd.getGhiChu().isBlank()) {
                 hd.setGhiChu(hd.getGhiChu() + " | " + ghiChuTbl);
             } else {
@@ -96,7 +95,7 @@ public class HoaDonScheduler {
             hd.setNgayCapNhat(LocalDateTime.now());
             hoaDonRepo.save(hd);
 
-            // 🟢 Ghi nhận lịch sử hóa đơn với nguồn là "HỆ THỐNG"
+            // Ghi nhận lịch sử hóa đơn
             LichSuHoaDon lichSu = new LichSuHoaDon();
             lichSu.setHoaDon(hd);
             lichSu.setTrangThaiCu(trangThaiCu);
@@ -104,33 +103,27 @@ public class HoaDonScheduler {
             lichSu.setThoiGian(LocalDateTime.now());
             lichSu.setGhiChu(ghiChuTbl);
             lichSu.setNguonThaoTac("SYSTEM");
-            lichSu.setNhanVien(null); // Do hệ thống tự động chạy nên không có nhân viên cụ thể
+            lichSu.setNhanVien(null);
 
             lichSuHoaDonRepository.save(lichSu);
 
-            HoaDonVoucher hdVoucher = hoaDonVoucherRepo
-                    .findByIdHoaDon_Id(hd.getId())
-                    .orElse(null);
-
+            // Hoàn voucher nếu có
+            HoaDonVoucher hdVoucher = hoaDonVoucherRepo.findByIdHoaDon_Id(hd.getId()).orElse(null);
             if (hdVoucher != null) {
                 if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
                     voucherConsumeService.returnVoucher(hd.getId());
                 }
-
                 hoaDonVoucherRepo.delete(hdVoucher);
             }
 
+            // Gửi thông báo WebSocket
             Map<String, Object> event = new HashMap<>();
             event.put("type", "ORDER_CANCELLED");
             event.put("orderId", hd.getId());
             event.put("maHoaDon", hd.getMaHoaDon());
-            event.put("message",
-                    "Hóa đơn " + hd.getMaHoaDon() + " đã tự động hủy.");
+            event.put("message", "Hóa đơn " + hd.getMaHoaDon() + " đã tự động hủy.");
 
-            messagingTemplate.convertAndSend(
-                    "/topic/pos",
-                    (Object) event
-            );
+            messagingTemplate.convertAndSend("/topic/pos", (Object) event);
             System.out.println("Đã tự động hủy hóa đơn " + hd.getMaHoaDon());
         }
     }

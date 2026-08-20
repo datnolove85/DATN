@@ -96,25 +96,30 @@ public class VoucherImpl implements VoucherService {
     @Transactional
     public VoucherResponse updateVoucher(Integer id, VoucherRequest voucherRequest) {
         requirePositiveId(id, "ID voucher");
+
         Voucher voucher = voucherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher với ID: " + id));
+                .orElseThrow(() ->
+                        new RuntimeException("Không tìm thấy voucher với ID: " + id));
 
         validate(voucherRequest, id);
-        mapRequest(voucherRequest, voucher);
-        voucher.setNgayCapNhat(LocalDateTime.now());
 
-        voucher.setNgayCapNhat(LocalDateTime.now());
+        mapRequest(voucherRequest, voucher);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Nếu voucher đã hết hạn thì chuyển sang ngừng hoạt động
+        if (!voucher.getNgayKetThuc().isAfter(now)) {
+            voucher.setTrangThai(0);
+        }
+
+        voucher.setNgayCapNhat(now);
 
         Voucher updated = voucherRepository.save(voucher);
 
+        // Cập nhật lại các hóa đơn đang sử dụng voucher này
+        hoaDonService.capNhatHoaDonTheoVoucher(updated.getId());
 
-        // cập nhật lại các hóa đơn đang dùng voucher này
-        hoaDonService.capNhatHoaDonTheoVoucher(
-                updated.getId()
-        );
-
-
-        // báo POS reload
+        // Thông báo POS reload
         posSocketService.send(
                 new PosEvent(
                         "VOUCHER_UPDATED",
@@ -179,7 +184,6 @@ public class VoucherImpl implements VoucherService {
         voucher.setNgayBatDau(request.getNgayBatDau());
         voucher.setNgayKetThuc(request.getNgayKetThuc());
         voucher.setMoTa(request.getMoTa());
-        voucher.setSoLuongDaDung(0);
         voucher.setTrangThai(request.getTrangThai() == null ? 1 : request.getTrangThai());
     }
 

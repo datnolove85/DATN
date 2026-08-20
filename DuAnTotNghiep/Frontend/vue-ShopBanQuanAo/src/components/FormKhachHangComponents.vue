@@ -2,13 +2,41 @@
   <div class="employee-container">
     <div class="form-card">
       <div class="card-header">
-        <h3 class="title">| {{ isEdit ? 'CẬP NHẬT KHÁCH HÀNG' : 'THÔNG TIN KHÁCH HÀNG' }}</h3>
-        <span class="id-badge" v-if="isEdit && newKhachHang.maKhachHang">
-          ID: {{ newKhachHang.maKhachHang }}
-        </span>
+        <div class="header-left">
+          <h3 class="title">CHI TIẾT KHÁCH HÀNG</h3>
+          <span class="sub-title">Quản lý thông tin và dữ liệu tích lũy thành viên</span>
+        </div>
+        <span class="id-badge">ID: {{ newKhachHang.maKhachHang || '---' }}</span>
+      </div>
+
+      <!-- Khu vực hiển thị thông tin thống kê chính -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span>Hạng Thành Viên</span>
+          <strong>{{ newKhachHang.hangThanhVien || '---' }}</strong>
+          <small class="stat-sub">Hạn: {{ formatDate(newKhachHang.ngayHetHanHang) }}</small>
+        </div>
+        <div class="stat-card">
+          <span>Số Xu Tích Lũy</span>
+          <strong class="text-amber">{{ newKhachHang.soDuXu?.toLocaleString() || 0 }} Xu</strong>
+          <small class="stat-sub"
+            >Gần nhất: {{ formatDate(newKhachHang.ngayDiemDanhGanNhat) }}</small
+          >
+        </div>
+        <div class="stat-card">
+          <span>Tổng Chi Têu</span>
+          <strong class="text-blue">{{ newKhachHang.tongChiTieu?.toLocaleString() || 0 }} đ</strong>
+          <small class="stat-sub">Mua cuối: {{ formatDate(newKhachHang.ngayMuaCuoi) }}</small>
+        </div>
+        <div class="stat-card">
+          <span>Minigame & Ưu Đãi</span>
+          <strong>{{ newKhachHang.soLuotLatThe || 0 }} Lượt lật thẻ</strong>
+          <small class="stat-sub">Tạo: {{ formatDate(newKhachHang.ngayTao) }}</small>
+        </div>
       </div>
 
       <div class="card-body">
+        <!-- Sidebar: Ảnh, Trạng thái & Giới tính gọn gàng -->
         <div class="form-sidebar">
           <div class="avatar-section">
             <div class="avatar-wrapper" @click="$refs.fileInputRef.click()">
@@ -20,41 +48,48 @@
                 "
                 class="avatar-img"
               />
-              <div v-else class="placeholder">
-                <i class="fas fa-camera"></i>
-                <span>Tải ảnh lên</span>
-              </div>
-              <div class="overlay" v-if="previewUrl || newKhachHang.anh">
-                <span>Thay đổi ảnh</span>
-              </div>
+              <div v-else class="placeholder"><span>Ảnh</span></div>
+              <div class="overlay"><span>Đổi ảnh</span></div>
             </div>
-            <p class="avatar-hint">JPG, PNG • Tối đa 2MB</p>
-            <input type="file" hidden ref="fileInputRef" accept="image/*" @change="handleFile" />
-          </div>
-
-          <div class="input-group">
-            <label>Họ và tên <span class="required">*</span></label>
             <input
-              type="text"
-              v-model="newKhachHang.hoTen"
-              :class="{ 'input-error': errors.hoTen }"
-              placeholder="Nguyễn Văn A"
+              type="file"
+              ref="fileInputRef"
+              class="hidden-input"
+              @change="handleFile"
+              accept="image/*"
             />
-            <span class="error-text">{{ errors.hoTen }}</span>
           </div>
 
           <div class="input-group">
-            <label>Ngày sinh <span class="required">*</span></label>
-            <input
-              type="date"
-              v-model="newKhachHang.ngaySinh"
-              :class="{ 'input-error': errors.ngaySinh }"
-            />
-            <span class="error-text">{{ errors.ngaySinh }}</span>
+            <label>Tên tài khoản</label>
+            <input type="text" :value="newKhachHang.tenTaiKhoan" disabled class="input-disabled" />
           </div>
 
-          <div class="input-group">
-            <label>Giới tính <span class="required">*</span></label>
+          <div class="input-group mt-2">
+            <label>Trạng thái</label>
+            <div class="status-toggle">
+              <button
+                type="button"
+                class="btn-status"
+                :class="{ active: newKhachHang.trangThai === true }"
+                @click="newKhachHang.trangThai = true"
+              >
+                <span class="dot"></span> Hoạt động
+              </button>
+              <button
+                type="button"
+                class="btn-status"
+                :class="{ active: newKhachHang.trangThai === false }"
+                @click="newKhachHang.trangThai = false"
+              >
+                <span class="dot"></span> Khóa
+              </button>
+            </div>
+          </div>
+
+          <!-- Chuyển giới tính vào sidebar để tối ưu không gian trắng -->
+          <div class="input-group mt-2">
+            <label>Giới tính</label>
             <div class="radio-group">
               <label class="radio-label">
                 <input type="radio" :value="true" v-model="newKhachHang.gioiTinh" /> Nam
@@ -66,128 +101,60 @@
           </div>
         </div>
 
+        <!-- Main Form -->
         <div class="form-main">
+          <!-- Thông tin cá nhân -->
           <div class="form-section">
-            <h4 class="section-title">LIÊN HỆ & TÀI KHOẢN</h4>
-
-            <div class="input-group" style="margin-bottom: 15px">
-              <label>Tên tài khoản (Username) <span class="required">*</span></label>
-              <input
-                type="text"
-                v-model="newKhachHang.tenTaiKhoan"
-                :disabled="isEdit"
-                :class="{ 'input-error': errors.tenTaiKhoan, 'input-disabled': isEdit }"
-                placeholder="nhập_ten_tai_khoan_viet_lien"
-              />
-              <span class="error-text">{{ errors.tenTaiKhoan }}</span>
+            <h4 class="section-title">THÔNG TIN CÁ NHÂN</h4>
+            <div class="grid-row">
+              <div class="input-group">
+                <label>Họ và tên <span class="required">*</span></label>
+                <input type="text" v-model="newKhachHang.hoTen" placeholder="Nhập họ và tên..." />
+                <span class="error-text">{{ errors.hoTen }}</span>
+              </div>
+              <div class="input-group">
+                <label>Ngày sinh <span class="required">*</span></label>
+                <input type="date" v-model="newKhachHang.ngaySinh" />
+                <span class="error-text">{{ errors.ngaySinh }}</span>
+              </div>
             </div>
 
             <div class="grid-row">
               <div class="input-group">
                 <label>Số điện thoại <span class="required">*</span></label>
-                <input
-                  type="text"
-                  v-model="newKhachHang.soDienThoai"
-                  :class="{ 'input-error': errors.soDienThoai }"
-                  placeholder="09xxx"
-                />
+                <input type="text" v-model="newKhachHang.soDienThoai" placeholder="090xxxxxxxx" />
                 <span class="error-text">{{ errors.soDienThoai }}</span>
               </div>
               <div class="input-group">
                 <label>Email <span class="required">*</span></label>
-                <input
-                  type="email"
-                  v-model="newKhachHang.email"
-                  :class="{ 'input-error': errors.email }"
-                  placeholder="example@gmail.com"
-                />
+                <input type="email" v-model="newKhachHang.email" placeholder="email@domain.com" />
                 <span class="error-text">{{ errors.email }}</span>
               </div>
             </div>
           </div>
 
-          <div class="form-section">
-            <h4 class="section-title">TRẠNG THÁI TÀI KHOẢN</h4>
-            <div class="grid-row">
-              <div class="input-group">
-                <label>Trạng thái</label>
-                <div class="status-toggle">
-                  <button
-                    type="button"
-                    :class="['btn-status', { active: newKhachHang.trangThai === true }]"
-                    @click="newKhachHang.trangThai = true"
-                  >
-                    <span class="dot"></span> Hoạt động
-                  </button>
-                  <button
-                    type="button"
-                    :class="['btn-status', { active: newKhachHang.trangThai === false }]"
-                    @click="newKhachHang.trangThai = false"
-                  >
-                    <span class="dot"></span> Khóa
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          <!-- Địa chỉ liên lạc -->
           <div class="form-section no-border">
-            <h4 class="section-title">ĐỊA CHỈ GIAO HÀNG</h4>
-            <div class="grid-row three-cols">
-              <div class="input-group">
-                <label>Tỉnh/Thành phố <span class="required">*</span></label>
-                <select
-                  v-model="newKhachHang.thanhPho"
-                  @change="onProvinceChange(true)"
-                  :class="{ 'input-error': errors.thanhPho }"
-                >
-                  <option value="">-- Chọn Tỉnh/Thành --</option>
-                  <option v-for="p in provinces" :key="p.code" :value="p.name">
-                    {{ p.name }}
-                  </option>
-                </select>
-                <span class="error-text">{{ errors.thanhPho }}</span>
-              </div>
-
-              <div class="input-group">
-                <label>Quận/Huyện <span class="required">*</span></label>
-                <select
-                  v-model="newKhachHang.quan"
-                  @change="onDistrictChange(true)"
-                  :disabled="!districts.length"
-                  :class="{ 'input-error': errors.quan }"
-                >
-                  <option value="">-- Chọn Quận/Huyện --</option>
-                  <option v-for="d in districts" :key="d.code" :value="d.name">
-                    {{ d.name }}
-                  </option>
-                </select>
-                <span class="error-text">{{ errors.quan }}</span>
-              </div>
-
-              <div class="input-group">
-                <label>Phường/Xã <span class="required">*</span></label>
-                <select
-                  v-model="newKhachHang.phuong"
-                  :disabled="!wards.length"
-                  :class="{ 'input-error': errors.phuong }"
-                >
-                  <option value="">-- Chọn Phường/Xã --</option>
-                  <option v-for="w in wards" :key="w.code" :value="w.name">
-                    {{ w.name }}
-                  </option>
-                </select>
-                <span class="error-text">{{ errors.phuong }}</span>
-              </div>
+            <h4 class="section-title">ĐỊA CHỈ LIÊN LẠC</h4>
+            <div class="grid-row three-cols mb-2">
+              <select v-model="newKhachHang.thanhPho" @change="onProvinceChange">
+                <option value="">Tỉnh/Thành phố</option>
+                <option v-for="p in provinces" :key="p.code" :value="p.name">{{ p.name }}</option>
+              </select>
+              <select v-model="newKhachHang.quan" @change="onDistrictChange">
+                <option value="">Quận/Huyện</option>
+                <option v-for="d in districts" :key="d.code" :value="d.name">{{ d.name }}</option>
+              </select>
+              <select v-model="newKhachHang.phuong">
+                <option value="">Phường/Xã</option>
+                <option v-for="w in wards" :key="w.code" :value="w.name">{{ w.name }}</option>
+              </select>
             </div>
-
-            <div class="input-group" style="margin-top: 15px">
-              <label>Số nhà/Đường cụ thể <span class="required">*</span></label>
+            <div class="input-group">
               <input
                 type="text"
                 v-model="newKhachHang.diaChiCuThe"
-                placeholder="Ví dụ: Số 10, ngõ 2, đường Nguyễn Trãi"
-                :class="{ 'input-error': errors.diaChiCuThe }"
+                placeholder="Số nhà, tên đường cụ thể..."
               />
               <span class="error-text">{{ errors.diaChiCuThe }}</span>
             </div>
@@ -196,15 +163,8 @@
       </div>
 
       <div class="card-footer">
-        <span class="footer-note">
-          Các trường có dấu <span class="required">*</span> là bắt buộc
-        </span>
-        <div class="button-group">
-          <button type="button" class="btn-cancel" @click="$router.back()">Hủy</button>
-          <button type="button" class="btn-submit" @click="handleSave">
-            {{ isEdit ? 'Lưu cập nhật' : 'Thêm khách hàng' }}
-          </button>
-        </div>
+        <button class="btn-cancel" @click="goBack">Quay lại</button>
+        <button class="btn-submit" @click="handleSave">Lưu thay đổi</button>
       </div>
     </div>
   </div>
@@ -244,16 +204,25 @@ const newKhachHang = ref({
   gioiTinh: true,
   soDienThoai: '',
   email: '',
-  trangThai: true, // Mặc định true (Hoạt động) kiểu boolean
+  trangThai: true,
   thanhPho: '',
   quan: '',
   phuong: '',
   diaChiCuThe: '',
-  diaChi: '',
+  diaChiGop: '',
+  hangThanhVien: 'Bạc',
+  soDuXu: 0,
+  tongChiTieu: 0,
+  soLanMua: 0,
+  chuoiDiemDanh: 0,
+  soLuotLatThe: 0,
+  ngayDiemDanhGanNhat: '',
+  ngayMuaCuoi: '',
+  ngayHetHanHang: '',
+  ngayTao: '',
 })
 
 const errors = ref({
-  tenTaiKhoan: '',
   hoTen: '',
   ngaySinh: '',
   soDienThoai: '',
@@ -264,21 +233,70 @@ const errors = ref({
   diaChiCuThe: '',
 })
 
-// --- BIỂU THỨC CHÍNH QUY (VALIDATION REGEX) ---
+const loadAddressDependencies = async () => {
+  const normalize = (str) => {
+    if (!str) return ''
+    return str
+      .toLowerCase()
+      .replace(/^(tỉnh|thành phố|quận|huyện|phường|xã|thị trấn)\s+/i, '')
+      .trim()
+  }
+
+  if (newKhachHang.value.thanhPho) {
+    const province = provinces.value.find(
+      (p) => normalize(p.name) === normalize(newKhachHang.value.thanhPho),
+    )
+
+    if (province) {
+      // Cập nhật lại tên chuẩn từ API để thẻ select nhận diện và hiển thị đúng
+      newKhachHang.value.thanhPho = province.name
+
+      const res = await axios.get(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
+      districts.value = res.data.districts
+
+      if (newKhachHang.value.quan) {
+        const district = districts.value.find(
+          (d) =>
+            normalize(d.name) === normalize(newKhachHang.value.quan) ||
+            d.name === newKhachHang.value.quan,
+        )
+
+        if (district) {
+          newKhachHang.value.quan = district.name
+          const resWards = await axios.get(
+            `https://provinces.open-api.vn/api/d/${district.code}?depth=2`,
+          )
+          wards.value = resWards.data.wards
+
+          if (newKhachHang.value.phuong) {
+            const ward = wards.value.find(
+              (w) =>
+                normalize(w.name) === normalize(newKhachHang.value.phuong) ||
+                w.name === newKhachHang.value.phuong,
+            )
+            if (ward) {
+              newKhachHang.value.phuong = ward.name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return '---'
+  return new Date(dateString).toLocaleDateString('vi-VN')
+}
+
 const validateForm = () => {
   let isValid = true
   Object.keys(errors.value).forEach((key) => (errors.value[key] = ''))
-
-  if (!isEdit.value && !newKhachHang.value.tenTaiKhoan?.trim()) {
-    errors.value.tenTaiKhoan = 'Tên tài khoản không được để trống'
-    isValid = false
-  }
 
   if (!newKhachHang.value.hoTen?.trim()) {
     errors.value.hoTen = 'Họ và tên không được để trống'
     isValid = false
   }
-
   if (!newKhachHang.value.ngaySinh) {
     errors.value.ngaySinh = 'Vui lòng chọn ngày sinh'
     isValid = false
@@ -302,37 +320,18 @@ const validateForm = () => {
     isValid = false
   }
 
-  if (!newKhachHang.value.thanhPho) {
-    errors.value.thanhPho = 'Vui lòng chọn Tỉnh/Thành'
-    isValid = false
-  }
-  if (!newKhachHang.value.quan) {
-    errors.value.quan = 'Vui lòng chọn Quận/Huyện'
-    isValid = false
-  }
-  if (!newKhachHang.value.phuong) {
-    errors.value.phuong = 'Vui lòng chọn Phường/Xã'
-    isValid = false
-  }
-  if (!newKhachHang.value.diaChiCuThe?.trim()) {
-    errors.value.diaChiCuThe = 'Vui lòng nhập số nhà, tên đường'
-    isValid = false
-  }
+  if (!newKhachHang.value.thanhPho) errors.value.thanhPho = 'Chọn Tỉnh/Thành'
+  if (!newKhachHang.value.quan) errors.value.quan = 'Chọn Quận/Huyện'
+  if (!newKhachHang.value.phuong) errors.value.phuong = 'Chọn Phường/Xã'
 
   return isValid
 }
 
-// Watch xóa text báo lỗi khi gõ dữ liệu mới
 watch(
   () => newKhachHang.value,
   () => {
     Object.keys(errors.value).forEach((key) => {
-      if (
-        errors.value[key] &&
-        newKhachHang.value[key] !== '' &&
-        newKhachHang.value[key] !== null &&
-        newKhachHang.value[key] !== undefined
-      ) {
+      if (errors.value[key] && newKhachHang.value[key]) {
         errors.value[key] = ''
       }
     })
@@ -340,7 +339,6 @@ watch(
   { deep: true },
 )
 
-// --- XỬ LÝ FILE ẢNH ---
 const handleFile = (event) => {
   const file = event.target.files[0]
   if (file) {
@@ -353,7 +351,6 @@ const handleFile = (event) => {
   }
 }
 
-// --- LOGIC ĐỊA CHỈ (API TỈNH THÀNH VÀ PHÂN CẤP) ---
 const fetchProvinces = async () => {
   try {
     const res = await axios.get('https://provinces.open-api.vn/api/p/')
@@ -363,56 +360,62 @@ const fetchProvinces = async () => {
   }
 }
 
-const onProvinceChange = async (isManual = true) => {
-  if (isManual) {
-    newKhachHang.value.quan = ''
-    newKhachHang.value.phuong = ''
-    districts.value = []
-    wards.value = []
-  }
-  const province = provinces.value.find((p) => p.name === newKhachHang.value.thanhPho)
-  if (province) {
-    const res = await axios.get(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
-    districts.value = res.data.districts
-  }
+watch(
+  () => newKhachHang.value.thanhPho,
+  async (newVal) => {
+    if (newVal) {
+      const province = provinces.value.find((p) => p.name === newVal)
+      if (province) {
+        const res = await axios.get(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
+        districts.value = res.data.districts
+      }
+    } else {
+      districts.value = []
+      wards.value = []
+    }
+  },
+)
+
+watch(
+  () => newKhachHang.value.quan,
+  async (newVal) => {
+    if (newVal) {
+      const district = districts.value.find((d) => d.name === newVal)
+      if (district) {
+        const res = await axios.get(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
+        wards.value = res.data.wards
+      }
+    } else {
+      wards.value = []
+    }
+  },
+)
+
+const onProvinceChange = () => {
+  newKhachHang.value.quan = ''
+  newKhachHang.value.phuong = ''
+  wards.value = []
 }
 
-const onDistrictChange = async (isManual = true) => {
-  if (isManual) {
-    newKhachHang.value.phuong = ''
-    wards.value = []
-  }
-  const district = districts.value.find((d) => d.name === newKhachHang.value.quan)
-  if (district) {
-    const res = await axios.get(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
-    wards.value = res.data.wards
-  }
+const onDistrictChange = () => {
+  newKhachHang.value.phuong = ''
 }
 
-const reloadFullAddress = async () => {
-  if (!newKhachHang.value.thanhPho) return
-  await onProvinceChange(false)
-  if (!newKhachHang.value.quan) return
-  await onDistrictChange(false)
-}
-
-// Code mới
 const goBack = () => router.push('/admin/khachhang')
-// --- LƯU DỮ LIỆU ---
+
 const handleSave = async () => {
   if (!validateForm()) {
     toast.error('Vui lòng kiểm tra lại thông tin!')
     return
   }
 
-  // Ghép chuỗi địa chỉ đầy đủ trước khi gửi sang Backend
   const parts = [
     newKhachHang.value.diaChiCuThe,
     newKhachHang.value.phuong,
     newKhachHang.value.quan,
     newKhachHang.value.thanhPho,
   ].filter((p) => p)
-  newKhachHang.value.diaChi = parts.join(', ')
+  newKhachHang.value.diaChiGop = parts.join(', ')
 
   try {
     if (isEdit.value) {
@@ -441,10 +444,10 @@ onMounted(async () => {
         if (newKhachHang.value.ngaySinh) {
           newKhachHang.value.ngaySinh = newKhachHang.value.ngaySinh.split('T')[0]
         }
-        await reloadFullAddress()
+        await loadAddressDependencies()
       }
     } catch (err) {
-      toast.error('Lỗi khi tải thông tin chi tiết khách hàng!')
+      toast.error('Lỗi khi tải thông tin chi tiết!')
       console.error(err)
     }
   }
@@ -453,8 +456,8 @@ onMounted(async () => {
 
 <style scoped>
 .employee-container {
-  padding: 40px 20px;
-  background-color: #f8fafc;
+  padding: 16px 12px;
+  background-color: #f1f5f9;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -463,44 +466,93 @@ onMounted(async () => {
 .form-card {
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   width: 100%;
   max-width: 1050px;
-  padding: 35px;
+  padding: 24px;
+  height: fit-content;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 35px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #f1f5f9;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.card-header .title {
-  color: #1e3a8a;
+.header-left .title {
+  color: #0f172a;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 18px;
   margin: 0;
 }
 
+.sub-title {
+  font-size: 11px;
+  color: #64748b;
+}
+
 .id-badge {
-  background-color: #e2e8f0;
-  color: #4a5568;
+  background-color: #eff6ff;
+  color: #1d4ed8;
   padding: 4px 10px;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-card span {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.stat-card strong {
   font-size: 14px;
-  font-weight: bold;
+  color: #1e293b;
+  margin-top: 2px;
+}
+
+.stat-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.text-amber {
+  color: #d97706 !important;
+}
+.text-blue {
+  color: #2563eb !important;
 }
 
 .card-body {
   display: flex;
-  gap: 50px;
+  gap: 24px;
 }
 
 .form-sidebar {
-  width: 260px;
+  width: 220px;
   flex-shrink: 0;
 }
 
@@ -510,14 +562,13 @@ onMounted(async () => {
 
 .avatar-section {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 30px;
+  justify-content: center;
+  margin-bottom: 14px;
 }
 
 .avatar-wrapper {
-  width: 160px;
-  height: 160px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   border: 2px dashed #cbd5e1;
   position: relative;
@@ -527,6 +578,11 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: all 0.2s ease;
+}
+
+.avatar-wrapper:hover {
+  border-color: #3b82f6;
 }
 
 .avatar-img {
@@ -535,43 +591,64 @@ onMounted(async () => {
   object-fit: cover;
 }
 
-.radio-group {
-  display: flex;
-  gap: 25px;
-  padding: 10px 0;
+.placeholder span {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 12px;
 }
 
-.radio-label {
+.hidden-input {
+  display: none;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.avatar-wrapper:hover .overlay {
+  opacity: 1;
 }
 
 .section-title {
-  color: #b45309;
-  font-size: 13px;
+  color: #1e3a8a;
+  font-size: 11px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .form-section {
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 25px;
-  margin-bottom: 25px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .no-border {
   border: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .grid-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .three-cols {
@@ -581,13 +658,13 @@ onMounted(async () => {
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .input-group label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  color: #334155;
+  color: #475569;
 }
 
 .required {
@@ -596,12 +673,20 @@ onMounted(async () => {
 
 input,
 select {
-  height: 42px;
-  padding: 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   outline: none;
   background-color: #ffffff;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+input:focus,
+select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .input-disabled {
@@ -610,47 +695,60 @@ select {
   cursor: not-allowed;
 }
 
-.input-error {
-  border-color: #ef4444 !important;
-  background-color: #fef2f2;
-}
-
 .error-text {
   color: #ef4444;
-  font-size: 11px;
-  margin-top: 2px;
-  min-height: 15px;
-  font-weight: 500;
+  font-size: 10px;
+  min-height: 12px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+  height: 36px;
+  align-items: center;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #334155;
 }
 
 .status-toggle {
   display: flex;
-  gap: 12px;
+  gap: 6px;
 }
 
 .btn-status {
   flex: 1;
-  height: 42px;
+  height: 34px;
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   color: #64748b;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
 .btn-status.active {
   background: #f0fdf4;
   border-color: #22c55e;
   color: #166534;
+  box-shadow: 0 1px 2px rgba(34, 197, 94, 0.1);
 }
 
 .btn-status .dot {
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #cbd5e1;
 }
@@ -660,61 +758,46 @@ select {
 }
 
 .card-footer {
-  margin-top: 20px;
-  padding-top: 25px;
-  border-top: 2px solid #f1f5f9;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* Căn các nút về bên phải */
   align-items: center;
+  gap: 10px; /* Tạo khoảng cách giữa nút Quay lại và Lưu thay đổi */
 }
 
 .btn-cancel {
-  padding: 10px 25px;
+  padding: 8px 16px;
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  color: #475569;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #f8fafc;
 }
 
 .btn-submit {
-  padding: 10px 35px;
-  background: #1e3a8a;
+  padding: 8px 24px;
+  background: #2563eb;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  transition: all 0.2s;
 }
 
-/* --- OVERLAY CHO AVATAR TRÒN --- */
-.avatar-wrapper:hover .overlay {
-  opacity: 1;
-}
-
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-  color: white;
-}
-
-.overlay span {
-  display: none !important;
-}
-
-.overlay::after {
-  content: '\f030';
-  font-family: 'Font Awesome 5 Free';
-  font-weight: 900;
-  font-size: 24px;
+.btn-submit:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
 }
 </style>

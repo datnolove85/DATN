@@ -44,6 +44,7 @@ public class AdminGamificationController {
     public ResponseEntity<?> updateKhoVoucher(@PathVariable Integer id, @RequestBody KhoVoucher khoVoucherMoi) {
         try {
             KhoVoucher updated = gamificationService.updateKhoVoucher(id, khoVoucherMoi);
+
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

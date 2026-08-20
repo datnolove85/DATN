@@ -42,4 +42,6 @@ public interface HoaDonVoucherRepository
      * không phải tên bảng SQL.
      */
     List<HoaDonVoucher> findByIdKhoVoucher_Id(Integer idKhoVoucher);
+
+
 }

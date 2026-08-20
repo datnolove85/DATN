@@ -300,4 +300,12 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
 
     // Tìm các hóa đơn theo danh sách Integer ID
     List<HoaDon> findByIdIn(List<Integer> ids);
+
+    @Query("SELECT h FROM HoaDon h WHERE h.loaiHoaDon = 'online' AND h.trangThai = 'cho_xac_nhan' AND h.ngayTao < :expiredTime AND NOT EXISTS (SELECT t FROM ThanhToan t WHERE t.idHoaDon.id = h.id)")
+    List<HoaDon> findOnlineWithoutPayment(@Param("expiredTime") LocalDateTime expiredTime);
+
+    @Query("SELECT h FROM HoaDon h WHERE h.loaiHoaDon = 'online' AND h.trangThai = 'cho_xac_nhan' AND h.ngayTao < :expiredTime AND EXISTS (SELECT t FROM ThanhToan t WHERE t.idHoaDon.id = h.id)")
+    List<HoaDon> findOnlineWithPayment(@Param("expiredTime") LocalDateTime expiredTime);
+
+
 }

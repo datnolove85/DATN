@@ -1,10 +1,22 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <ShopHeader />
+  <!-- Giao diện tràn viền, nền trắng toàn màn hình -->
+  <div class="min-h-screen bg-white flex flex-col">
+    <!-- Thanh Navigation: Đã được giới hạn chiều rộng khớp với khối sản phẩm bên dưới -->
+    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ShopHeader />
+    </div>
 
-    <router-view />
+    <!-- Nội dung các trang thay đổi theo Router -->
+    <main class="flex-1">
+      <router-view />
+    </main>
 
-    <ShopFooter />
+    <!-- Chân trang (Bọc tương tự để thẳng hàng với Navigation và nội dung) -->
+    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ShopFooter />
+    </div>
+
+    <!-- Chatbot hỗ trợ -->
     <ShopChatbot />
   </div>
 </template>

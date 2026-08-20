@@ -791,7 +791,6 @@ const openEditForm = (item) => {
   resetErrors()
   showForm.value = true
 }
-
 const validateForm = () => {
   resetErrors()
   const p = buildPayload()
@@ -801,7 +800,6 @@ const validateForm = () => {
     isValid = false
   } else {
     // KIỂM TRA TRÙNG TÊN VOUCHER
-    // Nếu đang thêm mới hoặc đang sửa nhưng đổi sang tên khác trùng với voucher khác trong danh sách
     const isDuplicate = vouchers.value.some(
       (item) =>
         item.tenVoucher?.trim().toLowerCase() === p.tenVoucher.toLowerCase() &&
@@ -859,6 +857,12 @@ const validateForm = () => {
 
   if (p.ngayBatDau && p.ngayKetThuc && new Date(p.ngayBatDau) >= new Date(p.ngayKetThuc)) {
     errors.value.ngayKetThuc = 'Ngày kết thúc phải sau ngày bắt đầu.'
+    isValid = false
+  }
+
+  // BỔ SUNG: Kiểm tra nếu ngày kết thúc trước hiện tại mà chọn Hoạt động (trangThai = 1)
+  if (p.ngayKetThuc && new Date(p.ngayKetThuc) < new Date() && p.trangThai === 1) {
+    errors.value.ngayKetThuc = 'Voucher đã hết hạn, không thể chọn trạng thái Đang hoạt động.'
     isValid = false
   }
 

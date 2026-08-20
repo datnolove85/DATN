@@ -221,6 +221,13 @@ const saveVoucher = async () => {
       return
     }
   }
+  // 5. Kiểm tra ngày hết hạn đã qua mà trạng thái là Hoạt động
+  if (form.value.ngayHetHan && form.value.trangThai === true) {
+    if (new Date(form.value.ngayHetHan) < new Date()) {
+      toast.error('Không thể đặt trạng thái hoạt động khi ngày hết hạn đã ở trong quá khứ!')
+      return
+    }
+  }
 
   try {
     let payload = {

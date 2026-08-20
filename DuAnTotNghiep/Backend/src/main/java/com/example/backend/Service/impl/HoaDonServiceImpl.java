@@ -1200,8 +1200,6 @@ public class HoaDonServiceImpl implements HoaDonService {
     @Transactional
     public void capNhatSoLuong(Integer idHoaDonChiTiet, Integer soLuongMoi) {
 
-        System.out.println("\n========== BẮT ĐẦU CẬP NHẬT SỐ LƯỢNG ==========");
-
         if (soLuongMoi == null || soLuongMoi <= 0) {
             throw new RuntimeException("Số lượng phải lớn hơn 0");
         }
@@ -1218,22 +1216,28 @@ public class HoaDonServiceImpl implements HoaDonService {
             return;
         }
 
-        int chenhLech = soLuongMoi - soLuongCu;
+
 
         int ton = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
         int tamGiu = spct.getSoLuongTamGiu() == null ? 0 : spct.getSoLuongTamGiu();
-        int khaDung = ton - tamGiu;
 
-        System.out.println("Tồn: " + ton);
-        System.out.println("Tạm giữ trước: " + tamGiu);
-        System.out.println("Khả dụng: " + khaDung);
-        System.out.println("Số lượng cũ: " + soLuongCu);
-        System.out.println("Số lượng mới: " + soLuongMoi);
-        System.out.println("Chênh lệch: " + chenhLech);
+        // Khả dụng chung trong kho (trừ tất cả các đơn khác + đơn này)
+        int khaDungChung = ton - tamGiu;
 
-        // Nếu tăng số lượng thì kiểm tra tồn
-        if (chenhLech > 0 && khaDung < chenhLech) {
-            throw new RuntimeException("Số lượng khả dụng không đủ (Còn lại: " + khaDung + ")");
+        // KHẢ DỤNG THỰC TẾ CHO RIÊNG HÓA ĐƠN NÀY:
+        // Phải cộng lại 2 cái mà chính hóa đơn này đang tạm giữ
+        int khaDungThucTe = khaDungChung + soLuongCu;
+
+        if (soLuongMoi == soLuongCu) {
+            System.out.println("=> Không có thay đổi số lượng.");
+            return;
+        }
+
+        int chenhLech = soLuongMoi - soLuongCu;
+
+        // Nếu tăng số lượng thì kiểm tra với khả dụng thực tế của riêng hóa đơn này
+        if (chenhLech > 0 && soLuongMoi > khaDungThucTe) {
+            throw new RuntimeException("Số lượng khả dụng không đủ (Tối đa có thể đặt: " + khaDungThucTe + ")");
         }
 
         // Cập nhật số lượng hóa đơn
@@ -1242,11 +1246,8 @@ public class HoaDonServiceImpl implements HoaDonService {
                 hdct.getDonGia().multiply(BigDecimal.valueOf(soLuongMoi))
         );
 
-        // Cập nhật số lượng tạm giữ
+        // Cập nhật số lượng tạm giữ chung của sản phẩm
         spct.setSoLuongTamGiu(tamGiu + chenhLech);
-
-        System.out.println("Tạm giữ sau: " + spct.getSoLuongTamGiu());
-        System.out.println("Khả dụng sau: " + (ton - spct.getSoLuongTamGiu()));
 
         ctRepo.save(hdct);
         spctRepo.save(spct);
@@ -1269,7 +1270,7 @@ public class HoaDonServiceImpl implements HoaDonService {
                 )
         );
 
-        System.out.println("========== KẾT THÚC ==========\n");
+
     }
 
     @Override
@@ -2258,10 +2259,15 @@ public class HoaDonServiceImpl implements HoaDonService {
             KhoVoucher voucher = hdVoucher.getIdKhoVoucher();
 
             boolean khongHopLe =
-                    voucher.getSoLuongConLai() <= 0
+                    voucher.getSoLuongConLai() == null
+                            || voucher.getSoLuongConLai() <= 0
                             || !Boolean.TRUE.equals(voucher.getTrangThai())
+                            || voucher.getNgayBatDau() == null
                             || voucher.getNgayBatDau().isAfter(now)
+                            || voucher.getNgayHetHan() == null
                             || voucher.getNgayHetHan().isBefore(now)
+                            || voucher.getDieuKienToiThieu() == null
+                            || hd.getTongTienHang() == null
                             || hd.getTongTienHang().compareTo(voucher.getDieuKienToiThieu()) < 0;
 
             if (khongHopLe) {
@@ -2328,21 +2334,22 @@ public class HoaDonServiceImpl implements HoaDonService {
         }
     }
 
+
     @Override
     @Transactional
     public void capNhatHoaDonTheoKhoVoucher(Integer idKhoVoucher) {
 
         List<HoaDonVoucher> list =
-                hoaDonVoucherRepo.findByIdVoucher_Id(idKhoVoucher);
+                hoaDonVoucherRepo.findByIdKhoVoucher_Id(idKhoVoucher);
 
         for (HoaDonVoucher hdv : list) {
 
             Integer idHoaDon = hdv.getIdHoaDon().getId();
 
-            // kiểm tra voucher còn hợp lệ
+            // Kiểm tra KhoVoucher còn hợp lệ
             kiemTraVoucherConHopLe(idHoaDon);
 
-            // tính lại tiền
+            // Tính lại tiền
             recalculateHoaDon(idHoaDon);
         }
     }

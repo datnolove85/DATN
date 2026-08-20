@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-[#f8fafc] text-slate-800 font-sans antialiased selection:bg-indigo-600 selection:text-white p-4 sm:p-8 animate-fade-in"
+    class="product-admin-page min-h-screen bg-[#f6f3ee] text-[#292522] font-sans antialiased selection:bg-[#8b3a4a] selection:text-white p-4 sm:p-8 animate-fade-in"
   >
     <div class="max-w-[1500px] mx-auto space-y-8">
       <!-- ================= BANNER QUẢN LÝ SẢN PHẨM ================= -->
@@ -10,12 +10,12 @@
         <!-- Nội dung banner -->
         <div class="flex items-start gap-4">
           <!-- Icon -->
-          <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-box-open text-indigo-600 text-xl"></i>
+          <div class="w-12 h-12 rounded-2xl bg-[#f3e7e8] flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-box-open text-[#8b3a4a] text-xl"></i>
           </div>
 
           <div>
-            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <h1 class="text-xl font-black text-[#292522] flex items-center gap-2">
               Quản Lý Sản Phẩm
             </h1>
 
@@ -29,17 +29,38 @@
         <!-- Nút thao tác -->
         <button
           @click="openAddModal"
-          class="w-full xl:w-auto px-5 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300 flex items-center justify-center gap-2"
+          class="w-full xl:w-auto px-5 py-3 rounded-xl bg-[#8b3a4a] text-white text-sm font-semibold hover:bg-[#702d3a] hover:shadow-lg hover:shadow-[#8b3a4a]/20 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <i class="fa-solid fa-plus"></i>
           Tạo sản phẩm mới
         </button>
       </div>
 
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="admin-stat">
+          <span>Tổng sản phẩm</span><strong>{{ tongSanPham }}</strong
+          ><small>Danh mục sản phẩm</small>
+        </div>
+        <div class="admin-stat">
+          <span>Đang kinh doanh</span><strong>{{ tongSanPhamDangKD }}</strong
+          ><small>Đang hiển thị bán</small>
+        </div>
+        <div class="admin-stat">
+          <span>Tổng biến thể</span><strong>{{ tongSPCT }}</strong
+          ><small>Màu / size / tồn kho</small>
+        </div>
+        <div class="admin-stat">
+          <span>Biến thể hoạt động</span><strong>{{ tongSPCTDangKD }}</strong
+          ><small>Sẵn sàng kinh doanh</small>
+        </div>
+      </div>
+
       <div
-        class="bg-white border border-slate-200/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden"
+        class="product-admin-panel bg-white border border-[#e8e1d8] rounded-[24px] shadow-[0_14px_45px_rgba(41,37,34,.06)] overflow-hidden"
       >
-        <div class="p-5 border-b border-slate-100 flex flex-col lg:flex-row items-center gap-4">
+        <div
+          class="p-5 border-b border-[#eee8df] bg-[#fcfaf7] flex flex-col lg:flex-row items-center gap-4"
+        >
           <div class="relative w-full lg:max-w-xs">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"
               ><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,20 +75,20 @@
               v-model="filters.search"
               type="text"
               placeholder="Tìm kiếm..."
-              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-xs outline-none focus:ring-2 ring-indigo-500/20"
+              class="w-full pl-10 pr-4 py-3 bg-white border border-[#e5ddd3] rounded-xl text-xs outline-none focus:border-[#b28a4a] focus:ring-4 ring-[#b28a4a]/10"
             />
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 w-full flex-1">
             <select
               v-model="filters.idDanhMuc"
-              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
+              class="border border-[#e5ddd3] px-3 py-2.5 rounded-xl text-xs bg-white focus:border-[#b28a4a] outline-none"
             >
               <option :value="null">Danh mục</option>
               <option v-for="i in danhMucs" :key="i.id" :value="i.id">{{ i.tenDanhMuc }}</option>
             </select>
             <select
               v-model="filters.idThuongHieu"
-              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
+              class="border border-[#e5ddd3] px-3 py-2.5 rounded-xl text-xs bg-white focus:border-[#b28a4a] outline-none"
             >
               <option :value="null">Thương hiệu</option>
               <option v-for="i in thuongHieus" :key="i.id" :value="i.id">
@@ -76,14 +97,14 @@
             </select>
             <select
               v-model="filters.idChatLieu"
-              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
+              class="border border-[#e5ddd3] px-3 py-2.5 rounded-xl text-xs bg-white focus:border-[#b28a4a] outline-none"
             >
               <option :value="null">Chất liệu</option>
               <option v-for="i in chatLieus" :key="i.id" :value="i.id">{{ i.tenChatLieu }}</option>
             </select>
             <select
               v-model="filters.trangThai"
-              class="border px-3 py-2.5 rounded-xl text-xs bg-slate-50"
+              class="border border-[#e5ddd3] px-3 py-2.5 rounded-xl text-xs bg-white focus:border-[#b28a4a] outline-none"
             >
               <option :value="null">Trạng thái</option>
               <option :value="true">Kinh doanh</option>
@@ -98,324 +119,330 @@
           </div>
         </div>
 
-        <table class="w-full text-left">
-          <thead class="text-[10px] font-bold text-slate-400 uppercase border-b bg-slate-50/50">
-            <tr>
-              <th class="px-6 py-4">Mã SP</th>
-              <th class="px-6 py-4">Sản phẩm</th>
-              <th class="px-6 py-4">Danh mục</th>
-              <th class="px-6 py-4">Thương hiệu</th>
-              <th class="px-6 py-4">Chất liệu</th>
-              <th class="px-6 py-4 text-center">Số lượng</th>
-              <th class="px-6 py-4">Trạng thái</th>
-              <th class="px-6 py-4 text-right">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <template v-for="product in paginatedProducts" :key="product.id">
-              <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="px-6 py-4">
-                  <span
-                    class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
-                    >{{ product.maSanPham }}</span
-                  >
-                </td>
-                <td class="px-6 py-4 flex items-center gap-3">
-                  <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                    👕
-                  </div>
-                  {{ product.tenSanPham }}
-                </td>
-                <td class="px-6 py-4 text-xs">{{ product.idDanhMuc?.tenDanhMuc }}</td>
-                <td class="px-6 py-4 text-xs">{{ product.idThuongHieu?.tenThuongHieu }}</td>
-                <td class="px-6 py-4 text-xs">{{ product.idChatLieu?.tenChatLieu }}</td>
-                <td class="px-6 py-4 text-center font-semibold">{{ product.soLuong }}</td>
-                <td
-                  class="px-6 py-4 text-xs font-bold"
-                  :class="product.trangThai ? 'text-emerald-600' : 'text-slate-400'"
-                >
-                  {{ product.trangThai ? 'Kinh doanh' : 'Ngừng kinh doanh' }}
-                </td>
-                <td class="px-6 py-4 text-right flex justify-end gap-2">
-                  <button
-                    @click="toggleSPCT(product)"
-                    class="p-2 hover:bg-emerald-50 rounded-lg text-slate-400 hover:text-emerald-600 transition-all"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    @click="openEditModal(product)"
-                    class="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-width="2"
-                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    @click="triggerDeleteConfirm(product.id)"
-                    class="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </td>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[980px] text-left">
+            <thead
+              class="text-[10px] font-black text-slate-400 uppercase tracking-[.12em] border-b bg-[#faf7f2]"
+            >
+              <tr>
+                <th class="px-5 py-4">Mã SP</th>
+                <th class="px-5 py-4">Sản phẩm</th>
+                <th class="px-5 py-4">Danh mục</th>
+                <th class="px-5 py-4">Thương hiệu</th>
+                <th class="px-5 py-4">Chất liệu</th>
+                <th class="px-6 py-4 text-center">Số lượng</th>
+                <th class="px-5 py-4">Trạng thái</th>
+                <th class="px-6 py-4 text-right">Thao tác</th>
               </tr>
-              <tr v-if="expandedProductId === product.id" class="bg-slate-50/80">
-                <td colspan="8" class="px-6 py-6">
-                  <div class="flex justify-between items-center mb-4">
-                    <div>
-                      <h3 class="font-bold text-sm text-slate-800">{{ product.tenSanPham }}</h3>
-                      <p class="text-xs text-slate-400">Danh sách biến thể chi tiết kho hàng</p>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <template v-for="product in paginatedProducts" :key="product.id">
+                <tr class="product-admin-row hover:bg-[#fcfaf7] transition-colors">
+                  <td class="px-5 py-4">
+                    <span
+                      class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"
+                      >{{ product.maSanPham }}</span
+                    >
+                  </td>
+                  <td class="px-5 py-4 flex items-center gap-3">
+                    <div
+                      class="w-10 h-10 bg-[#f4efe8] rounded-xl flex items-center justify-center text-lg border border-[#e9dfd2]"
+                    >
+                      👕
                     </div>
-                    <div class="flex items-center gap-3">
-                      <span
-                        class="text-xs text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200"
-                      >
-                        Đang kinh doanh:
-                        <strong class="text-indigo-600">{{ product.thongKe }}</strong>
-                      </span>
-                      <button
-                        @click="isBulkOpen = true"
-                        class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
-                      >
-                        ⚡ Tạo hàng loạt
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    class="w-full bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden"
+                    {{ product.tenSanPham }}
+                  </td>
+                  <td class="px-6 py-4 text-xs">{{ product.idDanhMuc?.tenDanhMuc }}</td>
+                  <td class="px-6 py-4 text-xs">{{ product.idThuongHieu?.tenThuongHieu }}</td>
+                  <td class="px-6 py-4 text-xs">{{ product.idChatLieu?.tenChatLieu }}</td>
+                  <td class="px-6 py-4 text-center font-semibold">{{ product.soLuong }}</td>
+                  <td
+                    class="px-6 py-4 text-xs font-bold"
+                    :class="product.trangThai ? 'text-emerald-600' : 'text-slate-400'"
                   >
-                    <table class="w-full text-sm">
-                      <thead class="bg-slate-50/70 border-b border-slate-100">
-                        <tr>
-                          <th
-                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Hình ảnh
-                          </th>
-                          <th
-                            class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Mã SPCT
-                          </th>
-                          <th
-                            class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Màu sắc
-                          </th>
-                          <th
-                            class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Kích thước
-                          </th>
-                          <th
-                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Tồn kho
-                          </th>
-                          <th
-                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Tạm giữ
-                          </th>
-                          <th
-                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Khả dụng
-                          </th>
-                          <th
-                            class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Giá nhập
-                          </th>
-                          <th
-                            class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Giá bán
-                          </th>
-                          <th
-                            class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Trạng thái
-                          </th>
-                          <th
-                            class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-                          >
-                            Thao tác
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-100">
-                        <tr
-                          v-for="spct in spctList"
-                          :key="spct.id"
-                          class="hover:bg-slate-50/80 transition-colors"
+                    {{ product.trangThai ? 'Kinh doanh' : 'Ngừng kinh doanh' }}
+                  </td>
+                  <td class="px-6 py-4 text-right flex justify-end gap-2">
+                    <button
+                      @click="toggleSPCT(product)"
+                      class="p-2 hover:bg-emerald-50 rounded-lg text-slate-400 hover:text-emerald-600 transition-all"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      @click="openEditModal(product)"
+                      class="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-width="2"
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      @click="triggerDeleteConfirm(product.id)"
+                      class="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="expandedProductId === product.id" class="bg-slate-50/80">
+                  <td colspan="8" class="px-6 py-6">
+                    <div class="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 class="font-bold text-sm text-slate-800">{{ product.tenSanPham }}</h3>
+                        <p class="text-xs text-slate-400">Danh sách biến thể chi tiết kho hàng</p>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="text-xs text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200"
                         >
-                          <td class="px-4 py-3 text-center">
-                            <div class="flex flex-wrap gap-2 justify-center items-center">
-                              <div
-                                class="w-11 h-11 rounded-xl border border-slate-200 overflow-hidden shadow-xs bg-slate-50"
-                              >
-                                <img
-                                  v-if="spct.images?.length"
-                                  :src="'http://localhost:8080' + spct.images[0]"
-                                  class="w-full h-full object-cover"
-                                />
-
+                          Đang kinh doanh:
+                          <strong class="text-indigo-600">{{ product.thongKe }}</strong>
+                        </span>
+                        <button
+                          @click="isBulkOpen = true"
+                          class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                        >
+                          ⚡ Tạo hàng loạt
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="w-full bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden"
+                    >
+                      <table class="w-full text-sm">
+                        <thead class="bg-slate-50/70 border-b border-slate-100">
+                          <tr>
+                            <th
+                              class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Hình ảnh
+                            </th>
+                            <th
+                              class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Mã SPCT
+                            </th>
+                            <th
+                              class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Màu sắc
+                            </th>
+                            <th
+                              class="px-4 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Kích thước
+                            </th>
+                            <th
+                              class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Tồn kho
+                            </th>
+                            <th
+                              class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Tạm giữ
+                            </th>
+                            <th
+                              class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Khả dụng
+                            </th>
+                            <th
+                              class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Giá nhập
+                            </th>
+                            <th
+                              class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Giá bán
+                            </th>
+                            <th
+                              class="px-4 py-3 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Trạng thái
+                            </th>
+                            <th
+                              class="px-4 py-3 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              Thao tác
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                          <tr
+                            v-for="spct in spctList"
+                            :key="spct.id"
+                            class="hover:bg-slate-50/80 transition-colors"
+                          >
+                            <td class="px-4 py-3 text-center">
+                              <div class="flex flex-wrap gap-2 justify-center items-center">
                                 <div
-                                  v-else
-                                  class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-[9px] font-medium"
+                                  class="w-11 h-11 rounded-xl border border-slate-200 overflow-hidden shadow-xs bg-slate-50"
                                 >
-                                  No Image
+                                  <img
+                                    v-if="spct.images?.length"
+                                    :src="'http://localhost:8080' + spct.images[0]"
+                                    class="w-full h-full object-cover"
+                                  />
+
+                                  <div
+                                    v-else
+                                    class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 text-[9px] font-medium"
+                                  >
+                                    No Image
+                                  </div>
                                 </div>
-                              </div>
 
-                              <button
-                                @click="openImageManager(spct)"
-                                class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-100 transition-colors"
+                                <button
+                                  @click="openImageManager(spct)"
+                                  class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-100 transition-colors"
+                                >
+                                  Ảnh
+                                </button>
+                              </div>
+                            </td>
+                            <td class="px-4 py-3">
+                              <span
+                                class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium"
+                                >{{ spct.maSanPhamChiTiet }}</span
                               >
-                                Ảnh
-                              </button>
-                            </div>
-                          </td>
-                          <td class="px-4 py-3">
-                            <span
-                              class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium"
-                              >{{ spct.maSanPhamChiTiet }}</span
-                            >
-                          </td>
+                            </td>
 
-                          <td class="px-4 py-3 text-xs font-medium text-slate-700">
-                            {{ spct.tenMauSac }}
-                          </td>
-                          <td class="px-4 py-3 text-xs font-medium text-slate-700">
-                            {{ spct.tenKichThuoc }}
-                          </td>
+                            <td class="px-4 py-3 text-xs font-medium text-slate-700">
+                              {{ spct.tenMauSac }}
+                            </td>
+                            <td class="px-4 py-3 text-xs font-medium text-slate-700">
+                              {{ spct.tenKichThuoc }}
+                            </td>
 
-                          <!-- Tồn kho -->
-                          <td class="px-4 py-3 text-center text-xs font-semibold text-slate-700">
-                            {{ spct.soLuongTon }}
-                          </td>
+                            <!-- Tồn kho -->
+                            <td class="px-4 py-3 text-center text-xs font-semibold text-slate-700">
+                              {{ spct.soLuongTon }}
+                            </td>
 
-                          <!-- Tạm giữ -->
-                          <td class="px-4 py-3 text-center text-xs">
-                            <span
-                              class="inline-block px-2 py-0.5 rounded-md font-semibold"
-                              :class="
-                                spct.soLuongTamGiu > 0
-                                  ? 'bg-amber-50 text-amber-600'
-                                  : 'text-slate-400'
-                              "
-                            >
-                              {{ spct.soLuongTamGiu }}
-                            </span>
-                          </td>
+                            <!-- Tạm giữ -->
+                            <td class="px-4 py-3 text-center text-xs">
+                              <span
+                                class="inline-block px-2 py-0.5 rounded-md font-semibold"
+                                :class="
+                                  spct.soLuongTamGiu > 0
+                                    ? 'bg-amber-50 text-amber-600'
+                                    : 'text-slate-400'
+                                "
+                              >
+                                {{ spct.soLuongTamGiu }}
+                              </span>
+                            </td>
 
-                          <!-- Khả dụng -->
-                          <td class="px-4 py-3 text-center text-xs">
-                            <span
-                              class="inline-block px-2.5 py-1 rounded-lg font-bold shadow-xs"
-                              :class="
-                                spct.soLuongKhaDung > 0
-                                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/60'
-                                  : 'bg-rose-50 text-rose-600 border border-rose-100/60'
-                              "
-                            >
-                              {{ spct.soLuongKhaDung }}
-                            </span>
-                          </td>
+                            <!-- Khả dụng -->
+                            <td class="px-4 py-3 text-center text-xs">
+                              <span
+                                class="inline-block px-2.5 py-1 rounded-lg font-bold shadow-xs"
+                                :class="
+                                  spct.soLuongKhaDung > 0
+                                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/60'
+                                    : 'bg-rose-50 text-rose-600 border border-rose-100/60'
+                                "
+                              >
+                                {{ spct.soLuongKhaDung }}
+                              </span>
+                            </td>
 
-                          <td class="px-4 py-3 text-right text-xs text-slate-600">
-                            {{ formatCurrency(spct.giaNhap) }}
-                          </td>
-                          <td class="px-4 py-3 text-right text-xs">
-                            <!-- Khi biến thể đang trong đợt giảm giá -->
-                            <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-0.5">
-                              <div class="flex items-center gap-1">
-                                <span
-                                  class="inline-flex items-center gap-1 bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-rose-100"
-                                >
-                                  🔥 -{{ spct.phanTramGiam }}%
+                            <td class="px-4 py-3 text-right text-xs text-slate-600">
+                              {{ formatCurrency(spct.giaNhap) }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-xs">
+                              <!-- Khi biến thể đang trong đợt giảm giá -->
+                              <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-0.5">
+                                <div class="flex items-center gap-1">
+                                  <span
+                                    class="inline-flex items-center gap-1 bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-rose-100"
+                                  >
+                                    🔥 -{{ spct.phanTramGiam }}%
+                                  </span>
+                                  <span
+                                    title="Không thể sửa giá vì sản phẩm đang trong đợt giảm giá"
+                                    class="text-slate-400 cursor-help"
+                                  >
+                                    🔒
+                                  </span>
+                                </div>
+
+                                <!-- Giá sau giảm -->
+                                <span class="text-indigo-600 font-bold">
+                                  {{ formatCurrency(spct.giaSauGiam) }}
                                 </span>
-                                <span
-                                  title="Không thể sửa giá vì sản phẩm đang trong đợt giảm giá"
-                                  class="text-slate-400 cursor-help"
-                                >
-                                  🔒
+
+                                <!-- Giá gốc bị gạch ngang -->
+                                <span class="text-[10px] text-slate-400 line-through">
+                                  {{ formatCurrency(spct.giaBan) }}
                                 </span>
                               </div>
 
-                              <!-- Giá sau giảm -->
-                              <span class="text-indigo-600 font-bold">
-                                {{ formatCurrency(spct.giaSauGiam) }}
-                              </span>
-
-                              <!-- Giá gốc bị gạch ngang -->
-                              <span class="text-[10px] text-slate-400 line-through">
+                              <!-- Khi không giảm giá -->
+                              <div v-else class="text-indigo-600 font-bold">
                                 {{ formatCurrency(spct.giaBan) }}
-                              </span>
-                            </div>
-
-                            <!-- Khi không giảm giá -->
-                            <div v-else class="text-indigo-600 font-bold">
-                              {{ formatCurrency(spct.giaBan) }}
-                            </div>
-                          </td>
-                          <td class="px-4 py-3 text-center">
-                            <span
-                              class="px-2.5 py-1 rounded-full text-[10px] font-bold shadow-2xs"
-                              :class="
-                                spct.trangThai
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-500'
-                              "
-                              >{{ spct.trangThai ? 'Đang bán' : 'Ngừng bán' }}</span
-                            >
-                          </td>
-                          <td class="px-4 py-3">
-                            <div class="flex justify-end gap-1.5">
-                              <button
-                                @click="editSPCT(spct)"
-                                class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold transition-colors"
+                              </div>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                              <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-bold shadow-2xs"
+                                :class="
+                                  spct.trangThai
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-slate-100 text-slate-500'
+                                "
+                                >{{ spct.trangThai ? 'Đang bán' : 'Ngừng bán' }}</span
                               >
-                                Sửa
-                              </button>
-                              <button
-                                @click="removeSPCT(spct.id)"
-                                class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[10px] font-bold transition-colors"
-                              >
-                                Xóa
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr v-if="spctList.length === 0">
-                          <td colspan="11" class="text-center py-10 text-slate-400 text-xs">
-                            Chưa có biến thể nào
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+                            </td>
+                            <td class="px-4 py-3">
+                              <div class="flex justify-end gap-1.5">
+                                <button
+                                  @click="editSPCT(spct)"
+                                  class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold transition-colors"
+                                >
+                                  Sửa
+                                </button>
+                                <button
+                                  @click="removeSPCT(spct.id)"
+                                  class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[10px] font-bold transition-colors"
+                                >
+                                  Xóa
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr v-if="spctList.length === 0">
+                            <td colspan="11" class="text-center py-10 text-slate-400 text-xs">
+                              Chưa có biến thể nào
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
         <div
           class="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4"
         >
@@ -2091,5 +2118,67 @@ const changeMainImage = async (img) => {
   to {
     transform: translateX(0);
   }
+}
+
+.product-admin-page {
+  --admin-wine: #8b3a4a;
+  --admin-gold: #b28a4a;
+  --admin-ink: #292522;
+}
+
+.product-admin-panel {
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.product-admin-panel:hover {
+  box-shadow: 0 18px 55px rgba(41, 37, 34, 0.08);
+}
+
+.admin-stat {
+  min-height: 118px;
+  padding: 18px;
+  border: 1px solid #e8e1d8;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 8px 25px rgba(41, 37, 34, 0.04);
+}
+
+.admin-stat span {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8178;
+}
+.admin-stat strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+  color: var(--admin-ink);
+}
+.admin-stat small {
+  display: block;
+  margin-top: 8px;
+  color: #9b9289;
+  font-size: 11px;
+}
+
+.product-admin-row td {
+  vertical-align: middle;
+}
+.product-admin-row button {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.product-admin-page input:focus,
+.product-admin-page select:focus,
+.product-admin-page textarea:focus {
+  outline: none;
 }
 </style>

@@ -114,6 +114,18 @@ const router = createRouter({
           meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] },
         },
         {
+          path: 'khach-hang/add',
+          name: 'addKhachHang',
+          component: () => import('../components/FormKhachHangComponents.vue'),
+          meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] },
+        },
+        {
+          path: 'khach-hang/edit/:id',
+          name: 'editKhachHang',
+          component: () => import('../components/FormKhachHangComponents.vue'),
+          meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] },
+        },
+        {
           path: 'banhang',
           name: 'banghang',
           component: () => import('../views/Admin/banhang/banhang.vue'),

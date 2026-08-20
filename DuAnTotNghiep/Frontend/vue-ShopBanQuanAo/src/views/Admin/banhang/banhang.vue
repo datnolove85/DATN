@@ -591,16 +591,6 @@
                             : 'Hệ thống'
                         }}
                       </b>
-                      - Giảm:
-                      <b class="text-rose-600"
-                        >-{{
-                          formatPrice(
-                            (selectedVoucher || appliedVoucher).soTienGiam ||
-                              (selectedVoucher || appliedVoucher).giaTriGiam ||
-                              tinhTienGiam(selectedVoucher || appliedVoucher),
-                          )
-                        }}</b
-                      >
                     </span>
                   </div>
                   <span v-else class="text-slate-400 font-normal text-xs">
@@ -1107,7 +1097,7 @@
               <p class="text-[10px] text-slate-500 font-medium">{{ kh.soDienThoai }}</p>
               <p class="text-[10px] text-amber-600 font-bold mt-0.5 flex items-center gap-1">
                 <span>🪙</span> {{ kh.soDuXu ?? 0 }} xu (≈
-                {{ formatPrice((kh.soDuXu ?? 0) * fixedCoinRate) }})
+                {{ formatPrice((kh.soDuXu ?? 0) * tyLeQuyDoiXu) }})
               </p>
             </div>
             <span
@@ -1823,6 +1813,8 @@ const connectSocket = () => {
     }
   }
 }
+// Khai báo biến timeout ở bên ngoài hàm subscribePos để lưu trạng thái giữa các message
+let voucherTimeout = null
 
 const subscribePos = () => {
   if (socketSubscription) {
@@ -1848,9 +1840,23 @@ const subscribePos = () => {
         const eventType = isJson ? data.type || data.eventType || data.action : ''
 
         if (eventType === 'QUANTITY_UPDATED') return
-        if (eventType === 'VOUCHER_UPDATED') {
-          vouchers.value = await getAllVoucher()
-          if (currentOrder.value?.id) await loadChiTietHoaDon(currentOrder.value.id)
+
+        // Xử lý chung cho các sự kiện liên quan đến voucher để gom nhóm tránh lặp toast
+        if (
+          eventType === 'VOUCHER_UPDATED' ||
+          eventType === 'VOUCHER_REMOVED' ||
+          eventType === 'KHO_VOUCHER_UPDATED'
+        ) {
+          if (voucherTimeout) clearTimeout(voucherTimeout)
+
+          voucherTimeout = setTimeout(async () => {
+            vouchers.value = await getAllVoucher()
+            if (currentOrder.value?.id) {
+              await loadChiTietHoaDon(currentOrder.value.id)
+            }
+            toast.warning('Danh sách Voucher đã được thay đổi. Vui lòng kiểm tra lại!')
+          }, 300) // Đợi 300ms, nếu có sự kiện tiếp theo cùng nhóm thì reset lại bộ đếm và chỉ chạy 1 lần cuối
+
           return
         }
 
@@ -1863,19 +1869,6 @@ const subscribePos = () => {
           return
         }
 
-        if (eventType === 'VOUCHER_REMOVED') {
-          vouchers.value = await getAllVoucher()
-          if (currentOrder.value?.id) {
-            await loadChiTietHoaDon(currentOrder.value.id)
-          }
-          toast.warning('Voucher đã bị xóa. Danh sách voucher đã được cập nhật!')
-          return
-        }
-        if (eventType === 'KHO_VOUCHER_UPDATED') {
-          vouchers.value = await getAllVoucher()
-          if (currentOrder.value?.id) await loadChiTietHoaDon(currentOrder.value.id)
-          return
-        }
         if (eventType === 'PRODUCT_UPDATED') {
           toast.warning('Thông tin sản phẩm đã thay đổi. Vui lòng kiểm tra lại!')
           return
@@ -2256,7 +2249,6 @@ const removeFromCart = async (index) => {
     toast.error('Không thể xóa sản phẩm')
   }
 }
-
 const debounceChangeQty = debounce(async (item) => {
   let newQty = Number(item.soLuong)
   if (!newQty || newQty <= 0 || !Number.isInteger(newQty)) {
@@ -2269,11 +2261,14 @@ const debounceChangeQty = debounce(async (item) => {
     await capNhatSoLuong(item.id, newQty)
     await Promise.all([loadChiTietHoaDon(currentOrder.value.id), loadProducts()])
   } catch (error) {
-    toast.error('Không thể cập nhật số lượng')
+    // Lấy message từ Backend trả về (error.message) để hiển thị thông báo chi tiết
+    const errorMessage = error.message || 'Không thể cập nhật số lượng'
+    toast.error(errorMessage)
+
+    // Load lại chi tiết hóa đơn để input trả về đúng số lượng cũ trước khi nhập
     await loadChiTietHoaDon(currentOrder.value.id)
   }
 }, 600)
-
 const createNewOrder = async () => {
   if (allOrders.value.length >= max_oder_waiting) {
     toast.warning(`Chỉ được tạo tối đa ${max_oder_waiting} hóa đơn chờ`)
