@@ -12,7 +12,6 @@
     >
       <!-- ================= BÊN TRÁI: Tìm kiếm, Menu, Trang chủ ================= -->
       <div class="flex items-center gap-3 text-slate-700">
-        <!-- Nút Tìm kiếm -->
         <button
           class="w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
           title="Tìm kiếm"
@@ -20,7 +19,6 @@
           <Search class="w-5 h-5" />
         </button>
 
-        <!-- Nút Menu danh mục -->
         <button
           class="w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
           title="Menu danh mục"
@@ -28,7 +26,6 @@
           <Menu class="w-5 h-5" />
         </button>
 
-        <!-- Nút Trang chủ / Cửa hàng -->
         <RouterLink
           to="/home"
           class="w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
@@ -65,7 +62,6 @@
             <User class="w-5 h-5" />
           </button>
 
-          <!-- USER MENU DROPDOWN -->
           <transition
             enter-active-class="transition duration-200 ease-out"
             enter-from-class="opacity-0 scale-95 translate-y-1"
@@ -132,7 +128,7 @@
           </transition>
         </div>
 
-        <!-- YÊU THÍCH (WISHLIST) - Huy hiệu màu xanh -->
+        <!-- YÊU THÍCH (WISHLIST) -->
         <button
           class="relative w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
           title="Yêu thích"
@@ -145,9 +141,10 @@
           </span>
         </button>
 
-        <!-- GIỎ HÀNG (CART) - Huy hiệu màu đỏ -->
+        <!-- GIỎ HÀNG (CART) - Có ref để định vị hiệu ứng bay -->
         <div class="relative" @mouseenter="openCart" @mouseleave="closeCart">
           <button
+            ref="cartBtnRef"
             type="button"
             class="relative w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
             @click.stop="toggleCart"
@@ -272,7 +269,20 @@ const openUser = ref(false)
 const scrolled = ref(false)
 const cart = ref([])
 const showCart = ref(false)
+const cartBtnRef = ref(null)
 let cartTimeout = null
+
+// Cập nhật tọa độ icon giỏ hàng lưu vào sessionStorage để các trang khác gọi hiệu ứng bay
+const updateCartPosition = () => {
+  if (cartBtnRef.value) {
+    const rect = cartBtnRef.value.getBoundingClientRect()
+    const position = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    }
+    sessionStorage.setItem('cart_icon_pos', JSON.stringify(position))
+  }
+}
 
 const user = computed(() => {
   const data = sessionStorage.getItem('user')
@@ -340,12 +350,17 @@ const loadCart = async () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('resize', updateCartPosition)
   emitter.on('cart-updated', loadCart)
   loadCart()
+
+  // Khởi tạo lấy tọa độ sau khi render
+  setTimeout(updateCartPosition, 100)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', updateCartPosition)
   emitter.off('cart-updated', loadCart)
 })
 

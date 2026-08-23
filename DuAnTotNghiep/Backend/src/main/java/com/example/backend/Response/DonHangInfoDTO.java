@@ -31,6 +31,10 @@ public class DonHangInfoDTO {
 
     private BigDecimal tongThanhToan;
 
+    private Integer soXuSuDung;
+
+    private BigDecimal tienGiamDoXu;
+
     private String ghiChu;
 
     private LocalDateTime ngayTao;

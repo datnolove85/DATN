@@ -4,12 +4,10 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
-
 @Data
 public class CreateOnlineOrderRequest {
 
     private Integer idKhachHang;
-
     private Integer addressId;
 
     private String tenNguoiNhan;
@@ -22,16 +20,13 @@ public class CreateOnlineOrderRequest {
     private String wardCode;
 
     private BigDecimal shippingFee;
-
     private Integer voucherId;
-
-
-
     private Integer voucherKhachHangId;
-
     private Integer soXuSuDung;
-
     private String note;
+
+    // 📌 BỔ SUNG TRƯỜNG NÀY ĐỂ NHẬN DỮ LIỆU TỪ FRONTEND
+    private String paymentMethod;
 
     private List<Item> items;
 

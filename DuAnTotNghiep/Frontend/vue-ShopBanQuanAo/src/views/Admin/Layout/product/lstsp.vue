@@ -29,7 +29,7 @@
         <!-- Nút thao tác -->
         <button
           @click="openAddModal"
-          class="w-full xl:w-auto px-5 py-3 rounded-xl bg-[#8b3a4a] text-white text-sm font-semibold hover:bg-[#702d3a] hover:shadow-lg hover:shadow-[#8b3a4a]/20 transition-all duration-300 flex items-center justify-center gap-2"
+          class="w-full xl:w-auto px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <i class="fa-solid fa-plus"></i>
           Tạo sản phẩm mới
@@ -320,9 +320,10 @@
                             </td>
                             <td class="px-4 py-3">
                               <span
-                                class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium"
-                                >{{ spct.maSanPhamChiTiet }}</span
+                                class="font-mono text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg font-medium whitespace-nowrap"
                               >
+                                {{ spct.maSanPhamChiTiet }}
+                              </span>
                             </td>
 
                             <td class="px-4 py-3 text-xs font-medium text-slate-700">
@@ -370,34 +371,30 @@
                             </td>
                             <td class="px-4 py-3 text-right text-xs">
                               <!-- Khi biến thể đang trong đợt giảm giá -->
-                              <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-0.5">
-                                <div class="flex items-center gap-1">
+                              <div v-if="spct.dangGiamGia" class="flex flex-col items-end gap-1">
+                                <div class="flex items-center gap-1 whitespace-nowrap">
                                   <span
                                     class="inline-flex items-center gap-1 bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-rose-100"
                                   >
                                     🔥 -{{ spct.phanTramGiam }}%
                                   </span>
-                                  <span
-                                    title="Không thể sửa giá vì sản phẩm đang trong đợt giảm giá"
-                                    class="text-slate-400 cursor-help"
-                                  >
-                                    🔒
-                                  </span>
                                 </div>
 
                                 <!-- Giá sau giảm -->
-                                <span class="text-indigo-600 font-bold">
+                                <span class="text-indigo-600 font-bold whitespace-nowrap">
                                   {{ formatCurrency(spct.giaSauGiam) }}
                                 </span>
 
                                 <!-- Giá gốc bị gạch ngang -->
-                                <span class="text-[10px] text-slate-400 line-through">
+                                <span
+                                  class="text-[10px] text-slate-400 line-through whitespace-nowrap"
+                                >
                                   {{ formatCurrency(spct.giaBan) }}
                                 </span>
                               </div>
 
                               <!-- Khi không giảm giá -->
-                              <div v-else class="text-indigo-600 font-bold">
+                              <div v-else class="text-indigo-600 font-bold whitespace-nowrap">
                                 {{ formatCurrency(spct.giaBan) }}
                               </div>
                             </td>
@@ -774,22 +771,27 @@
 
             <!-- Giá -->
             <div class="grid md:grid-cols-3 gap-5">
+              <!-- Giá nhập -->
               <div class="bg-slate-50 rounded-2xl p-4 border">
-                <label class="text-xs font-bold uppercase text-slate-500"> Giá nhập </label>
-
+                <label class="text-xs font-bold uppercase text-slate-500">Giá nhập</label>
                 <input
                   v-model.number="formData.giaNhap"
                   type="number"
-                  class="mt-2 w-full border rounded-xl p-3 outline-none focus:ring-2 ring-indigo-300"
+                  class="mt-2 w-full bg-white border rounded-xl p-3 outline-none focus:ring-2 ring-indigo-300 text-sm"
                 />
               </div>
 
-              <!-- Ô nhập Giá bán trong Modal -->
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
-                  Giá bán
-                  <span v-if="formData.dangGiamGia" class="text-rose-500 font-normal">
-                    (🔒 Đang giảm giá - Không thể sửa)
+              <!-- Giá bán -->
+              <div class="bg-slate-50 rounded-2xl p-4 border">
+                <label
+                  class="text-xs font-bold uppercase text-slate-500 flex items-center justify-between"
+                >
+                  <span>Giá bán</span>
+                  <span
+                    v-if="formData.dangGiamGia"
+                    class="text-rose-500 font-normal text-[10px] normal-case"
+                  >
+                    (🔒 Đang giảm giá)
                   </span>
                 </label>
 
@@ -798,21 +800,21 @@
                   type="number"
                   :disabled="formData.dangGiamGia"
                   :class="[
-                    'w-full px-3 py-2 border rounded-xl text-sm transition-all',
+                    'mt-2 w-full border rounded-xl p-3 outline-none text-sm transition-all',
                     formData.dangGiamGia
                       ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200'
-                      : 'border-slate-300 focus:ring-2 focus:ring-indigo-500',
+                      : 'bg-white border-slate-200 focus:ring-2 ring-indigo-300',
                   ]"
                 />
               </div>
 
+              <!-- Tồn kho -->
               <div class="bg-slate-50 rounded-2xl p-4 border">
-                <label class="text-xs font-bold uppercase text-slate-500"> Tồn kho </label>
-
+                <label class="text-xs font-bold uppercase text-slate-500">Tồn kho</label>
                 <input
                   v-model.number="formData.soLuongTon"
                   type="number"
-                  class="mt-2 w-full border rounded-xl p-3 outline-none focus:ring-2 ring-indigo-300"
+                  class="mt-2 w-full bg-white border rounded-xl p-3 outline-none focus:ring-2 ring-indigo-300 text-sm"
                 />
               </div>
             </div>
@@ -885,104 +887,180 @@
       </div>
     </transition>
 
+    <!-- ================= TẠO BIẾN THỂ HÀNG LOẠT ================= -->
     <div
       v-if="isBulkOpen"
-      class="fixed inset-0 z-[999] bg-black/50 flex items-center justify-center p-4"
+      class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/60 p-3 sm:p-6 backdrop-blur-sm"
     >
-      <div class="bg-white w-[700px] rounded-3xl p-8 space-y-6">
-        <h2 class="text-xl font-bold">Tạo biến thể hàng loạt</h2>
-        <div>
-          <p class="text-xs font-bold text-slate-500 uppercase mb-3">Màu sắc</p>
-          <div class="flex flex-wrap gap-2">
-            <label
-              v-for="m in mauSacs"
-              :key="m.id"
-              class="flex items-center gap-2 text-sm px-3 py-2 rounded-lg"
-              :class="
-                isColorFull(m.id)
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-slate-50 hover:bg-slate-100 cursor-pointer'
-              "
-            >
-              <input
-                type="checkbox"
-                :value="m.id"
-                v-model="selectedColors"
-                :disabled="isColorFull(m.id)"
-                class="accent-indigo-600"
-              />
-
-              {{ m.tenMauSac }}
-
-              <span
-                v-if="isColorFull(m.id)"
-                class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full"
+      <div
+        class="flex max-h-[94vh] w-full max-w-[1400px] flex-col overflow-hidden rounded-[28px] border border-[#e8e1d8] bg-[#fcfaf7] shadow-[0_30px_100px_rgba(20,15,10,.22)]"
+      >
+        <!-- Header -->
+        <div
+          class="flex shrink-0 flex-col gap-4 border-b border-[#e8e1d8] bg-white px-5 py-5 sm:px-7 lg:flex-row lg:items-center lg:justify-between"
+        >
+          <div>
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f3e7e8] text-[#8b3a4a]"
               >
-                Đã đủ
-              </span>
-            </label>
-          </div>
-        </div>
-        <div>
-          <p class="text-xs font-bold text-slate-500 uppercase mb-3">Kích thước</p>
-          <div class="flex flex-wrap gap-2">
-            <div class="flex flex-wrap gap-2">
-              <label
-                v-for="s in kichThuocs"
-                :key="s.id"
-                class="flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition"
-                :class="
-                  isSizeFull(s.id)
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-slate-50 hover:bg-slate-100 cursor-pointer'
-                "
-              >
-                <input
-                  type="checkbox"
-                  :value="s.id"
-                  v-model="selectedSizes"
-                  :disabled="isSizeFull(s.id)"
-                  class="accent-indigo-600"
-                />
-
-                {{ s.tenKichThuoc }}
-
-                <span
-                  v-if="isSizeFull(s.id)"
-                  class="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-semibold"
-                >
-                  Đã đủ
-                </span>
-              </label>
+                <i class="fa-solid fa-layer-group text-lg"></i>
+              </div>
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-[#b28a4a]">
+                  Quản lý biến thể
+                </p>
+                <h2 class="text-xl font-black text-[#292522] sm:text-2xl">
+                  Tạo biến thể hàng loạt
+                </h2>
+              </div>
             </div>
+            <p class="mt-2 text-xs text-slate-500 sm:text-sm">
+              Chọn màu và kích thước, sau đó nhập trực tiếp trên bảng. Nhấn
+              <kbd
+                class="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-bold text-slate-600"
+                >Enter</kbd
+              >
+              để chuyển sang ô tiếp theo.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            @click="resetBulkForm"
+            class="flex h-10 w-10 shrink-0 items-center justify-center self-end rounded-full border border-[#e5ddd3] bg-white text-slate-500 transition hover:border-[#8b3a4a] hover:bg-[#f3e7e8] hover:text-[#8b3a4a] lg:self-auto"
+            aria-label="Đóng"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Selection -->
+        <div class="shrink-0 border-b border-[#e8e1d8] bg-[#fcfaf7] px-5 py-4 sm:px-7">
+          <div class="grid gap-4 lg:grid-cols-2">
+            <section class="rounded-2xl border border-[#e8e1d8] bg-white p-4">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                    01 · Màu sắc
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500">Chọn một hoặc nhiều màu</p>
+                </div>
+                <button
+                  type="button"
+                  class="text-[11px] font-bold text-[#8b3a4a] hover:underline"
+                  @click="
+                    selectedColors = mauSacs.filter((m) => !isColorFull(m.id)).map((m) => m.id)
+                  "
+                >
+                  Chọn tất cả còn trống
+                </button>
+              </div>
+              <div class="flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
+                <label
+                  v-for="m in mauSacs"
+                  :key="m.id"
+                  class="group inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition"
+                  :class="
+                    isColorFull(m.id)
+                      ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300'
+                      : selectedColors.includes(m.id)
+                        ? 'border-[#8b3a4a] bg-[#f3e7e8] text-[#8b3a4a] shadow-sm'
+                        : 'border-[#e8e1d8] bg-white text-slate-600 hover:border-[#b28a4a] hover:bg-[#fffaf2]'
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    :value="m.id"
+                    v-model="selectedColors"
+                    :disabled="isColorFull(m.id)"
+                    class="h-4 w-4 rounded border-slate-300 text-[#8b3a4a] accent-[#8b3a4a]"
+                  />
+                  <span>{{ m.tenMauSac }}</span>
+                  <span
+                    v-if="isColorFull(m.id)"
+                    class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-400"
+                    >Đã đủ</span
+                  >
+                </label>
+              </div>
+            </section>
+
+            <section class="rounded-2xl border border-[#e8e1d8] bg-white p-4">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                    02 · Kích thước
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500">Chọn size áp dụng cho các màu đã chọn</p>
+                </div>
+                <button
+                  type="button"
+                  class="text-[11px] font-bold text-[#8b3a4a] hover:underline"
+                  @click="
+                    selectedSizes = kichThuocs.filter((s) => !isSizeFull(s.id)).map((s) => s.id)
+                  "
+                >
+                  Chọn tất cả còn trống
+                </button>
+              </div>
+              <div class="flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
+                <label
+                  v-for="s in kichThuocs"
+                  :key="s.id"
+                  class="group inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition"
+                  :class="
+                    isSizeFull(s.id)
+                      ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300'
+                      : selectedSizes.includes(s.id)
+                        ? 'border-[#8b3a4a] bg-[#f3e7e8] text-[#8b3a4a] shadow-sm'
+                        : 'border-[#e8e1d8] bg-white text-slate-600 hover:border-[#b28a4a] hover:bg-[#fffaf2]'
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    :value="s.id"
+                    v-model="selectedSizes"
+                    :disabled="isSizeFull(s.id)"
+                    class="h-4 w-4 rounded border-slate-300 text-[#8b3a4a] accent-[#8b3a4a]"
+                  />
+                  <span>{{ s.tenKichThuoc }}</span>
+                  <span
+                    v-if="isSizeFull(s.id)"
+                    class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-400"
+                    >Đã đủ</span
+                  >
+                </label>
+              </div>
+            </section>
           </div>
         </div>
 
-        <div class="bg-slate-50 p-4 rounded-xl max-h-[250px] overflow-auto text-xs text-slate-600">
-          <p class="font-bold text-slate-900 mb-2">Preview:</p>
-          <div class="flex justify-between items-center mb-3 text-sm">
-            <span class="font-semibold text-slate-700">
-              Tổng:
-              <span class="text-indigo-600">{{ previewVariants.length }}</span>
-              biến thể
-            </span>
-
-            <span class="text-slate-500">
-              Mới:
-              <span class="text-green-600 font-semibold">
-                {{ previewVariants.filter((v) => !v.existed).length }}
-              </span>
-
-              | Đã tồn tại:
-              <span class="text-red-600 font-semibold">
-                {{ previewVariants.filter((v) => v.existed).length }}
-              </span>
-            </span>
+        <!-- Summary -->
+        <div
+          class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#e8e1d8] bg-white px-5 py-3 sm:px-7"
+        >
+          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
+            <span class="rounded-full bg-[#f3e7e8] px-3 py-1.5 text-[#8b3a4a]"
+              >{{ previewVariants.length }} biến thể</span
+            >
+            <span class="rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700"
+              >{{ previewVariants.filter((v) => !v.existed).length }} mới</span
+            >
+            <span class="rounded-full bg-rose-50 px-3 py-1.5 text-rose-600"
+              >{{ previewVariants.filter((v) => v.existed).length }} đã tồn tại</span
+            >
           </div>
-          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <!-- Header -->
+          <span class="text-[11px] text-slate-400">Nhập liệu trực tiếp · Enter để chuyển ô</span>
+        </div>
+
+        <!-- Management table -->
+        <div class="min-h-0 flex-1 overflow-auto bg-[#f8f5f0] px-3 py-3 sm:px-5 lg:px-7">
+          <div
+            class="min-w-[980px] overflow-hidden rounded-2xl border border-[#e2d9ce] bg-white shadow-sm"
+          >
             <div
-              class="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center bg-slate-100 px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-600 border-b"
+              class="grid grid-cols-[2.2fr_1.2fr_1.2fr_1.2fr_110px] sticky top-0 z-10 border-b border-[#e8e1d8] bg-[#f7f3ed] px-4 py-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-500"
             >
               <div>Biến thể</div>
               <div>Ảnh</div>
@@ -991,56 +1069,58 @@
               <div class="text-center">Số lượng</div>
             </div>
 
-            <!-- Empty -->
-            <div
-              v-if="previewVariants.length === 0"
-              class="py-10 text-center text-slate-400 text-sm"
-            >
-              Chọn màu sắc và kích thước để xem danh sách biến thể
+            <div v-if="previewVariants.length === 0" class="px-6 py-16 text-center">
+              <div
+                class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f3e7e8] text-[#8b3a4a]"
+              >
+                <i class="fa-solid fa-table-list text-xl"></i>
+              </div>
+              <p class="mt-4 text-sm font-bold text-slate-700">Chưa có biến thể để nhập</p>
+              <p class="mt-1 text-xs text-slate-400">Chọn màu sắc và kích thước ở phía trên.</p>
             </div>
 
-            <!-- Body -->
             <div
-              v-for="v in previewVariants"
+              v-for="(v, index) in previewVariants"
               :key="v.key"
-              class="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-4 px-5 py-4 border-b last:border-b-0 hover:bg-slate-50 transition"
-              :class="{ 'bg-red-50 opacity-70': v.existed }"
+              class="grid grid-cols-[2.2fr_1.2fr_1.2fr_1.2fr_110px] items-center gap-0 border-b border-[#eee8df] px-4 py-3 transition last:border-b-0 hover:bg-[#fffaf5]"
+              :class="v.existed ? 'bg-rose-50/50' : ''"
             >
-              <!-- Variant -->
-              <div class="flex items-center gap-3">
+              <div class="flex min-w-0 items-center gap-3 pr-4">
                 <div
-                  class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-indigo-600 bg-indigo-100"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f3e7e8] font-black text-[#8b3a4a]"
                 >
-                  {{ v.colorName.charAt(0) }}
+                  {{ v.colorName?.charAt(0) }}
                 </div>
-
-                <div>
-                  <div class="font-semibold text-slate-800">
-                    {{ v.colorName }} - {{ v.sizeName }}
-                  </div>
-
-                  <div v-if="v.existed" class="text-xs text-red-600 font-medium mt-1">
-                    🔒 Biến thể đã tồn tại
-                  </div>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-bold text-slate-800">
+                    {{ v.colorName }} · {{ v.sizeName }}
+                  </p>
+                  <p
+                    class="mt-1 text-[10px] font-semibold"
+                    :class="v.existed ? 'text-rose-500' : 'text-emerald-600'"
+                  >
+                    {{
+                      v.existed ? 'Đã tồn tại · không tạo lại' : `Dòng ${index + 1} · sẵn sàng nhập`
+                    }}
+                  </p>
                 </div>
               </div>
-              <!-- ẢNH VARIANT -->
-              <div class="flex flex-col items-center gap-2">
-                <!-- preview ảnh -->
-                <div class="flex gap-1 flex-wrap justify-center">
+
+              <div class="flex items-center gap-2 pr-3">
+                <div class="flex min-w-0 gap-1">
                   <img
-                    v-for="(img, i) in v.images"
+                    v-for="(img, i) in v.images?.slice(0, 3)"
                     :key="i"
                     :src="img"
-                    class="w-10 h-10 rounded-lg object-cover border"
+                    class="h-9 w-9 rounded-lg border border-[#e8e1d8] object-cover"
+                    alt=""
                   />
                 </div>
-
-                <!-- upload ảnh -->
                 <label
-                  class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg cursor-pointer hover:bg-indigo-100 transition"
+                  class="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-[#e5ddd3] bg-white px-2 py-2 text-[10px] font-bold text-[#8b3a4a] transition hover:border-[#8b3a4a] hover:bg-[#f3e7e8]"
                 >
-                  + Ảnh
+                  <i class="fa-solid fa-image"></i>
+                  <span>Ảnh</span>
                   <input
                     type="file"
                     multiple
@@ -1049,58 +1129,87 @@
                   />
                 </label>
               </div>
-              <!-- Giá nhập -->
-              <div>
+
+              <div class="px-2">
                 <input
                   v-model.number="v.giaNhap"
                   :disabled="v.existed"
+                  data-bulk-field
+                  :data-bulk-index="index"
+                  data-bulk-column="giaNhap"
+                  @keydown.enter.prevent="focusNextBulkField($event)"
                   type="number"
+                  min="0"
+                  step="1000"
+                  inputmode="numeric"
                   placeholder="0"
-                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  class="w-full rounded-xl border border-[#ded5ca] bg-white px-3 py-2.5 text-center text-sm font-semibold text-slate-800 outline-none transition focus:border-[#8b3a4a] focus:ring-4 focus:ring-[#8b3a4a]/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
 
-              <!-- Giá bán -->
-              <div>
+              <div class="px-2">
                 <input
                   v-model.number="v.giaBan"
                   :disabled="v.existed"
+                  data-bulk-field
+                  :data-bulk-index="index"
+                  data-bulk-column="giaBan"
+                  @keydown.enter.prevent="focusNextBulkField($event)"
                   type="number"
+                  min="0"
+                  step="1000"
+                  inputmode="numeric"
                   placeholder="0"
-                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  class="w-full rounded-xl border border-[#ded5ca] bg-white px-3 py-2.5 text-center text-sm font-semibold text-slate-800 outline-none transition focus:border-[#8b3a4a] focus:ring-4 focus:ring-[#8b3a4a]/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
 
-              <!-- Số lượng -->
-              <div>
+              <div class="px-2">
                 <input
                   v-model.number="v.soLuongTon"
                   :disabled="v.existed"
+                  data-bulk-field
+                  :data-bulk-index="index"
+                  data-bulk-column="soLuongTon"
+                  @keydown.enter.prevent="focusNextBulkField($event)"
                   type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
                   placeholder="0"
-                  class="w-full rounded-xl border border-slate-300 px-3 py-2 text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  class="w-full rounded-xl border border-[#ded5ca] bg-white px-3 py-2.5 text-center text-sm font-semibold text-slate-800 outline-none transition focus:border-[#8b3a4a] focus:ring-4 focus:ring-[#8b3a4a]/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
             </div>
           </div>
         </div>
-        <div class="flex justify-end gap-3">
-          <button
-            @click="resetBulkForm"
-            class="px-6 py-3 border rounded-xl font-bold text-xs uppercase"
-          >
-            Hủy
-          </button>
-          <button
-            @click="submitBulkSPCT"
-            class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase"
-          >
-            Tạo {{ previewVariants.filter((v) => !v.existed).length }} biến thể
-          </button>
+
+        <!-- Footer -->
+        <div
+          class="flex shrink-0 flex-col-reverse gap-3 border-t border-[#e8e1d8] bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"
+        >
+          <p class="text-[11px] text-slate-400">
+            Mẹo: nhập Giá nhập → Enter → Giá bán → Enter → Số lượng → Enter.
+          </p>
+          <div class="flex gap-3">
+            <button
+              type="button"
+              @click="resetBulkForm"
+              class="rounded-xl border border-[#e0d7cc] bg-white px-5 py-3 text-xs font-black uppercase tracking-wide text-slate-600 transition hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              @click="submitBulkSPCT"
+              class="rounded-xl bg-[#8b3a4a] px-6 py-3 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-[#8b3a4a]/15 transition hover:-translate-y-0.5 hover:bg-[#702d3a] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Tạo {{ previewVariants.filter((v) => !v.existed).length }} biến thể
+            </button>
+          </div>
         </div>
       </div>
     </div>
-
     <div>
       <transition name="fade"
         ><div
@@ -1617,6 +1726,25 @@ const submitBulkSPCT = async () => {
   } catch (e) {
     toast.error('Lỗi tạo biến thể')
   }
+}
+
+const focusNextBulkField = (event) => {
+  const fields = Array.from(
+    event.currentTarget
+      .closest('.min-w-[980px]')
+      ?.querySelectorAll('[data-bulk-field]:not(:disabled)') || [],
+  )
+
+  const currentIndex = fields.indexOf(event.currentTarget)
+  const nextField = fields[currentIndex + 1]
+
+  if (nextField) {
+    nextField.focus()
+    nextField.select?.()
+    return
+  }
+
+  toast.success('Đã điền hết các ô nhập liệu. Bạn có thể kiểm tra và tạo biến thể.')
 }
 
 const resetBulkForm = () => {

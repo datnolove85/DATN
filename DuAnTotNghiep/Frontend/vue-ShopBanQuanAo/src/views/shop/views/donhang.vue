@@ -272,14 +272,13 @@
           </div>
         </div>
 
-        <!-- THÔNG TIN THANH TOÁN CHI TIẾT ĐÃ ĐƯỢC TỐI ƯU LOGIC RÕ RÀNG HƠN -->
+        <!-- THÔNG TIN THANH TOÁN CHI TIẾT -->
         <div class="detail-section">
           <div class="section-title">
             <el-icon><CreditCard /></el-icon>
             <h4>Thông tin thanh toán chi tiết</h4>
           </div>
 
-          <!-- TRƯỜNG HỢP CÓ DỮ LIỆU THANH TOÁN (ĐÃ THANH TOÁN / CÓ GIAO DỊCH) -->
           <div class="info-list" v-if="selectedOrder.thanhToan">
             <div class="info-row">
               <span>Phương thức thanh toán:</span>
@@ -310,7 +309,6 @@
             </div>
           </div>
 
-          <!-- TRƯỜNG HỢP CHƯA CÓ BẢN GHI THANH TOÁN (VÍ DỤ ĐƠN CHỜ XÁC NHẬN / CHƯA THANH TOÁN TRỰC TUYẾN) -->
           <div class="info-list" v-else>
             <div class="info-row">
               <span>Trạng thái thanh toán:</span>
@@ -359,7 +357,7 @@
           </div>
         </div>
 
-        <!-- DANH SÁCH SẢN PHẨM TRONG DIALOG (HIỂN THỊ MÃ SP VÀ MÃ SPCT) -->
+        <!-- DANH SÁCH SẢN PHẨM TRONG DIALOG -->
         <div class="detail-section">
           <div class="section-title">
             <el-icon><Goods /></el-icon>
@@ -402,10 +400,22 @@
             <span>Tiền hàng</span>
             <span>{{ money(selectedOrder.thongTinDonHang.tongTienHang) }}</span>
           </div>
-          <div class="row">
-            <span>Giảm giá voucher</span>
-            <span class="discount">-{{ money(selectedOrder.thongTinDonHang.tongGiamGia) }}</span>
+
+          <!-- Hiển thị giảm giá voucher nếu có -->
+          <div class="row" v-if="selectedOrder.voucher">
+            <span
+              >Giảm giá voucher ({{ selectedOrder.voucher.maCode }} -
+              {{ selectedOrder.voucher.tenVoucher }})</span
+            >
+            <span class="discount">-{{ money(selectedOrder.voucher.soTienGiam) }}</span>
           </div>
+
+          <!-- Hiển thị giảm do xu nếu có sử dụng -->
+          <div class="row" v-if="selectedOrder.thongTinDonHang.tienGiamDoXu > 0">
+            <span>Giảm do xu ({{ selectedOrder.thongTinDonHang.soXuSuDung || 0 }} xu)</span>
+            <span class="discount">-{{ money(selectedOrder.thongTinDonHang.tienGiamDoXu) }}</span>
+          </div>
+
           <div class="row">
             <span>Phí vận chuyển</span>
             <span>{{ money(selectedOrder.thongTinDonHang.phiVanChuyen) }}</span>
@@ -942,7 +952,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Giữ nguyên toàn bộ phần CSS cũ của bạn */
 .refresh-btn {
   background-color: #e9a02e !important;
   border-color: #e9a02e !important;
@@ -985,7 +994,7 @@ onUnmounted(() => {
 
 .select-all-label {
   font-weight: 600;
-  color: #303133;
+  color: #1e293b;
   font-size: 13px;
 }
 
@@ -1002,7 +1011,7 @@ onUnmounted(() => {
 }
 
 :deep(.el-checkbox__inner) {
-  border-color: #64748b !important;
+  border-color: #475569 !important;
   border-width: 1.5px !important;
   width: 16px;
   height: 16px;
@@ -1022,14 +1031,15 @@ onUnmounted(() => {
 }
 
 .order-page {
+  /* Tăng độ đậm và sắc nét cho toàn bộ chữ */
   --primary-color: #0284c7;
   --primary-hover: #0369a1;
   --primary-bg: #e0f2fe;
   --text-main: #0f172a;
-  --text-sub: #475569;
-  --text-muted: #94a3b8;
+  --text-sub: #334155; /* Đậm hơn, rõ nét hơn */
+  --text-muted: #475569; /* Rõ nét hơn, không bị mờ nhạt */
   --bg-main: #f8fafc;
-  --border-color: #e2e8f0;
+  --border-color: #cbd5e1;
   --danger-color: #ef4444;
   --success-color: #10b981;
   --warning-color: #f59e0b;
@@ -1079,8 +1089,9 @@ onUnmounted(() => {
 
 .page-header p {
   margin: 4px 0 0;
-  color: var(--text-muted);
+  color: var(--text-sub);
   font-size: 14px;
+  font-weight: 500;
 }
 
 .tabs-wrapper {
@@ -1102,7 +1113,7 @@ onUnmounted(() => {
 }
 
 :deep(.el-tabs__item) {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-sub);
   font-size: 14px;
   transition: color 0.2s ease;
@@ -1112,7 +1123,7 @@ onUnmounted(() => {
 
 :deep(.el-tabs__item.is-active) {
   color: var(--primary-color);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 :deep(.el-tabs__active-bar) {
@@ -1145,7 +1156,7 @@ onUnmounted(() => {
 
 .order-card:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-  border-color: #cbd5e1;
+  border-color: #94a3b8;
 }
 
 .order-header {
@@ -1171,12 +1182,13 @@ onUnmounted(() => {
 }
 
 .dot {
-  color: var(--text-muted);
+  color: var(--text-sub);
 }
 
 .date {
   color: var(--text-sub);
   font-size: 13px;
+  font-weight: 500;
 }
 
 .status-group {
@@ -1231,7 +1243,7 @@ onUnmounted(() => {
   margin: 0 0 4px;
   font-size: 14px;
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1244,6 +1256,7 @@ onUnmounted(() => {
   gap: 10px;
   color: var(--text-sub);
   font-size: 12px;
+  font-weight: 500;
 }
 
 .product-price {
@@ -1258,15 +1271,17 @@ onUnmounted(() => {
 }
 
 .unit-price {
-  color: #64748b;
+  color: #334155;
   font-size: 12px;
+  font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
 }
 
 .quantity {
-  color: #64748b;
+  color: #334155;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .total-price {
@@ -1294,7 +1309,7 @@ onUnmounted(() => {
 
 :deep(.el-step__title) {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .cancel-banner {
@@ -1317,6 +1332,7 @@ onUnmounted(() => {
 .order-summary-mini {
   font-size: 13px;
   color: var(--text-sub);
+  font-weight: 500;
 }
 
 .highlight-total {
@@ -1335,7 +1351,7 @@ onUnmounted(() => {
 .action-buttons .el-button {
   border-radius: 8px;
   padding: 6px 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .custom-dialog :deep(.el-dialog) {
@@ -1392,6 +1408,7 @@ onUnmounted(() => {
   gap: 6px;
   font-size: 13px;
   color: var(--text-sub);
+  font-weight: 500;
 }
 
 .banner-left .code {
@@ -1432,7 +1449,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: 13px;
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .warning-title {
@@ -1445,6 +1462,7 @@ onUnmounted(() => {
   gap: 4px;
   font-size: 12px;
   color: var(--text-sub);
+  font-weight: 500;
 }
 
 .receiver-name {
@@ -1477,6 +1495,7 @@ onUnmounted(() => {
   justify-content: space-between;
   font-size: 12px;
   color: var(--text-sub);
+  font-weight: 500;
 }
 
 .return-detail-section {
@@ -1486,7 +1505,7 @@ onUnmounted(() => {
 
 .text-danger {
   color: var(--danger-color);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .dialog-product-list {
@@ -1525,7 +1544,7 @@ onUnmounted(() => {
   margin: 0 0 4px;
   font-size: 13px;
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .dialog-meta {
@@ -1540,6 +1559,7 @@ onUnmounted(() => {
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 11px;
+  font-weight: 500;
 }
 
 .dialog-price {
@@ -1551,13 +1571,14 @@ onUnmounted(() => {
 
 .dialog-price .calc {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text-sub);
+  font-weight: 500;
 }
 
 .dialog-price .subtotal {
   font-size: 13px;
   color: var(--danger-color);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .payment-summary-box {
@@ -1570,16 +1591,17 @@ onUnmounted(() => {
   margin-bottom: 6px;
   font-size: 12px;
   color: var(--text-sub);
+  font-weight: 500;
 }
 
 .payment-summary-box .discount {
   color: var(--success-color);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .total-row {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-main);
 }
 
@@ -1593,6 +1615,7 @@ onUnmounted(() => {
   font-size: 13px;
   color: var(--text-sub);
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .cancel-reasons-list {

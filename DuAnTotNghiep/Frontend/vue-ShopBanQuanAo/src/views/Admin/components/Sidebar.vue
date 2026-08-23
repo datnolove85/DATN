@@ -155,7 +155,7 @@
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs w-5 text-center">🗄️</span>
-              Kho Voucher KH
+              Voucher khách hàng
             </router-link>
           </div>
         </div>
@@ -200,7 +200,7 @@
               active-class="text-indigo-400 font-medium bg-slate-800/60"
             >
               <span class="mr-3 text-xs w-5 text-center">🎟️</span>
-              Quản lý Voucher
+              Voucher hệ thống
             </router-link>
           </div>
         </div>

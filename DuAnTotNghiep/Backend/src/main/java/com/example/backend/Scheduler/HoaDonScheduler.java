@@ -10,6 +10,7 @@ import com.example.backend.Repository.HoaDonRepository;
 import com.example.backend.Repository.HoaDonVoucherRepository;
 import com.example.backend.Repository.LichSuHoaDonRepository;
 import com.example.backend.Repository.SanPhamChiTietRepository;
+import com.example.backend.Service.HoaDonService;
 import com.example.backend.Service.payment.VoucherConsumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -35,6 +36,7 @@ public class HoaDonScheduler {
     private final HoaDonVoucherRepository hoaDonVoucherRepo;
     private final VoucherConsumeService voucherConsumeService;
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
+    private final HoaDonService hoaDonService;
 
     @Transactional
     @Scheduled(fixedRate = 5000) // 5 giây chạy 1 lần
@@ -94,6 +96,9 @@ public class HoaDonScheduler {
 
             hd.setNgayCapNhat(LocalDateTime.now());
             hoaDonRepo.save(hd);
+
+            hoaDonService.hoanXuKhiHuyDon(hd.getId());
+
 
             // Ghi nhận lịch sử hóa đơn
             LichSuHoaDon lichSu = new LichSuHoaDon();

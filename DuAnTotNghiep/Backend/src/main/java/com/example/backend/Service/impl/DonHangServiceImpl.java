@@ -98,6 +98,11 @@ private  final LichSuHoaDonRepository lichSuHoaDonRepository;
         info.setTongGiamGia(hoaDon.getTongGiamGia());
         info.setPhiVanChuyen(hoaDon.getPhiVanChuyen());
         info.setTongThanhToan(hoaDon.getTongThanhToan());
+
+        // --- Bổ sung map thông tin Xu ---
+        info.setSoXuSuDung(hoaDon.getSoXuSuDung());
+        info.setTienGiamDoXu(hoaDon.getTienGiamDoXu());
+
         info.setGhiChu(hoaDon.getGhiChu());
         info.setNgayTao(hoaDon.getNgayTao());
         info.setNgayCapNhat(hoaDon.getNgayCapNhat());
@@ -194,6 +199,44 @@ private  final LichSuHoaDonRepository lichSuHoaDonRepository;
                 dto.setPhuongThucThanhToan(thanhToan.getIdPhuongThucThanhToan().getTenPhuongThuc());
             }
             response.setThanhToan(dto);
+        }
+
+        /*
+         * --- Bổ sung lấy thông tin Voucher (Hệ thống / Minigame) ---
+         */
+        Optional<HoaDonVoucher> hdVoucherOpt = hoaDonVoucherRepository.findByIdHoaDon_Id(hoaDon.getId());
+        if (hdVoucherOpt.isPresent()) {
+            HoaDonVoucher hdVoucher = hdVoucherOpt.get();
+
+            HoaDonVoucherResponse voucherRes = new HoaDonVoucherResponse();
+            voucherRes.setSoTienGiam(hdVoucher.getSoTienGiam());
+
+            // Voucher hệ thống
+            if (hdVoucher.getIdVoucher() != null) {
+                Voucher v = hdVoucher.getIdVoucher();
+                voucherRes.setId(v.getId());
+                voucherRes.setTenVoucher(v.getTenVoucher());
+                voucherRes.setMaCode(v.getMaVoucher());
+                voucherRes.setLoaiGiamGia(v.getLoaiGiamGia());
+                voucherRes.setGiaTriGiam(v.getGiaTriGiam());
+                voucherRes.setGiaTriGiamToiDa(v.getGiaTriGiamToiDa());
+                voucherRes.setDieuKienToiThieu(v.getGiaTriDonHangToiThieu());
+                voucherRes.setLoaiVoucher("HE_THONG");
+            }
+            // Voucher minigame
+            else if (hdVoucher.getIdKhoVoucher() != null) {
+                KhoVoucher kv = hdVoucher.getIdKhoVoucher();
+                voucherRes.setId(kv.getId());
+                voucherRes.setTenVoucher(kv.getTenVoucher());
+                voucherRes.setMaCode(kv.getMaCode());
+                voucherRes.setLoaiGiamGia(kv.getLoaiGiamGia());
+                voucherRes.setGiaTriGiam(kv.getGiaTriGiam());
+                voucherRes.setGiaTriGiamToiDa(kv.getGiaTriGiamToiDa());
+                voucherRes.setDieuKienToiThieu(kv.getDieuKienToiThieu());
+                voucherRes.setLoaiVoucher("MINIGAME");
+            }
+
+            response.setVoucher(voucherRes);
         }
 
         return response;

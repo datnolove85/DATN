@@ -1,95 +1,70 @@
 <template>
-  <div class="product-catalog-page min-h-screen bg-[#f7f4ef] text-[#211d1a]">
-    <!-- HERO: lấy độ hiện đại của V1, màu sắc của V3 và khoảng thở của V2 -->
-    <section class="product-hero relative overflow-hidden bg-[#211d1a]">
-      <div class="signature-grid absolute inset-0 opacity-70"></div>
-      <div
-        class="absolute -left-28 top-16 h-80 w-80 rounded-full bg-[#8b3a4a]/25 blur-[90px]"
-      ></div>
-      <div class="absolute right-0 top-0 h-96 w-96 rounded-full bg-[#b28a4a]/20 blur-[110px]"></div>
-      <div
-        class="absolute bottom-0 left-1/2 h-56 w-96 -translate-x-1/2 rounded-full bg-[#d7c1a3]/10 blur-[100px]"
-      ></div>
-
-      <div class="relative mx-auto max-w-[1440px] px-4 pb-9 pt-6 md:px-6 md:pb-12 md:pt-9">
-        <div class="mb-7 flex items-center justify-between gap-3">
-          <div
-            class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-xl"
-          >
-            <Sparkles :size="15" class="text-amber-300" />
-            HD Fashion · New collection
-          </div>
-          <button
-            type="button"
-            class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-[11px] font-bold text-slate-200 transition hover:bg-white/10 sm:inline-flex"
-            @click="filters.onSaleOnly = !filters.onSaleOnly"
-          >
-            <BadgePercent :size="16" class="text-rose-300" />
-            {{ filters.onSaleOnly ? 'Đang xem ưu đãi' : `${stats.onSale} sản phẩm ưu đãi` }}
-          </button>
-        </div>
-
-        <div class="grid gap-7 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end">
-          <div>
-            <p class="mb-3 text-[11px] font-black uppercase tracking-[0.24em] text-[#d7c1a3]">
-              Phong cách bắt đầu từ lựa chọn của bạn
+  <div class="min-h-screen bg-[#f6f7fb] text-slate-950">
+    <!-- PRODUCT DISCOVERY HERO -->
+    <section class="product-hero relative overflow-hidden border-b border-[#e8e0d5] bg-[#f5f1eb]">
+      <div class="product-hero-glow product-hero-glow-one"></div>
+      <div class="product-hero-glow product-hero-glow-two"></div>
+      <div class="relative mx-auto max-w-[1480px] px-4 py-8 md:px-8 md:py-12">
+        <div class="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+          <div class="max-w-3xl">
+            <div
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#d9cbbd] bg-white/75 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-[#725c49] shadow-sm"
+            >
+              <Sparkles :size="14" /> Bộ sưu tập thời trang
+            </div>
+            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#a37b50]">
+              Khám phá sản phẩm
             </p>
             <h1
-              class="max-w-4xl text-3xl font-black leading-[1.05] tracking-[-0.035em] text-white md:text-5xl lg:text-6xl"
+              class="text-4xl font-black leading-[1.02] tracking-[-0.04em] text-[#241f1a] md:text-6xl"
             >
-              Mặc đẹp mỗi ngày,
-              <span class="hero-accent block">tự tin theo cách riêng.</span>
+              Chọn món đồ<br class="hidden md:block" />
+              hợp với bạn.
             </h1>
-            <p class="mt-4 max-w-2xl text-[13px] leading-6 text-slate-300 md:text-[15px]">
-              Tìm kiếm nhanh, lọc chính xác và xem giá khuyến mãi trực tiếp. Dữ liệu giá được đồng
-              bộ từ từng biến thể sản phẩm.
+            <p class="mt-4 max-w-2xl text-sm leading-6 text-[#746a61] md:text-[15px]">
+              Tìm kiếm, lọc và so sánh sản phẩm theo nhu cầu. Giá, ưu đãi và tình trạng hàng được
+              hiển thị ngay trên từng sản phẩm.
             </p>
-
-            <div
-              class="mt-6 max-w-2xl rounded-[20px] border border-white/10 bg-white/10 p-1.5 shadow-2xl shadow-black/30 backdrop-blur-xl"
-            >
-              <div class="flex items-center rounded-2xl bg-white px-4">
-                <Search :size="21" class="shrink-0 text-[#8b3a4a]" />
-                <input
-                  v-model="filters.keyword"
-                  type="search"
-                  placeholder="Tìm áo, quần, thương hiệu hoặc mã sản phẩm..."
-                  class="min-w-0 flex-1 bg-transparent px-3 py-3 text-[13px] font-semibold text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400"
-                />
-                <button
-                  v-if="filters.keyword"
-                  type="button"
-                  class="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
-                  aria-label="Xóa từ khóa"
-                  @click="filters.keyword = ''"
-                >
-                  <X :size="17" />
-                </button>
-              </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[520px]">
+            <div class="hero-stat">
+              <PackageOpen :size="18" /><strong>{{ stats.products }}</strong
+              ><span>Sản phẩm</span>
+            </div>
+            <div class="hero-stat">
+              <BadgeCheck :size="18" /><strong>{{ stats.brands }}</strong
+              ><span>Thương hiệu</span>
+            </div>
+            <div class="hero-stat">
+              <BadgePercent :size="18" /><strong>{{ stats.onSale }}</strong
+              ><span>Đang ưu đãi</span>
+            </div>
+            <div class="hero-stat">
+              <Boxes :size="18" /><strong>{{ stats.inStock }}</strong
+              ><span>Còn hàng</span>
             </div>
           </div>
-
-          <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-2">
-            <div class="stat-card border-[#d7c1a3]/20 bg-[#d7c1a3]/10">
-              <PackageOpen :size="22" class="text-[#d7c1a3]" />
-              <strong>{{ stats.products }}</strong>
-              <span>Sản phẩm</span>
-            </div>
-            <div class="stat-card border-[#c8a9b2]/20 bg-[#8b3a4a]/10">
-              <BadgeCheck :size="22" class="text-violet-300" />
-              <strong>{{ stats.brands }}</strong>
-              <span>Thương hiệu</span>
-            </div>
-            <div class="stat-card border-[#b28a4a]/20 bg-[#b28a4a]/10">
-              <BadgePercent :size="22" class="text-rose-300" />
-              <strong>{{ stats.onSale }}</strong>
-              <span>Đang ưu đãi</span>
-            </div>
-            <div class="stat-card border-emerald-300/20 bg-emerald-300/10">
-              <Boxes :size="22" class="text-emerald-300" />
-              <strong>{{ stats.inStock }}</strong>
-              <span>Còn hàng</span>
-            </div>
+        </div>
+        <div
+          class="mt-7 max-w-3xl rounded-2xl border border-[#ded3c8] bg-white p-1.5 shadow-[0_18px_50px_rgba(69,52,36,.08)]"
+        >
+          <div class="flex items-center rounded-xl bg-[#faf8f5] px-4">
+            <Search :size="19" class="shrink-0 text-[#a37b50]" />
+            <input
+              v-model="filters.keyword"
+              type="search"
+              placeholder="Tìm tên sản phẩm, thương hiệu hoặc mã..."
+              class="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm font-semibold text-[#241f1a] outline-none placeholder:text-[#aaa096]"
+            />
+            <button
+              v-if="filters.keyword"
+              type="button"
+              class="rounded-lg p-2 text-[#938a82] hover:bg-white"
+              aria-label="Xóa từ khóa"
+              @click="filters.keyword = ''"
+            >
+              <X :size="16" />
+            </button>
           </div>
         </div>
       </div>
@@ -106,7 +81,7 @@
             class="inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-black transition"
             :class="
               filters.categories.length === 0
-                ? 'bg-[#211d1a] text-white shadow-lg shadow-slate-300'
+                ? 'bg-slate-950 text-white shadow-lg shadow-slate-300'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             "
             @click="filters.categories.splice(0)"
@@ -121,7 +96,7 @@
             :class="
               filters.categories.includes(category.name)
                 ? quickCategoryActiveClasses[index % quickCategoryActiveClasses.length]
-                : 'border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-[#b28a4a] hover:text-[#8b3a4a]'
+                : 'border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-700'
             "
             @click="toggleQuickCategory(category.name)"
           >
@@ -142,13 +117,13 @@
           <div class="flex items-center gap-3">
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[13px] font-black transition hover:border-[#b28a4a] hover:text-[#7c3041] lg:hidden"
+              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[13px] font-black transition hover:border-indigo-300 hover:text-indigo-700 lg:hidden"
               @click="mobileFiltersOpen = true"
             >
               <SlidersHorizontal :size="18" /> Bộ lọc
               <span
                 v-if="activeFilterChips.length"
-                class="grid h-5 min-w-5 place-items-center rounded-full bg-[#8b3a4a] px-1 text-[10px] text-white"
+                class="grid h-5 min-w-5 place-items-center rounded-full bg-indigo-600 px-1 text-[10px] text-white"
               >
                 {{ activeFilterChips.length }}
               </span>
@@ -176,7 +151,7 @@
               Còn hàng
             </label>
             <label
-              class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#f8eef0] px-3 py-2 text-[11px] font-black text-rose-700"
+              class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-[11px] font-black text-rose-700"
             >
               <input
                 v-model="filters.onSaleOnly"
@@ -204,7 +179,7 @@
                 class="rounded-lg p-2 transition"
                 :class="
                   gridColumns === 3
-                    ? 'bg-white text-[#8b3a4a] shadow-sm'
+                    ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-slate-400 hover:text-slate-900'
                 "
                 aria-label="Hiển thị 3 cột"
@@ -217,7 +192,7 @@
                 class="rounded-lg p-2 transition"
                 :class="
                   gridColumns === 4
-                    ? 'bg-white text-[#8b3a4a] shadow-sm'
+                    ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-slate-400 hover:text-slate-900'
                 "
                 aria-label="Hiển thị 4 cột"
@@ -238,14 +213,14 @@
           v-for="chip in activeFilterChips"
           :key="`${chip.key}-${chip.value}`"
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-full border border-[#ead8dc] bg-[#f8eef0] px-3 py-1.5 text-[11px] font-bold text-[#7c3041] transition hover:bg-indigo-100"
+          class="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-[11px] font-bold text-indigo-700 transition hover:bg-indigo-100"
           @click="removeFilter(chip)"
         >
           {{ chip.label }} <X :size="13" />
         </button>
         <button
           type="button"
-          class="ml-1 text-xs font-black text-[#8b3a4a] hover:underline"
+          class="ml-1 text-xs font-black text-rose-600 hover:underline"
           @click="clearFilters"
         >
           Xóa tất cả
@@ -260,12 +235,12 @@
           >
             <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
               <div class="flex items-center gap-2 font-black">
-                <SlidersHorizontal :size="18" class="text-[#8b3a4a]" /> Bộ lọc thông minh
+                <SlidersHorizontal :size="18" class="text-indigo-600" /> Bộ lọc thông minh
               </div>
               <button
                 v-if="hasActiveFilters"
                 type="button"
-                class="text-xs font-black text-[#8b3a4a] hover:underline"
+                class="text-xs font-black text-rose-600 hover:underline"
                 @click="clearFilters"
               >
                 Đặt lại
@@ -283,7 +258,7 @@
                   class="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-semibold transition hover:bg-slate-50"
                   :class="
                     filters.priceRange === price.value
-                      ? 'bg-[#f4e8ea] text-[#7c3041]'
+                      ? 'bg-indigo-50 text-indigo-700'
                       : 'text-slate-600'
                   "
                 >
@@ -291,7 +266,7 @@
                     v-model="filters.priceRange"
                     type="radio"
                     :value="price.value"
-                    class="accent-[#8b3a4a]"
+                    class="accent-indigo-600"
                   />
                   {{ price.label }}
                 </label>
@@ -319,7 +294,7 @@
                         v-model="filters[group.key]"
                         type="checkbox"
                         :value="option.name"
-                        class="h-4 w-4 rounded accent-[#8b3a4a]"
+                        class="h-4 w-4 rounded accent-indigo-600"
                       />
                       {{ option.name }}
                     </span>
@@ -354,12 +329,12 @@
             v-else-if="errorMessage"
             class="rounded-3xl border border-rose-200 bg-white px-6 py-16 text-center shadow-sm"
           >
-            <CircleAlert class="mx-auto text-[#8b3a4a]" :size="44" />
+            <CircleAlert class="mx-auto text-rose-500" :size="44" />
             <h2 class="mt-4 text-xl font-black">Không tải được sản phẩm</h2>
             <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">{{ errorMessage }}</p>
             <button
               type="button"
-              class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#8b3a4a]"
+              class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-indigo-600"
               @click="reload"
             >
               <RefreshCw :size="17" /> Thử lại
@@ -411,7 +386,7 @@
                   <div class="flex flex-col items-start gap-2">
                     <span
                       v-if="product.dangGiamGia && product.maxDiscountPercent > 0"
-                      class="inline-flex items-center gap-1 rounded-full bg-[#8b3a4a] px-2.5 py-1 text-[10px] font-black text-white shadow-lg shadow-[#8b3a4a]/20"
+                      class="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-black text-white shadow-lg shadow-rose-500/30"
                     >
                       <Zap :size="12" fill="currentColor" /> GIẢM ĐẾN
                       {{ product.maxDiscountPercent }}%
@@ -426,8 +401,8 @@
 
                   <button
                     type="button"
-                    class="grid h-9 w-9 place-items-center rounded-full border border-white/70 bg-white/90 text-slate-600 shadow-lg backdrop-blur transition hover:scale-105 hover:text-[#8b3a4a]"
-                    :class="isFavorite(product.id) ? 'text-[#8b3a4a]' : ''"
+                    class="grid h-9 w-9 place-items-center rounded-full border border-white/70 bg-white/90 text-slate-600 shadow-lg backdrop-blur transition hover:scale-105 hover:text-rose-500"
+                    :class="isFavorite(product.id) ? 'text-rose-500' : ''"
                     :aria-label="isFavorite(product.id) ? 'Bỏ yêu thích' : 'Thêm yêu thích'"
                     @click.stop="toggleFavorite(product.id)"
                   >
@@ -442,8 +417,8 @@
                     class="rounded-full px-3 py-1 text-[10px] font-black shadow-lg backdrop-blur"
                     :class="
                       Number(product.soLuong || 0) > 0
-                        ? 'bg-emerald-600/90 text-white'
-                        : 'bg-[#211d1a]/90 text-white'
+                        ? 'bg-emerald-500/90 text-white'
+                        : 'bg-slate-950/85 text-white'
                     "
                   >
                     {{ Number(product.soLuong || 0) > 0 ? `Còn ${product.soLuong}` : 'Hết hàng' }}
@@ -461,7 +436,7 @@
               <div class="flex flex-1 flex-col px-1.5 pb-1.5 pt-3">
                 <div class="flex min-h-[20px] items-center justify-between gap-2">
                   <span
-                    class="truncate text-[11px] font-black uppercase tracking-[0.12em] text-[#8b3a4a]"
+                    class="truncate text-[11px] font-black uppercase tracking-[0.12em] text-indigo-600"
                   >
                     {{ product.idThuongHieu?.tenThuongHieu || 'HD Fashion' }}
                   </span>
@@ -471,7 +446,7 @@
                 </div>
 
                 <h3
-                  class="mt-1.5 min-h-[40px] line-clamp-2 text-[15px] font-black leading-5 text-slate-950 transition group-hover:text-[#7c3041]"
+                  class="mt-1.5 min-h-[40px] line-clamp-2 text-[15px] font-black leading-5 text-slate-950 transition group-hover:text-indigo-700"
                 >
                   {{ product.tenSanPham }}
                 </h3>
@@ -485,7 +460,7 @@
 
                 <div class="mt-2 min-h-[28px] flex flex-wrap content-start gap-1.5">
                   <span
-                    class="rounded-md bg-[#f4e8ea] px-2 py-1 text-[10px] font-black text-[#7c3041]"
+                    class="rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-black text-indigo-700"
                   >
                     {{ product.idDanhMuc?.tenDanhMuc || 'Sản phẩm' }}
                   </span>
@@ -506,7 +481,7 @@
                 <div class="mt-auto border-t border-slate-100 pt-2.5">
                   <div class="flex items-end justify-between gap-2">
                     <div class="min-h-[48px] min-w-0 flex-1">
-                      <div class="truncate text-[18px] font-black tracking-tight text-[#8b3a4a]">
+                      <div class="truncate text-[18px] font-black tracking-tight text-rose-600">
                         {{ priceLabel(product) }}
                       </div>
 
@@ -529,7 +504,7 @@
 
                       <div
                         v-else-if="product.dangGiamGia"
-                        class="mt-0.5 min-h-[18px] truncate text-[11px] font-black text-[#8b3a4a]"
+                        class="mt-0.5 min-h-[18px] truncate text-[11px] font-black text-rose-500"
                         :title="`Một số lựa chọn đang giảm đến ${product.maxDiscountPercent}%`"
                       >
                         Một số lựa chọn đang giảm đến {{ product.maxDiscountPercent }}%
@@ -539,7 +514,7 @@
                     </div>
 
                     <div
-                      class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#211d1a] text-white transition group-hover:rotate-[-4deg] group-hover:bg-[#8b3a4a]"
+                      class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-950 text-white transition group-hover:rotate-[-4deg] group-hover:bg-indigo-600"
                     >
                       <ArrowUpRight :size="18" />
                     </div>
@@ -556,7 +531,7 @@
           >
             <button
               type="button"
-              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-[#b28a4a] hover:text-[#7c3041] disabled:cursor-not-allowed disabled:opacity-40"
+              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
               :disabled="currentPage === 1"
               @click="currentPage--"
             >
@@ -569,8 +544,8 @@
               class="grid h-10 min-w-10 place-items-center rounded-2xl px-3 text-sm font-black transition"
               :class="
                 currentPage === page
-                  ? 'bg-[#211d1a] text-white shadow-lg shadow-slate-300'
-                  : 'border border-slate-200 bg-white text-slate-600 hover:border-[#b28a4a] hover:text-[#7c3041]'
+                  ? 'bg-slate-950 text-white shadow-lg shadow-slate-300'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-700'
               "
               @click="currentPage = page"
             >
@@ -578,7 +553,7 @@
             </button>
             <button
               type="button"
-              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-[#b28a4a] hover:text-[#7c3041] disabled:cursor-not-allowed disabled:opacity-40"
+              class="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
               :disabled="currentPage === totalPages"
               @click="currentPage++"
             >
@@ -600,7 +575,7 @@
           <aside class="ml-auto flex h-full w-[min(90vw,360px)] flex-col bg-white shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 px-4 py-4">
               <div>
-                <p class="text-xs font-black uppercase tracking-[0.16em] text-[#8b3a4a]">
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">
                   Tùy chỉnh kết quả
                 </p>
                 <h2 class="mt-1 text-lg font-black">Bộ lọc sản phẩm</h2>
@@ -626,7 +601,7 @@
                     class="cursor-pointer rounded-lg border px-2.5 py-2.5 text-[11px] font-bold transition"
                     :class="
                       filters.priceRange === price.value
-                        ? 'border-indigo-500 bg-[#f4e8ea] text-[#7c3041]'
+                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
                         : 'border-slate-200 text-slate-600'
                     "
                   >
@@ -634,7 +609,7 @@
                       v-model="filters.priceRange"
                       type="radio"
                       :value="price.value"
-                      class="mr-2 accent-[#8b3a4a]"
+                      class="mr-2 accent-indigo-600"
                     />
                     {{ price.shortLabel || price.label }}
                   </label>
@@ -659,7 +634,7 @@
                       v-model="filters[group.key]"
                       type="checkbox"
                       :value="option.name"
-                      class="accent-[#8b3a4a]"
+                      class="accent-indigo-600"
                     />
                     <span class="truncate">{{ option.name }}</span>
                   </label>
@@ -752,7 +727,7 @@ const priceRanges = [
 ]
 
 const quickCategoryActiveClasses = [
-  'border-indigo-500 bg-[#8b3a4a] text-white shadow-lg shadow-indigo-200',
+  'border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-200',
   'border-fuchsia-500 bg-fuchsia-600 text-white shadow-lg shadow-fuchsia-200',
   'border-cyan-500 bg-cyan-600 text-white shadow-lg shadow-cyan-200',
   'border-rose-500 bg-rose-600 text-white shadow-lg shadow-rose-200',
@@ -793,140 +768,133 @@ const toggleFavorite = (id) => {
 </script>
 
 <style scoped>
-.signature-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-  background-size: 46px 46px;
-  mask-image: linear-gradient(to bottom, black, transparent 96%);
+.product-hero {
+  isolation: isolate;
 }
-
-.hero-accent {
-  background: linear-gradient(90deg, #d7c1a3 0%, #f0dfc5 52%, #b28a4a 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.product-hero-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(70px);
+  opacity: 0.45;
+  pointer-events: none;
 }
-
-.stat-card {
+.product-hero-glow-one {
+  width: 360px;
+  height: 360px;
+  right: -100px;
+  top: -150px;
+  background: #dfc2a1;
+}
+.product-hero-glow-two {
+  width: 260px;
+  height: 260px;
+  left: -100px;
+  bottom: -160px;
+  background: #eaded0;
+}
+.hero-stat {
+  min-height: 92px;
   display: flex;
-  min-height: 118px;
   flex-direction: column;
   justify-content: space-between;
-  border-width: 1px;
-  border-radius: 20px;
-  padding: 15px;
-  color: white;
-  backdrop-filter: blur(16px);
+  border: 1px solid #e1d6ca;
+  border-radius: 18px;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #725c49;
+  box-shadow: 0 10px 30px rgba(69, 52, 36, 0.05);
+  backdrop-filter: blur(12px);
 }
-
-.stat-card strong {
-  margin-top: 12px;
-  font-size: 1.55rem;
+.hero-stat strong {
+  margin-top: 7px;
+  color: #241f1a;
+  font-size: 1.35rem;
   line-height: 1;
   font-weight: 900;
 }
-
-.stat-card span {
-  margin-top: 4px;
-  font-size: 0.7rem;
-  color: rgb(203 213 225);
+.hero-stat span {
+  margin-top: 3px;
+  color: #8c8177;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
-
-.product-card::before {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    rgba(139, 58, 74, 0.08),
-    transparent 35%,
-    rgba(178, 138, 74, 0.08)
-  );
-  content: '';
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.hide-scrollbar {
+  scrollbar-width: none;
 }
-
-.product-card:hover::before {
-  opacity: 1;
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
+.product-card {
+  border-color: #e8e0d5 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 30px rgba(69, 52, 36, 0.045) !important;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease !important;
+}
+.product-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: #cdb79f !important;
+  box-shadow: 0 22px 50px rgba(69, 52, 36, 0.12) !important;
+}
+.product-card > div:first-child {
+  border-radius: 16px !important;
+  background: #f2eee8 !important;
+}
+.product-card img {
+  transition:
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.5s ease !important;
+}
+.product-card:hover img {
+  transform: scale(1.045) !important;
+}
+.product-card h3 {
+  color: #2b241e !important;
+  letter-spacing: -0.02em;
+}
+.product-card:hover h3 {
+  color: #8a6240 !important;
+}
+.product-card .text-rose-600 {
+  color: #9a5b38 !important;
+}
+.product-card .bg-indigo-600,
+.product-card .bg-indigo-50 {
+}
 .line-clamp-2 {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-
-.hide-scrollbar {
-  scrollbar-width: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
 summary::-webkit-details-marker {
   display: none;
 }
-
 .drawer-enter-active,
 .drawer-leave-active {
   transition: opacity 0.25s ease;
 }
-
 .drawer-enter-active aside,
 .drawer-leave-active aside {
   transition: transform 0.25s ease;
 }
-
 .drawer-enter-from,
 .drawer-leave-to {
   opacity: 0;
 }
-
 .drawer-enter-from aside,
 .drawer-leave-to aside {
   transform: translateX(100%);
 }
-
-.product-catalog-page {
-  --luxury-wine: #8b3a4a;
-  --luxury-gold: #b28a4a;
-  --luxury-ink: #211d1a;
-  --luxury-paper: #f7f4ef;
-}
-
-.product-hero {
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(139, 58, 74, 0.14), transparent 28%),
-    radial-gradient(circle at 88% 10%, rgba(178, 138, 74, 0.14), transparent 30%);
-}
-
-.product-card {
-  box-shadow: 0 8px 28px rgba(33, 29, 26, 0.055);
-}
-
-.product-card:hover {
-  box-shadow: 0 18px 45px rgba(33, 29, 26, 0.12);
-}
-
-.product-card h3 {
-  letter-spacing: -0.015em;
-}
-
-.product-card img {
-  background: #eee9e1;
-}
-
 @media (max-width: 640px) {
-  .product-card {
-    border-radius: 18px;
+  .hero-stat {
+    min-height: 82px;
+    padding: 11px;
   }
-  .product-card h3 {
-    font-size: 14px;
+  .hero-stat strong {
+    font-size: 1.15rem;
   }
 }
 </style>

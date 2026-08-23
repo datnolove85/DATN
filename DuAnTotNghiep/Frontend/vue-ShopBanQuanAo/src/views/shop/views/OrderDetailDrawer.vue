@@ -11,24 +11,24 @@
     >
       <!-- Header -->
       <div
-        class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10 shadow-xs"
+        class="px-6 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10 shadow-xs"
       >
-        <h2 class="text-lg font-bold text-slate-800">Chi tiết đơn hàng</h2>
+        <h2 class="text-base font-bold text-slate-900">Chi tiết đơn hàng</h2>
         <button
           @click="$emit('close')"
-          class="p-2 hover:bg-slate-100 rounded-full cursor-pointer text-slate-400 hover:text-slate-600 transition-colors"
+          class="p-2 hover:bg-slate-100 rounded-full cursor-pointer text-slate-600 hover:text-slate-900 transition-colors"
         >
           ✕
         </button>
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="py-20 text-center text-slate-400 text-sm">
+      <div v-if="loading" class="py-20 text-center text-slate-600 text-sm font-medium">
         Đang tải thông tin chi tiết đơn hàng...
       </div>
 
       <!-- Error State -->
-      <div v-else-if="errorMessage" class="py-10 text-center text-red-500 text-sm">
+      <div v-else-if="errorMessage" class="py-10 text-center text-red-600 text-sm font-medium">
         {{ errorMessage }}
       </div>
 
@@ -36,17 +36,17 @@
       <div v-else-if="detail" class="p-6 space-y-4 flex-1">
         <!-- 1. Mã hóa đơn & Trạng thái badges -->
         <div
-          class="flex items-center justify-between bg-white border border-slate-100 p-4 rounded-2xl shadow-xs"
+          class="flex items-center justify-between bg-white border border-slate-200 p-4 rounded-2xl shadow-xs"
         >
           <div>
-            <span class="text-xs text-slate-500">Mã hóa đơn: </span>
-            <span class="text-sm font-bold text-slate-800">{{ info?.maHoaDon }}</span>
+            <span class="text-xs text-slate-600 font-medium">Mã hóa đơn: </span>
+            <span class="text-sm font-bold text-slate-900">{{ info?.maHoaDon }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
               {{ info?.trangThaiHienThi || 'Giao thành công' }}
             </span>
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
               {{ info?.trangThaiThanhToanHienThi || 'Đã thanh toán' }}
             </span>
           </div>
@@ -56,65 +56,69 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Địa chỉ nhận hàng -->
           <div
-            class="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs flex flex-col justify-between"
+            class="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs flex flex-col justify-between"
           >
             <div>
-              <div class="text-xs font-bold text-slate-400 uppercase mb-2">
+              <div class="text-xs font-bold text-slate-700 uppercase mb-2">
                 📍 Địa chỉ nhận hàng
               </div>
-              <p class="font-bold text-slate-800 text-sm">{{ detail.nguoiNhan?.tenNguoiNhan }}</p>
-              <p class="text-xs text-slate-500 mt-1">📞 {{ detail.nguoiNhan?.soDienThoai }}</p>
-              <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              <p class="font-bold text-slate-900 text-sm">{{ detail.nguoiNhan?.tenNguoiNhan }}</p>
+              <p class="text-xs text-slate-700 font-medium mt-1">
+                📞 {{ detail.nguoiNhan?.soDienThoai }}
+              </p>
+              <p class="text-xs text-slate-800 mt-1.5 leading-relaxed font-medium">
                 {{ detail.nguoiNhan?.diaChi }}
               </p>
             </div>
           </div>
 
           <!-- Thông tin chung -->
-          <div class="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs space-y-2.5">
-            <div class="text-xs font-bold text-slate-400 uppercase mb-2">ℹ️ Thông tin chung</div>
+          <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-2.5">
+            <div class="text-xs font-bold text-slate-700 uppercase mb-2">ℹ️ Thông tin chung</div>
             <div class="flex justify-between text-xs">
-              <span class="text-slate-500">Loại đơn:</span>
-              <span class="font-bold text-slate-800 uppercase">{{ info?.loaiHoaDon }}</span>
+              <span class="text-slate-700 font-medium">Loại đơn:</span>
+              <span class="font-bold text-slate-900 uppercase">{{ info?.loaiHoaDon }}</span>
             </div>
             <div class="flex justify-between text-xs">
-              <span class="text-slate-500">Ngày tạo:</span>
-              <span class="font-medium text-slate-700">{{ formatDateTime(info?.ngayTao) }}</span>
+              <span class="text-slate-700 font-medium">Ngày tạo:</span>
+              <span class="font-semibold text-slate-900">{{ formatDateTime(info?.ngayTao) }}</span>
             </div>
             <div class="flex justify-between text-xs">
-              <span class="text-slate-500">Trạng thái TT:</span>
-              <span class="font-medium text-slate-700">{{ info?.trangThaiThanhToanHienThi }}</span>
+              <span class="text-slate-700 font-medium">Trạng thái TT:</span>
+              <span class="font-semibold text-slate-900">{{
+                info?.trangThaiThanhToanHienThi
+              }}</span>
             </div>
           </div>
         </div>
 
         <!-- 3. Thông tin thanh toán chi tiết -->
-        <div class="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs space-y-2.5">
-          <div class="text-xs font-bold text-slate-400 uppercase mb-1">
+        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-2.5">
+          <div class="text-xs font-bold text-slate-700 uppercase mb-1">
             💳 Thông tin thanh toán chi tiết
           </div>
           <div class="flex justify-between text-xs items-center">
-            <span class="text-slate-500">Phương thức thanh toán:</span>
-            <span class="font-bold text-slate-800">{{
+            <span class="text-slate-700 font-medium">Phương thức thanh toán:</span>
+            <span class="font-bold text-slate-900">{{
               detail.thanhToan?.phuongThucThanhToan
             }}</span>
           </div>
           <div class="flex justify-between text-xs items-center">
-            <span class="text-slate-500">Trạng thái giao dịch:</span>
+            <span class="text-slate-700 font-medium">Trạng thái giao dịch:</span>
             <span
-              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800"
             >
               {{ info?.trangThaiThanhToanHienThi }}
             </span>
           </div>
           <div class="flex justify-between text-xs items-center">
-            <span class="text-slate-500">Thời gian thanh toán:</span>
-            <span class="font-medium text-slate-700">{{
+            <span class="text-slate-700 font-medium">Thời gian thanh toán:</span>
+            <span class="font-semibold text-slate-900">{{
               formatDateTime(detail.thanhToan?.ngayThanhToan)
             }}</span>
           </div>
           <div class="flex justify-between text-xs items-center">
-            <span class="text-slate-500">Số tiền thanh toán:</span>
+            <span class="text-slate-700 font-medium">Số tiền thanh toán:</span>
             <span class="font-bold text-rose-600 text-sm"
               >{{ formatMoney(detail.thanhToan?.soTien) }} đ</span
             >
@@ -122,46 +126,46 @@
         </div>
 
         <!-- 4. Sản phẩm đã mua -->
-        <div class="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs space-y-3">
-          <div class="text-xs font-bold text-slate-400 uppercase">
+        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-3">
+          <div class="text-xs font-bold text-slate-700 uppercase">
             🛍️ Sản phẩm đã mua ({{ detail.sanPham?.length || 0 }})
           </div>
 
           <div
             v-for="sp in detail.sanPham"
             :key="sp.idHoaDonChiTiet"
-            class="flex items-center justify-between gap-3 pt-2"
+            class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 first:border-t-0 first:pt-0"
           >
             <div class="flex items-center gap-3">
               <img
                 :src="sp.anh ? `http://localhost:8080${sp.anh}` : ''"
-                class="w-14 h-14 object-cover rounded-xl border border-slate-100 bg-slate-100 flex items-center justify-center text-[10px] text-slate-400"
+                class="w-14 h-14 object-cover rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] text-slate-600 font-medium"
                 alt="No Image"
               />
               <div>
-                <p class="text-xs font-bold text-slate-800">{{ sp.tenSanPham }}</p>
+                <p class="text-xs font-bold text-slate-900">{{ sp.tenSanPham }}</p>
                 <div class="flex flex-wrap gap-1 mt-1.5">
                   <span
-                    class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium"
+                    class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold"
                     >Mã SP: {{ sp.maSanPham }}</span
                   >
                   <span
-                    class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium"
+                    class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold"
                     >Mã SPCT: {{ sp.maSPCT }}</span
                   >
                   <span
-                    class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium"
+                    class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold"
                     >Màu: {{ sp.mauSac }}</span
                   >
                   <span
-                    class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium"
+                    class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold"
                     >Size: {{ sp.kichThuoc }}</span
                   >
                 </div>
               </div>
             </div>
             <div class="text-right shrink-0">
-              <p class="text-[11px] text-slate-400">
+              <p class="text-[11px] text-slate-600 font-medium">
                 {{ formatMoney(sp.donGia) }} đ x {{ sp.soLuong }}
               </p>
               <p class="text-xs font-bold text-rose-600 mt-0.5">
@@ -172,21 +176,65 @@
         </div>
 
         <!-- 5. Tổng quan tài chính -->
-        <div class="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs space-y-2 text-xs">
-          <div class="flex justify-between text-slate-500">
+        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-2 text-xs">
+          <div class="flex justify-between text-slate-700 font-medium">
             <span>Tiền hàng</span>
-            <span class="font-medium text-slate-700">{{ formatMoney(info?.tongTienHang) }} đ</span>
+            <span class="font-semibold text-slate-900"
+              >{{ formatMoney(info?.tongTienHang) }} đ</span
+            >
           </div>
-          <div class="flex justify-between text-slate-500">
-            <span>Giảm giá voucher</span>
-            <span class="font-medium text-slate-700">-{{ formatMoney(info?.tongGiamGia) }} đ</span>
+
+          <!-- Hiển thị Giảm giá Voucher nếu có -->
+          <div v-if="detail?.voucher" class="flex justify-between text-slate-700 font-medium">
+            <span>
+              Giảm giá voucher
+              <span v-if="detail.voucher.tenVoucher" class="text-[11px] text-slate-500 font-normal"
+                >({{ detail.voucher.tenVoucher }})</span
+              >
+            </span>
+            <span class="font-semibold text-emerald-600"
+              >-{{ formatMoney(detail.voucher.soTienGiam) }} đ</span
+            >
           </div>
-          <div class="flex justify-between text-slate-500">
+
+          <!-- Hiển thị Giảm giá từ Xu nếu có sử dụng -->
+          <div
+            v-if="info?.tienGiamDoXu && info.tienGiamDoXu > 0"
+            class="flex justify-between text-slate-700 font-medium"
+          >
+            <span>
+              Giảm giá từ xu
+              <span class="text-[11px] text-slate-500 font-normal">({{ info.soXuSuDung }} xu)</span>
+            </span>
+            <span class="font-semibold text-emerald-600"
+              >-{{ formatMoney(info.tienGiamDoXu) }} đ</span
+            >
+          </div>
+
+          <!-- Fallback nếu đơn cũ không dùng voucher/xu mà chỉ có tongGiamGia chung -->
+          <div
+            v-if="
+              !detail?.voucher &&
+              (!info?.tienGiamDoXu || info.tienGiamDoXu === 0) &&
+              info?.tongGiamGia > 0
+            "
+            class="flex justify-between text-slate-700 font-medium"
+          >
+            <span>Giảm giá</span>
+            <span class="font-semibold text-emerald-600"
+              >-{{ formatMoney(info?.tongGiamGia) }} đ</span
+            >
+          </div>
+
+          <div class="flex justify-between text-slate-700 font-medium">
             <span>Phí vận chuyển</span>
-            <span class="font-medium text-slate-700">{{ formatMoney(info?.phiVanChuyen) }} đ</span>
+            <span class="font-semibold text-slate-900"
+              >{{ formatMoney(info?.phiVanChuyen) }} đ</span
+            >
           </div>
-          <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
-            <span class="font-bold text-slate-800 text-sm">Tổng thanh toán</span>
+
+          <div class="pt-3 border-t border-slate-200 flex justify-between items-center">
+            <span class="font-bold text-slate-900 text-sm">Tổng thanh toán</span>
             <span class="font-extrabold text-rose-600 text-base"
               >{{ formatMoney(info?.tongThanhToan) }} đ</span
             >
@@ -195,10 +243,10 @@
       </div>
 
       <!-- Footer Action -->
-      <div class="px-6 py-4 border-t border-slate-100 flex justify-end bg-white">
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end bg-white">
         <button
           @click="$emit('close')"
-          class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-colors shadow-xs"
+          class="px-6 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-xl cursor-pointer transition-colors shadow-xs"
         >
           Đóng
         </button>

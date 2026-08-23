@@ -3,6 +3,7 @@ package com.example.backend.Controller;
 
 import com.example.backend.Request.HuyDonRequest;
 import com.example.backend.Service.DonHangService;
+import com.example.backend.Service.HoaDonService;
 import com.example.backend.secutity.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ public class DonHangController {
 
 
     private final DonHangService donHangService;
+
+    private final HoaDonService hoaDonService;
 
     private final JwtService jwtService;
 
@@ -126,6 +129,7 @@ public class DonHangController {
 
         try {
             donHangService.huyDonHang(idTaiKhoan, idHoaDon, lyDoHuy);
+            hoaDonService.hoanXuKhiHuyDon(idHoaDon);
             return ResponseEntity.ok("Hủy đơn hàng thành công!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

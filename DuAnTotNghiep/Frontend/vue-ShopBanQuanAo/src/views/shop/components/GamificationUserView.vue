@@ -28,19 +28,19 @@
     <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div
+          <!-- <div
             class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"
           >
             <i class="fa-solid fa-gamepad"></i>
-          </div>
-          <div>
+          </div> -->
+          <!-- <div>
             <div class="text-lg font-black tracking-tight text-slate-900">
               K-<span class="text-indigo-600">ZONE</span>
             </div>
             <div class="text-[10px] font-bold uppercase tracking-[.22em] text-slate-600">
               Reward Center
             </div>
-          </div>
+          </div> -->
         </div>
 
         <div class="flex items-center gap-2.5">
@@ -92,40 +92,42 @@
 
         <div class="relative z-10 p-5 md:p-6">
           <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
-            <div class="max-w-2xl">
+            <div class="max-w-xl">
               <div
-                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-black uppercase tracking-[.15em] text-indigo-700"
+                class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-bold uppercase tracking-wider text-indigo-700"
               >
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Daily Rewards
+                Điểm danh hằng ngày
               </div>
 
-              <h1 class="mt-4 text-3xl md:text-4xl font-black tracking-tight">
-                Điểm danh mỗi ngày,<br />
+              <h1 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                Điểm danh mỗi ngày,
                 <span
                   class="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500"
+                  >nhận xu cực đã</span
                 >
-                  nhận xu cực đã.
-                </span>
               </h1>
 
-              <p class="mt-3 text-sm md:text-base leading-7 text-indigo-700/80 max-w-xl">
-                Duy trì chuỗi điểm danh để nhận xu tăng dần và dùng chúng cho vòng quay, lật thẻ
-                hoặc đổi voucher độc quyền của K-Zone.
+              <p class="mt-2 text-xs md:text-sm leading-relaxed text-slate-600">
+                Duy trì chuỗi điểm danh để nhận xu thưởng tăng dần, dùng chơi minigame và đổi
+                voucher độc quyền.
               </p>
 
-              <div class="mt-5 flex flex-wrap items-center gap-3">
+              <div class="mt-4 flex flex-wrap items-center gap-2.5">
                 <div
-                  class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-xs font-bold"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-xs font-bold text-slate-700"
                 >
                   <i class="fa-solid fa-fire text-orange-500"></i>
-                  Chuỗi {{ wallet.chuoiDiemDanh || 0 }} ngày
+                  Chuỗi:
+                  <span class="font-black text-slate-900"
+                    >{{ wallet.chuoiDiemDanh || 0 }} ngày</span
+                  >
                 </div>
                 <div
-                  class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-xs font-bold"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/80 border border-amber-200/60 text-xs font-bold text-amber-800"
                 >
                   <i class="fa-solid fa-coins text-amber-600"></i>
-                  +{{ nextCheckinCoins }} Xu hôm nay
+                  Hôm nay: <span class="font-black">+{{ nextCheckinCoins }} Xu</span>
                 </div>
               </div>
             </div>
@@ -133,11 +135,11 @@
             <button
               @click="performCheckIn"
               :disabled="wallet.daDiemDanhHomNay || isCheckingIn"
-              class="xl:w-auto w-full px-6 py-4 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-2.5 text-slate-900"
+              class="xl:w-auto w-full px-5 py-3.5 rounded-2xl font-black text-xs md:text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
               :class="
                 wallet.daDiemDanhHomNay
-                  ? 'bg-emerald-500/90 cursor-not-allowed'
-                  : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-xl shadow-amber-500/20 hover:-translate-y-0.5'
+                  ? 'bg-emerald-500/90 text-white cursor-not-allowed shadow-none'
+                  : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-lg shadow-amber-500/20 hover:-translate-y-0.5'
               "
             >
               <i
@@ -153,13 +155,15 @@
           </div>
 
           <!-- STREAK -->
-          <div class="mt-7 rounded-2xl bg-white/80 border border-indigo-100 p-4 md:p-5">
+          <div class="mt-6 rounded-2xl bg-white/90 border border-indigo-100/80 p-4">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <div class="text-xs font-bold text-indigo-700">
-                <i class="fa-solid fa-route mr-1.5 text-indigo-500"></i>
+              <div class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-route text-indigo-500"></i>
                 Lộ trình phần thưởng
               </div>
-              <div class="text-[10px] font-bold text-amber-600">
+              <div
+                class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60"
+              >
                 Mốc tiếp theo: Ngày {{ (wallet.chuoiDiemDanh || 0) + 1 }}
               </div>
             </div>
@@ -168,26 +172,26 @@
               <div
                 v-for="(milestone, idx) in previewMilestones"
                 :key="idx"
-                class="min-h-[78px] rounded-xl border flex flex-col items-center justify-center text-center transition-all"
+                class="min-h-[72px] rounded-xl border flex flex-col items-center justify-center text-center p-1.5 transition-all"
                 :class="
                   milestone.ngayThu <= wallet.chuoiDiemDanh
-                    ? 'bg-emerald-400/15 border-emerald-300/20 text-emerald-200'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                     : milestone.ngayThu === wallet.chuoiDiemDanh + 1 && !wallet.daDiemDanhHomNay
-                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-lg shadow-amber-500/20 scale-[1.03]'
-                      : 'bg-slate-50 border-indigo-100 text-indigo-700'
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20 scale-[1.02]'
+                      : 'bg-slate-50/80 border-slate-200/60 text-slate-600'
                 "
               >
-                <span class="text-[9px] uppercase tracking-wider opacity-70">
+                <span class="text-[9px] uppercase tracking-wider font-bold opacity-75">
                   Ngày {{ milestone.ngayThu }}
                 </span>
-                <div class="mt-1 font-black text-xs flex items-center gap-1">
+                <div class="mt-0.5 font-black text-xs flex items-center gap-1">
                   <i class="fa-solid fa-coins text-amber-600"></i>
-                  {{ milestone.soXuThuong }} Xu
+                  {{ milestone.soXuThuong }}
                 </div>
-                <span class="mt-1 text-[8px] font-bold opacity-70">
+                <span class="mt-0.5 text-[8px] font-bold opacity-75">
                   {{
                     milestone.ngayThu <= wallet.chuoiDiemDanh
-                      ? '✓ Đã nhận'
+                      ? 'Đã nhận'
                       : milestone.ngayThu === wallet.chuoiDiemDanh + 1 && !wallet.daDiemDanhHomNay
                         ? 'Hôm nay'
                         : 'Chưa mở'
@@ -1185,7 +1189,9 @@ const previewMilestones = computed(() => {
 })
 
 const sortedKhoVouchers = computed(() => {
-  let list = [...khoVouchers.value]
+  // Chỉ lấy các voucher có trạng thái hoạt động (trangThai === true)
+  let list = khoVouchers.value.filter((voucher) => voucher.trangThai === true)
+
   list.sort((a, b) => {
     if (sortBy.value === 'asc') {
       return (a.soXuDoi || 0) - (b.soXuDoi || 0)

@@ -38,9 +38,9 @@ public class SanPhamChiTiet {
     @JoinColumn(name = "id_kich_thuoc", nullable = false)
     private KichThuoc idKichThuoc;
 
-    @Size(max = 30)
+    
     @NotNull
-    @Column(name = "ma_san_pham_chi_tiet", nullable = false, length = 30)
+    @Column(name = "ma_san_pham_chi_tiet", nullable = false, length = 200)
     private String maSanPhamChiTiet;
 
     @Size(max = 200)

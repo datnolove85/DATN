@@ -17,5 +17,7 @@ public class DonHangResponse {
 
     private TraHangDTO traHang;
 
+    private HoaDonVoucherResponse voucher;
+
     private List<DonHangChiTietDTO> sanPham;
 }

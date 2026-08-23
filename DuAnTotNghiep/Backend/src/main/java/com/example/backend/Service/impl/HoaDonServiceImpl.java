@@ -63,6 +63,9 @@ public class HoaDonServiceImpl implements HoaDonService {
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
     private final TichXuVaNangHangService tichXuVaNangHangService;
     private final CauHinhHeThongRepository cauHinhHeThongRepository;
+    private final LichSuXuRepository lichSuXuRepo;
+    private final GioHangRepository gioHangRepository;
+    private final GioHangChiTietRepository gioHangChiTietRepository;
 
     @Override
     public HoaDon taoHoaDonCho(TaoHoaDonRequest request) {
@@ -117,7 +120,7 @@ public class HoaDonServiceImpl implements HoaDonService {
         return hoaDonRepo.getAllResponse();
     }
 
-    public  HoaDonDetailResponse getDetail(Integer id) {
+    public HoaDonDetailResponse getDetail(Integer id) {
         HoaDon hd = hoaDonRepo.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Không tìm thấy hóa đơn"));
@@ -167,9 +170,9 @@ public class HoaDonServiceImpl implements HoaDonService {
             response.setTenKhachHang(hd.getIdKhachHang().getHoTen());
             response.setSoDienThoaiKhachHang(hd.getIdKhachHang().getSoDienThoai());
         }
-       if(hd.getIdNhanVien() != null) {
-           response.setTenNhanVien(hd.getIdNhanVien().getTenNhanVien());
-       }
+        if (hd.getIdNhanVien() != null) {
+            response.setTenNhanVien(hd.getIdNhanVien().getTenNhanVien());
+        }
         response.setTenNguoiNhan(hd.getTenNguoiNhan());
         response.setSoDienThoaiNguoiNhan(hd.getSoDienThoaiNguoiNhan());
         response.setDiaChiGiaoHang(hd.getDiaChiGiaoHang());
@@ -1110,7 +1113,7 @@ public class HoaDonServiceImpl implements HoaDonService {
 
     @Transactional
     @Override
-    public void huyHoaDon(Integer idHoaDon,Integer idNhanVien) {
+    public void huyHoaDon(Integer idHoaDon, Integer idNhanVien) {
         // 1. Lấy hóa đơn
         HoaDon hoaDon = hoaDonRepo.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
@@ -1156,6 +1159,7 @@ public class HoaDonServiceImpl implements HoaDonService {
             hoaDonVoucherRepo.delete(hdVoucher);
         }
         hoaDonRepo.save(hoaDon);
+        hoanXuKhiHuyDon(idHoaDon);
     }
 
     @Transactional
@@ -1215,7 +1219,6 @@ public class HoaDonServiceImpl implements HoaDonService {
             System.out.println("=> Không có thay đổi số lượng.");
             return;
         }
-
 
 
         int ton = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
@@ -1467,6 +1470,7 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         hoaDonRepo.save(hd);
     }
+
     private BigDecimal tinhTienGiam(
             Voucher voucher,
             BigDecimal tongTienHang
@@ -1811,6 +1815,7 @@ public class HoaDonServiceImpl implements HoaDonService {
         // =========================================================================
         HoaDon hd = taoHoaDonChoOnline();
 
+
         // 2. Xử lý khách hàng
         String auth = request.getHeader("Authorization");
 
@@ -1856,6 +1861,14 @@ public class HoaDonServiceImpl implements HoaDonService {
                             + ", "
                             + diaChi.getThanhPho()
             );
+            gioHangRepository.findByIdKhachHang_Id(khachHang.getId()).ifPresent(gioHang -> {
+                for (CreateOnlineOrderRequest.Item item : req.getItems()) {
+                    gioHangChiTietRepository.findByGioHang_IdAndSanPhamChiTiet_Id(
+                            gioHang.getId(),
+                            item.getProductDetailId()
+                    ).ifPresent(chiTiet -> gioHangChiTietRepository.delete(chiTiet));
+                }
+            });
         } else {
             if (req.getTenNguoiNhan() == null || req.getTenNguoiNhan().isBlank()) {
                 throw new RuntimeException("Thiếu tên người nhận");
@@ -1927,6 +1940,43 @@ public class HoaDonServiceImpl implements HoaDonService {
 
         hd = hoaDonRepo.findById(hd.getId()).orElseThrow();
 
+        // =========================================================================
+        // 🟢 XỬ LÝ PHƯƠNG THỨC THANH TOÁN (TÁCH BIỆT COD VÀ VNPAY)
+        // =========================================================================
+        String method = req.getPaymentMethod() != null ? req.getPaymentMethod() : "COD";
+
+        PhuongThucThanhToan pttt = ptRepo
+                .findByMaPhuongThuc(method)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phương thức thanh toán: " + method));
+
+        hd.setTrangThaiThanhToan("chua_thanh_toan");
+
+        if ("COD".equalsIgnoreCase(method)) {
+            // 1. COD: Tạo bản ghi ThanhToan ngay lập tức với trạng thái "cho_thanh_toan"
+            ThanhToan thanhToan = new ThanhToan();
+            thanhToan.setIdHoaDon(hd);
+            thanhToan.setIdPhuongThucThanhToan(pttt);
+            thanhToan.setSoTien(hd.getTongThanhToan());
+            thanhToan.setTrangThai("cho_thanh_toan");
+            thanhToan.setNgayThanhToan(LocalDateTime.now());
+            ttRepo.save(thanhToan);
+
+            // 2. Tiêu thụ voucher ngay lập tức đối với đơn COD
+            voucherConsumeService.consumeVoucher(hd.getId());
+
+
+        } else if ("VNPAY".equalsIgnoreCase(method)) {
+            // 3. VNPAY: KHÔNG tạo bản ghi ThanhToan ở đây, KHÔNG consume voucher ở đây.
+            // Đúng theo ý bạn: Nếu khách thoát/hủy thì hóa đơn vẫn tồn tại nhưng chưa có bản ghi ThanhToan nào được sinh ra.
+            // Bản ghi ThanhToan và việc consume voucher sẽ do file VNPayPaymentServiceImpl / vnpay-return lo sau khi thanh toán thành công.
+
+            System.out.println("Đã tạo hóa đơn cho VNPAY, chờ khách thanh toán qua cổng...");
+        }
+
+        hoaDonRepo.save(hd);
+//        tichXuVaNangHangService.xuLyHoanTatDonHang(hd.getId());
+        // =========================================================================
+
         String qrUrl = VietQrUtil.createQrUrl(
                 hd.getTongThanhToan().longValue(),
                 hd.getMaHoaDon()
@@ -1987,6 +2037,7 @@ public class HoaDonServiceImpl implements HoaDonService {
 
             hoaDonVoucherRepo.delete(hdVoucher);
         }
+
 
         // Cập nhật trạng thái hóa đơn
         thayDoiTrangThai(
@@ -2411,20 +2462,34 @@ public class HoaDonServiceImpl implements HoaDonService {
             throw new RuntimeException("Số xu sử dụng không hợp lệ!");
         }
 
-        // Người dùng bỏ chọn xu
+        // 1. Lấy số xu cũ đã áp dụng trên hóa đơn này (nếu có) để tính chênh lệch
+        int soXuCu = hd.getSoXuSuDung() != null ? hd.getSoXuSuDung() : 0;
+
+        // Người dùng bỏ chọn xu (set về 0)
         if (soXuSuDung == 0) {
+            if (soXuCu > 0) {
+                // Hoàn lại xu cũ cho khách hàng
+                int soDuSau = soDuHienTai + soXuCu;
+                kh.setSoDuXu(soDuSau);
+                khRepo.save(kh);
+
+                // Ghi lịch sử hoàn xu
+                LichSuXu lichSu = new LichSuXu();
+                lichSu.setIdKhachHang(kh);
+                lichSu.setSoXuThayDoi(soXuCu); // Số dương vì được cộng lại
+                lichSu.setSoDuTruoc(soDuHienTai);
+                lichSu.setSoDuSau(soDuSau);
+                lichSu.setLoaiGiaoDich("HOAN_XU");
+                lichSu.setMoTa("Hoàn lại xu do hủy/bỏ chọn ở hóa đơn: " + hd.getMaHoaDon());
+                lichSuXuRepo.save(lichSu);
+            }
+
             hd.setSoXuSuDung(0);
             hd.setTienGiamDoXu(BigDecimal.ZERO);
             hoaDonRepo.save(hd);
 
             recalculateHoaDon(idHoaDon);
             return;
-        }
-
-        // Kiểm tra đủ xu trong tài khoản khách
-        if (soDuHienTai < soXuSuDung) {
-            throw new RuntimeException(
-                    "Số dư xu của quý khách không đủ (Hiện có: " + soDuHienTai + " xu)");
         }
 
         // --- LẤY CẤU HÌNH TỪ HỆ THỐNG ---
@@ -2436,33 +2501,58 @@ public class HoaDonServiceImpl implements HoaDonService {
                 .map(CauHinhHeThong::getGiaTriSo)
                 .orElse(BigDecimal.valueOf(50));
 
-        // 1. Tính số tiền giảm tối đa theo % đơn hàng (Ví dụ: 25000 * 50% = 12500đ)
+        // 1. Tính số tiền giảm tối đa theo % đơn hàng
         BigDecimal tienGiamToiDaTheoPhanTram = hd.getTongTienHang()
                 .multiply(tyLeGiamToiDa)
                 .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
 
-        // 2. QUY ĐỔI MỨC TRẦN % RA SỐ XU TỐI ĐA (Làm tròn xuống vì xu là số nguyên)
-        // Ví dụ: 12.500 / 10.000 = 1.25 -> làm tròn xuống thành 1 xu
+        // 2. QUY ĐỔI MỨC TRẦN % RA SỐ XU TỐI ĐA
         int maxXuTheoPhanTram = tienGiamToiDaTheoPhanTram
                 .divide(tyLeQuyDoi, 0, java.math.RoundingMode.DOWN)
                 .intValue();
 
-        // 3. Số xu tối đa không được vượt quá tổng tiền hàng hiện tại
         int maxXuTheoTongTien = hd.getTongTienHang()
                 .divide(tyLeQuyDoi, 0, java.math.RoundingMode.DOWN)
                 .intValue();
 
-        // 4. Giới hạn số xu thực tế được phép sử dụng (lấy min của các điều kiện)
-        int xuThucTeSuDung = Math.min(soXuSuDung, soDuHienTai);
+        // Tổng số xu khả dụng của khách tính cả số xu cũ đang giữ chỗ trong hóa đơn này
+        int tongXuKhaDung = soDuHienTai + soXuCu;
+
+        // 3. Giới hạn số xu thực tế được phép sử dụng
+        int xuThucTeSuDung = Math.min(soXuSuDung, tongXuKhaDung);
         xuThucTeSuDung = Math.min(xuThucTeSuDung, maxXuTheoPhanTram);
         xuThucTeSuDung = Math.min(xuThucTeSuDung, maxXuTheoTongTien);
 
-        // Kiểm tra nếu đơn hàng quá nhỏ mà mức trần không đủ 1 xu
         if (soXuSuDung > 0 && maxXuTheoPhanTram == 0) {
-            throw new RuntimeException("Đơn hàng quá nhỏ, không đủ điều kiện để sử dụng xu (Mức giảm tối đa không đủ 1 xu quy đổi)!");
+            throw new RuntimeException("Đơn hàng quá nhỏ, không đủ điều kiện để sử dụng xu!");
         }
 
-        // 5. Tính tiền giảm chính xác dựa trên số xu nguyên vẹn thực tế (Ví dụ: 1 xu * 10000 = 10000đ)
+        // 4. Tính phần chênh lệch xu so với trước đó
+        int chenhLechXu = xuThucTeSuDung - soXuCu;
+        // Nếu chenhLechXu > 0: Dùng thêm xu (cần trừ thêm ví khách)
+        // Nếu chenhLechXu < 0: Dùng ít đi (cần cộng hoàn lại ví khách)
+
+        if (chenhLechXu > 0 && soDuHienTai < chenhLechXu) {
+            throw new RuntimeException("Số dư xu của quý khách không đủ (Hiện có: " + soDuHienTai + " xu)");
+        }
+
+        // 5. Cập nhật số dư xu và lưu lịch sử nếu có thay đổi
+        if (chenhLechXu != 0) {
+            int soDuSau = soDuHienTai - chenhLechXu;
+            kh.setSoDuXu(soDuSau);
+            khRepo.save(kh);
+
+            LichSuXu lichSu = new LichSuXu();
+            lichSu.setIdKhachHang(kh);
+            lichSu.setSoXuThayDoi(-chenhLechXu); // Dùng xu thì âm (-), hoàn xu thì dương (+)
+            lichSu.setSoDuTruoc(soDuHienTai);
+            lichSu.setSoDuSau(soDuSau);
+            lichSu.setLoaiGiaoDich("SU_DUNG_XU");
+            lichSu.setMoTa("Sử dụng xu cho hóa đơn: " + hd.getMaHoaDon());
+            lichSuXuRepo.save(lichSu);
+        }
+
+        // 6. Tính tiền giảm và lưu hóa đơn
         BigDecimal tienGiamXu = BigDecimal.valueOf(xuThucTeSuDung).multiply(tyLeQuyDoi);
 
         hd.setSoXuSuDung(xuThucTeSuDung);
@@ -2471,5 +2561,43 @@ public class HoaDonServiceImpl implements HoaDonService {
         hoaDonRepo.save(hd);
 
         recalculateHoaDon(idHoaDon);
+    }
+
+    @Transactional
+    public void hoanXuKhiHuyDon(Integer idHoaDon) {
+        HoaDon hd = hoaDonRepo.findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        // Lấy số xu đã dùng trên hóa đơn này
+        int soXuDaDung = hd.getSoXuSuDung() != null ? hd.getSoXuSuDung() : 0;
+
+        // Chỉ hoàn xu nếu đơn hàng có sử dụng xu và có gắn khách hàng
+        if (soXuDaDung > 0 && hd.getIdKhachHang() != null) {
+            KhachHang kh = hd.getIdKhachHang();
+            int soDuTruoc = kh.getSoDuXu() != null ? kh.getSoDuXu() : 0;
+            int soDuSau = soDuTruoc + soXuDaDung;
+
+            // 1. Cộng lại số dư xu cho khách hàng
+            kh.setSoDuXu(soDuSau);
+            khRepo.save(kh);
+
+            // 2. Ghi bản ghi vào bảng lịch sử xu
+            LichSuXu lichSu = new LichSuXu();
+            lichSu.setIdKhachHang(kh);
+            lichSu.setSoXuThayDoi(soXuDaDung); // Số dương (+) vì là hoàn xu cộng vào ví
+            lichSu.setSoDuTruoc(soDuTruoc);
+            lichSu.setSoDuSau(soDuSau);
+            lichSu.setLoaiGiaoDich("HOAN_XU");
+            lichSu.setMoTa("Hoàn lại xu do hủy đơn hàng: " + hd.getMaHoaDon());
+            lichSuXuRepo.save(lichSu);
+
+            // 3. Reset thông tin xu trên hóa đơn về 0
+            hd.setSoXuSuDung(0);
+            hd.setTienGiamDoXu(BigDecimal.ZERO);
+            hoaDonRepo.save(hd);
+
+            // 4. Tính toán lại tổng tiền hóa đơn (nếu hàm recalculateHoaDon của bạn có tính lại các khoản giảm giá)
+            recalculateHoaDon(idHoaDon);
+        }
     }
 }

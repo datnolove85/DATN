@@ -1,481 +1,948 @@
 <template>
-  <div
-    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-b from-white to-slate-50 min-h-screen"
-  >
-    <div v-if="loading" class="flex justify-center items-center py-20 text-gray-400">
-      <div class="animate-pulse">Đang tải sản phẩm...</div>
+  <!-- THÊM antialiased để toàn bộ chữ mượt và sắc nét như Figma, đổi màu chữ gốc tối hơn chút (#222) -->
+  <div class="min-h-screen bg-white text-[#222] antialiased">
+    <!-- =========================
+         LOADING
+    ========================== -->
+    <div v-if="loading" class="min-h-[60vh] flex items-center justify-center">
+      <div class="flex flex-col items-center gap-3 text-gray-500">
+        <div
+          class="w-7 h-7 border-2 border-gray-200 border-t-[#222] rounded-full animate-spin"
+        ></div>
+        <span class="text-sm font-medium">Đang tải sản phẩm...</span>
+      </div>
     </div>
 
-    <!-- BỐ CỤC 2 CỘT: Cột trái sticky ảnh, cột phải cuộn tự nhiên mượt mà -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[480px_1fr] gap-8 items-start">
-      <!-- CỘT TRÁI (ẢNH): Giữ sticky để cố định ảnh khi người dùng đọc thông tin -->
-      <div class="sticky top-28 bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-        <div
-          class="relative aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden border border-gray-100"
-        >
-          <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
-            <span
-              v-if="selectedVariant?.dangGiamGia && selectedVariant?.phanTramGiam > 0"
-              class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm"
-              >-{{ selectedVariant.phanTramGiam }}%</span
+    <!-- =========================
+         PRODUCT DETAIL
+    ========================== -->
+    <main v-else class="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-4 lg:pt-2 lg:pb-5">
+      <!-- BREADCRUMB NAVIGATION -->
+      <div
+        class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen border-y border-gray-300 bg-white mb-6"
+      >
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav class="text-[14px] sm:text-[15px] flex items-center flex-wrap gap-2 text-gray-600">
+            <router-link
+              to="/"
+              class="text-[#00a884] hover:underline font-normal whitespace-nowrap"
             >
-          </div>
-          <img
-            v-if="mainImage"
-            :src="mainImage"
-            class="w-full h-full object-cover transition-opacity duration-700"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
-            Không có ảnh
-          </div>
-        </div>
-
-        <div class="grid grid-cols-5 gap-3 mt-4">
-          <button
-            v-for="img in galleryImages"
-            :key="img.image"
-            @click="selectImage(img)"
-            class="aspect-square rounded-xl overflow-hidden border-2 transition hover:scale-105"
-            :class="
-              mainImage === img.url ? 'border-gray-900' : 'border-transparent hover:border-gray-300'
-            "
-          >
-            <img :src="img.url" class="w-full h-full object-cover" />
-          </button>
+              Trang chủ
+            </router-link>
+            <span class="text-gray-400">/</span>
+            <router-link
+              :to="{ path: '/san-pham', query: { brand: selectedVariant?.tenThuongHieu } }"
+              class="text-[#00a884] hover:underline font-normal whitespace-nowrap"
+            >
+              {{ selectedVariant?.tenThuongHieu || 'Wolf Calie' }}
+            </router-link>
+            <span class="text-gray-400">/</span>
+            <span class="text-gray-800 font-normal">
+              {{ product?.productName }}
+            </span>
+          </nav>
         </div>
       </div>
 
-      <!-- CỘT PHẢI: THÔNG TIN VÀ HÀNH ĐỘNG (Đã bỏ sticky để cuộn tự nhiên) -->
-      <div>
-        <div class="rounded-3xl bg-white border border-gray-200 shadow-sm p-6 lg:p-8">
-          <!-- Tên sản phẩm -->
-          <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
-            {{ product?.productName }}
-          </h1>
+      <!-- MAIN LAYOUT -->
+      <div
+        class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(350px,1fr)] gap-8 xl:gap-10 items-stretch"
+      >
+        <!-- =====================================================
+             LEFT: GALLERY (Bo góc và đường viền thanh lịch cho ảnh)
+        ====================================================== -->
+        <section class="min-w-0 flex flex-col justify-between h-full">
+          <!-- MAIN IMAGE -->
+          <div
+            class="relative bg-[#f6f6f6] overflow-hidden flex-1 flex items-center justify-center min-h-[400px] rounded-[10px] border border-gray-200/80 shadow-sm"
+          >
+            <img
+              v-if="mainImage"
+              :src="mainImage"
+              :alt="product?.productName || 'Sản phẩm'"
+              class="w-full h-full object-cover absolute inset-0 main-product-image"
+            />
 
-          <!-- Thông tin mã, thương hiệu, tình trạng -->
-          <div class="mt-3 space-y-1.5 text-sm text-gray-700">
-            <div>
-              <span class="text-gray-500">Mã: </span>
-              <span class="italic text-gray-800">{{
-                selectedVariant?.maSanPhamChiTiet || 'Đang cập nhật'
-              }}</span>
-            </div>
-            <div>
-              <span class="text-gray-500">Thương hiệu: </span>
-              <span class="text-teal-600 font-medium">{{
-                selectedVariant?.tenThuongHieu || 'Wolf Calie'
-              }}</span>
-            </div>
-            <div class="flex items-center gap-2 pt-0.5">
-              <span class="text-gray-500">Tình trạng: </span>
-              <span class="bg-emerald-600 text-white px-3 py-0.5 rounded-full text-xs font-semibold"
-                >Còn hàng</span
-              >
-            </div>
-          </div>
-
-          <!-- Giá -->
-          <div class="mt-4">
-            <div class="flex items-baseline gap-3">
-              <span class="text-4xl font-extrabold text-red-600 tracking-tight"
-                >{{
-                  (selectedVariant?.giaSauGiam || selectedVariant?.giaBan)?.toLocaleString('vi-VN')
-                }}đ</span
-              >
-              <span v-if="selectedVariant?.dangGiamGia" class="line-through text-gray-400 text-xl"
-                >{{ selectedVariant?.giaBan?.toLocaleString('vi-VN') }}đ</span
-              >
-            </div>
-          </div>
-
-          <!-- Khuyến mãi đặc biệt box -->
-          <div class="mt-6 border border-rose-200 rounded-2xl p-4 relative bg-rose-50/25">
             <div
-              class="absolute -top-3.5 left-4 bg-rose-500 text-white px-3.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm"
+              v-else
+              class="w-full h-full flex items-center justify-center text-sm text-gray-500"
             >
-              <span>🎁</span> Khuyến mãi đặc biệt
-            </div>
-            <ul class="space-y-2 text-xs text-gray-700 mt-2">
-              <li class="flex items-start gap-2">
-                <span class="text-red-500 font-bold">✓</span> Giảm 10% cho đơn hàng từ 3 sản phẩm
-                trở lên.
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-red-500 font-bold">✓</span> Miễn phí giao hàng toàn quốc cho đơn
-                hàng trên 500.000 VNĐ.
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-red-500 font-bold">✓</span> Tặng ngay voucher 50.000 VNĐ cho khách
-                hàng mới.
-              </li>
-            </ul>
-          </div>
-
-          <!-- Chọn Màu -->
-          <div class="mt-6">
-            <div class="text-sm font-bold text-gray-900 mb-2">
-              Màu sắc: <span class="font-normal text-gray-700">{{ selectedColor?.name }}</span>
-            </div>
-            <div class="flex flex-wrap gap-2.5">
-              <button
-                v-for="color in product?.colors"
-                :key="color.id"
-                @click="selectColor(color)"
-                class="w-11 h-11 rounded-xl border transition-all flex items-center justify-center shadow-sm"
-                :class="
-                  selectedColor?.id === color.id
-                    ? 'border-gray-900 ring-2 ring-gray-900/20'
-                    : 'border-gray-200 hover:border-gray-400'
-                "
-                :style="{ backgroundColor: getColorStyle(color.name) }"
-                :title="color.name"
-              ></button>
+              Không có ảnh sản phẩm
             </div>
           </div>
 
-          <!-- Chọn Size -->
-          <div class="mt-6">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-bold text-gray-900">
-                Size:
-                <span class="font-normal text-gray-700">{{ selectedVariant?.tenKichThuoc }}</span>
-              </span>
-              <button
-                class="text-xs text-teal-600 font-medium hover:underline flex items-center gap-1"
+          <!-- THUMBNAILS -->
+          <div
+            v-if="galleryImages.length > 0"
+            class="mt-3 flex gap-2 overflow-x-auto pb-1 shrink-0"
+          >
+            <button
+              v-for="img in galleryImages"
+              :key="img.image"
+              type="button"
+              @click="selectImage(img)"
+              class="relative shrink-0 w-[80px] sm:w-[90px] aspect-square overflow-hidden bg-[#f6f6f6] border rounded-[6px] transition-all"
+              :class="
+                mainImage === img.url
+                  ? 'border-[#222] ring-1 ring-[#222]'
+                  : 'border-gray-200 hover:border-gray-400'
+              "
+            >
+              <img
+                :src="img.url"
+                :alt="product?.productName || 'Sản phẩm'"
+                class="w-full h-full object-cover"
+              />
+            </button>
+          </div>
+        </section>
+
+        <!-- =====================================================
+             RIGHT: PRODUCT INFO
+        ====================================================== -->
+        <section class="min-w-0 lg:pt-0 flex flex-col justify-between">
+          <div>
+            <!-- NAME + META -->
+            <div class="pb-2">
+              <h1
+                class="text-[24px] sm:text-[27px] lg:text-[28px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#111]"
               >
-                📏 Gợi ý tìm size
-              </button>
-            </div>
-            <div class="flex flex-wrap gap-2.5">
-              <button
-                v-for="variant in selectedColor?.variants"
-                :key="variant.id"
-                @click="getVariantStock(variant) > 0 && selectVariant(variant)"
-                :disabled="getVariantStock(variant) === 0"
-                class="w-12 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all"
-                :class="[
-                  getVariantStock(variant) === 0
-                    ? 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed line-through'
-                    : selectedVariant?.id === variant.id
-                      ? 'border-gray-900 bg-gray-900 text-white shadow-sm'
-                      : 'border-gray-200 bg-white text-gray-800 hover:border-gray-300',
-                ]"
-              >
-                {{ variant.tenKichThuoc }}
-              </button>
-            </div>
-          </div>
+                {{ product?.productName }}
+              </h1>
 
-          <!-- Số lượng và Khả dụng kho -->
-          <div class="mt-6 space-y-2">
-            <div class="flex items-center gap-4">
-              <span class="text-sm font-bold text-gray-900">Số lượng:</span>
+              <div class="mt-3 space-y-2 text-[14px] sm:text-[15px]">
+                <div>
+                  <span class="text-gray-600">Mã: </span>
+                  <span class="italic text-gray-800 break-all">
+                    {{ selectedVariant?.maSanPhamChiTiet || 'Đang cập nhật' }}
+                  </span>
+                </div>
+
+                <div>
+                  <span class="text-gray-600">Thương hiệu: </span>
+                  <span class="font-medium text-[#00a884]">
+                    {{ selectedVariant?.tenThuongHieu || 'Wolf Calie' }}
+                  </span>
+                </div>
+
+                <div>
+                  <span class="text-gray-600">Tình trạng: </span>
+                  <span
+                    class="inline-flex items-center bg-[#15945c] text-white px-2.5 py-[3px] rounded-[4px] text-[11px] font-bold ml-1"
+                  >
+                    Còn hàng
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRICE -->
+            <div class="pt-2 pb-4 border-b border-[#e6e6e6]">
+              <div class="flex items-end flex-wrap gap-x-3 gap-y-1">
+                <span class="text-[27px] sm:text-[30px] font-bold text-[#bd2228] leading-none">
+                  {{
+                    (selectedVariant?.giaSauGiam || selectedVariant?.giaBan || 0).toLocaleString(
+                      'vi-VN',
+                    )
+                  }}đ
+                </span>
+
+                <span
+                  v-if="selectedVariant?.dangGiamGia"
+                  class="text-[15px] text-gray-500 line-through"
+                >
+                  {{ (selectedVariant?.giaBan || 0).toLocaleString('vi-VN') }}đ
+                </span>
+              </div>
+
+              <div v-if="selectedVariant?.dangGiamGia" class="mt-2 text-[14px] text-gray-600">
+                Tiết kiệm
+                <span class="text-[#00a884] font-medium">
+                  {{
+                    (
+                      (selectedVariant?.giaBan || 0) -
+                      (selectedVariant?.giaSauGiam || selectedVariant?.giaBan || 0)
+                    ).toLocaleString('vi-VN')
+                  }}đ
+                </span>
+                so với giá thị trường
+              </div>
+            </div>
+
+            <!-- PROMOTION -->
+            <div class="relative mt-4">
               <div
-                class="flex items-center w-fit border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm"
+                class="border-2 border-[#ff625c] bg-[#fffafa] rounded-[8px] px-4 pt-6 pb-4 shadow-sm"
               >
-                <button
-                  @click="decreaseQty"
-                  :disabled="quantity <= 1"
-                  class="w-10 h-10 bg-sky-50 hover:bg-sky-100 flex items-center justify-center font-bold text-sky-600 disabled:text-gray-300 disabled:bg-gray-50 transition"
+                <div
+                  class="absolute -top-[13px] left-4 bg-[#ff625c] text-white px-3 py-[6px] rounded-[4px] text-[12px] font-semibold flex items-center gap-1.5"
                 >
-                  -
-                </button>
-                <div class="w-12 text-center font-semibold text-gray-800">{{ quantity }}</div>
+                  <span>🎁</span>
+                  <span>Khuyến mãi đặc biệt</span>
+                </div>
+
+                <div class="space-y-2 text-[13px] sm:text-[14px] leading-[1.55] text-gray-800">
+                  <div class="flex items-start gap-2">
+                    <span class="font-bold text-gray-900">✓</span>
+                    <span>
+                      Giảm <strong>10%</strong> cho đơn hàng từ <strong>3 sản phẩm</strong> trở lên.
+                    </span>
+                  </div>
+
+                  <div class="flex items-start gap-2">
+                    <span class="font-bold text-gray-900">✓</span>
+                    <span>
+                      <strong>Miễn phí giao hàng</strong> toàn quốc cho đơn hàng trên
+                      <strong>500.000 VNĐ</strong>.
+                    </span>
+                  </div>
+
+                  <div class="flex items-start gap-2">
+                    <span class="font-bold text-gray-900">✓</span>
+                    <span> Tặng ngay <strong>voucher 50.000 VNĐ</strong> cho khách hàng mới. </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- COLOR -->
+            <div class="mt-6">
+              <div class="text-[14px] sm:text-[15px] mb-2.5">
+                <span class="font-semibold text-[#111]">Màu sắc:</span>
+                <span class="text-gray-700 ml-1">
+                  {{ selectedColor?.name }}
+                </span>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
                 <button
-                  @click="increaseQty"
-                  :disabled="!selectedVariant || quantity >= availableStock"
-                  class="w-10 h-10 bg-sky-50 hover:bg-sky-100 flex items-center justify-center font-bold text-sky-600 disabled:text-gray-300 disabled:bg-gray-50 transition"
+                  v-for="color in product?.colors"
+                  :key="color.id"
+                  type="button"
+                  @click="selectColor(color)"
+                  :title="color.name"
+                  class="relative w-[42px] h-[42px] border rounded-[6px] transition-all"
+                  :class="
+                    selectedColor?.id === color.id
+                      ? 'border-[#222] ring-2 ring-[#222]/10'
+                      : 'border-gray-300 hover:border-gray-700'
+                  "
+                  :style="{ backgroundColor: getColorStyle(color.name) }"
                 >
-                  +
+                  <span
+                    v-if="selectedColor?.id === color.id"
+                    class="absolute inset-0 flex items-center justify-center"
+                  >
+                    <span
+                      class="w-[18px] h-[18px] rounded-full bg-white/90 flex items-center justify-center shadow"
+                    >
+                      <span class="text-[10px] font-bold text-gray-900"> ✓ </span>
+                    </span>
+                  </span>
                 </button>
               </div>
             </div>
-            <div class="text-xs text-emerald-700 font-medium flex items-center gap-1.5 pl-1">
-              ✔ Khả dụng: {{ availableStock }} sản phẩm trong kho
+
+            <!-- SIZE -->
+            <div class="mt-6">
+              <div class="flex items-center justify-between gap-3 mb-2.5">
+                <div class="text-[14px] sm:text-[15px]">
+                  <span class="font-semibold text-[#111]">Size:</span>
+                  <span class="text-gray-700 ml-1">
+                    {{ selectedVariant?.tenKichThuoc }}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  @click="showSizeModal = true"
+                  class="text-[13px] sm:text-[14px] text-[#0878f2] font-medium hover:underline flex items-center gap-1"
+                >
+                  <span>▦</span>
+                  <span>Gợi ý tìm size</span>
+                </button>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="variant in selectedColor?.variants"
+                  :key="variant.id"
+                  type="button"
+                  :disabled="getVariantStock(variant) === 0"
+                  @click="getVariantStock(variant) > 0 && selectVariant(variant)"
+                  class="min-w-[46px] h-[42px] px-3.5 border rounded-[6px] text-[14px] font-medium transition-all"
+                  :class="[
+                    getVariantStock(variant) === 0
+                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through'
+                      : selectedVariant?.id === variant.id
+                        ? 'bg-[#222] text-white border-[#222]'
+                        : 'bg-white text-gray-800 border-gray-300 hover:border-[#222]',
+                  ]"
+                >
+                  {{ variant.tenKichThuoc }}
+                </button>
+              </div>
+            </div>
+
+            <!-- QUANTITY -->
+            <div class="mt-6">
+              <div class="flex items-center gap-4">
+                <span class="text-[14px] sm:text-[15px] font-semibold text-[#111]">
+                  Số lượng:
+                </span>
+
+                <div
+                  class="flex items-center h-[40px] border border-gray-300 rounded-[6px] overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    @click="decreaseQty"
+                    :disabled="quantity <= 1"
+                    class="w-10 h-full text-[18px] text-gray-600 hover:bg-gray-50 disabled:text-gray-300"
+                  >
+                    −
+                  </button>
+
+                  <input
+                    type="number"
+                    min="1"
+                    :max="availableStock"
+                    v-model.number="quantity"
+                    @blur="validateQuantity"
+                    class="w-14 h-full text-center border-x border-gray-300 text-[14px] font-medium text-gray-800 focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+
+                  <button
+                    type="button"
+                    @click="increaseQty"
+                    :disabled="!selectedVariant || quantity >= availableStock"
+                    class="w-10 h-full text-[18px] text-gray-600 hover:bg-gray-50 disabled:text-gray-300"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-2 text-[13px] text-[#15945c] font-medium">
+                Còn {{ availableStock }} sản phẩm
+              </div>
             </div>
           </div>
 
-          <!-- Nút Hành Động -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-            <button
-              @click="buyNow"
-              :disabled="!selectedVariant || availableStock === 0"
-              class="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all bg-[#00A884] text-white hover:bg-[#009272] shadow-sm disabled:bg-gray-300 disabled:text-gray-500 text-center flex flex-col justify-center items-center leading-tight"
-            >
-              <span>MUA NGAY</span>
-              <span class="text-[11px] font-normal opacity-90"
-                >(Giao tận nơi hoặc nhận tại cửa hàng)</span
+          <!-- ACTION & AI BUTTONS GROUP -->
+          <div class="mt-6 pt-2">
+            <div class="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                @click="buyNow"
+                :disabled="!selectedVariant || availableStock === 0"
+                class="min-h-[54px] rounded-[6px] bg-[#00a884] text-white hover:bg-[#009675] disabled:bg-gray-300 disabled:text-gray-500 flex flex-col items-center justify-center transition-all shadow-sm"
               >
-            </button>
+                <span class="text-[14px] font-bold"> Mua ngay </span>
+              </button>
 
+              <button
+                type="button"
+                @click="addToCart"
+                :disabled="!selectedVariant || availableStock === 0 || isAddingToCart"
+                class="min-h-[54px] rounded-[6px] bg-[#df3440] text-white hover:bg-[#ce2d38] disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center gap-1.5 text-[14px] font-semibold transition-all duration-300 active:scale-95 relative overflow-hidden shadow-sm"
+                :class="{ 'bg-[#00a884] scale-95': isAddingToCart }"
+              >
+                <span
+                  class="inline-flex items-center gap-1.5 transition-transform duration-300"
+                  :class="{ 'scale-105': isAddingToCart }"
+                >
+                  <span class="text-[16px]">{{ isAddingToCart ? '✓' : '🛒' }}</span>
+                  <span>{{ isAddingToCart ? 'Đã thêm vào giỏ!' : 'Thêm vào giỏ' }}</span>
+                </span>
+              </button>
+            </div>
+
+            <!-- AI -->
             <button
-              @click="addToCart"
-              :disabled="!selectedVariant || availableStock === 0"
-              class="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all bg-[#E03C31] text-white hover:bg-[#C9352B] shadow-sm disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center gap-2"
+              type="button"
+              :disabled="!selectedVariant"
+              @click="showTryOn = true"
+              class="mt-2.5 w-full min-h-[44px] rounded-[6px] bg-[#6d42d9] text-white hover:bg-[#5e35c3] disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center gap-2 text-[14px] font-semibold transition-all shadow-sm"
             >
-              <span>🛒 Thêm vào giỏ</span>
+              <span>✨</span>
+              <span>Thử đồ bằng AI</span>
             </button>
           </div>
+        </section>
+      </div>
 
+      <!-- =====================================================
+           COMMITMENT
+      ====================================================== -->
+      <section class="mt-12">
+        <div class="flex items-center gap-4 mb-4">
+          <h2 class="text-[14px] font-bold tracking-[0.08em] whitespace-nowrap text-gray-900">
+            K-ZONE CAM KẾT
+          </h2>
+          <div class="h-px bg-gray-200 flex-1"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Cam kết 1: Huy hiệu / Chất lượng -->
+          <div
+            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
+          >
+            <div
+              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+                />
+              </svg>
+            </div>
+            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
+              Cam kết sản phẩm đúng mô tả, chất liệu cao cấp.
+            </div>
+          </div>
+
+          <!-- Cam kết 2: Giao hàng -->
+          <div
+            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
+          >
+            <div
+              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-6"
+                />
+              </svg>
+            </div>
+            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
+              Giao trong 3-5 ngày và freeship đơn từ 498k
+            </div>
+          </div>
+
+          <!-- Cam kết 3: Đổi trả -->
+          <div
+            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
+          >
+            <div
+              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.9"
+                />
+              </svg>
+            </div>
+            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
+              Hỗ trợ đổi trả trong 7 ngày nếu sản phẩm lỗi.
+            </div>
+          </div>
+
+          <!-- Cam kết 4: Tư vấn -->
+          <div
+            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
+          >
+            <div
+              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                />
+              </svg>
+            </div>
+            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
+              Đội ngũ tư vấn tận tâm, giải đáp nhanh chóng
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           PRODUCT INFORMATION TABS
+      ====================================================== -->
+      <section class="mt-8 border border-gray-200 rounded-[8px] overflow-hidden shadow-sm">
+        <!-- Phần Tab: Đã thêm justify-start sm:justify-center để căn giữa -->
+        <div
+          class="flex justify-start sm:justify-center border-b border-gray-200 overflow-x-auto bg-gray-50/50"
+        >
+          <button
+            v-for="tab in ['THÔNG TIN SẢN PHẨM', 'BẢO QUẢN', 'GIAO HÀNG & ĐỔI TRẢ']"
+            :key="tab"
+            type="button"
+            @click="activeTab = tab"
+            class="px-5 py-3.5 text-sm font-semibold tracking-wide whitespace-nowrap border-b-2 transition-all"
+            :class="
+              activeTab === tab
+                ? 'border-[#00a884] text-[#00a884] bg-white'
+                : 'border-transparent text-gray-500 hover:text-gray-800'
+            "
+          >
+            {{ tab }}
+          </button>
+        </div>
+
+        <!-- Phần Nội Dung -->
+        <div class="p-5 lg:p-7 bg-white">
+          <div
+            v-if="activeTab === 'THÔNG TIN SẢN PHẨM'"
+            class="text-[15px] text-gray-700 leading-relaxed"
+          >
+            <p>
+              Áo thun tôn dáng dành riêng cho nàng. Thiết kế cổ tròn, dáng ôm tôn lên đường cong cơ
+              thể giúp nàng trông thon gọn và năng động hơn. Sản phẩm cho cảm giác mặc siêu mềm mại,
+              siêu co giãn, xứng đáng là một item không thể thiếu trong tủ đồ hàng ngày cho các chị
+              em.
+            </p>
+
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-x-10 mt-6 pt-4 border-t border-gray-100"
+            >
+              <div class="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <span class="text-gray-500 font-medium">Mã SP</span>
+                <span class="font-medium text-gray-900">
+                  {{ selectedVariant?.maSanPhamChiTiet || 'Đang cập nhật' }}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <span class="text-gray-500 font-medium">Danh mục</span>
+                <span class="font-medium text-gray-900">
+                  {{ selectedVariant?.tenDanhMuc || 'Đang cập nhật' }}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <span class="text-gray-500 font-medium">Thương hiệu</span>
+                <span class="font-medium text-gray-900">
+                  {{ selectedVariant?.tenThuongHieu || 'Wolf Calie' }}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <span class="text-gray-500 font-medium">Chất liệu</span>
+                <span class="font-medium text-gray-900">
+                  {{ selectedVariant?.tenChatLieu || 'Đang cập nhật' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-else-if="activeTab === 'BẢO QUẢN'"
+            class="text-[15px] text-gray-700 leading-relaxed space-y-1.5"
+          >
+            <p>• Giặt tay hoặc giặt máy ở chế độ nhẹ với nước lạnh.</p>
+            <p>• Không sử dụng chất tẩy mạnh.</p>
+            <p>• Phơi ở nơi bóng râm, tránh ánh nắng trực tiếp.</p>
+            <p>• Ủi ở nhiệt độ thấp nếu cần thiết.</p>
+          </div>
+
+          <div
+            v-else-if="activeTab === 'GIAO HÀNG & ĐỔI TRẢ'"
+            class="text-[15px] text-gray-700 leading-relaxed space-y-1.5"
+          >
+            <p>• Giao hàng toàn quốc từ 3 - 5 ngày làm việc.</p>
+            <p>• Miễn phí vận chuyển cho đơn hàng từ 500.000 VNĐ.</p>
+            <p>• Hỗ trợ đổi trả nếu sản phẩm bị lỗi.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           SAME CATEGORY
+      ====================================================== -->
+      <section v-if="sameCategoryProducts.length > 0" class="mt-8 border-b border-gray-200">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-[18px] sm:text-[20px] font-bold text-[#111] uppercase tracking-wide">
+            CÙNG DANH MỤC
+          </h2>
+        </div>
+
+        <div class="relative group/slider">
+          <!-- Mũi tên trái -->
           <button
             type="button"
-            :disabled="!selectedVariant"
-            class="mt-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 flex items-center justify-center gap-2 shadow-sm"
-            @click="showTryOn = true"
+            @click="scrollSlider('left')"
+            class="absolute -left-4 sm:-left-5 top-[38%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:text-black transition-all"
           >
-            ✨ Thử đồ bằng AI
+            ‹
           </button>
 
-          <!-- Tiện ích phụ -->
-          <div class="flex items-center justify-between mt-4 text-sm">
-            <button class="flex items-center gap-1.5 text-teal-600 font-medium hover:underline">
-              📍 Tìm cửa hàng gần nhất
-            </button>
-            <button class="flex items-center gap-1.5 text-blue-600 hover:underline">
-              ⚖️ So sánh
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BANNER CAM KẾT -->
-    <div class="mt-16">
-      <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">
-        WOLF CALIE cam kết
-      </h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
-          class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm"
-        >
-          <div
-            class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 text-xl"
+          <!-- Mũi tên phải -->
+          <button
+            type="button"
+            @click="scrollSlider('right')"
+            class="absolute -right-4 sm:-right-5 top-[38%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:text-black transition-all"
           >
-            🛡️
-          </div>
-          <div class="text-xs text-gray-700 leading-snug">
-            Cam kết sản phẩm đúng mô tả, chất liệu cao cấp.
-          </div>
-        </div>
-        <div
-          class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm"
-        >
+            ›
+          </button>
+
+          <!-- Danh sách sản phẩm dạng trượt ngang -->
           <div
-            class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 text-xl"
+            ref="sameCategorySliderRef"
+            @scroll="handleScrollProgress"
+            class="flex gap-3.5 overflow-x-auto scroll-smooth pb-2 no-scrollbar"
+            style="scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory"
           >
-            🚚
-          </div>
-          <div class="text-xs text-gray-700 leading-snug">
-            Giao trong 3-5 ngày và freeship đơn từ 498k
-          </div>
-        </div>
-        <div
-          class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm"
-        >
-          <div
-            class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 text-xl"
-          >
-            🔄
-          </div>
-          <div class="text-xs text-gray-700 leading-snug">
-            Hỗ trợ đổi trả trong 7 ngày nếu sản phẩm lỗi.
-          </div>
-        </div>
-        <div
-          class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm"
-        >
-          <div
-            class="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 text-xl"
-          >
-            ❓
-          </div>
-          <div class="text-xs text-gray-700 leading-snug">
-            Đội ngũ tư vấn tận tâm, giải đáp nhanh chóng
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- HỆ THỐNG TABS THÔNG TIN SẢN PHẨM -->
-    <div class="mt-8 bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
-      <div class="flex border-b border-gray-200 gap-8 justify-center mb-6 overflow-x-auto">
-        <button
-          v-for="tab in ['THÔNG TIN SẢN PHẨM', 'BẢO QUẢN', 'GIAO HÀNG & ĐỔI TRẢ']"
-          :key="tab"
-          @click="activeTab = tab"
-          class="pb-3 text-sm font-bold tracking-wide transition-all border-b-2 whitespace-nowrap"
-          :class="
-            activeTab === tab
-              ? 'border-teal-600 text-teal-600'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          "
-        >
-          {{ tab }}
-        </button>
-      </div>
-
-      <div
-        v-if="activeTab === 'THÔNG TIN SẢN PHẨM'"
-        class="text-sm text-gray-600 leading-relaxed space-y-4"
-      >
-        <p>
-          Áo thun tôn dáng dành riêng cho nàng. Thiết kế cổ tròn, dáng ôm tôn lên đường cong cơ thể
-          giúp nàng trông thon gọn và năng động hơn. Sản phẩm cho cảm giác mặc siêu mềm mại, siêu co
-          giãn, xứng đáng là một item không thể thiếu trong tủ đồ hàng ngày cho các chị em.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3 pt-4 border-t border-gray-100">
-          <div class="flex justify-between py-1.5 border-b border-gray-100">
-            <span class="text-gray-400">Mã SP</span>
-            <span class="font-medium text-gray-800">{{
-              selectedVariant?.maSanPhamChiTiet || 'Đang cập nhật'
-            }}</span>
-          </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-100">
-            <span class="text-gray-400">Danh mục</span>
-            <span class="font-medium text-gray-800">{{
-              selectedVariant?.tenDanhMuc || 'Đang cập nhật'
-            }}</span>
-          </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-100">
-            <span class="text-gray-400">Thương hiệu</span>
-            <span class="font-medium text-gray-800">{{
-              selectedVariant?.tenThuongHieu || 'Wolf Calie'
-            }}</span>
-          </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-100">
-            <span class="text-gray-400">Chất liệu</span>
-            <span class="font-medium text-gray-800">{{
-              selectedVariant?.tenChatLieu || 'Đang cập nhật'
-            }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-else-if="activeTab === 'BẢO QUẢN'"
-        class="text-sm text-gray-600 leading-relaxed space-y-2"
-      >
-        <p>- Giặt tay hoặc giặt máy ở chế độ nhẹ với nước lạnh.</p>
-        <p>- Không sử dụng chất tẩy mạnh.</p>
-        <p>- Phơi ở nơi bóng râm, tránh ánh nắng trực tiếp.</p>
-        <p>- Ủi ở nhiệt độ thấp nếu cần thiết.</p>
-      </div>
-
-      <div
-        v-else-if="activeTab === 'GIAO HÀNG & ĐỔI TRẢ'"
-        class="text-sm text-gray-600 leading-relaxed space-y-2"
-      >
-        <p>- Giao hàng toàn quốc từ 3 - 5 ngày làm việc.</p>
-        <p>- Miễn phí vận chuyển cho đơn hàng từ 500.000 VNĐ.</p>
-        <p>
-          - Hỗ trợ đổi trả trong vòng 7 ngày đối với sản phẩm có lỗi từ nhà sản xuất hoặc chưa qua
-          sử dụng.
-        </p>
-      </div>
-    </div>
-
-    <!-- CÙNG DANH MỤC -->
-    <div class="mt-16" v-if="sameCategoryProducts.length > 0">
-      <h2 class="text-xl font-bold text-slate-800 mb-5">CÙNG DANH MỤC</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-        <div
-          v-for="item in sameCategoryProducts"
-          :key="item.idSanPham"
-          @click="$router.push({ name: 'confirmbuy', params: { id: item.idSanPham } })"
-          class="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-teal-500 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
-        >
-          <div class="relative overflow-hidden bg-slate-100 aspect-[4/5]">
-            <img
-              :src="item.image ? API_URL + item.image : placeholder"
-              class="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-            />
             <div
-              v-if="item.dangGiamGia"
-              class="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm"
+              v-for="item in sameCategoryProducts"
+              :key="item.idSanPham"
+              @mouseenter="hoveredCardId = item.idSanPham"
+              @mouseleave="hoveredCardId = null"
+              class="cursor-pointer flex flex-col shrink-0 w-[210px] sm:w-[230px]"
+              style="scroll-snap-align: start"
             >
-              -{{ item.phanTramGiam }}%
-            </div>
-          </div>
-          <div class="p-4 flex flex-col justify-between flex-1">
-            <h3 class="font-semibold text-[14px] text-slate-800 line-clamp-2 mb-2">
-              {{ item.tenSanPham }}
-            </h3>
-            <div class="flex items-center justify-between">
-              <span class="text-base font-bold text-red-600"
-                >{{ item.giaSauGiam.toLocaleString('vi-VN') }}đ</span
+              <!-- Hình ảnh sản phẩm (Bo góc thanh lịch, có border nhẹ) -->
+              <div
+                class="relative overflow-hidden aspect-[4/5] bg-[#f6f6f6] rounded-[8px] border border-gray-200 shadow-sm"
+                @click="
+                  $router.push({
+                    name: 'confirmbuy',
+                    params: { id: item.idSanPham },
+                  })
+                "
               >
-              <span v-if="item.dangGiamGia" class="text-xs line-through text-gray-400"
-                >{{ item.giaBan.toLocaleString('vi-VN') }}đ</span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="flex justify-center mt-8">
-        <button
-          @click="$router.push('/san-pham')"
-          class="px-8 py-3 rounded-xl bg-[#A91D22] text-white text-sm font-semibold hover:bg-[#8F161A] transition shadow-sm"
-        >
-          Xem thêm sản phẩm
-        </button>
-      </div>
-    </div>
+                <img
+                  :src="
+                    item.image
+                      ? item.image.startsWith('http')
+                        ? item.image
+                        : API_URL + item.image
+                      : placeholder
+                  "
+                  :alt="item.tenSanPham"
+                  class="w-full h-full object-cover transition-transform duration-500"
+                  :class="hoveredCardId === item.idSanPham ? 'scale-105' : 'scale-100'"
+                />
 
-    <!-- BẠN ĐÃ XEM -->
-    <div class="mt-16" v-if="recentlyViewedProducts.length > 0">
-      <h2 class="text-xl font-bold text-slate-800 mb-5">BẠN ĐÃ XEM</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-        <div
-          v-for="item in recentlyViewedProducts"
-          :key="item.idSanPham"
-          @click="$router.push({ name: 'confirmbuy', params: { id: item.idSanPham } })"
-          class="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-teal-500 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
-        >
-          <div class="relative overflow-hidden bg-slate-100 aspect-[4/5]">
-            <img
-              :src="
-                item.image
-                  ? item.image.startsWith('http')
-                    ? item.image
-                    : API_URL + item.image
-                  : placeholder
-              "
-              class="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-            />
-            <div
-              v-if="item.dangGiamGia"
-              class="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm"
-            >
-              -{{ item.phanTramGiam }}%
+                <!-- Badge giảm giá -->
+                <div
+                  v-if="item.dangGiamGia && item.phanTramGiam > 0"
+                  class="absolute left-2.5 top-2.5 bg-[#df2633] text-white px-2 py-0.5 text-[11px] font-bold rounded-[4px] z-10 shadow-sm"
+                >
+                  -{{ item.phanTramGiam }}%
+                </div>
+
+                <!-- Nút Yêu thích & Xem nhanh -->
+                <div
+                  class="absolute right-2.5 top-2.5 flex flex-col gap-1.5 transition-opacity duration-300 z-20"
+                  :class="
+                    hoveredCardId === item.idSanPham
+                      ? 'opacity-100'
+                      : 'opacity-0 pointer-events-none'
+                  "
+                >
+                  <button
+                    type="button"
+                    @click.stop="toggleFavorite(item)"
+                    class="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#222] hover:text-[#df2633] hover:bg-white hover:scale-105 transition-all border border-gray-100"
+                    title="Thêm vào yêu thích"
+                  >
+                    <span class="text-[16px] leading-none">♡</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click.stop="quickView(item)"
+                    class="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#222] hover:text-[#00a884] hover:bg-white hover:scale-105 transition-all border border-gray-100"
+                    title="Xem nhanh"
+                  >
+                    <span class="text-[14px] leading-none">👁</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Màu sắc -->
+              <div
+                v-if="item.colors && item.colors.length > 0"
+                class="flex items-center gap-1.5 mt-2"
+              >
+                <span
+                  v-for="(colorName, idx) in item.colors"
+                  :key="idx"
+                  class="w-[14px] h-[14px] rounded-full border border-gray-300 shadow-sm"
+                  :style="{ backgroundColor: getColorStyle(colorName) }"
+                  :title="colorName"
+                ></span>
+              </div>
+
+              <div
+                class="pt-1.5 flex-1 flex flex-col justify-between"
+                @click="
+                  $router.push({
+                    name: 'confirmbuy',
+                    params: { id: item.idSanPham },
+                  })
+                "
+              >
+                <h3
+                  class="text-[14px] text-gray-900 font-normal line-clamp-2 leading-snug transition-colors"
+                  :class="hoveredCardId === item.idSanPham ? 'text-[#00a884]' : ''"
+                >
+                  {{ item.tenSanPham }}
+                </h3>
+
+                <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span class="text-[15px] font-bold text-[#bd2228]">
+                    {{ (item.giaSauGiam ?? item.giaBan).toLocaleString('vi-VN') }}đ
+                  </span>
+
+                  <span
+                    v-if="item.dangGiamGia && item.giaBan > (item.giaSauGiam ?? item.giaBan)"
+                    class="text-[12px] text-gray-400 line-through"
+                  >
+                    {{ item.giaBan.toLocaleString('vi-VN') }}đ
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="p-4 flex flex-col justify-between flex-1">
-            <h3 class="font-semibold text-[14px] text-slate-800 line-clamp-2 mb-2">
-              {{ item.tenSanPham }}
-            </h3>
-            <div class="flex items-center justify-between">
-              <span class="text-base font-bold text-red-600"
-                >{{ item.giaSauGiam.toLocaleString('vi-VN') }}đ</span
-              >
-              <span v-if="item.dangGiamGia" class="text-xs line-through text-gray-400"
-                >{{ item.giaBan.toLocaleString('vi-VN') }}đ</span
-              >
-            </div>
+
+          <!-- Thanh tiến trình -->
+          <div
+            class="w-full h-2 bg-gray-200 rounded-full mt-3 relative overflow-hidden shadow-inner"
+          >
+            <div
+              class="absolute top-0 left-0 h-full bg-[#bd2228] transition-all duration-100 rounded-full"
+              :style="{ width: `${scrollProgress}%` }"
+            ></div>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="mt-4 text-center">
+          <button
+            type="button"
+            @click="$router.push('/san-pham')"
+            class="px-7 py-2.5 bg-[#bd2228] border border-[#bd2228] text-white text-[14px] font-semibold rounded-[6px] hover:bg-[#a61c22] hover:border-[#a61c22] transition-all shadow-sm"
+          >
+            Xem thêm sản phẩm
+          </button>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           RECENTLY VIEWED (Đã rút ngắn padding bottom chống dư khoảng trắng)
+      ====================================================== -->
+      <section v-if="recentlyViewedProducts.length > 0">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-[18px] sm:text-[20px] font-bold text-[#111] uppercase tracking-wide">
+            BẠN ĐÃ XEM
+          </h2>
+        </div>
+
+        <div class="relative group/slider">
+          <!-- Mũi tên trái -->
+          <button
+            type="button"
+            @click="scrollRecentlyViewed('left')"
+            class="absolute -left-4 sm:-left-5 top-[38%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:text-black transition-all"
+          >
+            ‹
+          </button>
+
+          <!-- Mũi tên phải -->
+          <button
+            type="button"
+            @click="scrollRecentlyViewed('right')"
+            class="absolute -right-4 sm:-right-5 top-[38%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:text-black transition-all"
+          >
+            ›
+          </button>
+
+          <!-- Danh sách sản phẩm dạng trượt ngang -->
+          <div
+            ref="recentlyViewedSliderRef"
+            @scroll="handleRecentlyViewedScroll"
+            class="flex gap-3.5 overflow-x-auto scroll-smooth pb-2 no-scrollbar"
+            style="scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory"
+          >
+            <div
+              v-for="item in recentlyViewedProducts"
+              :key="item.idSanPham"
+              @mouseenter="hoveredCardId = item.idSanPham"
+              @mouseleave="hoveredCardId = null"
+              class="cursor-pointer flex flex-col shrink-0 w-[210px] sm:w-[230px]"
+              style="scroll-snap-align: start"
+            >
+              <!-- Hình ảnh sản phẩm (Bo góc thanh lịch, có border nhẹ) -->
+              <div
+                class="relative overflow-hidden aspect-[4/5] bg-[#f6f6f6] rounded-[8px] border border-gray-200 shadow-sm"
+                @click="
+                  $router.push({
+                    name: 'confirmbuy',
+                    params: { id: item.idSanPham },
+                  })
+                "
+              >
+                <img
+                  :src="
+                    item.image
+                      ? item.image.startsWith('http')
+                        ? item.image
+                        : API_URL + item.image
+                      : placeholder
+                  "
+                  :alt="item.tenSanPham"
+                  class="w-full h-full object-cover transition-transform duration-500"
+                  :class="hoveredCardId === item.idSanPham ? 'scale-105' : 'scale-100'"
+                />
+
+                <!-- Badge giảm giá -->
+                <div
+                  v-if="item.dangGiamGia && item.phanTramGiam > 0"
+                  class="absolute left-2.5 top-2.5 bg-[#df2633] text-white px-2 py-0.5 text-[11px] font-bold rounded-[4px] z-10 shadow-sm"
+                >
+                  -{{ item.phanTramGiam }}%
+                </div>
+
+                <!-- Nút Yêu thích & Xem nhanh -->
+                <div
+                  class="absolute right-2.5 top-2.5 flex flex-col gap-1.5 transition-opacity duration-300 z-20"
+                  :class="
+                    hoveredCardId === item.idSanPham
+                      ? 'opacity-100'
+                      : 'opacity-0 pointer-events-none'
+                  "
+                >
+                  <button
+                    type="button"
+                    @click.stop="toggleFavorite(item)"
+                    class="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#222] hover:text-[#df2633] hover:bg-white hover:scale-105 transition-all border border-gray-100"
+                    title="Thêm vào yêu thích"
+                  >
+                    <span class="text-[16px] leading-none">♡</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click.stop="quickView(item)"
+                    class="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#222] hover:text-[#00a884] hover:bg-white hover:scale-105 transition-all border border-gray-100"
+                    title="Xem nhanh"
+                  >
+                    <span class="text-[14px] leading-none">👁</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Màu sắc -->
+              <div
+                v-if="item.colors && item.colors.length > 0"
+                class="flex items-center gap-1.5 mt-2"
+              >
+                <span
+                  v-for="(colorName, idx) in item.colors"
+                  :key="idx"
+                  class="w-[14px] h-[14px] rounded-full border border-gray-300 shadow-sm"
+                  :style="{ backgroundColor: getColorStyle(colorName) }"
+                  :title="colorName"
+                ></span>
+              </div>
+
+              <div
+                class="pt-1.5 flex-1 flex flex-col justify-between"
+                @click="
+                  $router.push({
+                    name: 'confirmbuy',
+                    params: { id: item.idSanPham },
+                  })
+                "
+              >
+                <h3
+                  class="text-[14px] text-gray-900 font-normal line-clamp-2 leading-snug transition-colors"
+                  :class="hoveredCardId === item.idSanPham ? 'text-[#00a884]' : ''"
+                >
+                  {{ item.tenSanPham }}
+                </h3>
+
+                <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span class="text-[15px] font-bold text-[#bd2228]">
+                    {{ (item.giaSauGiam ?? item.giaBan).toLocaleString('vi-VN') }}đ
+                  </span>
+
+                  <span
+                    v-if="item.dangGiamGia && item.giaBan > (item.giaSauGiam ?? item.giaBan)"
+                    class="text-[12px] text-gray-400 line-through"
+                  >
+                    {{ item.giaBan.toLocaleString('vi-VN') }}đ
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thanh tiến trình -->
+          <div
+            class="w-full h-2 bg-gray-200 rounded-full mt-3 relative overflow-hidden shadow-inner"
+          >
+            <div
+              class="absolute top-0 left-0 h-full bg-[#bd2228] transition-all duration-100 rounded-full"
+              :style="{ width: `${recentlyViewedScrollProgress}%` }"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- =====================================================
+         QUICK VIEW MODAL POPUP
+    ====================================================== -->
+    <QuickViewModal
+      v-if="showQuickViewModal && quickViewProductId"
+      :product-id="quickViewProductId"
+      @close="showQuickViewModal = false"
+    />
+
+    <SizeModal v-if="showSizeModal" @close="showSizeModal = false" />
+
+    <!-- =========================
+         TRY ON
+    ========================== -->
+    <VirtualTryOn
+      v-if="showTryOn && selectedVariant"
+      is-modal
+      :spct-id="selectedVariant.id"
+      :default-garment-url="mainImage"
+      :default-category="tryOnCategory"
+      @close="showTryOn = false"
+    />
   </div>
-
-  <VirtualTryOn
-    v-if="showTryOn && selectedVariant"
-    is-modal
-    :spct-id="selectedVariant.id"
-    :default-garment-url="mainImage"
-    :default-category="tryOnCategory"
-    @close="showTryOn = false"
-  />
 </template>
 
 <script setup>
@@ -483,13 +950,24 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getShopVariantsByProductId, getAllSanPhamChiTiet } from '@/service/SanPhamChiTiet'
 import VirtualTryOn from '@/components/VirtualTryOn.vue'
+import SizeModal from '@/views/shop/views/componnents/SizeModal.vue'
 import axios from 'axios'
 import stompClient from '@/socket'
 import emitter from '@/utils/emitter'
+import { flyToCart } from '@/utils/cartAnimation'
+import QuickViewModal from '@/views/shop/views/componnents/QuickViewModal.vue'
 
+const quickViewProductId = ref(null)
+const hoveredCardId = ref(null)
+const quickView = (item) => {
+  quickViewProductId.value = item.idSanPham
+  showQuickViewModal.value = true
+}
+const showQuickViewModal = ref(false)
 const route = useRoute()
 const router = useRouter()
 const showTryOn = ref(false)
+const showSizeModal = ref(false)
 const activeTab = ref('THÔNG TIN SẢN PHẨM')
 
 const product = ref(null)
@@ -500,6 +978,16 @@ const mainImage = ref('')
 const quantity = ref(1)
 const shopVariants = ref([])
 const recentlyViewedProducts = ref([])
+
+// Slider & Progress Bar state (Cùng danh mục)
+const sameCategorySliderRef = ref(null)
+const scrollProgress = ref(0)
+
+// Slider & Progress Bar state (Bạn đã xem)
+const recentlyViewedSliderRef = ref(null)
+const recentlyViewedScrollProgress = ref(0)
+
+const isAddingToCart = ref(false)
 
 const API_URL = 'http://localhost:8080'
 const placeholder = 'https://via.placeholder.com/300'
@@ -583,7 +1071,7 @@ const shopProducts = computed(() => {
       p.phanTramGiam = item.phanTramGiam
       p.dangGiamGia = true
     }
-    if (!p.colors.includes(item.tenMauSac)) {
+    if (item.tenMauSac && !p.colors.includes(item.tenMauSac)) {
       p.colors.push(item.tenMauSac)
     }
   })
@@ -593,12 +1081,58 @@ const shopProducts = computed(() => {
 const sameCategoryProducts = computed(() => {
   const currentCategory = selectedVariant.value?.tenDanhMuc
   if (!currentCategory) return []
-  return shopProducts.value
-    .filter(
-      (item) => item.tenDanhMuc === currentCategory && item.idSanPham !== Number(route.params.id),
-    )
-    .slice(0, 5)
+  return shopProducts.value.filter(
+    (item) => item.tenDanhMuc === currentCategory && item.idSanPham !== Number(route.params.id),
+  )
 })
+
+const scrollSlider = (direction) => {
+  if (!sameCategorySliderRef.value) return
+  const firstCard = sameCategorySliderRef.value.querySelector('.cursor-pointer')
+  const cardWidth = firstCard ? firstCard.offsetWidth + 14 : 240
+
+  sameCategorySliderRef.value.scrollBy({
+    left: direction === 'left' ? -cardWidth : cardWidth,
+    behavior: 'smooth',
+  })
+}
+
+const handleScrollProgress = () => {
+  if (!sameCategorySliderRef.value) return
+  const el = sameCategorySliderRef.value
+  const maxScroll = el.scrollWidth - el.clientWidth
+  if (maxScroll <= 0) {
+    scrollProgress.value = 100
+    return
+  }
+  scrollProgress.value = (el.scrollLeft / maxScroll) * 100
+}
+
+const scrollRecentlyViewed = (direction) => {
+  if (!recentlyViewedSliderRef.value) return
+  const firstCard = recentlyViewedSliderRef.value.querySelector('.cursor-pointer')
+  const cardWidth = firstCard ? firstCard.offsetWidth + 14 : 240
+
+  recentlyViewedSliderRef.value.scrollBy({
+    left: direction === 'left' ? -cardWidth : cardWidth,
+    behavior: 'smooth',
+  })
+}
+
+const handleRecentlyViewedScroll = () => {
+  if (!recentlyViewedSliderRef.value) return
+  const el = recentlyViewedSliderRef.value
+  const maxScroll = el.scrollWidth - el.clientWidth
+  if (maxScroll <= 0) {
+    recentlyViewedScrollProgress.value = 100
+    return
+  }
+  recentlyViewedScrollProgress.value = (el.scrollLeft / maxScroll) * 100
+}
+
+const toggleFavorite = (item) => {
+  alert(`Đã thêm sản phẩm "${item.tenSanPham}" vào danh sách yêu thích!`)
+}
 
 const saveToRecentlyViewed = (currentProd) => {
   if (!currentProd) return
@@ -627,6 +1161,8 @@ const loadProduct = async () => {
       }
     }
     const firstImg = data.gallery?.[0]?.image || ''
+    const allColors = data.colors ? data.colors.map((c) => c.name) : []
+
     const currentGrouped = {
       idSanPham: Number(route.params.id),
       tenSanPham: data.productName,
@@ -636,6 +1172,7 @@ const loadProduct = async () => {
       dangGiamGia: selectedVariant.value?.dangGiamGia || false,
       phanTramGiam: selectedVariant.value?.phanTramGiam || 0,
       image: firstImg,
+      colors: allColors,
     }
     saveToRecentlyViewed(currentGrouped)
   } catch (e) {
@@ -655,6 +1192,14 @@ const increaseQty = () => {
 const decreaseQty = () => {
   if (quantity.value > 1) {
     quantity.value--
+  }
+}
+
+const validateQuantity = () => {
+  if (!quantity.value || quantity.value < 1) {
+    quantity.value = 1
+  } else if (availableStock.value > 0 && quantity.value > availableStock.value) {
+    quantity.value = availableStock.value
   }
 }
 
@@ -732,17 +1277,21 @@ function subscribeDetail() {
   })
 }
 
-const addToCart = async () => {
+const addToCart = async (event) => {
   const token = sessionStorage.getItem('token')
   if (!token) {
-    alert('Bạn cần đăng nhập')
+    alert('Bạn cần đăng nhập để thêm vào giỏ hàng!')
     router.push('/login')
     return
   }
   if (!selectedVariant.value) {
-    alert('Vui lòng chọn sản phẩm')
+    alert('Vui lòng chọn phân loại sản phẩm!')
     return
   }
+
+  flyToCart(event, mainImage.value)
+  isAddingToCart.value = true
+
   try {
     await axios.post(
       `${API_URL}/giohang/them`,
@@ -754,11 +1303,15 @@ const addToCart = async () => {
         headers: { Authorization: `Bearer ${token}` },
       },
     )
+
     emitter.emit('cart-updated')
-    alert('Đã thêm sản phẩm vào giỏ hàng!')
   } catch (err) {
     console.error(err)
-    alert(err?.response?.data || 'Lỗi thêm giỏ hàng')
+    alert(err?.response?.data || 'Lỗi thêm sản phẩm vào giỏ hàng!')
+  } finally {
+    setTimeout(() => {
+      isAddingToCart.value = false
+    }, 700)
   }
 }
 

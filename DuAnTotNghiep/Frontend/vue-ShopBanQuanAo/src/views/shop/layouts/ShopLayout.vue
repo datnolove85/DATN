@@ -1,20 +1,18 @@
 <template>
   <!-- Giao diện tràn viền, nền trắng toàn màn hình -->
   <div class="min-h-screen bg-white flex flex-col">
-    <!-- Thanh Navigation: Đã được giới hạn chiều rộng khớp với khối sản phẩm bên dưới -->
+    <!-- Header: vẫn giới hạn chiều rộng -->
     <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <ShopHeader />
     </div>
 
-    <!-- Nội dung các trang thay đổi theo Router -->
+    <!-- Nội dung các trang: giữ nguyên -->
     <main class="flex-1">
       <router-view />
     </main>
 
-    <!-- Chân trang (Bọc tương tự để thẳng hàng với Navigation và nội dung) -->
-    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <ShopFooter />
-    </div>
+    <!-- Footer: full width màn hình -->
+    <ShopFooter />
 
     <!-- Chatbot hỗ trợ -->
     <ShopChatbot />

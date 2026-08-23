@@ -4,6 +4,7 @@ import com.example.backend.Repository.NhanVienRepository;
 import com.example.backend.Request.HuyDonLoiRequest;
 import com.example.backend.Request.HuyHangLoatLoiRequest;
 import com.example.backend.Service.HoaDonLoiService;
+import com.example.backend.Service.HoaDonService;
 import com.example.backend.secutity.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class HoaDonLoiController {
 
     private final JwtService jwtService;
     private final NhanVienRepository nhanVienRepo;
+    private final HoaDonService hoaDonService;
 
 
     // 1. Tìm đơn hàng có chứa sản phẩm bị lỗi
@@ -50,6 +52,7 @@ public class HoaDonLoiController {
                 .getId();
 
         hoaDonLoiService.huyDonLoiLe(id, request, idNhanVien);
+        hoaDonService.hoanXuKhiHuyDon(id);
 
         return ResponseEntity.ok(
                 Map.of("message", "Đã hủy đơn hàng do sản phẩm lỗi thành công!")

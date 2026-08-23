@@ -53,14 +53,15 @@ public interface HoaDonService {
 
     @Transactional
     public Object thanhToanHoaDon(
-            ThanhToanHoaDonRequest req,Integer idNhanVien
+            ThanhToanHoaDonRequest req, Integer idNhanVien
     );
 
     @Transactional
     public Object thanhToanHoaDonOnline(
             ThanhToanHoaDonRequest req
     );
-    void huyHoaDon(Integer id,Integer idNhanVien);
+
+    void huyHoaDon(Integer id, Integer idNhanVien);
 
     void huyHoaDonOnline(Integer id);
 
@@ -82,7 +83,8 @@ public interface HoaDonService {
             HoaDonFilterRequest req,
             Pageable pageable
     );
-     void updateTrangThai(
+
+    void updateTrangThai(
             Integer id,
             String trangThaiMoi,
             Integer idNhanVien
@@ -98,6 +100,9 @@ public interface HoaDonService {
 
     List<KhoVoucher> goKhachHang(Integer idHoaDon);
 
+    void hoanXuKhiHuyDon(Integer idHoaDon);
+
     void apDungXu(Integer idHoaDon, Integer soXuSuDung);
+
     void thayDoiTrangThai(Integer idHoaDon, String trangThaiMoi, String ghiChu, String nguonThaoTac, Integer idNhanVien);
 }
