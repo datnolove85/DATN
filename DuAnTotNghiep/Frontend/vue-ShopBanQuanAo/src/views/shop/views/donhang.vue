@@ -295,10 +295,31 @@
                 {{ formatPaymentStatus(selectedOrder.thanhToan.trangThai) }}
               </el-tag>
             </div>
-            <div class="info-row" v-if="selectedOrder.thanhToan.ngayThanhToan">
+
+            <!-- CHỈ HIỆN THỜI GIAN HỦY KHI ĐƠN ĐÃ HỦY -->
+            <div class="info-row" v-if="selectedOrder.thongTinDonHang.trangThai === 'da_huy'">
+              <span>Thời gian hủy:</span>
+              <span>{{
+                formatDate(
+                  selectedOrder.thongTinDonHang.ngayHuy ||
+                    selectedOrder.thongTinDonHang.ngaySua ||
+                    selectedOrder.thongTinDonHang.ngayCapNhat,
+                )
+              }}</span>
+            </div>
+
+            <!-- CHỈ HIỆN THỜI GIAN THANH TOÁN KHI ĐÃ THANH TOÁN THỰC TẾ -->
+            <div
+              class="info-row"
+              v-else-if="
+                selectedOrder.thanhToan.trangThai === 'da_thanh_toan' &&
+                selectedOrder.thanhToan.ngayThanhToan
+              "
+            >
               <span>Thời gian thanh toán:</span>
               <span>{{ formatDate(selectedOrder.thanhToan.ngayThanhToan) }}</span>
             </div>
+
             <div class="info-row" v-if="selectedOrder.thanhToan.maGiaoDich">
               <span>Mã giao dịch:</span>
               <span class="code-text">{{ selectedOrder.thanhToan.maGiaoDich }}</span>
@@ -319,7 +340,20 @@
                 {{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}
               </el-tag>
             </div>
-            <div class="info-row">
+
+            <!-- CHỈ HIỆN THỜI GIAN HỦY KHI ĐƠN ĐÃ HỦY -->
+            <div class="info-row" v-if="selectedOrder.thongTinDonHang.trangThai === 'da_huy'">
+              <span>Thời gian hủy:</span>
+              <span>{{
+                formatDate(
+                  selectedOrder.thongTinDonHang.ngayHuy ||
+                    selectedOrder.thongTinDonHang.ngaySua ||
+                    selectedOrder.thongTinDonHang.ngayCapNhat,
+                )
+              }}</span>
+            </div>
+
+            <div class="info-row" v-if="selectedOrder.thongTinDonHang.trangThai !== 'da_huy'">
               <span>Hình thức thanh toán:</span>
               <b>{{
                 selectedOrder.thongTinDonHang.loaiHoaDon === 'online'
@@ -772,11 +806,13 @@ function money(value) {
   return Number(value).toLocaleString('vi-VN') + ' ₫'
 }
 
+// Cập nhật định dạng thời gian có hiển thị giờ, phút và giây
 function formatDate(date) {
   if (!date) return ''
   return new Date(date).toLocaleString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -1031,13 +1067,12 @@ onUnmounted(() => {
 }
 
 .order-page {
-  /* Tăng độ đậm và sắc nét cho toàn bộ chữ */
   --primary-color: #0284c7;
   --primary-hover: #0369a1;
   --primary-bg: #e0f2fe;
   --text-main: #0f172a;
-  --text-sub: #334155; /* Đậm hơn, rõ nét hơn */
-  --text-muted: #475569; /* Rõ nét hơn, không bị mờ nhạt */
+  --text-sub: #334155;
+  --text-muted: #475569;
   --bg-main: #f8fafc;
   --border-color: #cbd5e1;
   --danger-color: #ef4444;

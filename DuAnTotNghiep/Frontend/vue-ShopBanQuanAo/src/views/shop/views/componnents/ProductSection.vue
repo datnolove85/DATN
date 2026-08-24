@@ -20,6 +20,13 @@ defineEmits([
   'update:quantity',
   'onQtyBlur',
 ])
+
+// Hàm chặn các ký tự không phải số (e, E, +, -, .)
+const restrictNumberKeys = (event) => {
+  if (['e', 'E', '+', '-', '.'].includes(event.key)) {
+    event.preventDefault()
+  }
+}
 </script>
 
 <template>
@@ -120,47 +127,58 @@ defineEmits([
                 </span>
               </div>
 
-              <!-- Bộ tăng giảm số lượng & Thành tiền -->
-              <div class="flex items-center justify-between sm:justify-end gap-4">
-                <div
-                  class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+              <!-- Bộ tăng giảm số lượng & Thành tiền + Cảnh báo -->
+              <div class="flex flex-col items-end gap-1">
+                <div class="flex items-center justify-between sm:justify-end gap-4">
+                  <div
+                    class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+                  >
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
+                      :disabled="
+                        item.quantity <= 1 || (item.soLuongKhaDung ?? item.soLuongTon ?? 0) === 0
+                      "
+                      @click="$emit('decreaseCartQty', item)"
+                    >
+                      -
+                    </button>
+
+                    <input
+                      type="number"
+                      :value="item.quantity"
+                      @keydown="restrictNumberKeys"
+                      @input="$emit('validateCartQty', item, $event)"
+                      @blur="$emit('onCartQtyBlur', item)"
+                      min="0"
+                      :max="item.soLuongKhaDung ?? item.soLuongTon ?? 0"
+                      class="h-7 w-10 border-x border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
+                      :disabled="item.quantity >= (item.soLuongKhaDung ?? item.soLuongTon ?? 0)"
+                      @click="$emit('increaseCartQty', item)"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div class="text-right">
+                    <span class="text-xs sm:text-sm font-extrabold text-rose-600">
+                      {{ formatMoney((item.giaSauGiam || item.giaBan) * (item.quantity || 0)) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Text cảnh báo giỏ hàng -->
+                <span
+                  v-if="item.quantity > (item.soLuongKhaDung ?? item.soLuongTon ?? 0)"
+                  class="text-[11px] text-rose-500 font-medium"
                 >
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
-                    :disabled="
-                      item.quantity <= 1 || (item.soLuongKhaDung ?? item.soLuongTon ?? 0) === 0
-                    "
-                    @click="$emit('decreaseCartQty', item)"
-                  >
-                    -
-                  </button>
-
-                  <input
-                    type="number"
-                    :value="item.quantity"
-                    @input="$emit('validateCartQty', item, $event)"
-                    @blur="$emit('onCartQtyBlur', item)"
-                    min="0"
-                    :max="item.soLuongKhaDung ?? item.soLuongTon ?? 0"
-                    class="h-7 w-10 border-x border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
-                    :disabled="item.quantity >= (item.soLuongKhaDung ?? item.soLuongTon ?? 0)"
-                    @click="$emit('increaseCartQty', item)"
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div class="text-right">
-                  <span class="text-xs sm:text-sm font-extrabold text-rose-600">
-                    {{ formatMoney((item.giaSauGiam || item.giaBan) * (item.quantity || 0)) }}
-                  </span>
-                </div>
+                  Vượt quá số lượng khả dụng!
+                </span>
               </div>
             </div>
           </div>
@@ -248,47 +266,60 @@ defineEmits([
                 </span>
               </div>
 
-              <!-- Bộ tăng giảm số lượng & Thành tiền -->
-              <div class="flex items-center justify-between sm:justify-end gap-4">
-                <div
-                  class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+              <!-- Bộ tăng giảm số lượng & Thành tiền + Cảnh báo -->
+              <div class="flex flex-col items-end gap-1">
+                <div class="flex items-center justify-between sm:justify-end gap-4">
+                  <div
+                    class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+                  >
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
+                      :disabled="quantity <= 1 || maxAvailable === 0"
+                      @click="$emit('decreaseQty')"
+                    >
+                      -
+                    </button>
+
+                    <input
+                      type="number"
+                      :value="quantity"
+                      @keydown="restrictNumberKeys"
+                      @input="
+                        $emit('update:quantity', Number($event.target.value.replace(/\D/g, '')))
+                      "
+                      @blur="$emit('onQtyBlur')"
+                      min="0"
+                      :max="maxAvailable"
+                      class="h-7 w-10 border-x border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+
+                    <button
+                      type="button"
+                      class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
+                      :disabled="quantity >= maxAvailable || maxAvailable === 0"
+                      @click="$emit('increaseQty')"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div class="text-right">
+                    <span class="text-xs sm:text-sm font-extrabold text-rose-600">
+                      {{
+                        formatMoney((product?.giaSauGiam || product?.giaBan || 0) * (quantity || 0))
+                      }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Text cảnh báo mua ngay -->
+                <span
+                  v-if="quantity > maxAvailable && maxAvailable > 0"
+                  class="text-[11px] text-rose-500 font-medium"
                 >
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
-                    :disabled="quantity <= 1 || maxAvailable === 0"
-                    @click="$emit('decreaseQty')"
-                  >
-                    -
-                  </button>
-
-                  <input
-                    type="number"
-                    :value="quantity"
-                    @input="$emit('update:quantity', Number($event.target.value))"
-                    @blur="$emit('onQtyBlur')"
-                    min="0"
-                    :max="maxAvailable"
-                    class="h-7 w-10 border-x border-slate-200 bg-white text-center text-xs font-bold text-slate-800 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-30 text-xs"
-                    :disabled="quantity >= maxAvailable || maxAvailable === 0"
-                    @click="$emit('increaseQty')"
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div class="text-right">
-                  <span class="text-xs sm:text-sm font-extrabold text-rose-600">
-                    {{
-                      formatMoney((product?.giaSauGiam || product?.giaBan || 0) * (quantity || 0))
-                    }}
-                  </span>
-                </div>
+                  Vượt quá số lượng khả dụng!
+                </span>
               </div>
             </div>
           </div>

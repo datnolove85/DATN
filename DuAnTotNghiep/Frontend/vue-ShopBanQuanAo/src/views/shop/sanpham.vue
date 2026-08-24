@@ -667,6 +667,8 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { onMounted, watch } from 'vue'
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -718,6 +720,34 @@ const {
   reload,
 } = useProductCatalog({ pageSize: 12 })
 
+const route = useRoute()
+
+// Hàm tự động đồng bộ query brand từ URL vào bộ lọc
+const syncBrandFromQuery = () => {
+  const brandQuery = route.query.brand
+  if (brandQuery) {
+    // Đảm bảo filters.brands tồn tại và chưa chứa thương hiệu này
+    if (filters.brands && !filters.brands.includes(brandQuery)) {
+      filters.brands.push(brandQuery)
+    }
+  }
+}
+
+onMounted(() => {
+  syncBrandFromQuery()
+})
+
+// Theo dõi nếu người dùng tiếp tục bấm các breadcrumb thương hiệu khác mà không reload lại trang hoàn toàn
+watch(
+  () => route.query.brand,
+  (newBrand) => {
+    if (newBrand && filters.brands) {
+      if (!filters.brands.includes(newBrand)) {
+        filters.brands.push(newBrand)
+      }
+    }
+  },
+)
 const priceRanges = [
   { value: 'all', label: 'Tất cả mức giá', shortLabel: 'Tất cả' },
   { value: 'under300', label: 'Dưới 300.000đ', shortLabel: '< 300K' },

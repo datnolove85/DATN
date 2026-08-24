@@ -570,6 +570,42 @@ CREATE TABLE yeu_thich (
 );
 GO
 
+IF OBJECT_ID('dbo.chat_conversation', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.chat_conversation (
+        id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        id_khach_hang INT NOT NULL,
+        id_nhan_vien INT NULL,
+        trang_thai NVARCHAR(20) NOT NULL CONSTRAINT DF_chat_conversation_status DEFAULT N'OPEN',
+        ngay_tao DATETIME2 NOT NULL CONSTRAINT DF_chat_conversation_created DEFAULT SYSUTCDATETIME(),
+        ngay_cap_nhat DATETIME2 NOT NULL CONSTRAINT DF_chat_conversation_updated DEFAULT SYSUTCDATETIME(),
+        tin_nhan_cuoi_luc DATETIME2 NULL,
+        CONSTRAINT UQ_chat_conversation_customer UNIQUE (id_khach_hang),
+        CONSTRAINT FK_chat_conversation_customer FOREIGN KEY (id_khach_hang) REFERENCES dbo.khach_hang(id),
+        CONSTRAINT FK_chat_conversation_staff FOREIGN KEY (id_nhan_vien) REFERENCES dbo.tai_khoan(id)
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.chat_message', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.chat_message (
+        id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        id_conversation INT NOT NULL,
+        id_nguoi_gui INT NOT NULL,
+        id_nguoi_nhan INT NULL,
+        noi_dung NVARCHAR(4000) NOT NULL,
+        loai NVARCHAR(20) NOT NULL CONSTRAINT DF_chat_message_type DEFAULT N'TEXT',
+        da_doc BIT NOT NULL CONSTRAINT DF_chat_message_read DEFAULT 0,
+        thoi_gian DATETIME2 NOT NULL CONSTRAINT DF_chat_message_time DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_chat_message_conversation FOREIGN KEY (id_conversation) REFERENCES dbo.chat_conversation(id),
+        CONSTRAINT FK_chat_message_sender FOREIGN KEY (id_nguoi_gui) REFERENCES dbo.tai_khoan(id),
+        CONSTRAINT FK_chat_message_receiver FOREIGN KEY (id_nguoi_nhan) REFERENCES dbo.tai_khoan(id)
+    );
+    CREATE INDEX IX_chat_message_conversation_time ON dbo.chat_message(id_conversation, thoi_gian);
+    CREATE INDEX IX_chat_message_receiver_read ON dbo.chat_message(id_nguoi_nhan, da_doc);
+END
+GO
 
 -- =========================================
 -- PHẦN INSERT DỮ LIỆU MẪU (SEED DATA)
@@ -746,7 +782,7 @@ select * from hoa_don_chi_tiet
 select * from san_pham_chi_tiet
 select * from thanh_toan
 select * from hoa_don
-
+select * from lich_su_hoa_don
 select * from hoa_don_voucher
 select * from lich_su_xu
 

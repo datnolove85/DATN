@@ -218,7 +218,6 @@
             </div>
 
             <!-- DÙNG XU TÙY CHỈNH -->
-            <!-- DÙNG XU TÙY CHỈNH -->
             <div
               v-if="isLoggedIn && customerInfo && customerInfo.soDuXu > 0"
               class="border-t border-slate-100 pt-3 space-y-2"
@@ -230,7 +229,7 @@
                 <span class="text-xs text-slate-400">1 xu = {{ formatMoney(tyLeQuyDoi) }}</span>
               </div>
 
-              <!-- Đã bỏ nút bấm, input tự động cập nhật real-time -->
+              <!-- Input nhập xu kèm text cảnh báo tỉ lệ -->
               <div>
                 <input
                   type="number"
@@ -239,8 +238,21 @@
                   v-model.number="soXuCanDung"
                   @input="onCoinsChange"
                   placeholder="Nhập số xu cần dùng..."
-                  class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-medium focus:border-amber-500 focus:outline-none"
+                  class="w-full rounded-xl border bg-slate-50 px-3.5 py-1.5 text-xs font-medium focus:outline-none transition-colors"
+                  :class="
+                    coinWarning
+                      ? 'border-amber-500 ring-1 ring-amber-500/20'
+                      : 'border-slate-200 focus:border-amber-500'
+                  "
                 />
+                <transition name="fade">
+                  <p
+                    v-if="coinWarning"
+                    class="mt-1 text-[11px] font-medium text-amber-600 flex items-center gap-1"
+                  >
+                    <span>⚠️</span> {{ coinWarning }}
+                  </p>
+                </transition>
               </div>
 
               <div
@@ -395,7 +407,8 @@ const customerInfo = ref(null)
 const soXuCanDung = ref(0)
 const soXuSuDung = ref(0)
 const tienGiamDoXu = ref(0)
-const paymentMethod = ref('COD') // Trạng thái phương thức thanh toán mặc định
+const paymentMethod = ref('COD')
+const coinWarning = ref('')
 
 const tyLeQuyDoi = computed(() => Number(systemConfig.value['TY_LE_QUY_DOI_XU'] || 1000))
 
@@ -409,17 +422,34 @@ const maxAllowedCoins = computed(() => {
 })
 
 const onCoinsChange = () => {
+  const tyLeGiamToiDa = Number(systemConfig.value['TY_LE_GIAM_TOI_DA_XU'] || 50)
+
   if (soXuCanDung.value < 0 || isNaN(soXuCanDung.value)) {
     soXuCanDung.value = 0
-  }
-  if (soXuCanDung.value > maxAllowedCoins.value) {
-    soXuCanDung.value = maxAllowedCoins.value
+    coinWarning.value = ''
+    return
   }
 
-  // Tự động áp dụng ngay lập tức khi giá trị thay đổi
+  if (soXuCanDung.value > maxAllowedCoins.value) {
+    coinWarning.value = `Vượt quá giới hạn tối đa! Bạn chỉ được dùng tối đa ${maxAllowedCoins.value} xu (Giảm tối đa ${tyLeGiamToiDa}% giá trị đơn hàng).`
+    soXuCanDung.value = maxAllowedCoins.value
+  } else {
+    coinWarning.value = ''
+  }
+
   soXuSuDung.value = Number(soXuCanDung.value) || 0
   tienGiamDoXu.value = soXuSuDung.value * tyLeQuyDoi.value
 }
+
+watch(maxAllowedCoins, (newMax) => {
+  if (soXuCanDung.value > newMax) {
+    soXuCanDung.value = newMax
+    const tyLeGiamToiDa = Number(systemConfig.value['TY_LE_GIAM_TOI_DA_XU'] || 50)
+    coinWarning.value = `Số xu đã được tự động điều chỉnh về mức tối đa ${newMax} xu theo tỷ lệ giới hạn ${tyLeGiamToiDa}%.`
+    soXuSuDung.value = Number(soXuCanDung.value) || 0
+    tienGiamDoXu.value = soXuSuDung.value * tyLeQuyDoi.value
+  }
+})
 
 const apDungXuTuyChinh = () => {
   onCoinsChange()
@@ -634,7 +664,7 @@ const loading = ref(false)
 const addresses = ref([])
 const selectedAddressId = ref(null)
 const toast = useToast()
-const route = useRoute()
+const route = useRoute() // <--- Đã bổ sung khai báo route ở đây
 const router = useRouter()
 const authToken = sessionStorage.getItem('token')
 const isLoggedIn = Boolean(authToken)
@@ -697,18 +727,15 @@ onMounted(async () => {
 function connectSocket() {
   if (!stompClient) return
 
-  // Nếu đã kết nối rồi thì tiến hành subscribe luôn
   if (stompClient.connected) {
     subscribeOrder()
     return
   }
 
-  // Kích hoạt kết nối nếu client chưa chạy (đối với @stomp/stompjs)
   if (typeof stompClient.activate === 'function' && !stompClient.active) {
     stompClient.activate()
   }
 
-  // Lưu lại hàm onConnect cũ (nếu có trong file @/socket.js) để không bị ghi đè mất logic gốc
   const existingOnConnect = stompClient.onConnect
 
   stompClient.onConnect = (frame) => {
@@ -718,7 +745,6 @@ function connectSocket() {
     subscribeOrder()
   }
 
-  // Thêm xử lý khi mất kết nối hoặc lỗi để dễ debug
   stompClient.onStompError = (frame) => {
     console.error('Lỗi STOMP:', frame.headers['message'])
   }
@@ -838,7 +864,7 @@ const placeOrder = async () => {
       selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? selectedVoucherObj.idVoucherKhachHang : null,
     soXuSuDung: soXuSuDung.value,
     tienGiamDoXu: tienGiamDoXu.value,
-    paymentMethod: paymentMethod.value, // Gửi phương thức COD hoặc VNPAY lên để Backend biết
+    paymentMethod: paymentMethod.value,
     note: '',
     items: isCartCheckout.value
       ? checkoutItems.value.map((item) => ({
@@ -856,15 +882,10 @@ const placeOrder = async () => {
 
   try {
     isPlacingOrder.value = true
-
-    // 1. Tạo hóa đơn chung trước
     const res = await taoHoaDonOnline(body, authToken)
-
     emitter.emit('cart-updated')
 
-    // 2. Phân nhánh theo phương thức thanh toán
     if (paymentMethod.value === 'VNPAY') {
-      // Nếu là VNPAY: Gọi tiếp API lấy link thanh toán dựa trên ID hóa đơn vừa tạo
       const paymentBody = {
         idHoaDon: Number(res.id),
         method: 'VNPAY',
@@ -879,11 +900,9 @@ const placeOrder = async () => {
         return
       }
     } else {
-      // Nếu là COD: Đặt hàng thành công hoàn tất, chuyển về trang quản lý đơn hàng
       toast.success(`Đặt hàng thành công! Mã đơn: ${res.maHoaDon}`)
       if (isCartCheckout.value) sessionStorage.removeItem('checkoutData')
-
-      router.push('/donhang') // Thay bằng đường dẫn trang lịch sử đơn hàng của bạn
+      router.push('/donhang')
     }
   } catch (error) {
     toast.error(error.message || 'Đặt hàng thất bại ❌')
@@ -891,6 +910,7 @@ const placeOrder = async () => {
     isPlacingOrder.value = false
   }
 }
+
 const addressForm = ref({
   tenNguoiNhan: '',
   soDienThoai: '',
@@ -974,41 +994,6 @@ const getCurrentLocation = () => {
                     addressForm.value.phuong = foundWard.WardName
                     addressForm.value.wardCode = foundWard.WardCode
                   }
-                }
-              } else if (rawWardName) {
-                let matchedDist = null
-                let matchedWard = null
-                let matchedWardList = []
-
-                for (const d of distList) {
-                  try {
-                    const wardList = await getWards(d.DistrictID)
-                    const foundW = wardList.find(
-                      (w) =>
-                        rawWardName.toLowerCase().includes(w.WardName.toLowerCase()) ||
-                        w.WardName.toLowerCase().includes(rawWardName.toLowerCase()),
-                    )
-                    if (foundW) {
-                      matchedDist = d
-                      matchedWard = foundW
-                      matchedWardList = wardList
-                      break
-                    }
-                  } catch (err) {
-                    console.error('Lỗi duyệt danh sách xã:', err)
-                  }
-                }
-
-                if (matchedDist && matchedWard) {
-                  selectedDistrict.value = matchedDist
-                  addressForm.value.quan = matchedDist.DistrictName
-                  addressForm.value.districtId = matchedDist.DistrictID
-
-                  wards.value = matchedWardList
-
-                  selectedWard.value = matchedWard
-                  addressForm.value.phuong = matchedWard.WardName
-                  addressForm.value.wardCode = matchedWard.WardCode
                 }
               }
             }
@@ -1154,5 +1139,13 @@ watch(selectedAddressId, async (id) => {
   background-size:
     auto,
     24px 24px;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

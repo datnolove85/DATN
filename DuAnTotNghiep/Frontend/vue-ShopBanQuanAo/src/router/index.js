@@ -102,6 +102,12 @@ const router = createRouter({
       children: [
         // ----------------- DÀNH CHO CẢ ADMIN & STAFF (5 NGHIỆP VỤ CHÍNH) -----------------
         {
+          path: 'chat',
+          name: 'AdminChat',
+          component: () => import('../views/Admin/Chat/ChatAdminView.vue'),
+          meta: { requiresAuth: true, roles: ['ADMIN', 'STAFF'] },
+        },
+        {
           path: 'thongke',
           name: 'thongke',
           component: () => import('../views/Admin/thongke/mainn.vue'),

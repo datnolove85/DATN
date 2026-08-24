@@ -209,7 +209,7 @@
             <div class="mt-6">
               <div class="text-[14px] sm:text-[15px] mb-2.5">
                 <span class="font-semibold text-[#111]">Màu sắc:</span>
-                <span class="text-gray-700 ml-1">
+                <span class="font-bold text-[#00a884] ml-1.5 uppercase tracking-wide">
                   {{ selectedColor?.name }}
                 </span>
               </div>
@@ -243,12 +243,12 @@
               </div>
             </div>
 
-            <!-- SIZE -->
+            <!-- SIZE (Đã Highlight text size khi chọn) -->
             <div class="mt-6">
               <div class="flex items-center justify-between gap-3 mb-2.5">
                 <div class="text-[14px] sm:text-[15px]">
                   <span class="font-semibold text-[#111]">Size:</span>
-                  <span class="text-gray-700 ml-1">
+                  <span class="font-bold text-[#00a884] ml-1.5 uppercase tracking-wide">
                     {{ selectedVariant?.tenKichThuoc }}
                   </span>
                 </div>
@@ -307,7 +307,9 @@
                     type="number"
                     min="1"
                     :max="availableStock"
-                    v-model.number="quantity"
+                    :value="quantity"
+                    @keydown="restrictNumberKeys"
+                    @input="quantity = Number($event.target.value.replace(/\D/g, ''))"
                     @blur="validateQuantity"
                     class="w-14 h-full text-center border-x border-gray-300 text-[14px] font-medium text-gray-800 focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
@@ -323,8 +325,17 @@
                 </div>
               </div>
 
-              <div class="mt-2 text-[13px] text-[#15945c] font-medium">
-                Còn {{ availableStock }} sản phẩm
+              <!-- Thông tin tồn kho & Cảnh báo vượt quá -->
+              <div class="mt-2 flex flex-col gap-0.5">
+                <div class="text-[13px] text-[#15945c] font-medium">
+                  Còn {{ availableStock }} sản phẩm
+                </div>
+                <div
+                  v-if="quantity > availableStock && availableStock > 0"
+                  class="text-[13px] text-rose-500 font-medium"
+                >
+                  Vượt quá số lượng khả dụng!
+                </div>
               </div>
             </div>
           </div>
@@ -498,7 +509,6 @@
            PRODUCT INFORMATION TABS
       ====================================================== -->
       <section class="mt-8 border border-gray-200 rounded-[8px] overflow-hidden shadow-sm">
-        <!-- Phần Tab: Đã thêm justify-start sm:justify-center để căn giữa -->
         <div
           class="flex justify-start sm:justify-center border-b border-gray-200 overflow-x-auto bg-gray-50/50"
         >
@@ -518,7 +528,6 @@
           </button>
         </div>
 
-        <!-- Phần Nội Dung -->
         <div class="p-5 lg:p-7 bg-white">
           <div
             v-if="activeTab === 'THÔNG TIN SẢN PHẨM'"
@@ -591,12 +600,11 @@
       <section v-if="sameCategoryProducts.length > 0" class="mt-8 border-b border-gray-200">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-[18px] sm:text-[20px] font-bold text-[#111] uppercase tracking-wide">
-            CÙNG DANH MỤC
+            Sản phẩm liên quan
           </h2>
         </div>
 
         <div class="relative group/slider">
-          <!-- Mũi tên trái -->
           <button
             type="button"
             @click="scrollSlider('left')"
@@ -605,7 +613,6 @@
             ‹
           </button>
 
-          <!-- Mũi tên phải -->
           <button
             type="button"
             @click="scrollSlider('right')"
@@ -614,7 +621,6 @@
             ›
           </button>
 
-          <!-- Danh sách sản phẩm dạng trượt ngang -->
           <div
             ref="sameCategorySliderRef"
             @scroll="handleScrollProgress"
@@ -629,7 +635,6 @@
               class="cursor-pointer flex flex-col shrink-0 w-[210px] sm:w-[230px]"
               style="scroll-snap-align: start"
             >
-              <!-- Hình ảnh sản phẩm (Bo góc thanh lịch, có border nhẹ) -->
               <div
                 class="relative overflow-hidden aspect-[4/5] bg-[#f6f6f6] rounded-[8px] border border-gray-200 shadow-sm"
                 @click="
@@ -652,7 +657,6 @@
                   :class="hoveredCardId === item.idSanPham ? 'scale-105' : 'scale-100'"
                 />
 
-                <!-- Badge giảm giá -->
                 <div
                   v-if="item.dangGiamGia && item.phanTramGiam > 0"
                   class="absolute left-2.5 top-2.5 bg-[#df2633] text-white px-2 py-0.5 text-[11px] font-bold rounded-[4px] z-10 shadow-sm"
@@ -660,7 +664,6 @@
                   -{{ item.phanTramGiam }}%
                 </div>
 
-                <!-- Nút Yêu thích & Xem nhanh -->
                 <div
                   class="absolute right-2.5 top-2.5 flex flex-col gap-1.5 transition-opacity duration-300 z-20"
                   :class="
@@ -689,7 +692,6 @@
                 </div>
               </div>
 
-              <!-- Màu sắc -->
               <div
                 v-if="item.colors && item.colors.length > 0"
                 class="flex items-center gap-1.5 mt-2"
@@ -735,7 +737,6 @@
             </div>
           </div>
 
-          <!-- Thanh tiến trình -->
           <div
             class="w-full h-2 bg-gray-200 rounded-full mt-3 relative overflow-hidden shadow-inner"
           >
@@ -758,17 +759,16 @@
       </section>
 
       <!-- =====================================================
-           RECENTLY VIEWED (Đã rút ngắn padding bottom chống dư khoảng trắng)
+           RECENTLY VIEWED
       ====================================================== -->
       <section v-if="recentlyViewedProducts.length > 0">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-[18px] sm:text-[20px] font-bold text-[#111] uppercase tracking-wide">
-            BẠN ĐÃ XEM
+            Sản phẩm đã xem gần đây
           </h2>
         </div>
 
         <div class="relative group/slider">
-          <!-- Mũi tên trái -->
           <button
             type="button"
             @click="scrollRecentlyViewed('left')"
@@ -777,7 +777,6 @@
             ‹
           </button>
 
-          <!-- Mũi tên phải -->
           <button
             type="button"
             @click="scrollRecentlyViewed('right')"
@@ -786,7 +785,6 @@
             ›
           </button>
 
-          <!-- Danh sách sản phẩm dạng trượt ngang -->
           <div
             ref="recentlyViewedSliderRef"
             @scroll="handleRecentlyViewedScroll"
@@ -801,7 +799,6 @@
               class="cursor-pointer flex flex-col shrink-0 w-[210px] sm:w-[230px]"
               style="scroll-snap-align: start"
             >
-              <!-- Hình ảnh sản phẩm (Bo góc thanh lịch, có border nhẹ) -->
               <div
                 class="relative overflow-hidden aspect-[4/5] bg-[#f6f6f6] rounded-[8px] border border-gray-200 shadow-sm"
                 @click="
@@ -824,7 +821,6 @@
                   :class="hoveredCardId === item.idSanPham ? 'scale-105' : 'scale-100'"
                 />
 
-                <!-- Badge giảm giá -->
                 <div
                   v-if="item.dangGiamGia && item.phanTramGiam > 0"
                   class="absolute left-2.5 top-2.5 bg-[#df2633] text-white px-2 py-0.5 text-[11px] font-bold rounded-[4px] z-10 shadow-sm"
@@ -832,7 +828,6 @@
                   -{{ item.phanTramGiam }}%
                 </div>
 
-                <!-- Nút Yêu thích & Xem nhanh -->
                 <div
                   class="absolute right-2.5 top-2.5 flex flex-col gap-1.5 transition-opacity duration-300 z-20"
                   :class="
@@ -861,7 +856,6 @@
                 </div>
               </div>
 
-              <!-- Màu sắc -->
               <div
                 v-if="item.colors && item.colors.length > 0"
                 class="flex items-center gap-1.5 mt-2"
@@ -907,7 +901,6 @@
             </div>
           </div>
 
-          <!-- Thanh tiến trình -->
           <div
             class="w-full h-2 bg-gray-200 rounded-full mt-3 relative overflow-hidden shadow-inner"
           >
@@ -920,9 +913,6 @@
       </section>
     </main>
 
-    <!-- =====================================================
-         QUICK VIEW MODAL POPUP
-    ====================================================== -->
     <QuickViewModal
       v-if="showQuickViewModal && quickViewProductId"
       :product-id="quickViewProductId"
@@ -931,9 +921,6 @@
 
     <SizeModal v-if="showSizeModal" @close="showSizeModal = false" />
 
-    <!-- =========================
-         TRY ON
-    ========================== -->
     <VirtualTryOn
       v-if="showTryOn && selectedVariant"
       is-modal
@@ -979,11 +966,9 @@ const quantity = ref(1)
 const shopVariants = ref([])
 const recentlyViewedProducts = ref([])
 
-// Slider & Progress Bar state (Cùng danh mục)
 const sameCategorySliderRef = ref(null)
 const scrollProgress = ref(0)
 
-// Slider & Progress Bar state (Bạn đã xem)
 const recentlyViewedSliderRef = ref(null)
 const recentlyViewedScrollProgress = ref(0)
 
@@ -991,6 +976,12 @@ const isAddingToCart = ref(false)
 
 const API_URL = 'http://localhost:8080'
 const placeholder = 'https://via.placeholder.com/300'
+
+const restrictNumberKeys = (event) => {
+  if (['e', 'E', '+', '-', '.'].includes(event.key)) {
+    event.preventDefault()
+  }
+}
 
 const getColorStyle = (name) => {
   const lower = (name || '').toLowerCase()

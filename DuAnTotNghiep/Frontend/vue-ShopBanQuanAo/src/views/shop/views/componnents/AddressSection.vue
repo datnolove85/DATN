@@ -82,28 +82,10 @@ const handleWardChange = (e) => {
 </script>
 
 <template>
-  <!-- MỚI (liền mạch, không viền ngoài) -->
   <section class="bg-transparent">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2"></h3>
-
-      <template v-if="isLoggedIn">
-        <button
-          v-if="addresses.length < 3"
-          type="button"
-          class="text-xs font-bold text-indigo-600 hover:underline transition"
-          @click="$emit('openAddAddress')"
-        >
-          + Thêm địa chỉ
-        </button>
-        <span v-else class="text-[11px] font-semibold text-slate-400 italic"> Đã đầy (3/3) </span>
-      </template>
-    </div>
-
     <!-- LOGGED-IN ADDRESSES -->
-    <div v-if="isLoggedIn" class="mt-3 space-y-2.5">
-      <!-- 1. TRẠNG THÁI MẶC ĐỊNH: Chỉ hiện duy nhất 1 địa chỉ đang chọn kèm nút Thay đổi -->
+    <div v-if="isLoggedIn" class="space-y-2.5">
+      <!-- 1. TRẠNG THÁI MẶC ĐỊNH: Địa chỉ đang chọn + Nút Thêm/Thay đổi nằm gọn trong khung -->
       <template v-if="!showAllAddresses && activeAddress">
         <div
           class="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50/30 via-white to-white p-3.5 shadow-2xs transition hover:border-indigo-300"
@@ -142,9 +124,22 @@ const handleWardChange = (e) => {
             </div>
           </div>
 
+          <!-- Nhóm nút thao tác tích hợp gọn gàng bên phải khung -->
           <div
-            class="flex shrink-0 items-center justify-end sm:justify-start pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100"
+            class="flex shrink-0 items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100"
           >
+            <!-- Nút thêm địa chỉ (hiển thị khi chưa đạt tối đa 3 địa chỉ) -->
+            <button
+              v-if="addresses.length < 3"
+              type="button"
+              class="inline-flex items-center gap-1 rounded-xl bg-indigo-50 px-2.5 py-1.5 text-xs font-bold text-indigo-600 hover:bg-indigo-100 transition"
+              @click="$emit('openAddAddress')"
+            >
+              <Plus :size="13" />
+              <span>Thêm</span>
+            </button>
+
+            <!-- Nút thay đổi địa chỉ -->
             <button
               type="button"
               class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-2xs transition hover:bg-indigo-50 hover:border-indigo-200"
@@ -152,7 +147,7 @@ const handleWardChange = (e) => {
             >
               <ArrowRightLeft :size="13" />
               <span
-                >Thay đổi địa chỉ
+                >Thay đổi
                 <span v-if="addresses.length > 1" class="text-slate-400 font-normal"
                   >({{ addresses.length }})</span
                 ></span
@@ -162,19 +157,29 @@ const handleWardChange = (e) => {
         </div>
       </template>
 
-      <!-- 2. TRẠNG THÁI MỞ RỘNG: Hiện danh sách khi người dùng bấm Thay đổi -->
+      <!-- 2. TRẠNG THÁI MỞ RỘNG: Hiện danh sách khi bấm Thay đổi -->
       <template v-else-if="showAllAddresses && addresses.length > 0">
         <div class="space-y-2.5 animate-fadeIn">
           <div class="flex items-center justify-between px-1">
             <span class="text-xs font-bold text-slate-700">Chọn địa chỉ giao hàng khác:</span>
-            <button
-              type="button"
-              class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-indigo-600"
-              @click="$emit('update:showAllAddresses', false)"
-            >
-              <ChevronUp :size="14" />
-              Thu gọn
-            </button>
+            <div class="flex items-center gap-3">
+              <button
+                v-if="addresses.length < 3"
+                type="button"
+                class="text-xs font-bold text-indigo-600 hover:underline transition"
+                @click="$emit('openAddAddress')"
+              >
+                + Thêm địa chỉ mới
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-indigo-600"
+                @click="$emit('update:showAllAddresses', false)"
+              >
+                <ChevronUp :size="14" />
+                Thu gọn
+              </button>
+            </div>
           </div>
 
           <article
