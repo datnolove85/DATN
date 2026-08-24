@@ -38,6 +38,11 @@ const router = createRouter({
           component: () => import('@/views/shop/home.vue'),
         },
         {
+          path: 'yeuthich',
+          name: 'yeuthich',
+          component: () => import('@/views/shop/components/YeuThich.vue'),
+        },
+        {
           path: 'thu-do',
           name: 'thu-do',
           component: () => import('@/components/VirtualTryOn.vue'),

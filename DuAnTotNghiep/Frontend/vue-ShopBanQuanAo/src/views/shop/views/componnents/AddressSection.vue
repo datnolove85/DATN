@@ -1,3 +1,4 @@
+<!-- components/AddressSection.vue -->
 <script setup>
 import { computed } from 'vue'
 import {
@@ -22,9 +23,9 @@ const props = defineProps({
   provinces: Array,
   districts: Array,
   wards: Array,
-  selectedProvince: Object,
-  selectedDistrict: Object,
-  selectedWard: Object,
+  selectedProvince: [Object, null],
+  selectedDistrict: [Object, null],
+  selectedWard: [Object, null],
 })
 
 const emit = defineEmits([
@@ -63,22 +64,6 @@ const activeAddress = computed(() => {
     sortedAddresses.value[0]
   )
 })
-
-// Các hàm trung gian giúp chống lỗi cú pháp khi Prettier format code lúc Ctrl + S
-const handleProvinceChange = (e) => {
-  emit('update:selectedProvince', e.target.value)
-  emit('provinceChange', e)
-}
-
-const handleDistrictChange = (e) => {
-  emit('update:selectedDistrict', e.target.value)
-  emit('districtChange', e)
-}
-
-const handleWardChange = (e) => {
-  emit('update:selectedWard', e.target.value)
-  emit('wardChange', e)
-}
 </script>
 
 <template>
@@ -280,7 +265,7 @@ const handleWardChange = (e) => {
       </div>
     </div>
 
-    <!-- GUEST FORM (Giữ nguyên không đổi) -->
+    <!-- GUEST FORM (Đã sửa lỗi bind object vào select) -->
     <div v-else class="mt-3 space-y-2.5">
       <div class="grid gap-2.5 md:grid-cols-2">
         <label class="block">
@@ -324,45 +309,66 @@ const handleWardChange = (e) => {
       </div>
 
       <div class="grid gap-2.5 md:grid-cols-3">
+        <!-- Tỉnh / Thành phố -->
         <label class="block">
           <span class="mb-1 block text-[11px] font-bold text-slate-700">Tỉnh / Thành phố</span>
           <select
-            :value="selectedProvince"
-            @change="handleProvinceChange"
+            :value="selectedProvince?.ProvinceID || ''"
+            @change="
+              (e) => {
+                const found = provinces.find((p) => p.ProvinceID == e.target.value)
+                emit('update:selectedProvince', found || null)
+                emit('provinceChange', found || null)
+              }
+            "
             class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
           >
-            <option :value="null">Chọn tỉnh/thành phố</option>
-            <option v-for="p in provinces" :key="p.ProvinceID" :value="p">
+            <option :value="''">Chọn tỉnh/thành phố</option>
+            <option v-for="p in provinces" :key="p.ProvinceID" :value="p.ProvinceID">
               {{ p.ProvinceName }}
             </option>
           </select>
         </label>
 
+        <!-- Quận / Huyện -->
         <label class="block">
           <span class="mb-1 block text-[11px] font-bold text-slate-700">Quận / Huyện</span>
           <select
-            :value="selectedDistrict"
+            :value="selectedDistrict?.DistrictID || ''"
             :disabled="!selectedProvince"
-            @change="handleDistrictChange"
+            @change="
+              (e) => {
+                const found = districts.find((d) => d.DistrictID == e.target.value)
+                emit('update:selectedDistrict', found || null)
+                emit('districtChange', found || null)
+              }
+            "
             class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100"
           >
-            <option :value="null">Chọn quận/huyện</option>
-            <option v-for="d in districts" :key="d.DistrictID" :value="d">
+            <option :value="''">Chọn quận/huyện</option>
+            <option v-for="d in districts" :key="d.DistrictID" :value="d.DistrictID">
               {{ d.DistrictName }}
             </option>
           </select>
         </label>
 
+        <!-- Phường / Xã -->
         <label class="block">
           <span class="mb-1 block text-[11px] font-bold text-slate-700">Phường / Xã</span>
           <select
-            :value="selectedWard"
+            :value="selectedWard?.WardCode || ''"
             :disabled="!selectedDistrict"
-            @change="handleWardChange"
+            @change="
+              (e) => {
+                const found = wards.find((w) => w.WardCode == e.target.value)
+                emit('update:selectedWard', found || null)
+                emit('wardChange', found || null)
+              }
+            "
             class="w-full rounded-xl border border-slate-300 bg-white p-2 text-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100"
           >
-            <option :value="null">Chọn phường/xã</option>
-            <option v-for="w in wards" :key="w.WardCode" :value="w">
+            <option :value="''">Chọn phường/xã</option>
+            <option v-for="w in wards" :key="w.WardCode" :value="w.WardCode">
               {{ w.WardName }}
             </option>
           </select>

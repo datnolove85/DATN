@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed bottom-5 right-5 z-[80] font-sans">
+  <div class="fixed bottom-24 right-5 z-[80] font-sans">
     <Transition name="chat-pop">
       <section
         v-if="open"
@@ -158,7 +158,7 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Client } from '@stomp/stompjs'
 import { MessageCircle, MessagesSquare, Minus, Send, X } from 'lucide-vue-next'
@@ -173,7 +173,10 @@ const draft = ref('')
 const sending = ref(false)
 const unread = ref(0)
 const messagesEl = ref(null)
+
 let stompClient = null
+let customerChatSub = null
+const recentSentMessages = [] // Bộ nhớ tạm nhận diện tin nhắn do khách vừa gửi
 
 const suggestions = [
   'Áo này còn size M không?',
@@ -194,34 +197,74 @@ async function load() {
   messages.value = data?.messages || []
   unread.value = data?.soTinChuaDoc || 0
 
-  connectSocket()
-
   if (conversation.value?.id) {
     await markChatRead(conversation.value.id)
     unread.value = 0
+    subscribeToCustomerChat()
   }
 
   scrollBottom()
 }
 
+function subscribeToCustomerChat() {
+  if (customerChatSub) {
+    customerChatSub.unsubscribe()
+    customerChatSub = null
+  }
+  if (stompClient?.active && conversation.value?.id) {
+    customerChatSub = stompClient.subscribe(`/topic/chat/${conversation.value.id}`, (frame) => {
+      const message = JSON.parse(frame.body)
+
+      // Kiểm tra xem tin nhắn trả về từ socket có phải là do khách vừa gửi đi không
+      const recentIndex = recentSentMessages.findIndex(
+        (m) => m.text === message.noiDung && Date.now() - m.time < 10000,
+      )
+
+      if (recentIndex !== -1) {
+        message.cuaToi = true
+        recentSentMessages.splice(recentIndex, 1) // Xóa khỏi danh sách tạm sau khi khớp
+      } else {
+        message.cuaToi = false // Nếu không phải khách gửi thì đích thị là tin của Admin
+      }
+
+      // Kiểm tra xem tin nhắn đã tồn tại trong danh sách chưa (tránh trùng lặp)
+      const existing = messages.value.find(
+        (item) =>
+          item.id === message.id ||
+          (message.cuaToi &&
+            item.noiDung === message.noiDung &&
+            item.id?.toString().startsWith('opt-')),
+      )
+
+      if (existing) {
+        existing.id = message.id
+        existing.thoiGian = message.thoiGian
+        existing.cuaToi = true
+      } else {
+        messages.value.push(message)
+
+        if (!message.cuaToi) {
+          if (open.value && !minimized.value) {
+            markChatRead(conversation.value.id).catch(() => {})
+            unread.value = 0
+          } else {
+            unread.value += 1
+          }
+        }
+      }
+      scrollBottom()
+    })
+  }
+}
+
 function connectSocket() {
-  if (stompClient?.active) return
+  if (stompClient?.active || !token()) return
   stompClient = new Client({
     brokerURL: `${API_BASE_URL.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:')}/ws`,
     reconnectDelay: 5000,
     connectHeaders: { Authorization: `Bearer ${token()}` },
     onConnect: () => {
-      stompClient.subscribe('/user/queue/chat', (frame) => {
-        const message = JSON.parse(frame.body)
-        if (!conversation.value || message.idConversation !== conversation.value.id) return
-        if (!messages.value.some((item) => item.id === message.id)) messages.value.push(message)
-        if (message.cuaToi) return
-        if (open.value) {
-          markChatRead(conversation.value.id).catch(() => {})
-          unread.value = 0
-          scrollBottom()
-        } else unread.value += 1
-      })
+      subscribeToCustomerChat()
     },
   })
   stompClient.activate()
@@ -232,12 +275,36 @@ async function send() {
   sending.value = true
   const text = draft.value.trim()
   draft.value = ''
+
+  // Ghi nhớ nội dung vừa gửi để phân biệt khi websocket echo lại
+  recentSentMessages.push({ text, time: Date.now() })
+  while (recentSentMessages.length > 20) recentSentMessages.shift()
+
+  // Hiển thị tạm thời tin nhắn lên giao diện ngay lập tức (Optimistic Update)
+  const optimisticMsg = {
+    id: 'opt-' + Date.now(),
+    noiDung: text,
+    thoiGian: new Date().toISOString(),
+    cuaToi: true,
+  }
+  messages.value.push(optimisticMsg)
+  scrollBottom()
+
   try {
     const message = await sendChatMessage(conversation.value.id, text)
-    if (!messages.value.some((item) => item.id === message.id)) messages.value.push(message)
+    message.cuaToi = true
+
+    const index = messages.value.findIndex((m) => m.id === optimisticMsg.id)
+    if (index !== -1) {
+      messages.value[index] = message
+    } else if (!messages.value.some((m) => m.id === message.id)) {
+      messages.value.push(message)
+    }
+
     await markChatRead(conversation.value.id)
     scrollBottom()
   } catch (error) {
+    messages.value = messages.value.filter((m) => m.id !== optimisticMsg.id)
     draft.value = text
     window.alert(error?.message || 'Không thể gửi tin nhắn.')
   } finally {
@@ -265,19 +332,24 @@ async function toggle() {
 watch(open, (value) => {
   if (value) scrollBottom()
 })
-onBeforeUnmount(() => stompClient?.deactivate())
-</script>
 
-<style scoped>
-.chat-pop-enter-active,
-.chat-pop-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-.chat-pop-enter-from,
-.chat-pop-leave-to {
-  opacity: 0;
-  transform: translateY(10px) scale(0.98);
-}
-</style>
+onMounted(async () => {
+  if (token()) {
+    try {
+      const data = await getMyChat()
+      if (data) {
+        conversation.value = data
+        unread.value = data?.soTinChuaDoc || 0
+      }
+    } catch (e) {
+      // Bỏ qua nếu chưa có hội thoại
+    }
+    connectSocket()
+  }
+})
+
+onBeforeUnmount(() => {
+  if (customerChatSub) customerChatSub.unsubscribe()
+  stompClient?.deactivate()
+})
+</script>

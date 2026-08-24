@@ -790,6 +790,7 @@ select * from lich_su_hoa_don
 select * from phan_thuong_minigame
 
 select * from voucher_cua_khach_hang
+select * from dia_chi_khach_hang
 
 select * from cau_hinh_he_thong
 select * from cau_hinh_hang_thanh_vien
@@ -799,4 +800,4 @@ select * from khach_hang
 select * from nhan_vien
 
 select * from voucher_minigame
-update khach_hang set ma_khach_hang='KH02' where id=4
+select * from yeu_thich

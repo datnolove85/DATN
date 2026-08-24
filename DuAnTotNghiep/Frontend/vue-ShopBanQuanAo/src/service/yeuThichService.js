@@ -1,17 +1,15 @@
 import axios from 'axios'
 
-// Định nghĩa URL gốc của API Backend
 const API_URL = 'http://localhost:8080/api/yeu-thich'
 
 const yeuThichService = {
-  /**
-   * Lấy danh sách sản phẩm yêu thích của khách hàng
-   * @param {number} idKhachHang
-   * @returns Promise
-   */
-  getDanhSach: async (idKhachHang) => {
+  // 1. Hàm chính
+  getDanhSachYeuThich: async (idKhachHang) => {
     try {
-      const response = await axios.get(`${API_URL}/${idKhachHang}`)
+      const token = sessionStorage.getItem('token')
+      const response = await axios.get(`${API_URL}/${idKhachHang}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       return response.data
     } catch (error) {
       console.error('Lỗi khi lấy danh sách yêu thích:', error)
@@ -19,45 +17,38 @@ const yeuThichService = {
     }
   },
 
-  /**
-   * Thả tim hoặc Bỏ tim sản phẩm (Toggle)
-   * @param {number} idKhachHang
-   * @param {number} idSanPham
-   * @returns Promise (trả về kết quả từ API)
-   */
+  // Thêm hàm này để tương thích với chỗ nào trong confirmbuy.vue đang gọi .getDanhSach()
+  getDanhSach: async (idKhachHang) => {
+    return await yeuThichService.getDanhSachYeuThich(idKhachHang)
+  },
+
+  // 2. Thả tim hoặc Bỏ tim (Dùng @RequestParam nên body để null, truyền qua params)
   toggleYeuThich: async (idKhachHang, idSanPham) => {
     try {
+      const token = sessionStorage.getItem('token')
       const response = await axios.post(`${API_URL}/toggle`, null, {
-        params: {
-          idKhachHang: idKhachHang,
-          idSanPham: idSanPham,
-        },
+        headers: { Authorization: `Bearer ${token}` },
+        params: { idKhachHang, idSanPham },
       })
-      return response.data // Trả về dạng { success, message, data }
+      return response.data
     } catch (error) {
       console.error('Lỗi khi thay đổi trạng thái yêu thích:', error)
       throw error
     }
   },
 
-  /**
-   * Kiểm tra xem khách hàng đã thích sản phẩm này chưa (dùng để đổi màu icon trái tim)
-   * @param {number} idKhachHang
-   * @param {number} idSanPham
-   * @returns Promise<boolean>
-   */
+  // 3. Kiểm tra đã thích hay chưa
   kiemTraDaThich: async (idKhachHang, idSanPham) => {
     try {
+      const token = sessionStorage.getItem('token')
       const response = await axios.get(`${API_URL}/kiem-tra`, {
-        params: {
-          idKhachHang: idKhachHang,
-          idSanPham: idSanPham,
-        },
+        headers: { Authorization: `Bearer ${token}` },
+        params: { idKhachHang, idSanPham },
       })
-      return response.data // Trả về true hoặc false
+      return response.data
     } catch (error) {
-      console.error('Lỗi khi kiểm tra trạng thái thích:', error)
-      return false
+      console.error('Lỗi khi kiểm tra trạng thái yêu thích:', error)
+      throw error
     }
   },
 }

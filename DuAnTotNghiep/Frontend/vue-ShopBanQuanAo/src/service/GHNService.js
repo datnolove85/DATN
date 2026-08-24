@@ -33,3 +33,18 @@ export async function getShippingFee(body) {
 
   return await res.json()
 }
+export async function getShippingInfo(body) {
+  const res = await fetch(`${API}/shipping-info`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    throw new Error('Không lấy được thông tin vận chuyển')
+  }
+
+  return await res.json()
+}

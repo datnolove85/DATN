@@ -597,7 +597,7 @@
       <!-- =====================================================
            SAME CATEGORY
       ====================================================== -->
-      <section v-if="sameCategoryProducts.length > 0" class="mt-8 border-b border-gray-200">
+      <section v-if="sameCategoryProducts.length > 0" class="mt-8">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-[18px] sm:text-[20px] font-bold text-[#111] uppercase tracking-wide">
             Sản phẩm liên quan
@@ -675,10 +675,17 @@
                   <button
                     type="button"
                     @click.stop="toggleFavorite(item)"
-                    class="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#222] hover:text-[#df2633] hover:bg-white hover:scale-105 transition-all border border-gray-100"
+                    class="w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all border border-gray-100"
+                    :class="
+                      isFavorite(item.idSanPham)
+                        ? 'text-rose-600 bg-rose-50'
+                        : 'text-[#222] hover:text-[#df2633] hover:bg-white hover:scale-105'
+                    "
                     title="Thêm vào yêu thích"
                   >
-                    <span class="text-[16px] leading-none">♡</span>
+                    <span class="text-[16px] leading-none">{{
+                      isFavorite(item.idSanPham) ? '♥' : '♡'
+                    }}</span>
                   </button>
 
                   <button
@@ -943,6 +950,7 @@ import stompClient from '@/socket'
 import emitter from '@/utils/emitter'
 import { flyToCart } from '@/utils/cartAnimation'
 import QuickViewModal from '@/views/shop/views/componnents/QuickViewModal.vue'
+import yeuThichService from '@/service/yeuThichService' // Điều chỉnh lại đường dẫn cho đúng với cấu trúc thư mục thực tế của bạn
 
 const quickViewProductId = ref(null)
 const hoveredCardId = ref(null)
@@ -980,6 +988,64 @@ const placeholder = 'https://via.placeholder.com/300'
 const restrictNumberKeys = (event) => {
   if (['e', 'E', '+', '-', '.'].includes(event.key)) {
     event.preventDefault()
+  }
+}
+// Lấy ID khách hàng từ sessionStorage (dựa vào cấu trúc user hiện tại của bạn)
+const getCustomerId = () => {
+  const userStr = sessionStorage.getItem('user')
+  if (!userStr) return null
+  const userObj = JSON.parse(userStr)
+
+  // Ưu tiên lấy idKhachHang, khachHangId hoặc id của khách trước, cuối cùng mới đến id tài khoản
+  return (
+    userObj?.idKhachHang || userObj?.khachHangId || userObj?.khachHang?.id || userObj?.id || null
+  )
+}
+
+const wishlistIds = ref([])
+
+// Kiểm tra xem sản phẩm đã được thích chưa (dùng cho đổi màu icon)
+const isFavorite = (idSanPham) => {
+  return wishlistIds.value.includes(idSanPham)
+}
+
+// Gọi API lấy danh sách yêu thích của khách hàng khi load trang
+const loadWishlist = async () => {
+  const idKhachHang = getCustomerId()
+  if (!idKhachHang) return
+
+  try {
+    const data = await yeuThichService.getDanhSach(idKhachHang)
+    // Map lại danh sách ID sản phẩm đã thích để check hiển thị icon
+    wishlistIds.value = (data || []).map(
+      (item) => item.idSanPham || item.sanPham?.idSanPham || item.id,
+    )
+  } catch (err) {
+    console.error('Lỗi tải danh sách yêu thích:', err)
+  }
+}
+
+// Xử lý khi bấm nút thả tim (Toggle)
+const toggleFavorite = async (item) => {
+  const idKhachHang = getCustomerId()
+  if (!idKhachHang) {
+    alert('Bạn cần đăng nhập để sử dụng tính năng yêu thích!')
+    router.push('/login')
+    return
+  }
+
+  try {
+    const res = await yeuThichService.toggleYeuThich(idKhachHang, item.idSanPham)
+
+    // Cập nhật trạng thái hiển thị icon ngay lập tức trên UI
+    if (wishlistIds.value.includes(item.idSanPham)) {
+      wishlistIds.value = wishlistIds.value.filter((id) => id !== item.idSanPham)
+    } else {
+      wishlistIds.value.push(item.idSanPham)
+    }
+  } catch (err) {
+    console.error('Lỗi khi thao tác yêu thích:', err)
+    alert('Không thể cập nhật trạng thái yêu thích, vui lòng thử lại!')
   }
 }
 
@@ -1121,10 +1187,6 @@ const handleRecentlyViewedScroll = () => {
   recentlyViewedScrollProgress.value = (el.scrollLeft / maxScroll) * 100
 }
 
-const toggleFavorite = (item) => {
-  alert(`Đã thêm sản phẩm "${item.tenSanPham}" vào danh sách yêu thích!`)
-}
-
 const saveToRecentlyViewed = (currentProd) => {
   if (!currentProd) return
   let viewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]')
@@ -1245,6 +1307,7 @@ onMounted(async () => {
   await loadProduct()
   await loadShopProducts()
   loadRecentlyViewed()
+  loadWishlist()
   connectSocket()
 })
 

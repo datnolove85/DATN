@@ -137,9 +137,9 @@ const sendMessage = async () => {
   position: fixed;
   z-index: 60;
   right: 24px;
-  bottom: 24px;
-  font-family: inherit;
+  bottom: 24px; /* Giữ nguyên nút AI Chatbot ở sát đáy bên phải */
 }
+
 .chatbot__panel {
   position: absolute;
   right: 0;

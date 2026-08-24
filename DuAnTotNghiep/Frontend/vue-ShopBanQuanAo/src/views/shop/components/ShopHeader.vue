@@ -129,17 +129,19 @@
         </div>
 
         <!-- YÊU THÍCH (WISHLIST) -->
-        <button
+        <RouterLink
+          to="/yeuthich"
           class="relative w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
           title="Yêu thích"
         >
           <Heart class="w-5 h-5" />
           <span
-            class="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white"
+            v-if="wishlistCount > 0"
+            class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white"
           >
-            1
+            {{ wishlistCount }}
           </span>
-        </button>
+        </RouterLink>
 
         <!-- GIỎ HÀNG (CART) - Có ref để định vị hiệu ứng bay -->
         <div class="relative" @mouseenter="openCart" @mouseleave="closeCart">
@@ -263,14 +265,26 @@ import {
 } from 'lucide-vue-next'
 import axios from 'axios'
 import emitter from '@/utils/emitter'
+import yeuThichService from '@/service/yeuThichService'
 
 const router = useRouter()
 const openUser = ref(false)
 const scrolled = ref(false)
 const cart = ref([])
+const wishlist = ref([])
 const showCart = ref(false)
 const cartBtnRef = ref(null)
 let cartTimeout = null
+
+// Lấy id khách hàng từ sessionStorage (đồng bộ logic với trang yêu thích)
+const getCustomerId = () => {
+  const userStr = sessionStorage.getItem('user')
+  if (!userStr) return null
+  const userObj = JSON.parse(userStr)
+  return (
+    userObj?.idKhachHang || userObj?.khachHangId || userObj?.khachHang?.id || userObj?.id || null
+  )
+}
 
 // Cập nhật tọa độ icon giỏ hàng lưu vào sessionStorage để các trang khác gọi hiệu ứng bay
 const updateCartPosition = () => {
@@ -321,6 +335,10 @@ const cartCount = computed(() => {
   return cart.value.reduce((sum, item) => sum + Number(item.soLuong), 0)
 })
 
+const wishlistCount = computed(() => {
+  return wishlist.value.length
+})
+
 const totalPrice = computed(() => {
   return cart.value.reduce((sum, item) => {
     return sum + Number(item.thanhTien)
@@ -348,11 +366,31 @@ const loadCart = async () => {
   }
 }
 
+const loadWishlist = async () => {
+  try {
+    const idKhachHang = getCustomerId()
+    if (!idKhachHang) {
+      wishlist.value = []
+      return
+    }
+
+    const data = await yeuThichService.getDanhSachYeuThich(idKhachHang)
+    wishlist.value = data || []
+  } catch (err) {
+    console.log(err)
+    wishlist.value = []
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('resize', updateCartPosition)
+
   emitter.on('cart-updated', loadCart)
+  emitter.on('wishlist-updated', loadWishlist)
+
   loadCart()
+  loadWishlist()
 
   // Khởi tạo lấy tọa độ sau khi render
   setTimeout(updateCartPosition, 100)
@@ -361,7 +399,9 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('resize', updateCartPosition)
+
   emitter.off('cart-updated', loadCart)
+  emitter.off('wishlist-updated', loadWishlist)
 })
 
 const openCart = () => {

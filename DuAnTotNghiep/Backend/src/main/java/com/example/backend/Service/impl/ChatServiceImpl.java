@@ -111,8 +111,9 @@ public class ChatServiceImpl implements ChatService {
         conversation.setTinNhanCuoiLuc(message.getThoiGian());
         conversation.setNgayCapNhat(Instant.now());
         conversationRepository.save(conversation);
+
         ChatMessageResponse response = toMessageResponse(message, customerAccount.getId());
-        broadcast(response, conversation, false);
+        broadcast(message, conversation, false); // Truyền entity 'message' vào broadcast
         return response;
     }
 
@@ -128,9 +129,37 @@ public class ChatServiceImpl implements ChatService {
         conversation.setTinNhanCuoiLuc(message.getThoiGian());
         conversation.setNgayCapNhat(Instant.now());
         conversationRepository.save(conversation);
+
         ChatMessageResponse response = toMessageResponse(message, staff.getId());
-        broadcast(response, conversation, true);
+        broadcast(message, conversation, true); // Truyền entity 'message' vào broadcast
         return response;
+    }
+
+    private void broadcast(ChatMessage message, ChatConversation conversation, boolean fromStaff) {
+        if (fromStaff) {
+            // 1. Nhân viên gửi -> Gửi riêng cho khách hàng qua user queue
+            TaiKhoan customerAccount = conversation.getKhachHang().getIdTaiKhoan();
+            if (customerAccount != null && customerAccount.getEmail() != null) {
+                ChatMessageResponse customerResp = toMessageResponse(message, customerAccount.getId());
+                messagingTemplate.convertAndSendToUser(customerAccount.getEmail(), "/queue/chat", customerResp);
+            }
+
+            // 2. Broadcast lại vào topic chat chung cho các nhân viên khác
+            TaiKhoan staff = conversation.getNhanVien();
+            Integer staffAccountId = staff != null ? staff.getId() : -1;
+            ChatMessageResponse staffResp = toMessageResponse(message, staffAccountId);
+            messagingTemplate.convertAndSend("/topic/chat/" + conversation.getId(), staffResp);
+        } else {
+            // 3. Khách hàng gửi -> Gửi cho nhân viên qua topic chat với cuaToi tính theo góc nhìn Nhân viên
+            TaiKhoan staff = conversation.getNhanVien();
+            Integer staffAccountId = staff != null ? staff.getId() : -1;
+
+            ChatMessageResponse staffResp = toMessageResponse(message, staffAccountId);
+            messagingTemplate.convertAndSend("/topic/chat/" + conversation.getId(), staffResp);
+
+            // 4. Bắn thông báo cập nhật danh sách inbox cho tất cả nhân viên
+            messagingTemplate.convertAndSend("/topic/admin/inbox", staffResp);
+        }
     }
 
     @Override
@@ -181,19 +210,7 @@ public class ChatServiceImpl implements ChatService {
         return messageRepository.save(message);
     }
 
-    private void broadcast(ChatMessageResponse message, ChatConversation conversation, boolean fromStaff) {
-        messagingTemplate.convertAndSendToUser(conversation.getKhachHang().getIdTaiKhoan().getEmail(), "/queue/chat", message);
-        if (conversation.getNhanVien() != null) {
-            messagingTemplate.convertAndSendToUser(conversation.getNhanVien().getEmail(), "/queue/chat", message);
-        }
-        if (!fromStaff) {
-            taiKhoanRepository.findAll().stream()
-                    .filter(t -> t.getIdVaiTro() != null && t.getIdVaiTro().getTenVaiTro() != null)
-                    .filter(t -> "ADMIN".equalsIgnoreCase(t.getIdVaiTro().getTenVaiTro()) || "STAFF".equalsIgnoreCase(t.getIdVaiTro().getTenVaiTro()))
-                    .filter(t -> t.getTrangThai() == null || t.getTrangThai() != 0)
-                    .forEach(t -> messagingTemplate.convertAndSendToUser(t.getEmail(), "/queue/chat/inbox", message));
-        }
-    }
+
 
     private ChatConversationResponse toConversationResponse(ChatConversation c, Integer myAccountId) {
         List<ChatMessageResponse> messages = messageRepository.findByConversation_IdOrderByThoiGianAsc(c.getId()).stream()

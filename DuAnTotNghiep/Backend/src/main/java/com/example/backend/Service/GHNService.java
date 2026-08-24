@@ -7,5 +7,10 @@ public interface GHNService {
                 String quan,
                 String phuong
         );
+        Long tinhThoiGianGiaoHang(
+                String thanhPho,
+                String quan,
+                String phuong
+        );
 
 }

@@ -52,6 +52,7 @@ const emit = defineEmits([
   'update:selectedWard',
   'province-change',
   'district-change',
+  'ward-change',
 ])
 
 const errors = ref({})

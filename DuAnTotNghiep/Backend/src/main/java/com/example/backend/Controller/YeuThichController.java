@@ -1,6 +1,6 @@
 package com.example.backend.Controller;
 
-import com.example.backend.Entity.YeuThich;
+import com.example.backend.Response.YeuThichResponseDTO;
 import com.example.backend.Service.YeuThichService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +17,12 @@ public class YeuThichController {
     private YeuThichService yeuThichService;
 
     /**
-     * 1. Lấy danh sách sản phẩm yêu thích của một khách hàng
+     * 1. Lấy danh sách sản phẩm yêu thích của một khách hàng (Có đầy đủ thông tin, giá, ảnh)
      * URL: GET /api/yeu-thich/{idKhachHang}
      */
     @GetMapping("/{idKhachHang}")
-    public ResponseEntity<List<YeuThich>> getDanhSachYeuThich(@PathVariable Integer idKhachHang) {
-        List<YeuThich> danhSach = yeuThichService.getDanhSachYeuThich(idKhachHang);
+    public ResponseEntity<List<YeuThichResponseDTO>> getDanhSachYeuThich(@PathVariable Integer idKhachHang) {
+        List<YeuThichResponseDTO> danhSach = yeuThichService.getDanhSachYeuThich(idKhachHang);
         return ResponseEntity.ok(danhSach);
     }
 

@@ -924,7 +924,6 @@ const addressForm = ref({
   longitude: null,
   macDinh: false,
 })
-
 const getCurrentLocation = () => {
   loading.value = true
   navigator.geolocation.getCurrentPosition(
@@ -942,11 +941,20 @@ const getCurrentLocation = () => {
         if (data && data.address) {
           const addr = data.address
 
+          // 1. Địa chỉ cụ thể
           const street = addr.road || addr.house_number || ''
-          const suburb = addr.suburb || addr.quarter || addr.neighbourhood || ''
-          addressForm.value.diaChiCuThe =
-            [street, suburb].filter(Boolean).join(', ') || data.display_name
+          addressForm.value.diaChiCuThe = street || data.display_name
 
+          // Hàm chuẩn hóa tên (bỏ dấu, viết thường, lọc bỏ các từ khóa hành chính)
+          const cleanName = (str) => {
+            if (!str) return ''
+            return str
+              .toLowerCase()
+              .replace(/^(quận|huyện|thị xã|thành phố|phường|xã|thị trấn)\s+/i, '')
+              .trim()
+          }
+
+          // 2. Xử lý Tỉnh / Thành phố
           const cityName = addr.city || addr.state || addr.province || ''
           if (cityName && provinces.value.length > 0) {
             const foundProv = provinces.value.find(
@@ -962,39 +970,83 @@ const getCurrentLocation = () => {
               const distList = await getDistricts(foundProv.ProvinceID)
               districts.value = distList
 
-              const rawWardName =
-                addr.ward || addr.village || addr.suburb || addr.town || addr.hamlet || ''
+              // Lấy tên xã/thị trấn từ Nominatim (có thể nằm ở town, village, ward, suburb...)
+              const rawCommuneName =
+                addr.town ||
+                addr.village ||
+                addr.ward ||
+                addr.quarter ||
+                addr.neighbourhood ||
+                addr.suburb ||
+                ''
+              const cleanCommuneInput = cleanName(rawCommuneName)
 
-              const districtName = addr.county || addr.district || ''
               let foundDist = null
-              if (districtName) {
+              let foundWard = null
+
+              // Kiểm tra xem Nominatim có trả sẵn quận/huyện không (phòng hờ một số nơi có trả về)
+              const districtName = addr.county || addr.city_district || addr.district || ''
+              const cleanDistInput = cleanName(districtName)
+
+              if (cleanDistInput) {
                 foundDist = distList.find(
                   (d) =>
-                    districtName.toLowerCase().includes(d.DistrictName.toLowerCase()) ||
-                    d.DistrictName.toLowerCase().includes(districtName.toLowerCase()),
+                    cleanName(d.DistrictName) === cleanDistInput ||
+                    cleanName(d.DistrictName).includes(cleanDistInput) ||
+                    cleanDistInput.includes(cleanName(d.DistrictName)),
                 )
               }
 
+              // Nếu Nominatim KHÔNG có quận/huyện (như trường hợp của bạn), ta duyệt qua các huyện để tìm xã khớp
+              if (!foundDist && cleanCommuneInput) {
+                for (const dist of distList) {
+                  try {
+                    const wardList = await getWards(dist.DistrictID)
+                    const matchedWard = wardList.find(
+                      (w) =>
+                        cleanName(w.WardName) === cleanCommuneInput ||
+                        cleanName(w.WardName).includes(cleanCommuneInput) ||
+                        cleanCommuneInput.includes(cleanName(w.WardName)),
+                    )
+                    if (matchedWard) {
+                      foundDist = dist
+                      foundWard = matchedWard
+                      wards.value = wardList // Gán sẵn danh sách xã của huyện đó
+                      break
+                    }
+                  } catch (err) {
+                    console.error('Lỗi khi duyệt quận huyện:', err)
+                  }
+                }
+              }
+
+              // Nếu tìm thấy Huyện
               if (foundDist) {
                 selectedDistrict.value = foundDist
                 addressForm.value.quan = foundDist.DistrictName
                 addressForm.value.districtId = foundDist.DistrictID
 
-                const wardList = await getWards(foundDist.DistrictID)
-                wards.value = wardList
-
-                if (rawWardName && wardList.length > 0) {
-                  const foundWard = wardList.find(
-                    (w) =>
-                      rawWardName.toLowerCase().includes(w.WardName.toLowerCase()) ||
-                      w.WardName.toLowerCase().includes(rawWardName.toLowerCase()),
-                  )
-                  if (foundWard) {
-                    selectedWard.value = foundWard
-                    addressForm.value.phuong = foundWard.WardName
-                    addressForm.value.wardCode = foundWard.WardCode
-                  }
+                // Nếu chưa lấy wards ở bước duyệt trên thì lấy lại
+                if (!wards.value.length) {
+                  wards.value = await getWards(foundDist.DistrictID)
                 }
+
+                // Nếu chưa tìm thấy Ward qua vòng lặp, tìm lại trong danh sách wards của huyện này
+                if (!foundWard && cleanCommuneInput && wards.value.length > 0) {
+                  foundWard = wards.value.find(
+                    (w) =>
+                      cleanName(w.WardName) === cleanCommuneInput ||
+                      cleanName(w.WardName).includes(cleanCommuneInput) ||
+                      cleanCommuneInput.includes(cleanName(w.WardName)),
+                  )
+                }
+              }
+
+              // Nếu tìm thấy Xã
+              if (foundWard) {
+                selectedWard.value = foundWard
+                addressForm.value.phuong = foundWard.WardName
+                addressForm.value.wardCode = foundWard.WardCode
               }
             }
           }
@@ -1053,11 +1105,82 @@ const openAddAddress = () => {
 const openEditAddress = async (item) => {
   editingAddress.value = item
   addressForm.value = { ...item }
+
+  // Reset trước
+  selectedProvince.value = null
+  selectedDistrict.value = null
+  selectedWard.value = null
+  districts.value = []
+  wards.value = []
+
+  // 1. Tìm và set Tỉnh/Thành phố
+  if (item.thanhPho) {
+    const foundProv = provinces.value.find((p) => p.ProvinceName === item.thanhPho)
+    if (foundProv) {
+      selectedProvince.value = foundProv
+      // Gọi API lấy Quận/Huyện
+      districts.value = await getDistricts(foundProv.ProvinceID)
+
+      // 2. Tìm và set Quận/Huyện
+      if (item.quan) {
+        const foundDist = districts.value.find(
+          (d) => d.DistrictName === item.quan || d.DistrictID === item.districtId,
+        )
+        if (foundDist) {
+          selectedDistrict.value = foundDist
+          // Gọi API lấy Phường/Xã
+          wards.value = await getWards(foundDist.DistrictID)
+
+          // 3. Tìm và set Phường/Xã
+          if (item.phuong) {
+            const foundWard = wards.value.find(
+              (w) => w.WardName === item.phuong || w.WardCode === item.wardCode,
+            )
+            if (foundWard) {
+              selectedWard.value = foundWard
+            }
+          }
+        }
+      }
+    }
+  }
+
   showAddressModal.value = true
+}
+// Hàm lấy tọa độ từ chuỗi địa chỉ khi người dùng chọn thủ công qua combobox
+const getCoordinatesFromAddress = async () => {
+  const fullAddress = [
+    addressForm.value.diaChiCuThe,
+    addressForm.value.phuong,
+    addressForm.value.quan,
+    addressForm.value.thanhPho,
+  ]
+    .filter(Boolean)
+    .join(', ')
+
+  if (!fullAddress) return
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`,
+    )
+    const data = await res.json()
+    if (data && data.length > 0) {
+      addressForm.value.latitude = parseFloat(data[0].lat)
+      addressForm.value.longitude = parseFloat(data[0].lon)
+    }
+  } catch (e) {
+    console.error('Không thể lấy tọa độ từ địa chỉ:', e)
+  }
 }
 
 const saveAddress = async () => {
   try {
+    // Nếu chưa có tọa độ (do chọn thủ công bằng combobox), tự động dịch từ chuỗi địa chỉ ra lat/lng
+    if (!addressForm.value.latitude || !addressForm.value.longitude) {
+      await getCoordinatesFromAddress()
+    }
+
     if (editingAddress.value) {
       await capNhatDiaChi(editingAddress.value.id, addressForm.value)
       toast.success('Cập nhật thành công')

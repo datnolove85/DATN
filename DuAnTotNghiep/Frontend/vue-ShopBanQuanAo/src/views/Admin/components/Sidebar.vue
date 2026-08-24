@@ -61,14 +61,6 @@
         </router-link>
 
         <!-- Chat hỗ trợ khách hàng (Cả Admin & Staff) -->
-        <router-link
-          to="/admin/chat"
-          class="flex items-center px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all text-sm"
-          active-class="bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20"
-        >
-          <span class="mr-3 text-base w-5 text-center">💬</span>
-          Chat khách hàng
-        </router-link>
 
         <!-- Quản lý Khách hàng (Cả Admin & Staff đều thấy) -->
         <router-link

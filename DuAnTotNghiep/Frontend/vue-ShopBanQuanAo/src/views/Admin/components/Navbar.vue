@@ -32,8 +32,10 @@
         </button>
 
         <!-- Messages Button -->
-        <button
+        <router-link
+          to="/admin/chat"
           class="relative w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"
+          active-class="bg-indigo-100 text-indigo-600"
           title="Tin nhắn"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,12 +46,14 @@
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
+          <!-- Badge hiển thị số lượng tin nhắn chưa đọc động chuẩn xác -->
           <span
+            v-if="totalUnread > 0"
             class="absolute -top-1 -right-1 px-1.5 py-0.2 text-[10px] font-bold bg-indigo-600 text-white rounded-full ring-2 ring-white"
           >
-            5
+            {{ totalUnread > 99 ? '99+' : totalUnread }}
           </span>
-        </button>
+        </router-link>
 
         <div class="h-6 w-px bg-slate-200 mx-1"></div>
 
@@ -203,9 +207,13 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useChatBadge } from '@/composables/useChatBadge'
 
 const router = useRouter()
 const openMenu = ref(false)
+
+// Lấy state số lượng tin nhắn chưa đọc chung
+const { totalUnread, updateBadgeCount } = useChatBadge()
 
 const user = computed(() => {
   const data = sessionStorage.getItem('user')
@@ -233,13 +241,11 @@ const roleName = computed(() => {
 // Hàm điều hướng tới trang chỉnh sửa thông tin tài khoản kèm ID
 const goToProfile = () => {
   openMenu.value = false
-  // Lấy id từ object user trong sessionStorage (hỗ trợ trường id hoặc maNhanVien tùy API của bạn)
   const userId = user.value?.id || user.value?.maNhanVien
 
   if (userId) {
     router.push(`/admin/nhan-vien/edit/${userId}`)
   } else {
-    // Trường hợp trong object user lưu tên trường khác, bạn có thể thay thế ở đây
     console.warn('Không tìm thấy ID người dùng trong session')
   }
 }
@@ -258,6 +264,7 @@ const clickOutside = (e) => {
 
 onMounted(() => {
   window.addEventListener('click', clickOutside)
+  updateBadgeCount() // Load số lượng tin chưa đọc lúc vừa vào trang
 })
 
 onBeforeUnmount(() => {
