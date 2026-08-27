@@ -389,7 +389,8 @@ private  final LichSuHoaDonRepository lichSuHoaDonRepository;
                     }
                 }
             }
-            hoaDonVoucherRepository.delete(hdVoucher);
+            hdVoucher.setDaConsume(false); // Nếu trong Entity daConsume là kiểu Integer, hãy đổi thành: hdVoucher.setDaConsume(0);
+            hoaDonVoucherRepository.save(hdVoucher);
         }
 
         hoaDonRepository.save(hoaDon);

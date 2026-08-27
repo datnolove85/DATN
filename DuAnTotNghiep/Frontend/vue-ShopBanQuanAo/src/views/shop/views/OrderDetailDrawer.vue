@@ -43,11 +43,20 @@
             <span class="text-sm font-bold text-slate-900">{{ info?.maHoaDon }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+            <!-- Badge trạng thái đơn hàng -->
+            <span
+              class="px-3 py-1 rounded-full text-xs font-bold"
+              :class="isCancelled ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'"
+            >
               {{ info?.trangThaiHienThi || 'Giao thành công' }}
             </span>
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-              {{ info?.trangThaiThanhToanHienThi || 'Đã thanh toán' }}
+            <!-- Badge trạng thái thanh toán (Chỉ hiện khi đơn chưa hủy để tránh bị lặp) -->
+            <span
+              v-if="!isCancelled"
+              class="px-3 py-1 rounded-full text-xs font-bold"
+              :class="paymentBadgeClass"
+            >
+              {{ paymentStatusDisplay }}
             </span>
           </div>
         </div>
@@ -81,13 +90,20 @@
             </div>
             <div class="flex justify-between text-xs">
               <span class="text-slate-700 font-medium">Ngày tạo:</span>
-              <span class="font-semibold text-slate-900">{{ formatDateTime(info?.ngayTao) }}</span>
+              <span class="font-semibold text-slate-900">
+                {{ formatDateTime(info?.ngayTao) }}
+              </span>
+            </div>
+            <!-- Hiển thị Ngày hủy nếu đơn hàng ở trạng thái hủy -->
+            <div v-if="isCancelled" class="flex justify-between text-xs">
+              <span class="text-slate-700 font-medium">Ngày hủy:</span>
+              <span class="font-semibold text-slate-900">
+                {{ formatDateTime(info?.ngayCapNhat) }}
+              </span>
             </div>
             <div class="flex justify-between text-xs">
               <span class="text-slate-700 font-medium">Trạng thái TT:</span>
-              <span class="font-semibold text-slate-900">{{
-                info?.trangThaiThanhToanHienThi
-              }}</span>
+              <span class="font-semibold text-slate-900">{{ paymentStatusDisplay }}</span>
             </div>
           </div>
         </div>
@@ -106,12 +122,17 @@
           <div class="flex justify-between text-xs items-center">
             <span class="text-slate-700 font-medium">Trạng thái giao dịch:</span>
             <span
-              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800"
+              class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+              :class="paymentBadgeClass"
             >
-              {{ info?.trangThaiThanhToanHienThi }}
+              {{ paymentStatusDisplay }}
             </span>
           </div>
-          <div class="flex justify-between text-xs items-center">
+          <!-- Chỉ hiển thị thời gian thanh toán nếu đơn đã thực sự thanh toán và không bị hủy -->
+          <div
+            v-if="!isCancelled && isPaid && detail.thanhToan?.ngayThanhToan"
+            class="flex justify-between text-xs items-center"
+          >
             <span class="text-slate-700 font-medium">Thời gian thanh toán:</span>
             <span class="font-semibold text-slate-900">{{
               formatDateTime(detail.thanhToan?.ngayThanhToan)
@@ -274,6 +295,35 @@ const errorMessage = ref('')
 
 const info = computed(() => detail.value?.thongTinDonHang)
 
+// Kiểm tra đơn hàng đã hủy chưa
+const isCancelled = computed(() => {
+  return info.value?.trangThai === 'da_huy' || detail.value?.theoDoi?.daHuy === true
+})
+
+// Kiểm tra đơn đã thanh toán chưa (dựa vào trạng thái thanh toán)
+const isPaid = computed(() => {
+  return info.value?.trangThaiThanhToan === 'da_thanh_toan'
+})
+
+// Hiển thị chữ trạng thái thanh toán / giao dịch (Nếu hủy thì hiện "Đã hủy")
+const paymentStatusDisplay = computed(() => {
+  if (isCancelled.value) {
+    return 'Đã hủy'
+  }
+  return info.value?.trangThaiThanhToanHienThi || 'Chưa thanh toán'
+})
+
+// Màu sắc huy hiệu trạng thái thanh toán / giao dịch
+const paymentBadgeClass = computed(() => {
+  if (isCancelled.value) {
+    return 'bg-rose-100 text-rose-800' // Màu đỏ cho trạng thái đã hủy
+  }
+  if (isPaid.value) {
+    return 'bg-emerald-100 text-emerald-800'
+  }
+  return 'bg-amber-100 text-amber-800' // Màu cam/vàng cho trạng thái chưa thanh toán
+})
+
 const fetchOrderDetail = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -291,11 +341,15 @@ const fetchOrderDetail = async () => {
 
 const formatMoney = (val) => (val != null ? val.toLocaleString('vi-VN') : '0')
 
-// Format dạng giờ phút và ngày tháng năm y hệt ảnh (ví dụ: 15:45 19/08/2026)
+// Format dạng giờ phút giây và ngày tháng năm (ví dụ: 08:27:08 24/08/2026)
 const formatDateTime = (val) => {
   if (!val) return ''
   const d = new Date(val)
-  const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  const time = d.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
   const date = d.toLocaleDateString('vi-VN')
   return `${time} ${date}`
 }

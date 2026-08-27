@@ -5,11 +5,11 @@
       <div class="absolute -right-24 top-0 h-96 w-96 rounded-full bg-sky-200/30 blur-3xl"></div>
     </div>
 
-    <div class="relative mx-auto px-4 py-6" style="max-width: 760px !important">
+    <div class="relative mx-auto px-4 py-4" style="max-width: 760px !important">
       <!-- KHUNG CHỨA DUY NHẤT -->
-      <div class="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-sm space-y-4">
+      <div class="rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-sm space-y-3">
         <!-- 1. HERO HEADER -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span
               class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600"
@@ -24,7 +24,7 @@
         </div>
 
         <!-- 3. ĐỊA CHỈ NHẬN HÀNG -->
-        <div class="pb-4 border-b border-slate-100">
+        <div>
           <AddressSection
             :is-logged-in="isLoggedIn"
             :addresses="addresses"
@@ -49,7 +49,7 @@
         </div>
 
         <!-- 4. SẢN PHẨM ĐÃ CHỌN -->
-        <div class="pb-4 border-b border-slate-100">
+        <div>
           <ProductSection
             :is-cart-checkout="isCartCheckout"
             :checkout-items="checkoutItems"
@@ -68,8 +68,8 @@
         </div>
 
         <!-- 4.5. PHƯƠNG THỨC THANH TOÁN -->
-        <div class="pb-4 border-b border-slate-100">
-          <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
             <div class="flex items-center gap-3">
               <span class="grid h-8 w-8 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
                 <CreditCard :size="16" />
@@ -150,7 +150,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between">
-                    <span class="font-bold text-xs sm:text-sm">Cổng VNPAY QR</span>
+                    <span class="font-bold text-xs sm:text-sm"> VNPAY QR</span>
                     <span
                       class="h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center shrink-0"
                       :class="
@@ -175,14 +175,43 @@
         </div>
 
         <!-- 5. TÓM TẮT ĐƠN HÀNG & DÙNG XU -->
-        <div class="pb-4 border-b border-slate-100 space-y-3">
+        <div class="space-y-2.5">
           <div class="flex items-center gap-3">
             <span class="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white">
               <ReceiptText :size="16" />
             </span>
             <div>
               <h2 class="text-sm font-bold text-slate-900">Tóm tắt đơn hàng</h2>
-              <p class="text-xs text-slate-500">{{ quantity }} sản phẩm trong đơn</p>
+              <p class="text-xs text-slate-500">{{ totalQuantity }} sản phẩm trong đơn</p>
+            </div>
+          </div>
+
+          <!-- BẢNG THÔNG BÁO ƯU ĐÃI TỰ ĐỘNG -->
+          <div
+            class="rounded-2xl bg-amber-50/70 p-3 border border-amber-200/60 text-xs space-y-1.5"
+          >
+            <div class="font-bold text-amber-900 flex items-center gap-1.5">
+              <span>🎁 Ưu đãi đơn hàng hiện tại:</span>
+            </div>
+            <div class="space-y-1 text-slate-700">
+              <div class="flex items-center justify-between">
+                <span>• Giảm 10% khi mua từ 3 SP:</span>
+                <span v-if="totalQuantity >= 3" class="font-bold text-emerald-600"
+                  >✓ Đã đủ điều kiện (-10%)</span
+                >
+                <span v-else class="text-amber-700 font-medium"
+                  >Mua thêm {{ 3 - totalQuantity }} SP</span
+                >
+              </div>
+              <div class="flex items-center justify-between">
+                <span>• Freeship cho đơn từ 500k:</span>
+                <span v-if="subtotal >= 500000" class="font-bold text-emerald-600"
+                  >✓ Miễn phí vận chuyển</span
+                >
+                <span v-else class="text-amber-700 font-medium"
+                  >Mua thêm {{ formatMoney(500000 - subtotal) }}</span
+                >
+              </div>
             </div>
           </div>
 
@@ -192,15 +221,34 @@
               <span class="font-bold text-slate-800">{{ formatMoney(subtotal) }}</span>
             </div>
 
+            <!-- PHÍ VẬN CHUYỂN (ĐÃ ÁP DỤNG FREESHIP) -->
             <div class="flex items-center justify-between text-sm">
               <div class="flex items-center gap-1.5 text-slate-500">
                 <span>Phí vận chuyển</span>
-                <span class="text-xs text-slate-400"></span>
               </div>
               <div class="flex items-center gap-1">
                 <LoaderCircle v-if="shippingLoading" :size="14" class="animate-spin text-sky-600" />
-                <span v-else class="font-bold text-slate-800">{{ formatMoney(shippingFee) }}</span>
+                <template v-else>
+                  <span v-if="subtotal >= 500000" class="font-bold text-emerald-600">
+                    <span
+                      v-if="originalShippingFee > 0"
+                      class="line-through text-slate-400 text-xs font-normal mr-1"
+                    >
+                      {{ formatMoney(originalShippingFee) }}
+                    </span>
+                    0 đ (Freeship)
+                  </span>
+                  <span v-else class="font-bold text-slate-800">{{
+                    formatMoney(shippingFee)
+                  }}</span>
+                </template>
               </div>
+            </div>
+
+            <!-- GIẢM GIÁ TỰ ĐỘNG 10% CHO 3+ SP -->
+            <div v-if="quantityDiscount > 0" class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Giảm giá combo 3+ SP (10%)</span>
+              <span class="font-bold text-emerald-600">-{{ formatMoney(quantityDiscount) }}</span>
             </div>
 
             <div class="flex items-center justify-between text-sm">
@@ -220,7 +268,7 @@
             <!-- DÙNG XU TÙY CHỈNH -->
             <div
               v-if="isLoggedIn && customerInfo && customerInfo.soDuXu > 0"
-              class="border-t border-slate-100 pt-3 space-y-2"
+              class="border-t border-slate-100 pt-2.5 space-y-2"
             >
               <div class="flex items-center justify-between text-xs">
                 <span class="font-bold text-amber-600 flex items-center gap-1.5">
@@ -229,7 +277,6 @@
                 <span class="text-xs text-slate-400">1 xu = {{ formatMoney(tyLeQuyDoi) }}</span>
               </div>
 
-              <!-- Input nhập xu kèm text cảnh báo tỉ lệ -->
               <div>
                 <input
                   type="number"
@@ -264,7 +311,7 @@
               </div>
             </div>
 
-            <div class="border-t border-dashed border-slate-200 pt-3">
+            <div class="border-t border-dashed border-slate-200 pt-2.5">
               <div class="flex items-end justify-between">
                 <span class="text-sm font-bold text-slate-900">Tổng thanh toán</span>
                 <span class="text-xl font-black text-indigo-600">{{ formatMoney(total) }}</span>
@@ -274,7 +321,7 @@
         </div>
 
         <!-- 6. NÚT ĐẶT HÀNG & BẢO MẬT -->
-        <div class="space-y-2.5 pt-1">
+        <div class="space-y-2 pt-1">
           <button
             type="button"
             :disabled="
@@ -292,20 +339,6 @@
           <p class="text-center text-[11px] text-slate-400">
             Nhấn đặt hàng đồng nghĩa bạn xác nhận thông tin phía trên là chính xác.
           </p>
-
-          <!-- Khối bảo mật tinh gọn -->
-          <div
-            class="flex items-center gap-2.5 rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2"
-          >
-            <span
-              class="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white text-emerald-600 shadow-sm"
-            >
-              <ShieldCheck :size="14" />
-            </span>
-            <p class="text-[11px] font-medium text-emerald-900 leading-tight">
-              Thông tin cá nhân được bảo mật an toàn và chỉ dùng để xử lý đơn hàng.
-            </p>
-          </div>
         </div>
       </div>
 
@@ -356,15 +389,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  Check,
-  ClipboardCheck,
-  LoaderCircle,
-  ReceiptText,
-  ShieldCheck,
-  CreditCard,
-  Truck,
-} from 'lucide-vue-next'
+import { ClipboardCheck, LoaderCircle, ReceiptText, CreditCard, Truck } from 'lucide-vue-next'
 import { useToast } from 'vue-toastification'
 import { getAllVoucher } from '@/service/VoucherService'
 import { getSanPhamChiTietById } from '@/service/SanPhamChiTiet'
@@ -451,17 +476,6 @@ watch(maxAllowedCoins, (newMax) => {
   }
 })
 
-const apDungXuTuyChinh = () => {
-  onCoinsChange()
-  soXuSuDung.value = Number(soXuCanDung.value) || 0
-  tienGiamDoXu.value = soXuSuDung.value * tyLeQuyDoi.value
-  if (soXuSuDung.value > 0) {
-    toast.success(`Đã áp dụng ${soXuSuDung.value} xu (Giảm ${formatMoney(tienGiamDoXu.value)})`)
-  } else {
-    toast.info('Đã hủy dùng xu.')
-  }
-}
-
 const maxAvailable = computed(() => {
   if (!product.value) return 0
   return product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
@@ -478,22 +492,6 @@ const increaseQty = () => {
 
 const decreaseQty = () => {
   if (quantity.value > 1) quantity.value--
-}
-
-const validateQty = async () => {
-  if (maxAvailable.value === 0) {
-    quantity.value = 0
-    return
-  }
-  if (quantity.value > maxAvailable.value) {
-    try {
-      product.value = await getSanPhamChiTietById(spctId.value)
-      const max = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
-      quantity.value = max > 0 ? max : 0
-    } catch (error) {
-      console.error('Lỗi load lại sản phẩm:', error)
-    }
-  }
 }
 
 const onQtyBlur = () => {
@@ -640,9 +638,14 @@ const selectedWard = ref(null)
 const showAddressModal = ref(false)
 const editingAddress = ref(null)
 
+const shippingFee = ref(0)
+const originalShippingFee = ref(0)
+const shippingLoading = ref(false)
+
 const calculateShipping = async (address) => {
-  if (!address.thanhPho || !address.quan || !address.phuong) {
+  if (!address || !address.thanhPho || !address.quan || !address.phuong) {
     shippingFee.value = 0
+    originalShippingFee.value = 0
     return
   }
   try {
@@ -652,9 +655,12 @@ const calculateShipping = async (address) => {
       quan: address.quan,
       phuong: address.phuong,
     })
-    shippingFee.value = fee
+    originalShippingFee.value = fee
+    // Miễn phí vận chuyển nếu tổng đơn tiền hàng >= 500k
+    shippingFee.value = subtotal.value >= 500000 ? 0 : fee
   } catch (error) {
     shippingFee.value = 0
+    originalShippingFee.value = 0
   } finally {
     shippingLoading.value = false
   }
@@ -664,7 +670,7 @@ const loading = ref(false)
 const addresses = ref([])
 const selectedAddressId = ref(null)
 const toast = useToast()
-const route = useRoute() // <--- Đã bổ sung khai báo route ở đây
+const route = useRoute()
 const router = useRouter()
 const authToken = sessionStorage.getItem('token')
 const isLoggedIn = Boolean(authToken)
@@ -782,55 +788,32 @@ function subscribeOrder() {
           }
         }
         break
-      case 'KHO_VOUCHER_UPDATED':
-        await fetchVouchers()
-
-        if (selectedVoucherId.value) {
-          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
-          const now = new Date()
-
-          if (
-            !latest ||
-            latest.trangThai === false ||
-            (latest.soLuongConLai !== null && latest.soLuongConLai <= 0)
-          ) {
-            selectedVoucherId.value = null
-            toast.warning(
-              'Voucher bạn đang chọn đã bị Admin ngưng hoạt động hoặc đã hết lượt sử dụng!',
-            )
-            break
-          }
-
-          if (latest.ngayHetHan && new Date(latest.ngayHetHan) < now) {
-            selectedVoucherId.value = null
-            toast.warning('Voucher bạn đang chọn đã hết hạn sử dụng.')
-            break
-          }
-
-          const dieuKienToiThieu = latest.dieuKienToiThieu ? Number(latest.dieuKienToiThieu) : 0
-          if (subtotal.value < dieuKienToiThieu) {
-            selectedVoucherId.value = null
-            toast.warning(
-              'Đơn hàng không còn đủ điều kiện tối thiểu theo mức quy định mới của voucher.',
-            )
-            break
-          }
-
-          toast.info('Thông tin hoặc mức giảm của voucher vừa được Admin cập nhật lại.')
-        }
-        break
     }
   })
 }
 
-const shippingFee = ref(0)
-const shippingLoading = ref(false)
+// LOGIC TÍNH TỔNG SỐ LƯỢNG SẢN PHẨM TRONG ĐƠN HÀNG
+const totalQuantity = computed(() => {
+  if (isCartCheckout.value) {
+    return checkoutItems.value.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
+  }
+  return Number(quantity.value) || 0
+})
 
+// TÍNH TIỀN HÀNG BAN ĐẦU
 const subtotal = computed(() => {
   if (isCartCheckout.value) {
-    return checkoutItems.value.reduce((sum, item) => sum + item.giaBan * item.quantity, 0)
+    return checkoutItems.value.reduce((sum, item) => sum + (item.giaBan || 0) * item.quantity, 0)
   }
   return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
+})
+
+// GIẢM GIẢ 10% CHO 3 SẢN PHẨM TRỞ LÊN
+const quantityDiscount = computed(() => {
+  if (totalQuantity.value >= 3) {
+    return Math.round(subtotal.value * 0.1) // Giảm 10% tiền hàng
+  }
+  return 0
 })
 
 const voucherDiscount = computed(() => {
@@ -841,12 +824,29 @@ const voucherDiscount = computed(() => {
     : v.giaTriGiam
 })
 
+// TỔNG THANH TOÁN = TIỀN HÀNG + PHÍ SHIP - GIẢM GIẢ COMBO - VOUCHER - XU
 const total = computed(() =>
-  Math.max(subtotal.value + shippingFee.value - voucherDiscount.value - tienGiamDoXu.value, 0),
+  Math.max(
+    subtotal.value +
+      shippingFee.value -
+      quantityDiscount.value -
+      voucherDiscount.value -
+      tienGiamDoXu.value,
+    0,
+  ),
 )
+
+// Watch lại subtotal để cập nhật lại phí ship khi thay đổi tổng giá trị đơn (qua mốc 500k)
+watch(subtotal, () => {
+  if (selectedAddressId.value) {
+    const address = addresses.value.find((x) => x.id === selectedAddressId.value)
+    if (address) calculateShipping(address)
+  }
+})
 
 const formatMoney = (value) => Number(value || 0).toLocaleString('vi-VN') + ' đ'
 const isPlacingOrder = ref(false)
+
 const placeOrder = async () => {
   if (isPlacingOrder.value) return
   if (isLoggedIn && !selectedAddressId.value) {
@@ -858,6 +858,7 @@ const placeOrder = async () => {
   const body = {
     addressId: isLoggedIn ? selectedAddressId.value : null,
     shippingFee: shippingFee.value,
+    quantityDiscount: quantityDiscount.value,
     voucherId:
       selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? null : (selectedVoucherObj?.id ?? null),
     voucherKhachHangId:
@@ -924,6 +925,7 @@ const addressForm = ref({
   longitude: null,
   macDinh: false,
 })
+
 const getCurrentLocation = () => {
   loading.value = true
   navigator.geolocation.getCurrentPosition(
@@ -940,12 +942,9 @@ const getCurrentLocation = () => {
 
         if (data && data.address) {
           const addr = data.address
-
-          // 1. Địa chỉ cụ thể
           const street = addr.road || addr.house_number || ''
           addressForm.value.diaChiCuThe = street || data.display_name
 
-          // Hàm chuẩn hóa tên (bỏ dấu, viết thường, lọc bỏ các từ khóa hành chính)
           const cleanName = (str) => {
             if (!str) return ''
             return str
@@ -954,7 +953,6 @@ const getCurrentLocation = () => {
               .trim()
           }
 
-          // 2. Xử lý Tỉnh / Thành phố
           const cityName = addr.city || addr.state || addr.province || ''
           if (cityName && provinces.value.length > 0) {
             const foundProv = provinces.value.find(
@@ -970,7 +968,6 @@ const getCurrentLocation = () => {
               const distList = await getDistricts(foundProv.ProvinceID)
               districts.value = distList
 
-              // Lấy tên xã/thị trấn từ Nominatim (có thể nằm ở town, village, ward, suburb...)
               const rawCommuneName =
                 addr.town ||
                 addr.village ||
@@ -984,7 +981,6 @@ const getCurrentLocation = () => {
               let foundDist = null
               let foundWard = null
 
-              // Kiểm tra xem Nominatim có trả sẵn quận/huyện không (phòng hờ một số nơi có trả về)
               const districtName = addr.county || addr.city_district || addr.district || ''
               const cleanDistInput = cleanName(districtName)
 
@@ -997,7 +993,6 @@ const getCurrentLocation = () => {
                 )
               }
 
-              // Nếu Nominatim KHÔNG có quận/huyện (như trường hợp của bạn), ta duyệt qua các huyện để tìm xã khớp
               if (!foundDist && cleanCommuneInput) {
                 for (const dist of distList) {
                   try {
@@ -1011,7 +1006,7 @@ const getCurrentLocation = () => {
                     if (matchedWard) {
                       foundDist = dist
                       foundWard = matchedWard
-                      wards.value = wardList // Gán sẵn danh sách xã của huyện đó
+                      wards.value = wardList
                       break
                     }
                   } catch (err) {
@@ -1020,18 +1015,15 @@ const getCurrentLocation = () => {
                 }
               }
 
-              // Nếu tìm thấy Huyện
               if (foundDist) {
                 selectedDistrict.value = foundDist
                 addressForm.value.quan = foundDist.DistrictName
                 addressForm.value.districtId = foundDist.DistrictID
 
-                // Nếu chưa lấy wards ở bước duyệt trên thì lấy lại
                 if (!wards.value.length) {
                   wards.value = await getWards(foundDist.DistrictID)
                 }
 
-                // Nếu chưa tìm thấy Ward qua vòng lặp, tìm lại trong danh sách wards của huyện này
                 if (!foundWard && cleanCommuneInput && wards.value.length > 0) {
                   foundWard = wards.value.find(
                     (w) =>
@@ -1042,7 +1034,6 @@ const getCurrentLocation = () => {
                 }
               }
 
-              // Nếu tìm thấy Xã
               if (foundWard) {
                 selectedWard.value = foundWard
                 addressForm.value.phuong = foundWard.WardName
@@ -1106,32 +1097,26 @@ const openEditAddress = async (item) => {
   editingAddress.value = item
   addressForm.value = { ...item }
 
-  // Reset trước
   selectedProvince.value = null
   selectedDistrict.value = null
   selectedWard.value = null
   districts.value = []
   wards.value = []
 
-  // 1. Tìm và set Tỉnh/Thành phố
   if (item.thanhPho) {
     const foundProv = provinces.value.find((p) => p.ProvinceName === item.thanhPho)
     if (foundProv) {
       selectedProvince.value = foundProv
-      // Gọi API lấy Quận/Huyện
       districts.value = await getDistricts(foundProv.ProvinceID)
 
-      // 2. Tìm và set Quận/Huyện
       if (item.quan) {
         const foundDist = districts.value.find(
           (d) => d.DistrictName === item.quan || d.DistrictID === item.districtId,
         )
         if (foundDist) {
           selectedDistrict.value = foundDist
-          // Gọi API lấy Phường/Xã
           wards.value = await getWards(foundDist.DistrictID)
 
-          // 3. Tìm và set Phường/Xã
           if (item.phuong) {
             const foundWard = wards.value.find(
               (w) => w.WardName === item.phuong || w.WardCode === item.wardCode,
@@ -1147,7 +1132,7 @@ const openEditAddress = async (item) => {
 
   showAddressModal.value = true
 }
-// Hàm lấy tọa độ từ chuỗi địa chỉ khi người dùng chọn thủ công qua combobox
+
 const getCoordinatesFromAddress = async () => {
   const fullAddress = [
     addressForm.value.diaChiCuThe,
@@ -1176,7 +1161,6 @@ const getCoordinatesFromAddress = async () => {
 
 const saveAddress = async () => {
   try {
-    // Nếu chưa có tọa độ (do chọn thủ công bằng combobox), tự động dịch từ chuỗi địa chỉ ra lat/lng
     if (!addressForm.value.latitude || !addressForm.value.longitude) {
       await getCoordinatesFromAddress()
     }

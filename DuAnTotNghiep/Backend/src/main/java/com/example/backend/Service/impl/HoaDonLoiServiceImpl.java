@@ -135,8 +135,8 @@ public class HoaDonLoiServiceImpl implements HoaDonLoiService {
                 }
             }
 
-            // Xóa bản ghi hóa đơn voucher
-            hoaDonVoucherRepository.delete(hdVoucher);
+            hdVoucher.setDaConsume(false); // Nếu trong Entity daConsume là kiểu Integer, hãy đổi thành: hdVoucher.setDaConsume(0);
+            hoaDonVoucherRepository.save(hdVoucher);
         }
 
         // 5. Ghi nhận lịch sử hóa đơn (LichSuHoaDon) với nguồn là "STAFF"

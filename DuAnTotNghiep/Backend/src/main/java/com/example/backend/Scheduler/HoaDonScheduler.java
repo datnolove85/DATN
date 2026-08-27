@@ -118,7 +118,8 @@ public class HoaDonScheduler {
                 if (Boolean.TRUE.equals(hdVoucher.getDaConsume())) {
                     voucherConsumeService.returnVoucher(hd.getId());
                 }
-                hoaDonVoucherRepo.delete(hdVoucher);
+                hdVoucher.setDaConsume(false); // Nếu trong Entity daConsume là kiểu Integer, hãy đổi thành: hdVoucher.setDaConsume(0);
+                hoaDonVoucherRepo.save(hdVoucher);
             }
 
             // Gửi thông báo WebSocket

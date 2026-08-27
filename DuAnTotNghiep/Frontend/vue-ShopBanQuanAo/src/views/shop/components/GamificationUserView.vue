@@ -1,12 +1,12 @@
 <template>
   <div
-    class="min-h-screen bg-slate-50 text-slate-800 font-sans pb-12 selection:bg-indigo-500 selection:text-slate-800"
+    class="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100 text-stone-800 font-sans pb-12 selection:bg-amber-200 selection:text-stone-900"
   >
     <!-- TOAST -->
     <transition name="toast">
       <div
         v-if="toast.show"
-        class="fixed top-5 right-5 z-[80] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold"
+        class="fixed top-5 right-5 z-[80] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border backdrop-blur-xl text-sm font-semibold animate-slide-in"
         :class="
           toast.type === 'success'
             ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800'
@@ -16,8 +16,8 @@
         <i
           :class="
             toast.type === 'success'
-              ? 'fa-solid fa-circle-check text-emerald-500 text-lg'
-              : 'fa-solid fa-circle-exclamation text-rose-500 text-lg'
+              ? 'fa-solid fa-circle-check text-emerald-500 text-lg animate-pulse'
+              : 'fa-solid fa-circle-exclamation text-rose-500 text-lg animate-bounce'
           "
         ></i>
         <span>{{ toast.message }}</span>
@@ -25,51 +25,58 @@
     </transition>
 
     <!-- NAVBAR -->
-    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+    <header
+      class="sticky top-0 z-40 border-b border-stone-200/60 bg-white/80 backdrop-blur-xl shadow-xs"
+    >
       <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <!-- <div
-            class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"
-          >
-            <i class="fa-solid fa-gamepad"></i>
-          </div> -->
-          <!-- <div>
-            <div class="text-lg font-black tracking-tight text-slate-900">
-              K-<span class="text-indigo-600">ZONE</span>
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/20"
+            >
+              <i class="fa-solid fa-crown text-xs"></i>
             </div>
-            <div class="text-[10px] font-bold uppercase tracking-[.22em] text-slate-600">
-              Reward Center
-            </div>
-          </div> -->
+            <span class="font-extrabold tracking-tight text-stone-900 text-base"> REWARDS</span>
+          </div>
         </div>
 
         <div class="flex items-center gap-2.5">
           <button
             @click="openHistoryModal"
-            class="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-50 border border-stone-200/80 text-xs font-semibold text-stone-800 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800 transition active:scale-95 shadow-2xs"
           >
-            <i class="fa-solid fa-clock-rotate-left"></i>
+            <i class="fa-solid fa-clock-rotate-left text-amber-600"></i>
             Lịch sử xu
           </button>
 
-          <div
-            class="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3.5 py-2.5 rounded-xl shadow-sm"
+          <button
+            @click="openMyVouchersModal"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-50 border border-stone-200/80 text-xs font-semibold text-stone-800 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800 transition active:scale-95 shadow-2xs relative"
           >
-            <div
-              class="w-7 h-7 rounded-lg bg-amber-400 text-slate-800 flex items-center justify-center"
+            <i class="fa-solid fa-ticket text-rose-500"></i>
+            Kho voucher
+            <span
+              v-if="unusedVouchersCount > 0"
+              class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center font-bold animate-pulse shadow-sm"
             >
-              <i class="fa-solid fa-coins text-xs"></i>
-            </div>
-            <div class="leading-tight">
-              <div class="text-[9px] uppercase tracking-wider font-bold text-amber-700">Số dư</div>
-              <div class="text-sm font-black text-amber-600">{{ wallet.soXu || 0 }} Xu</div>
-            </div>
-          </div>
+              {{ unusedVouchersCount }}
+            </span>
+          </button>
 
           <div
-            class="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center font-black text-sm text-indigo-700"
+            class="flex items-center gap-2 bg-amber-50/80 border border-amber-200/70 px-3 py-2 rounded-xl shadow-2xs"
           >
-            KH
+            <div
+              class="w-6 h-6 rounded-lg bg-amber-400 text-stone-900 flex items-center justify-center shadow-xs"
+            >
+              <i class="fa-solid fa-coins text-[10px]"></i>
+            </div>
+            <div class="leading-tight">
+              <div class="text-[9px] uppercase tracking-wider font-extrabold text-amber-800">
+                Số dư
+              </div>
+              <div class="text-xs font-black text-amber-900">{{ wallet.soXu || 0 }} Xu</div>
+            </div>
           </div>
         </div>
       </div>
@@ -78,15 +85,17 @@
     <main class="max-w-7xl mx-auto px-4 md:px-6 pt-5 space-y-5">
       <!-- HERO / CHECK-IN -->
       <section
-        class="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-white via-indigo-50 to-violet-50 text-slate-800 border border-indigo-100 shadow-[0_20px_60px_rgba(79,70,229,.10)]"
+        class="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-white via-amber-50/40 to-orange-50/30 text-stone-900 border border-stone-200/70 shadow-lg shadow-stone-200/50"
       >
         <div
-          class="absolute -right-20 -top-24 w-80 h-80 rounded-full bg-indigo-400/20 blur-3xl"
+          class="absolute -right-20 -top-24 w-80 h-80 rounded-full bg-amber-300/20 blur-3xl pointer-events-none"
         ></div>
         <div
-          class="absolute -left-20 -bottom-28 w-80 h-80 rounded-full bg-violet-400/15 blur-3xl"
+          class="absolute -left-20 -bottom-28 w-80 h-80 rounded-full bg-orange-300/15 blur-3xl pointer-events-none"
         ></div>
-        <div class="absolute right-20 bottom-0 text-[150px] leading-none opacity-[.035] rotate-12">
+        <div
+          class="absolute right-12 bottom-0 text-[130px] leading-none opacity-[0.03] rotate-12 pointer-events-none"
+        >
           <i class="fa-solid fa-gift"></i>
         </div>
 
@@ -94,40 +103,40 @@
           <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
             <div class="max-w-xl">
               <div
-                class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-bold uppercase tracking-wider text-indigo-700"
+                class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-100/70 border border-amber-200 text-[10px] font-bold uppercase tracking-wider text-amber-900"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                 Điểm danh hằng ngày
               </div>
 
-              <h1 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+              <h1 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-stone-900">
                 Điểm danh mỗi ngày,
                 <span
-                  class="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500"
-                  >nhận xu cực đã</span
+                  class="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600"
+                  >nhận xu liền tay</span
                 >
               </h1>
 
-              <p class="mt-2 text-xs md:text-sm leading-relaxed text-slate-600">
-                Duy trì chuỗi điểm danh để nhận xu thưởng tăng dần, dùng chơi minigame và đổi
-                voucher độc quyền.
+              <p class="mt-2 text-xs md:text-sm font-medium leading-relaxed text-stone-700">
+                Duy trì chuỗi điểm danh để tích lũy xu đổi quà và voucher độc quyền.
               </p>
 
               <div class="mt-4 flex flex-wrap items-center gap-2.5">
                 <div
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-xs font-bold text-slate-700"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-stone-200 text-xs font-bold text-stone-800 shadow-2xs"
                 >
-                  <i class="fa-solid fa-fire text-orange-500"></i>
+                  <i class="fa-solid fa-fire text-orange-500 animate-bounce"></i>
                   Chuỗi:
-                  <span class="font-black text-slate-900"
+                  <span class="font-black text-stone-900"
                     >{{ wallet.chuoiDiemDanh || 0 }} ngày</span
                   >
                 </div>
                 <div
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/80 border border-amber-200/60 text-xs font-bold text-amber-800"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/90 border border-amber-200 text-xs font-bold text-amber-900 shadow-2xs"
                 >
                   <i class="fa-solid fa-coins text-amber-600"></i>
-                  Hôm nay: <span class="font-black">+{{ nextCheckinCoins }} Xu</span>
+                  {{ wallet.daDiemDanhHomNay ? 'Ngày tiếp theo:' : 'Hôm nay:' }}
+                  <span class="font-black text-amber-950">+{{ nextCheckinCoins }} Xu</span>
                 </div>
               </div>
             </div>
@@ -135,11 +144,11 @@
             <button
               @click="performCheckIn"
               :disabled="wallet.daDiemDanhHomNay || isCheckingIn"
-              class="xl:w-auto w-full px-5 py-3.5 rounded-2xl font-black text-xs md:text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+              class="xl:w-auto w-full px-6 py-3.5 rounded-2xl font-bold text-xs md:text-sm transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md"
               :class="
                 wallet.daDiemDanhHomNay
-                  ? 'bg-emerald-500/90 text-white cursor-not-allowed shadow-none'
-                  : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-lg shadow-amber-500/20 hover:-translate-y-0.5'
+                  ? 'bg-emerald-600/90 text-white cursor-not-allowed shadow-none'
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/20 hover:-translate-y-0.5'
               "
             >
               <i
@@ -155,14 +164,16 @@
           </div>
 
           <!-- STREAK -->
-          <div class="mt-6 rounded-2xl bg-white/90 border border-indigo-100/80 p-4">
+          <div
+            class="mt-6 rounded-2xl bg-white/90 backdrop-blur-md border border-stone-200/70 p-4 shadow-2xs"
+          >
             <div class="flex items-center justify-between gap-3 mb-3">
-              <div class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-route text-indigo-500"></i>
-                Lộ trình phần thưởng
+              <div class="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-route text-amber-600"></i>
+                Lộ trình thưởng
               </div>
               <div
-                class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60"
+                class="text-[10px] font-bold text-amber-900 bg-amber-100/70 px-2.5 py-0.5 rounded-lg border border-amber-200"
               >
                 Mốc tiếp theo: Ngày {{ (wallet.chuoiDiemDanh || 0) + 1 }}
               </div>
@@ -172,23 +183,23 @@
               <div
                 v-for="(milestone, idx) in previewMilestones"
                 :key="idx"
-                class="min-h-[72px] rounded-xl border flex flex-col items-center justify-center text-center p-1.5 transition-all"
+                class="min-h-[72px] rounded-xl border flex flex-col items-center justify-center text-center p-1.5 transition-all duration-300"
                 :class="
                   milestone.ngayThu <= wallet.chuoiDiemDanh
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
                     : milestone.ngayThu === wallet.chuoiDiemDanh + 1 && !wallet.daDiemDanhHomNay
-                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20 scale-[1.02]'
-                      : 'bg-slate-50/80 border-slate-200/60 text-slate-600'
+                      ? 'bg-gradient-to-b from-amber-400 to-amber-500 text-stone-950 border-amber-300 shadow-md shadow-amber-500/20 scale-[1.03]'
+                      : 'bg-stone-50/70 border-stone-200/60 text-stone-600'
                 "
               >
-                <span class="text-[9px] uppercase tracking-wider font-bold opacity-75">
+                <span class="text-[9px] uppercase tracking-wider font-extrabold opacity-80">
                   Ngày {{ milestone.ngayThu }}
                 </span>
                 <div class="mt-0.5 font-black text-xs flex items-center gap-1">
                   <i class="fa-solid fa-coins text-amber-600"></i>
                   {{ milestone.soXuThuong }}
                 </div>
-                <span class="mt-0.5 text-[8px] font-bold opacity-75">
+                <span class="mt-0.5 text-[8px] font-bold opacity-80">
                   {{
                     milestone.ngayThu <= wallet.chuoiDiemDanh
                       ? 'Đã nhận'
@@ -207,70 +218,67 @@
       <section>
         <div class="flex items-end justify-between gap-3 mb-4">
           <div>
-            <div class="text-[10px] uppercase tracking-[.2em] font-black text-indigo-500">
-              Play & Win
+            <div class="text-[10px] uppercase tracking-[.2em] font-extrabold text-amber-700">
+              Mini Game
             </div>
-            <h2 class="text-2xl font-black tracking-tight text-slate-900">Chơi game nhận quà</h2>
+            <h2 class="text-xl md:text-2xl font-black tracking-tight text-stone-900">
+              Giải trí nhận quà
+            </h2>
           </div>
-          <div class="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-600">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            Minigame đang hoạt động
+          <div class="hidden sm:flex items-center gap-2 text-xs font-bold text-stone-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Sẵn sàng chơi
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <!-- WHEEL -->
           <div
-            class="relative overflow-hidden rounded-[22px] bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-indigo-100/60 transition-all"
+            class="relative overflow-hidden rounded-[22px] bg-white border border-stone-200/70 shadow-sm hover:shadow-md transition-all"
           >
             <div
-              class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-amber-400"
+              class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400"
             ></div>
 
             <div class="p-5 md:p-6">
               <div class="flex items-start justify-between gap-4">
                 <div>
                   <div
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-wider"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 text-[10px] font-bold uppercase tracking-wider border border-amber-200/60"
                   >
-                    <i class="fa-solid fa-fire"></i>
-                    Hot game
+                    <i class="fa-solid fa-fire text-orange-500"></i>
+                    Hot
                   </div>
-                  <h3 class="mt-2 text-xl font-black text-slate-900">Vòng quay may mắn</h3>
-                  <p class="mt-1 text-xs leading-5 text-slate-600">
-                    Quay 1 lần chỉ 5 Xu. Biết đâu hôm nay là ngày may mắn của bạn.
+                  <h3 class="mt-2 text-lg font-black text-stone-900">Vòng quay may mắn</h3>
+                  <p class="mt-1 text-xs font-medium leading-relaxed text-stone-600">
+                    Thử vận may mỗi lượt chỉ với 5 Xu.
                   </p>
                 </div>
                 <div
-                  class="shrink-0 px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 text-[10px] font-black"
+                  class="shrink-0 px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-bold"
                 >
-                  <i class="fa-solid fa-coins mr-1"></i>5 Xu/lượt
+                  <i class="fa-solid fa-coins mr-1 text-amber-600"></i>5 Xu/lượt
                 </div>
               </div>
 
-              <div class="relative w-[290px] h-[290px] md:w-[330px] md:h-[330px] mx-auto my-5">
+              <div class="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] mx-auto my-4">
                 <!-- pointer -->
                 <div class="absolute -top-1 left-1/2 -translate-x-1/2 z-30">
                   <div
-                    class="w-0 h-0 border-l-[13px] border-l-transparent border-r-[13px] border-r-transparent border-t-[28px] border-t-rose-500 drop-shadow-lg"
+                    class="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[26px] border-t-rose-600 drop-shadow-md"
                   ></div>
                   <div
-                    class="absolute -top-2 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-4 border-rose-500 shadow-md"
+                    class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-3 border-rose-600 shadow-sm"
                   ></div>
                 </div>
 
-                <!-- glow -->
-                <div
-                  class="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-amber-400/20 blur-xl scale-110"
-                ></div>
-
                 <!-- outer ring -->
                 <div
-                  class="absolute inset-0 rounded-full border-[10px] border-white shadow-[0_20px_45px_rgba(79,70,229,.16)] bg-white"
+                  class="absolute inset-0 rounded-full border-[8px] border-stone-100 shadow-inner bg-white"
                 ></div>
 
                 <div
-                  class="absolute inset-[8px] rounded-full border-4 border-indigo-200 shadow-[0_0_0_3px_rgba(255,255,255,.95)] overflow-hidden"
+                  class="absolute inset-[6px] rounded-full border-3 border-stone-200 overflow-hidden shadow-sm"
                   :style="{
                     transform: `rotate(${wheelAngle}deg)`,
                     transition: isSpinning
@@ -279,19 +287,12 @@
                   }"
                 >
                   <svg viewBox="0 0 300 300" class="w-full h-full">
-                    <defs>
-                      <radialGradient id="wheelCenterGlow">
-                        <stop offset="0%" stop-color="#ffffff" stop-opacity=".25" />
-                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-                      </radialGradient>
-                    </defs>
-
                     <g v-for="(slice, index) in wheelSlices" :key="index">
                       <path
                         :d="getSlicePath(index, wheelSlices.length)"
                         :fill="sliceColors[index % sliceColors.length]"
                         stroke="#ffffff"
-                        stroke-width="3"
+                        stroke-width="2"
                       />
                       <g
                         :transform="`rotate(${index * (360 / wheelSlices.length) + 360 / wheelSlices.length / 2}, 150, 150)`"
@@ -299,9 +300,9 @@
                         <text
                           x="150"
                           y="78"
-                          fill="#334155"
-                          font-size="11"
-                          font-weight="900"
+                          fill="#292524"
+                          font-size="10"
+                          font-weight="bold"
                           text-anchor="middle"
                           dominant-baseline="middle"
                         >
@@ -326,7 +327,6 @@
                         </text>
                       </g>
                     </g>
-                    <circle cx="150" cy="150" r="72" fill="url(#wheelCenterGlow)" />
                   </svg>
                 </div>
 
@@ -334,18 +334,18 @@
                 <button
                   @click="spinWheel"
                   :disabled="isSpinning || wallet.soXu < 5"
-                  class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[78px] h-[78px] rounded-full border-[5px] border-white shadow-[0_8px_25px_rgba(79,70,229,.28)] flex flex-col items-center justify-center transition-transform active:scale-95"
+                  class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[72px] h-[72px] rounded-full border-4 border-white shadow-lg flex flex-col items-center justify-center transition-transform active:scale-95"
                   :class="
                     isSpinning || wallet.soXu < 5
-                      ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 hover:scale-105'
+                      ? 'bg-stone-300 cursor-not-allowed'
+                      : 'bg-gradient-to-br from-amber-500 to-orange-600 hover:scale-105 text-white shadow-amber-500/30'
                   "
                 >
                   <i
-                    class="fa-solid fa-play text-white text-lg"
+                    class="fa-solid fa-play text-white text-sm"
                     :class="{ 'animate-spin': isSpinning }"
                   ></i>
-                  <span class="text-[9px] font-black text-white mt-0.5">
+                  <span class="text-[9px] font-extrabold text-white mt-0.5">
                     {{ isSpinning ? '...' : 'QUAY' }}
                   </span>
                 </button>
@@ -354,11 +354,11 @@
               <button
                 @click="spinWheel"
                 :disabled="isSpinning || wallet.soXu < 5"
-                class="w-full py-3.5 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 active:scale-[.98]"
+                class="w-full py-3 rounded-2xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 active:scale-[.99] shadow-md"
                 :class="
                   isSpinning || wallet.soXu < 5
-                    ? 'bg-slate-100 text-slate-600 cursor-not-allowed'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200'
+                    ? 'bg-stone-100 text-stone-400 cursor-not-allowed shadow-none'
+                    : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/20'
                 "
               >
                 <i class="fa-solid fa-rotate" :class="{ 'animate-spin': isSpinning }"></i>
@@ -366,95 +366,171 @@
                   isSpinning
                     ? 'Đang quay thưởng...'
                     : wallet.soXu < 5
-                      ? 'Không đủ xu — cần 5 Xu'
-                      : 'Quay ngay với 5 Xu'
+                      ? 'Không đủ xu (cần 5 Xu)'
+                      : 'Quay ngay (5 Xu)'
                 }}
               </button>
             </div>
           </div>
 
-          <!-- CARD GAME -->
+          <!-- CARD GAME (ĐÃ THIẾT KẾ LẠI SINH ĐỘNG VÀ CÓ KHỐI MINH HỌA LƠ LỬNG) -->
           <div
-            class="relative overflow-hidden rounded-[22px] bg-white text-slate-800 border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-violet-100/50 transition-all"
+            class="relative overflow-hidden rounded-[22px] bg-white text-stone-900 border border-stone-200/70 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
           >
+            <!-- Top Accent Bar & Background Glow -->
             <div
-              class="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-violet-500/20 blur-3xl"
+              class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500"
             ></div>
             <div
-              class="absolute -left-16 bottom-0 w-48 h-48 rounded-full bg-indigo-500/15 blur-3xl"
+              class="absolute -right-16 -bottom-16 w-48 h-48 rounded-full bg-amber-300/15 blur-2xl pointer-events-none"
             ></div>
 
-            <div class="relative z-10 p-5 md:p-6 h-full flex flex-col">
-              <div class="flex items-start justify-between gap-4">
-                <div>
-                  <div
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-violet-700 text-[10px] font-black uppercase tracking-wider"
-                  >
-                    <i class="fa-solid fa-bolt"></i>
-                    Quick game
-                  </div>
-                  <h3 class="mt-2 text-xl font-black">Lật thẻ bí mật</h3>
-                  <p class="mt-1 text-xs leading-5 text-slate-600">
-                    Chọn một thẻ. Phần thưởng bên trong đang chờ bạn.
-                  </p>
-                </div>
-
-                <div class="text-right shrink-0">
-                  <div class="text-[9px] uppercase tracking-wider text-slate-600 font-bold">
-                    Lượt hôm nay
-                  </div>
-                  <div class="text-sm font-black text-slate-800">
-                    {{ soLuotLatTheConLai
-                    }}<span class="text-slate-600">/{{ soLuotLatTheToiDa }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex-1 flex items-center justify-center py-5">
-                <div class="grid grid-cols-3 gap-3 w-full max-w-md">
-                  <div
-                    v-for="i in 3"
-                    :key="i"
-                    @click="flipCard(i)"
-                    class="h-44 rounded-2xl cursor-pointer relative transition-all duration-300 group"
-                    :class="flippedCardIndex === i ? 'scale-[1.04]' : 'hover:-translate-y-2'"
-                  >
+            <div class="relative z-10 p-5 md:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-start justify-between gap-4">
+                  <div>
                     <div
-                      class="absolute inset-0 rounded-2xl border transition-all overflow-hidden flex flex-col items-center justify-center"
-                      :class="
-                        flippedCardIndex === i
-                          ? 'bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 border-violet-300 shadow-2xl shadow-violet-900/40'
-                          : 'bg-indigo-50 border-indigo-100 group-hover:bg-indigo-50 group-hover:border-violet-400/40'
-                      "
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-900 text-[10px] font-bold uppercase tracking-wider"
                     >
-                      <div
-                        class="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 transition-all"
-                        :class="
-                          flippedCardIndex === i
-                            ? 'bg-white/70 text-amber-500'
-                            : 'bg-indigo-50 text-violet-500 group-hover:scale-110'
-                        "
-                      >
-                        <i
-                          class="fa-solid text-2xl"
-                          :class="flippedCardIndex === i ? 'fa-gift animate-bounce' : 'fa-question'"
-                        ></i>
-                      </div>
-                      <span
-                        class="text-[10px] font-black uppercase tracking-wider text-slate-800/80"
-                      >
-                        {{ flippedCardIndex === i ? 'Đang mở...' : `Thẻ ${i}` }}
-                      </span>
+                      <i class="fa-solid fa-bolt text-amber-600"></i>
+                      Quick Game
+                    </div>
+                    <h3 class="mt-2 text-lg font-black text-stone-900">Lật thẻ bí mật</h3>
+                    <p class="mt-1 text-xs font-medium leading-relaxed text-stone-600">
+                      Chọn thẻ bất kỳ để mở quà may mắn, tích lũy phần thưởng mỗi ngày.
+                    </p>
+                  </div>
+
+                  <div
+                    class="text-right shrink-0 bg-amber-50/80 border border-amber-200/60 px-3 py-1.5 rounded-xl"
+                  >
+                    <div class="text-[9px] uppercase tracking-wider text-amber-800 font-extrabold">
+                      Lượt hôm nay
+                    </div>
+                    <div class="text-sm font-black text-amber-950">
+                      {{ soLuotLatTheConLai
+                      }}<span class="text-stone-400">/{{ soLuotLatTheToiDa }}</span>
                     </div>
                   </div>
                 </div>
+
+                <!-- Khu vực lật thẻ -->
+                <div class="my-5">
+                  <div class="grid grid-cols-3 gap-3.5 w-full max-w-md mx-auto">
+                    <div
+                      v-for="i in 3"
+                      :key="i"
+                      @click="flipCard(i)"
+                      class="h-32 rounded-2xl cursor-pointer relative transition-all duration-300 group"
+                      :class="flippedCardIndex === i ? 'scale-105' : 'hover:-translate-y-1.5'"
+                    >
+                      <div
+                        class="absolute inset-0 rounded-2xl border transition-all overflow-hidden flex flex-col items-center justify-between p-3.5 shadow-sm"
+                        :class="
+                          flippedCardIndex === i
+                            ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white border-amber-300 shadow-lg shadow-amber-500/30'
+                            : 'bg-gradient-to-b from-white via-stone-50 to-amber-50/30 border-stone-200/80 group-hover:border-amber-400 group-hover:shadow-md group-hover:bg-amber-50/40 text-stone-700'
+                        "
+                      >
+                        <!-- Top tag on card -->
+                        <div class="w-full flex items-center justify-between">
+                          <span
+                            class="text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                            :class="
+                              flippedCardIndex === i
+                                ? 'bg-white/20 text-white'
+                                : 'bg-amber-100/80 text-amber-900'
+                            "
+                          >
+                            VIP #{{ i }}
+                          </span>
+                          <i
+                            class="fa-solid fa-sparkles text-[10px]"
+                            :class="
+                              flippedCardIndex === i
+                                ? 'text-white animate-spin'
+                                : 'text-amber-500 opacity-70 group-hover:opacity-100'
+                            "
+                          ></i>
+                        </div>
+
+                        <!-- Center icon -->
+                        <div
+                          class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-xs"
+                          :class="
+                            flippedCardIndex === i
+                              ? 'bg-white text-amber-600 shadow-md scale-110'
+                              : 'bg-amber-100/90 text-amber-800 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white'
+                          "
+                        >
+                          <i
+                            class="fa-solid text-sm"
+                            :class="
+                              flippedCardIndex === i ? 'fa-gift animate-bounce' : 'fa-question'
+                            "
+                          ></i>
+                        </div>
+
+                        <!-- Bottom label -->
+                        <div class="text-center">
+                          <span class="text-[10px] font-black uppercase tracking-wider block">
+                            {{ flippedCardIndex === i ? 'Đang mở...' : `Thẻ Bí Mật ${i}` }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Banner phần thưởng & Trạng thái -->
+                <div
+                  class="flex items-center justify-between px-3.5 py-2 rounded-xl bg-amber-50/60 border border-amber-200/60 text-[11px] font-bold text-amber-900 mb-3"
+                >
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                    <span>Phần thưởng: Xu vàng, Voucher giảm giá, Quà đặc biệt</span>
+                  </div>
+                  <span
+                    class="text-[10px] bg-amber-200/60 px-2 py-0.5 rounded-md text-amber-950 font-extrabold"
+                    >100% trúng</span
+                  >
+                </div>
+
+                <!-- ================= KHU VỰC KHỐI MINH HỌA LƠ LỬNG (Ý TƯỞNG 4) ================= -->
+                <div
+                  class="relative bg-gradient-to-r from-amber-500/10 via-orange-400/10 to-amber-500/10 border border-amber-200/50 rounded-2xl p-4 mb-4 flex items-center justify-between overflow-hidden"
+                >
+                  <!-- Vầng sáng nền phía sau -->
+                  <div
+                    class="absolute -left-10 -top-10 w-28 h-28 bg-amber-400/20 rounded-full blur-2xl animate-glow"
+                  ></div>
+
+                  <div class="z-10 max-w-[240px]">
+                    <h4 class="text-xs font-bold text-amber-900 mb-0.5">Sẵn sàng săn quà lớn?</h4>
+                    <p class="text-[11px] text-stone-600 leading-relaxed">
+                      Lật thẻ ngay để rinh về những phần quà giá trị mỗi ngày.
+                    </p>
+                  </div>
+
+                  <!-- Khối minh họa hộp quà lơ lửng -->
+                  <div class="relative z-10 flex items-center justify-center pr-2">
+                    <div class="animate-float text-3xl select-none filter drop-shadow-md">🎁</div>
+                    <!-- Các hạt sáng lấp lánh trang trí -->
+                    <span class="absolute -top-2 -right-1 text-[10px] animate-ping">✨</span>
+                    <span class="absolute bottom-0 -left-2 text-[9px] animate-pulse">⭐</span>
+                  </div>
+                </div>
+                <!-- ================= KẾT THÚC KHU VỰC KHỐI MINH HỌA ================= -->
               </div>
 
               <div
-                class="rounded-2xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-[11px] text-slate-600 flex items-center gap-2"
+                class="rounded-xl bg-stone-50 border border-stone-200/70 px-3.5 py-2.5 text-[11px] font-medium text-stone-600 flex items-center justify-between"
               >
-                <i class="fa-solid fa-circle-info text-violet-300"></i>
-                Mỗi ngày tối đa {{ soLuotLatTheToiDa }} lượt. Chọn thẻ bất kỳ để nhận quà.
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-circle-info text-amber-600"></i>
+                  <span>Mỗi ngày tối đa {{ soLuotLatTheToiDa }} lượt lật thẻ miễn phí.</span>
+                </div>
+                <span class="font-bold text-stone-800">Làm mới 00:00</span>
               </div>
             </div>
           </div>
@@ -462,54 +538,40 @@
       </section>
 
       <!-- REWARD STORE -->
-      <section class="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+      <section class="rounded-2xl bg-white border border-stone-200/70 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-stone-100 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div
-              class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-black"
+              class="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-900 flex items-center justify-center text-xs font-bold"
             >
               <i class="fa-solid fa-ticket-simple"></i>
             </div>
             <div>
-              <h2 class="text-sm font-black text-slate-900">Kho Voucher</h2>
-              <p class="text-[10px] text-slate-500">Đổi xu lấy mã ưu đãi độc quyền</p>
+              <h2 class="text-sm font-black text-stone-900">Kho Voucher</h2>
+              <p class="text-[10px] font-semibold text-stone-600">Đổi xu lấy mã ưu đãi độc quyền</p>
             </div>
           </div>
-          <button
-            @click="openMyVouchersModal"
-            class="px-3 py-1.5 rounded-xl bg-indigo-50/80 text-indigo-600 font-bold text-xs hover:bg-indigo-100 transition flex items-center gap-1.5"
-          >
-            <i class="fa-solid fa-wallet text-[11px]"></i> Của tôi
-            <span
-              v-if="unusedVouchersCount > 0"
-              class="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] flex items-center justify-center font-black"
-            >
-              {{ unusedVouchersCount }}
-            </span>
-          </button>
         </div>
 
         <div class="p-3 md:p-4">
           <div
             v-if="khoVouchers.length > 0"
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
           >
             <div
               v-for="voucher in sortedKhoVouchers"
               :key="voucher.id"
-              class="relative group flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 hover:border-indigo-300 hover:shadow-sm transition-all bg-gradient-to-r from-slate-50/60 to-white overflow-hidden"
+              class="relative group flex items-center justify-between p-3 rounded-xl border border-stone-200/80 hover:border-amber-300 hover:shadow-xs transition-all bg-gradient-to-r from-stone-50/50 to-white overflow-hidden"
             >
-              <!-- Left accent line / stub effect -->
               <div
-                class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-violet-600"
+                class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-500 to-orange-500"
               ></div>
 
-              <div class="flex items-center gap-2.5 pl-2 min-w-0 flex-1">
-                <!-- Value Badge -->
+              <div class="flex items-center gap-3 pl-2 min-w-0 flex-1">
                 <div
-                  class="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex flex-col items-center justify-center shrink-0 text-indigo-700 shadow-sm"
+                  class="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200/80 flex flex-col items-center justify-center shrink-0 text-amber-900 shadow-2xs"
                 >
-                  <span class="text-[8px] font-bold uppercase tracking-tighter opacity-70"
+                  <span class="text-[8px] font-bold uppercase tracking-tighter opacity-80"
                     >Giảm</span
                   >
                   <span class="text-[11px] font-black text-rose-600">
@@ -532,35 +594,41 @@
                   </span>
                 </div>
 
-                <!-- Info -->
                 <div class="min-w-0 flex-1 pr-1">
-                  <h3 class="font-bold text-slate-900 text-xs truncate">
+                  <div class="flex items-center gap-1.5 mb-0.5">
+                    <span
+                      class="px-1.5 py-0.5 rounded bg-stone-100 font-mono font-bold text-[9px] text-amber-900 border border-stone-200/80"
+                    >
+                      {{ voucher.maCode }}
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-stone-900 text-xs truncate">
                     {{ voucher.tenVoucher }}
                   </h3>
-                  <div class="text-[10px] text-slate-500 mt-0.5 truncate">
+                  <div class="text-[10px] font-medium text-stone-600 mt-0.5 truncate">
                     <span
                       >Đơn tối thiểu:
-                      <strong class="text-slate-700"
+                      <strong class="text-stone-800"
                         >{{
                           Number(voucher.dieuKienToiThieu || 0).toLocaleString('vi-VN')
                         }}đ</strong
                       ></span
                     >
                   </div>
-                  <div class="text-[10px] font-bold text-amber-600 mt-0.5 flex items-center gap-1">
+                  <div class="text-[10px] font-bold text-amber-800 mt-0.5 flex items-center gap-1">
                     <span>
-                      <i class="fa-solid fa-coins text-[9px] mr-0.5"></i>{{ voucher.soXuDoi }} Xu
+                      <i class="fa-solid fa-coins text-[9px] mr-0.5 text-amber-600"></i
+                      >{{ voucher.soXuDoi }} Xu
                     </span>
                   </div>
                 </div>
               </div>
 
-              <!-- Action button -->
-              <div class="shrink-0 pl-1.5 border-l border-slate-100">
+              <div class="shrink-0 pl-2 border-l border-stone-100">
                 <button
                   @click="handleDoiVoucher(voucher.id)"
                   :disabled="wallet.soXu < voucher.soXuDoi || voucher.soLuongConLai <= 0"
-                  class="px-2.5 py-1.5 rounded-lg text-[11px] font-black transition-all shadow-sm flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed"
+                  class="px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   <i class="fa-solid fa-gift text-[9px]"></i>
                   {{ voucher.soLuongConLai <= 0 ? 'Hết' : 'Đổi' }}
@@ -569,10 +637,9 @@
             </div>
           </div>
 
-          <!-- Empty State -->
-          <div v-else class="py-10 text-center text-xs text-slate-400">
-            <i class="fa-solid fa-ticket-simple text-2xl mb-2 opacity-40"></i>
-            <p>Hiện chưa có voucher nào trong kho</p>
+          <div v-else class="py-10 text-center text-xs text-stone-500 font-medium">
+            <i class="fa-solid fa-ticket-simple text-2xl mb-2 opacity-50"></i>
+            <p>Chưa có voucher nào trong kho</p>
           </div>
         </div>
       </section>
@@ -582,51 +649,53 @@
     <transition name="modal">
       <div
         v-if="showHistoryModal"
-        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/45 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[70] flex items-center justify-center bg-stone-900/30 backdrop-blur-xs p-4"
         @click.self="showHistoryModal = false"
       >
-        <div class="bg-white rounded-[22px] max-w-2xl w-full shadow-2xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div
+          class="bg-white rounded-2xl max-w-2xl w-full shadow-xl overflow-hidden border border-stone-200/60"
+        >
+          <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"
+                class="w-9 h-9 rounded-xl bg-amber-50 text-amber-900 flex items-center justify-center border border-amber-200/60"
               >
-                <i class="fa-solid fa-clock-rotate-left"></i>
+                <i class="fa-solid fa-clock-rotate-left text-sm"></i>
               </div>
               <div>
-                <h3 class="font-black text-base text-slate-900">Lịch sử Xu</h3>
-                <p class="text-xs text-slate-600">Toàn bộ biến động cộng/trừ Xu</p>
+                <h3 class="font-bold text-sm text-stone-900">Lịch sử Xu</h3>
+                <p class="text-[11px] font-medium text-stone-600">Biến động cộng/trừ xu của bạn</p>
               </div>
             </div>
             <button
               @click="showHistoryModal = false"
-              class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition"
+              class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition"
             >
-              <i class="fa-solid fa-xmark"></i>
+              <i class="fa-solid fa-xmark text-xs"></i>
             </button>
           </div>
 
           <div class="overflow-auto px-5 py-3 max-h-[60vh]">
-            <table class="w-full text-left text-sm">
+            <table class="w-full text-left text-xs">
               <thead>
                 <tr
-                  class="text-[10px] uppercase tracking-wider text-slate-600 border-b border-slate-100"
+                  class="text-[10px] uppercase tracking-wider font-bold text-stone-500 border-b border-stone-100"
                 >
                   <th class="py-2.5 px-3">Thời gian</th>
                   <th class="py-2.5 px-3">Nội dung</th>
                   <th class="py-2.5 px-3 text-right">Biến động</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-stone-100">
                 <tr
                   v-for="history in paginatedHistoryList"
                   :key="history.id"
-                  class="hover:bg-slate-50 transition"
+                  class="hover:bg-stone-50/80 transition"
                 >
-                  <td class="py-2.5 px-3 text-xs text-slate-600 whitespace-nowrap">
+                  <td class="py-2.5 px-3 font-medium text-stone-600 whitespace-nowrap">
                     {{ new Date(history.ngayTao).toLocaleString('vi-VN') }}
                   </td>
-                  <td class="py-2.5 px-3 text-xs font-bold text-slate-700">{{ history.moTa }}</td>
+                  <td class="py-2.5 px-3 font-bold text-stone-800">{{ history.moTa }}</td>
                   <td
                     class="py-2.5 px-3 text-right font-black"
                     :class="history.soXuThayDoi > 0 ? 'text-emerald-600' : 'text-rose-600'"
@@ -636,7 +705,7 @@
                   </td>
                 </tr>
                 <tr v-if="historyList.length === 0">
-                  <td colspan="3" class="py-8 text-center text-xs text-slate-600">
+                  <td colspan="3" class="py-8 text-center text-xs font-medium text-stone-500">
                     Chưa có lịch sử giao dịch Xu.
                   </td>
                 </tr>
@@ -646,26 +715,26 @@
 
           <div
             v-if="historyTotalPages > 1"
-            class="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50"
+            class="px-5 py-3 border-t border-stone-100 flex items-center justify-between bg-stone-50/50"
           >
-            <span class="text-[11px] text-slate-600">
+            <span class="text-[11px] font-medium text-stone-600">
               {{ paginatedHistoryList.length }} / {{ historyList.length }} giao dịch
             </span>
             <div class="flex items-center gap-2">
               <button
                 @click="historyCurrentPage > 1 && historyCurrentPage--"
                 :disabled="historyCurrentPage === 1"
-                class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold disabled:opacity-40 hover:bg-white"
+                class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs font-bold text-stone-700 disabled:opacity-40 hover:bg-white"
               >
                 <i class="fa-solid fa-chevron-left text-[10px]"></i>
               </button>
-              <span class="text-xs font-black text-slate-600">
+              <span class="text-xs font-bold text-stone-800">
                 {{ historyCurrentPage }} / {{ historyTotalPages }}
               </span>
               <button
                 @click="historyCurrentPage < historyTotalPages && historyCurrentPage++"
                 :disabled="historyCurrentPage === historyTotalPages"
-                class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold disabled:opacity-40 hover:bg-white"
+                class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs font-bold text-stone-700 disabled:opacity-40 hover:bg-white"
               >
                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
               </button>
@@ -679,107 +748,82 @@
     <transition name="modal">
       <div
         v-if="showRewardModal"
-        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[70] flex items-center justify-center bg-stone-900/30 backdrop-blur-xs p-4"
         @click.self="showRewardModal = false"
       >
         <div
-          class="relative overflow-hidden bg-white border border-slate-200 rounded-[24px] max-w-lg w-full max-h-[88vh] overflow-y-auto shadow-[0_25px_80px_rgba(15,23,42,.28)]"
+          class="relative overflow-hidden bg-white border border-stone-200/70 rounded-2xl max-w-md w-full max-h-[88vh] overflow-y-auto shadow-xl"
         >
-          <div class="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"></div>
+          <div class="h-1.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
           <div class="p-5 md:p-6">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-600 flex items-center justify-center text-2xl"
+                  class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-center text-xl shadow-2xs"
                 >
                   <i class="fa-solid fa-gift"></i>
                 </div>
                 <div>
-                  <div class="text-[10px] uppercase tracking-[.18em] font-black text-indigo-600">
-                    Nhận phần thưởng
+                  <div class="text-[10px] uppercase tracking-wider font-bold text-amber-800">
+                    Phần thưởng
                   </div>
-                  <div class="mt-1 text-sm font-bold text-slate-600">
-                    Chúc mừng! Bạn vừa nhận được phần thưởng.
-                  </div>
+                  <div class="text-xs font-medium text-stone-600">Chúc mừng bạn đã nhận quà!</div>
                 </div>
               </div>
               <button
                 @click="showRewardModal = false"
-                class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"
+                class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition"
               >
-                <i class="fa-solid fa-xmark"></i>
+                <i class="fa-solid fa-xmark text-xs"></i>
               </button>
             </div>
             <div
-              class="mt-6 rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-violet-50 border border-indigo-100 p-5"
+              class="mt-5 rounded-xl bg-gradient-to-br from-amber-50/50 to-orange-50/50 border border-amber-200/60 p-4 text-center"
             >
-              <div class="text-[9px] uppercase tracking-[.18em] font-black text-indigo-500">
-                Phần thưởng của bạn
-              </div>
-              <h3 class="mt-2 text-2xl font-black leading-tight text-slate-900 break-words">
+              <h3 class="text-lg font-black text-stone-900 break-words">
                 {{ rewardData.tenPhanThuong || 'Phần quà đặc biệt' }}
               </h3>
               <p
                 v-if="rewardData.moTa"
-                class="mt-3 text-sm leading-6 text-slate-600 whitespace-pre-line"
+                class="mt-2 text-xs font-medium leading-relaxed text-stone-700"
               >
                 {{ rewardData.moTa }}
               </p>
             </div>
 
-            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                <div class="text-[9px] uppercase tracking-wider font-bold text-slate-500">
+            <div class="mt-4 grid grid-cols-2 gap-2">
+              <div class="rounded-xl bg-stone-50 border border-stone-200 p-3 text-center">
+                <div class="text-[9px] uppercase tracking-wider font-bold text-stone-500">
                   Loại phần thưởng
                 </div>
-                <div class="mt-1 text-sm font-black text-indigo-700">
+                <div class="mt-0.5 text-xs font-bold text-stone-800">
                   {{
                     rewardData.loaiPhanThuong === 'xu'
                       ? 'Xu'
                       : rewardData.loaiPhanThuong === 'voucher'
                         ? 'Voucher'
-                        : rewardData.loaiPhanThuong === 'khong_trung'
-                          ? 'Không trúng'
-                          : rewardData.loaiPhanThuong || 'Phần thưởng'
+                        : rewardData.loaiPhanThuong || 'Quà tặng'
                   }}
                 </div>
               </div>
               <div
                 v-if="rewardData.giaTriXu !== undefined && rewardData.giaTriXu !== null"
-                class="rounded-2xl bg-amber-50 border border-amber-200 p-4"
+                class="rounded-xl bg-amber-50 border border-amber-200/70 p-3 text-center"
               >
-                <div class="text-[9px] uppercase tracking-wider font-bold text-amber-700">
-                  Giá trị nhận
+                <div class="text-[9px] uppercase tracking-wider font-bold text-amber-900">
+                  Giá trị
                 </div>
-                <div class="mt-1 text-base font-black text-amber-700">
+                <div class="mt-0.5 text-xs font-black text-amber-900">
                   {{ Number(rewardData.giaTriXu).toLocaleString('vi-VN') }} Xu
-                </div>
-              </div>
-              <div
-                v-if="rewardData.id_voucher !== undefined && rewardData.id_voucher !== null"
-                class="rounded-2xl bg-violet-50 border border-violet-200 p-4"
-              >
-                <div class="text-[9px] uppercase tracking-wider font-bold text-violet-700">
-                  Voucher
-                </div>
-                <div class="mt-1 text-sm font-black text-violet-700">
-                  #{{ rewardData.id_voucher }}
                 </div>
               </div>
             </div>
 
-            <div
-              v-if="rewardData.loaiPhanThuong === 'khong_trung'"
-              class="mt-4 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3.5 text-sm leading-6 text-slate-600"
-            >
-              <i class="fa-solid fa-circle-info text-slate-400 mr-1.5"></i>Lần này chưa có phần
-              thưởng. Chúc bạn may mắn ở lượt tiếp theo!
-            </div>
             <button
               @click="showRewardModal = false"
-              class="mt-5 w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm transition shadow-lg shadow-indigo-200"
+              class="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs transition shadow-sm"
             >
-              Đã xem phần thưởng
+              Xác nhận
             </button>
           </div>
         </div>
@@ -790,41 +834,39 @@
     <transition name="modal">
       <div
         v-if="showExchangeModal && pendingVoucher"
-        class="fixed inset-0 z-[75] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[75] flex items-center justify-center bg-stone-900/30 backdrop-blur-xs p-4"
         @click.self="showExchangeModal = false"
       >
-        <div
-          class="bg-white rounded-[24px] max-w-sm w-full p-5 shadow-2xl overflow-hidden border border-slate-100"
-        >
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border border-stone-200/70">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-100">
             <div class="flex items-center gap-2.5">
               <div
-                class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-black"
+                class="w-8 h-8 rounded-lg bg-amber-50 text-amber-900 flex items-center justify-center text-xs font-bold border border-amber-200/60"
               >
                 <i class="fa-solid fa-ticket"></i>
               </div>
               <div>
-                <h3 class="font-black text-sm text-slate-900">Xác nhận đổi Voucher</h3>
-                <p class="text-[10px] text-slate-500">Dùng Xu nhận mã ưu đãi</p>
+                <h3 class="font-bold text-xs text-stone-900">Xác nhận đổi Voucher</h3>
+                <p class="text-[10px] font-medium text-stone-600">
+                  Mã: {{ pendingVoucher.maCode }}
+                </p>
               </div>
             </div>
             <button
               @click="showExchangeModal = false"
-              class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition"
+              class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition"
             >
               <i class="fa-solid fa-xmark text-xs"></i>
             </button>
           </div>
 
-          <div
-            class="mt-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-violet-50/80 border border-indigo-100/80 p-4 text-slate-800"
-          >
-            <h4 class="font-black text-slate-900 text-xs line-clamp-2">
+          <div class="mt-4 rounded-xl bg-stone-50 border border-stone-200/80 p-3.5 text-stone-900">
+            <h4 class="font-bold text-stone-900 text-xs line-clamp-2">
               {{ pendingVoucher.tenVoucher }}
             </h4>
-            <div class="mt-2.5 flex items-center justify-between text-xs">
-              <span class="text-slate-500">Giá trị giảm:</span>
-              <span class="font-black text-rose-600">
+            <div class="mt-2 flex items-center justify-between text-xs">
+              <span class="text-stone-600 font-medium">Giá trị giảm:</span>
+              <span class="font-bold text-rose-600">
                 <template
                   v-if="
                     pendingVoucher.loaiGiamGia === 'PERCENT' ||
@@ -840,8 +882,8 @@
               </span>
             </div>
             <div class="mt-1 flex items-center justify-between text-xs">
-              <span class="text-slate-500">Đơn tối thiểu:</span>
-              <span class="font-bold text-slate-700"
+              <span class="text-stone-600 font-medium">Đơn tối thiểu:</span>
+              <span class="font-bold text-stone-800"
                 >{{ Number(pendingVoucher.dieuKienToiThieu || 0).toLocaleString('vi-VN') }}đ</span
               >
             </div>
@@ -849,14 +891,14 @@
 
           <div class="mt-3 grid grid-cols-2 gap-2 text-center">
             <div class="rounded-xl bg-amber-50 border border-amber-200/60 p-2.5">
-              <div class="text-[9px] uppercase font-bold text-amber-700">Chi phí đổi</div>
-              <div class="mt-0.5 text-xs font-black text-amber-800">
-                🪙 {{ pendingVoucher.soXuDoi }} Xu
+              <div class="text-[9px] uppercase font-bold text-amber-900">Chi phí</div>
+              <div class="mt-0.5 text-xs font-black text-amber-950">
+                {{ pendingVoucher.soXuDoi }} Xu
               </div>
             </div>
-            <div class="rounded-xl bg-slate-50 border border-slate-200/60 p-2.5">
-              <div class="text-[9px] uppercase font-bold text-slate-500">Số dư còn lại</div>
-              <div class="mt-0.5 text-xs font-black text-slate-700">
+            <div class="rounded-xl bg-stone-50 border border-stone-200/60 p-2.5">
+              <div class="text-[9px] uppercase font-bold text-stone-600">Còn lại</div>
+              <div class="mt-0.5 text-xs font-black text-stone-800">
                 {{ Math.max(0, (wallet.soXu || 0) - (pendingVoucher.soXuDoi || 0)) }} Xu
               </div>
             </div>
@@ -865,13 +907,13 @@
           <div class="mt-4 flex gap-2">
             <button
               @click="showExchangeModal = false"
-              class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+              class="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition"
             >
               Hủy
             </button>
             <button
               @click="confirmDoiVoucher"
-              class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs transition shadow-md shadow-indigo-200 flex items-center justify-center gap-1.5"
+              class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-1.5"
             >
               <i class="fa-solid fa-gift"></i> Đổi ngay
             </button>
@@ -884,42 +926,42 @@
     <transition name="modal">
       <div
         v-if="showMyVouchersModal"
-        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/45 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[70] flex items-center justify-center bg-stone-900/30 backdrop-blur-xs p-4"
         @click.self="showMyVouchersModal = false"
       >
         <div
-          class="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-xl overflow-hidden"
+          class="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-xl overflow-hidden border border-stone-200/70"
         >
-          <div class="px-4 py-4 border-b border-slate-100">
+          <div class="px-5 py-4 border-b border-stone-100">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center"
+                  class="w-10 h-10 rounded-xl bg-amber-50 text-amber-900 flex items-center justify-center border border-amber-200/60"
                 >
-                  <i class="fa-solid fa-wallet"></i>
+                  <i class="fa-solid fa-wallet text-sm"></i>
                 </div>
                 <div>
-                  <h3 class="font-black text-xl text-slate-900">Voucher của tôi</h3>
-                  <p class="text-xs text-slate-600 mt-0.5">Những ưu đãi bạn đã đổi từ Xu</p>
+                  <h3 class="font-bold text-base text-stone-900">Voucher của tôi</h3>
+                  <p class="text-[11px] font-medium text-stone-600">Mã ưu đãi bạn đã đổi</p>
                 </div>
               </div>
               <button
                 @click="showMyVouchersModal = false"
-                class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"
+                class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition"
               >
-                <i class="fa-solid fa-xmark"></i>
+                <i class="fa-solid fa-xmark text-xs"></i>
               </button>
             </div>
 
-            <div class="mt-5 flex gap-2 overflow-x-auto pb-1">
+            <div class="mt-4 flex gap-2 overflow-x-auto pb-1">
               <button
                 @click="myVoucherFilter = 'ALL'"
                 :class="
                   myVoucherFilter === 'ALL'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 "
-                class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition"
               >
                 Tất cả ({{ myVouchers.length }})
               </button>
@@ -927,10 +969,10 @@
                 @click="myVoucherFilter = 'CHUA_DUNG'"
                 :class="
                   myVoucherFilter === 'CHUA_DUNG'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 "
-                class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition"
               >
                 Chưa dùng ({{ unusedVouchersCount }})
               </button>
@@ -938,10 +980,10 @@
                 @click="myVoucherFilter = 'DA_DUNG'"
                 :class="
                   myVoucherFilter === 'DA_DUNG'
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 "
-                class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition"
               >
                 Đã dùng
               </button>
@@ -952,72 +994,70 @@
             <div
               v-for="item in filteredMyVouchers"
               :key="item.idVoucherKhachHang"
-              class="relative group flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 hover:border-indigo-300 hover:shadow-sm transition-all bg-gradient-to-r from-slate-50/60 to-white overflow-hidden"
+              class="relative group flex items-center justify-between p-3 rounded-xl border border-stone-200/80 hover:border-amber-300 transition-all bg-gradient-to-r from-stone-50/50 to-white overflow-hidden shadow-2xs"
             >
-              <!-- Left accent line -->
               <div
-                class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-violet-600"
+                class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-500 to-orange-500"
               ></div>
 
-              <div class="flex items-center gap-2.5 pl-2 min-w-0 flex-1">
-                <!-- Value Badge -->
+              <div class="flex items-center gap-3 pl-2 min-w-0 flex-1">
                 <div
-                  class="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex flex-col items-center justify-center shrink-0 text-indigo-700 shadow-sm"
+                  class="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200/80 flex flex-col items-center justify-center shrink-0 text-amber-900 shadow-2xs"
                 >
-                  <span class="text-[8px] font-bold uppercase tracking-tighter opacity-70"
+                  <span class="text-[8px] font-bold uppercase tracking-tighter opacity-80"
                     >Ưu đãi</span
                   >
-                  <span class="text-[11px] font-black text-rose-600 truncate max-w-[36px]">
+                  <span class="text-[11px] font-black text-rose-600 truncate max-w-[40px]">
                     {{ item.hienThiGiaTriGiam || 'KM' }}
                   </span>
                 </div>
 
-                <!-- Info -->
                 <div class="min-w-0 flex-1 pr-1">
                   <div class="flex items-center gap-2">
                     <span
-                      class="px-2 py-0.5 rounded text-[8px] font-black uppercase"
+                      class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
                       :class="
                         item.trangThai === 'CHUA_DUNG'
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                          : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
+                          : 'bg-stone-100 text-stone-600 border border-stone-200'
                       "
                     >
                       {{ item.trangThai === 'CHUA_DUNG' ? 'Chưa dùng' : item.trangThai }}
                     </span>
                     <span
                       v-if="item.sapHetHan"
-                      class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 text-[8px] font-black"
+                      class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[9px] font-bold border border-rose-200/80"
                     >
                       Sắp hết hạn
                     </span>
                   </div>
-                  <h4 class="font-bold text-slate-900 text-xs truncate mt-0.5">
+                  <h4 class="font-bold text-stone-900 text-xs truncate mt-0.5">
                     {{ item.tenVoucher }}
                   </h4>
-                  <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
+                  <div
+                    class="text-[10px] font-medium text-stone-600 mt-0.5 flex items-center gap-2"
+                  >
                     <span
                       >Đơn tối thiểu:
-                      <strong class="text-slate-700"
+                      <strong class="text-stone-800"
                         >{{ Number(item.dieuKienToiThieu || 0).toLocaleString('vi-VN') }}đ</strong
                       ></span
                     >
-                    <span class="text-slate-300">|</span>
+                    <span class="text-stone-300">|</span>
                     <span>Hạn: {{ new Date(item.ngayHetHan).toLocaleDateString('vi-VN') }}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Action / Code -->
-              <div class="shrink-0 pl-2 border-l border-slate-100 flex items-center gap-2">
+              <div class="shrink-0 pl-2 border-l border-stone-100 flex items-center gap-2">
                 <div
-                  class="px-2 py-1 rounded-lg bg-slate-50 border border-dashed border-slate-300 font-mono font-black text-indigo-600 text-[11px]"
+                  class="px-2.5 py-1 rounded-lg bg-stone-50 border border-dashed border-stone-300 font-mono font-bold text-amber-900 text-xs"
                 >
                   {{ item.maCode }}
                 </div>
                 <button
                   @click="copyCode(item.maCode)"
-                  class="w-7 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition"
+                  class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-700 flex items-center justify-center transition"
                   title="Sao chép mã"
                 >
                   <i class="fa-regular fa-copy text-xs"></i>
@@ -1027,18 +1067,16 @@
 
             <div
               v-if="filteredMyVouchers.length === 0"
-              class="py-14 text-center rounded-2xl border border-dashed border-slate-200 bg-slate-50"
+              class="py-12 text-center rounded-2xl border border-dashed border-stone-200 bg-stone-50/50"
             >
               <div
-                class="w-14 h-14 rounded-2xl bg-white border border-slate-200 mx-auto flex items-center justify-center text-xl text-slate-600"
+                class="w-12 h-12 rounded-xl bg-white border border-stone-200 mx-auto flex items-center justify-center text-lg text-stone-400 shadow-2xs"
               >
                 <i class="fa-solid fa-ticket"></i>
               </div>
-              <div class="mt-3 text-sm font-black text-slate-600">
-                Chưa có voucher trong mục này
-              </div>
-              <div class="mt-1 text-xs text-slate-600">
-                Hãy quay game hoặc đổi voucher để sử dụng tại đây.
+              <div class="mt-3 text-xs font-bold text-stone-800">Chưa có voucher trong mục này</div>
+              <div class="mt-1 text-[11px] font-medium text-stone-500">
+                Hãy đổi voucher từ kho xu để sử dụng.
               </div>
             </div>
           </div>
@@ -1064,7 +1102,7 @@ const getLoggedInCustomerId = () => {
       customerId.value = 1
     }
   } catch (e) {
-    console.error('Lỗi đọc thông tin user từ sessionStorage:', e)
+    console.error('Lỗi đọc thông tin user:', e)
     customerId.value = 1
   }
 }
@@ -1131,14 +1169,14 @@ const rewardData = ref({
 })
 
 const sliceColors = [
-  '#4f46e5',
-  '#f59e0b',
-  '#10b981',
-  '#8b5cf6',
-  '#f43f5e',
-  '#06b6d4',
-  '#eab308',
-  '#64748b',
+  '#fef3c7',
+  '#fde68a',
+  '#d9f99d',
+  '#fed7aa',
+  '#fbcfe8',
+  '#e2e8f0',
+  '#ccfbf1',
+  '#fae8ff',
 ]
 
 const getSlicePath = (index, total) => {
@@ -1189,7 +1227,6 @@ const previewMilestones = computed(() => {
 })
 
 const sortedKhoVouchers = computed(() => {
-  // Chỉ lấy các voucher có trạng thái hoạt động (trangThai === true)
   let list = khoVouchers.value.filter((voucher) => voucher.trangThai === true)
 
   list.sort((a, b) => {
@@ -1483,8 +1520,34 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.clip-triangle {
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
+/* Hiệu ứng bồng bềnh cho hộp quà */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Hiệu ứng tỏa sáng nền phía sau */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.08);
+  }
+}
+.animate-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
 }
 
 .toast-enter-active,
@@ -1495,21 +1558,17 @@ onMounted(async () => {
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(-18px) scale(0.98);
+  transform: translateY(-16px) scale(0.98);
 }
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.22s ease;
+  transition: opacity 0.2s ease;
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
-}
-
-.perspective-1000 {
-  perspective: 1000px;
 }
 
 .line-clamp-2 {

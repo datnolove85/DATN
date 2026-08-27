@@ -128,9 +128,10 @@
                 maxlength="4000"
                 class="max-h-28 min-h-11 flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-[#9b4657] focus:ring-4 focus:ring-[#8b2034]/10"
                 placeholder="Nhập tin nhắn..."
-                @keydown.enter.exact.prevent="send"
+                @keydown.enter="handleEnter"
               ></textarea>
               <button
+                type="submit"
                 class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8b2034] text-white disabled:cursor-not-allowed disabled:opacity-40"
                 :disabled="sending || !draft.trim()"
               >
@@ -176,7 +177,6 @@ const messagesEl = ref(null)
 
 let stompClient = null
 let customerChatSub = null
-const recentSentMessages = [] // Bộ nhớ tạm nhận diện tin nhắn do khách vừa gửi
 
 const suggestions = [
   'Áo này còn size M không?',
@@ -186,7 +186,52 @@ const suggestions = [
 
 const formatTime = (value) =>
   value ? new Date(value).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''
+
 const token = () => sessionStorage.getItem('token')
+
+function upsertMessage(msg) {
+  if (!msg || msg.id === undefined || msg.id === null) return
+
+  const targetId = String(msg.id)
+  const content = (msg.noiDung || '').trim()
+
+  // 1. Kiểm tra ID thật đã có trong danh sách chưa -> Cập nhật thông tin tại chỗ
+  const indexById = messages.value.findIndex((m) => String(m.id) === targetId)
+  if (indexById !== -1) {
+    const existing = messages.value[indexById]
+    messages.value[indexById] = {
+      ...existing,
+      ...msg,
+      cuaToi: existing.cuaToi || msg.cuaToi || false,
+    }
+    return
+  }
+
+  // 2. Tìm tin tạm (opt-*) để thay thế ID thật
+  // Ưu tiên khớp nội dung, nếu nội dung bị thay đổi nhẹ thì đè lên tin tạm opt- đầu tiên tìm thấy
+  let optIndex = messages.value.findIndex(
+    (m) => String(m.id).startsWith('opt-') && (m.noiDung || '').trim() === content,
+  )
+
+  if (optIndex === -1 && msg.cuaToi) {
+    optIndex = messages.value.findIndex((m) => String(m.id).startsWith('opt-'))
+  }
+
+  if (optIndex !== -1) {
+    messages.value[optIndex] = {
+      ...msg,
+      id: msg.id,
+      cuaToi: true, // Chắc chắn là tin nhắn của người dùng gửi
+    }
+    return
+  }
+
+  // 3. Tin nhắn mới hoàn toàn từ Nhân viên gửi đến
+  messages.value.push({
+    ...msg,
+    cuaToi: msg.cuaToi ?? false,
+  })
+}
 
 async function load() {
   loggedIn.value = Boolean(token())
@@ -200,7 +245,6 @@ async function load() {
   if (conversation.value?.id) {
     await markChatRead(conversation.value.id)
     unread.value = 0
-    subscribeToCustomerChat()
   }
 
   scrollBottom()
@@ -211,46 +255,18 @@ function subscribeToCustomerChat() {
     customerChatSub.unsubscribe()
     customerChatSub = null
   }
-  if (stompClient?.active && conversation.value?.id) {
-    customerChatSub = stompClient.subscribe(`/topic/chat/${conversation.value.id}`, (frame) => {
+
+  if (stompClient?.active) {
+    customerChatSub = stompClient.subscribe('/user/queue/chat', (frame) => {
       const message = JSON.parse(frame.body)
 
-      // Kiểm tra xem tin nhắn trả về từ socket có phải là do khách vừa gửi đi không
-      const recentIndex = recentSentMessages.findIndex(
-        (m) => m.text === message.noiDung && Date.now() - m.time < 10000,
-      )
+      upsertMessage(message)
 
-      if (recentIndex !== -1) {
-        message.cuaToi = true
-        recentSentMessages.splice(recentIndex, 1) // Xóa khỏi danh sách tạm sau khi khớp
-      } else {
-        message.cuaToi = false // Nếu không phải khách gửi thì đích thị là tin của Admin
-      }
-
-      // Kiểm tra xem tin nhắn đã tồn tại trong danh sách chưa (tránh trùng lặp)
-      const existing = messages.value.find(
-        (item) =>
-          item.id === message.id ||
-          (message.cuaToi &&
-            item.noiDung === message.noiDung &&
-            item.id?.toString().startsWith('opt-')),
-      )
-
-      if (existing) {
-        existing.id = message.id
-        existing.thoiGian = message.thoiGian
-        existing.cuaToi = true
-      } else {
-        messages.value.push(message)
-
-        if (!message.cuaToi) {
-          if (open.value && !minimized.value) {
-            markChatRead(conversation.value.id).catch(() => {})
-            unread.value = 0
-          } else {
-            unread.value += 1
-          }
-        }
+      if (!open.value || minimized.value) {
+        unread.value += 1
+      } else if (conversation.value?.id) {
+        markChatRead(conversation.value.id).catch(() => {})
+        unread.value = 0
       }
       scrollBottom()
     })
@@ -270,41 +286,45 @@ function connectSocket() {
   stompClient.activate()
 }
 
+function handleEnter(e) {
+  // Bỏ qua nếu đang dùng bộ gõ tiếng Việt chọn từ (IME Composition)
+  if (e.isComposing) return
+
+  if (!e.shiftKey) {
+    e.preventDefault()
+    send()
+  }
+}
+
 async function send() {
+  console.log('SENDING MESSAGE:', draft.value)
   if (!draft.value.trim() || sending.value || !conversation.value) return
+
   sending.value = true
   const text = draft.value.trim()
   draft.value = ''
 
-  // Ghi nhớ nội dung vừa gửi để phân biệt khi websocket echo lại
-  recentSentMessages.push({ text, time: Date.now() })
-  while (recentSentMessages.length > 20) recentSentMessages.shift()
-
-  // Hiển thị tạm thời tin nhắn lên giao diện ngay lập tức (Optimistic Update)
+  const optimisticId = 'opt-' + Date.now()
   const optimisticMsg = {
-    id: 'opt-' + Date.now(),
+    id: optimisticId,
     noiDung: text,
     thoiGian: new Date().toISOString(),
     cuaToi: true,
   }
-  messages.value.push(optimisticMsg)
+
+  upsertMessage(optimisticMsg)
   scrollBottom()
 
   try {
     const message = await sendChatMessage(conversation.value.id, text)
-    message.cuaToi = true
-
-    const index = messages.value.findIndex((m) => m.id === optimisticMsg.id)
-    if (index !== -1) {
-      messages.value[index] = message
-    } else if (!messages.value.some((m) => m.id === message.id)) {
-      messages.value.push(message)
+    if (message) {
+      message.cuaToi = true
+      upsertMessage(message)
     }
-
     await markChatRead(conversation.value.id)
     scrollBottom()
   } catch (error) {
-    messages.value = messages.value.filter((m) => m.id !== optimisticMsg.id)
+    messages.value = messages.value.filter((m) => String(m.id) !== optimisticId)
     draft.value = text
     window.alert(error?.message || 'Không thể gửi tin nhắn.')
   } finally {

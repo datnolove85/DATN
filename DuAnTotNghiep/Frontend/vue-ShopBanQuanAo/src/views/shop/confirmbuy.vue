@@ -170,36 +170,58 @@
             </div>
 
             <!-- PROMOTION -->
-            <div class="relative mt-4">
-              <div
-                class="border-2 border-[#ff625c] bg-[#fffafa] rounded-[8px] px-4 pt-6 pb-4 shadow-sm"
-              >
+            <!-- PROMOTION BLOCK (COMBINED DYNAMIC + FLEXIBLE PROGRESS) -->
+            <div v-if="promotions && promotions.length > 0" class="relative mt-4">
+              <div class="border-2 border-[#ff625c] bg-[#fffafa] rounded-[8px] p-4 shadow-sm">
+                <!-- Header Khuyến Mãi -->
                 <div
-                  class="absolute -top-[13px] left-4 bg-[#ff625c] text-white px-3 py-[6px] rounded-[4px] text-[12px] font-semibold flex items-center gap-1.5"
+                  class="absolute -top-[13px] left-4 bg-[#ff625c] text-white px-3 py-[4px] rounded-[4px] text-[12px] font-semibold flex items-center gap-1.5 shadow-sm"
                 >
                   <span>🎁</span>
-                  <span>Khuyến mãi đặc biệt</span>
+                  <span>Ưu đãi áp dụng</span>
                 </div>
 
-                <div class="space-y-2 text-[13px] sm:text-[14px] leading-[1.55] text-gray-800">
-                  <div class="flex items-start gap-2">
-                    <span class="font-bold text-gray-900">✓</span>
-                    <span>
-                      Giảm <strong>10%</strong> cho đơn hàng từ <strong>3 sản phẩm</strong> trở lên.
+                <!-- 1. CÁCH 2: Render danh sách ưu đãi động từ API -->
+                <div class="space-y-2 text-[13px] sm:text-[14px] text-gray-800 pt-1">
+                  <div
+                    v-for="(promo, index) in promotions"
+                    :key="index"
+                    class="flex items-start gap-2"
+                  >
+                    <span class="font-bold text-[#00a884] shrink-0">✓</span>
+                    <span class="leading-snug" v-html="promo.noiDung"></span>
+                  </div>
+                </div>
+
+                <!-- 2. CÁCH 3: Progress Bar linh hoạt (Chỉ hiện khi sản phẩm có điều kiện số lượng/giá trị) -->
+                <div
+                  v-if="activeTierRule"
+                  class="mt-3.5 pt-3 border-t border-rose-100/80 bg-rose-50/50 -mx-4 -mb-4 p-3.5 rounded-b-[6px]"
+                >
+                  <div
+                    class="text-[12px] sm:text-[13px] font-medium text-rose-900 mb-2 flex items-center justify-between"
+                  >
+                    <span v-if="quantity >= activeTierRule.minQty">
+                      🎉 Bạn đã đạt điều kiện nhận <strong>{{ activeTierRule.rewardText }}</strong
+                      >!
+                    </span>
+                    <span v-else>
+                      Mua thêm
+                      <strong class="text-rose-600 font-bold">{{
+                        activeTierRule.minQty - quantity
+                      }}</strong>
+                      sản phẩm nữa để {{ activeTierRule.rewardText }}
                     </span>
                   </div>
 
-                  <div class="flex items-start gap-2">
-                    <span class="font-bold text-gray-900">✓</span>
-                    <span>
-                      <strong>Miễn phí giao hàng</strong> toàn quốc cho đơn hàng trên
-                      <strong>500.000 VNĐ</strong>.
-                    </span>
-                  </div>
-
-                  <div class="flex items-start gap-2">
-                    <span class="font-bold text-gray-900">✓</span>
-                    <span> Tặng ngay <strong>voucher 50.000 VNĐ</strong> cho khách hàng mới. </span>
+                  <!-- Thanh Tiến Trình Dynamic -->
+                  <div class="w-full bg-rose-200/70 h-2 rounded-full overflow-hidden">
+                    <div
+                      class="bg-[#ff625c] h-full transition-all duration-300 rounded-full"
+                      :style="{
+                        width: `${Math.min((quantity / activeTierRule.minQty) * 100, 100)}%`,
+                      }"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -952,6 +974,34 @@ import { flyToCart } from '@/utils/cartAnimation'
 import QuickViewModal from '@/views/shop/views/componnents/QuickViewModal.vue'
 import yeuThichService from '@/service/yeuThichService' // Điều chỉnh lại đường dẫn cho đúng với cấu trúc thư mục thực tế của bạn
 
+// Dữ liệu khuyến mãi động nhận từ Backend (API detail sản phẩm hoặc đợt giảm giá)
+const promotions = computed(() => {
+  // Ưu tiên lấy từ biến selectedVariant hoặc product trả về
+  if (selectedVariant.value?.danhSachKhuyenMai) {
+    return selectedVariant.value.danhSachKhuyenMai
+  }
+
+  // Mẫu dữ liệu fallback nếu Backend trả về dạng danh sách text/object
+  return [
+    { noiDung: 'Giảm <strong>10%</strong> khi mua từ <strong>3 sản phẩm</strong> cùng loại.' },
+    { noiDung: 'Miễn phí vận chuyển cho đơn hàng từ <strong>500.000 VNĐ</strong>.' },
+  ]
+})
+
+// Quy tắc linh hoạt cho Progress Bar:
+// Nếu sản phẩm/khuyến mãi này có rule "Mua X cái giảm Y", gán dữ liệu vào đây.
+// Nếu sản phẩm thường không có rule thì trả về null -> Progress Bar tự ẩn!
+const activeTierRule = computed(() => {
+  // Ví dụ: lấy điều kiện từ đợt giảm giá của Variant hiện tại
+  const minQty = selectedVariant.value?.soLuongToiThieuUuDai || 3 // Lấy từ API, nếu không có để mặc định hoặc null
+
+  if (!minQty || minQty <= 1) return null // Không có quy tắc mua nhiều -> Không hiện progress bar
+
+  return {
+    minQty: minQty,
+    rewardText: selectedVariant.value?.tenUuDai || 'được giảm 10% cho đơn hàng',
+  }
+})
 const quickViewProductId = ref(null)
 const hoveredCardId = ref(null)
 const quickView = (item) => {

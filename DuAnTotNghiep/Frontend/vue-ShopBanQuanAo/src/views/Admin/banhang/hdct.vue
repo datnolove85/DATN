@@ -1,35 +1,36 @@
 <template>
   <div
-    class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl min-h-screen selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
+    class="space-y-4 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl min-h-screen selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
+    <!-- Header đã được thu gọn -->
     <div
-      class="relative p-6 bg-white rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm"
+      class="relative px-4 py-3.5 bg-white rounded-xl border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-2xs"
     >
       <div>
-        <span class="text-xs tracking-wide uppercase font-semibold text-indigo-600">
+        <span class="text-[10px] tracking-wide uppercase font-semibold text-indigo-600">
           Hồ sơ lưu trữ giao dịch
         </span>
-        <h1 class="text-2xl font-bold tracking-tight mt-1 text-slate-800">Chi Tiết Hóa Đơn</h1>
-        <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
+        <h1 class="text-base font-bold tracking-tight text-slate-800">Chi Tiết Hóa Đơn</h1>
+        <p class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
           <span>Mã hóa đơn:</span>
           <span
-            class="font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100"
+            class="font-mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-100"
           >
             {{ invoice.code || 'Đang tải...' }}
           </span>
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+      <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
         <div>
           <button
             @click="openPreview"
             :disabled="!rawInvoice || ['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)"
             :class="[
-              'flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
+              'flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap',
               ['huy', 'da_huy', 'da_tra_hang'].includes(invoice.status)
-                ? 'bg-slate-100 text-slate-800 border border-slate-300 cursor-not-allowed shadow-none'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm active:scale-95',
+                ? 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed shadow-none'
+                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs active:scale-95',
             ]"
           >
             <svg
@@ -39,7 +40,7 @@
               viewBox="0 0 24 24"
               stroke-width="2.5"
               stroke="currentColor"
-              class="w-4 h-4"
+              class="w-3.5 h-3.5"
             >
               <path
                 stroke-linecap="round"
@@ -54,7 +55,7 @@
               viewBox="0 0 24 24"
               stroke-width="2.5"
               stroke="currentColor"
-              class="w-4 h-4 text-slate-700"
+              class="w-3.5 h-3.5 text-slate-500"
             >
               <path
                 stroke-linecap="round"
@@ -73,7 +74,7 @@
 
         <button
           @click="goBack"
-          class="flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-sm"
+          class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-slate-600 rounded-lg text-xs font-bold transition-all active:scale-95 whitespace-nowrap shadow-2xs"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -81,7 +82,7 @@
             viewBox="0 0 24 24"
             stroke-width="2.5"
             stroke="currentColor"
-            class="w-4 h-4"
+            class="w-3.5 h-3.5"
           >
             <path
               stroke-linecap="round"
@@ -94,17 +95,17 @@
       </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-          class="p-5 bg-slate-50/60 rounded-xl border border-slate-200/60 transition-all hover:bg-slate-50"
-        >
+    <!-- Main Content Container -->
+    <div class="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 space-y-6">
+      <!-- Top 3 Info Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/60">
           <p
-            class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"
+            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"
           >
             👤 Hồ sơ đối tác
           </p>
-          <p class="font-bold text-slate-800 text-sm capitalize">
+          <p class="font-bold text-slate-800 text-sm capitalize truncate">
             {{ invoice.customer }}
           </p>
           <p class="text-xs text-slate-500 font-mono mt-0.5">
@@ -113,76 +114,71 @@
         </div>
 
         <div
-          class="p-5 bg-slate-50/60 rounded-xl border border-slate-200/60 transition-all hover:bg-slate-50 flex flex-col justify-between"
-        >
-          <div>
-            <p
-              class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"
-            >
-              ⚙️ Trạng thái vận hành
-            </p>
-            <span :class="statusClassModern(invoice.status)">
-              <span
-                :class="['w-1.5 h-1.5 rounded-full mr-2 transition-all bg-current animate-pulse']"
-              ></span>
-              {{ formatStatusName(invoice.status) }}
-            </span>
-          </div>
-        </div>
-
-        <div
-          class="p-5 bg-slate-50/60 rounded-xl border border-slate-200/60 transition-all hover:bg-slate-50"
+          class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/60 flex flex-col justify-center"
         >
           <p
-            class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"
+            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"
+          >
+            ⚙️ Trạng thái vận hành
+          </p>
+          <span :class="statusClassModern(invoice.status)">
+            <span
+              class="w-1.5 h-1.5 rounded-full mr-2 transition-all bg-current animate-pulse"
+            ></span>
+            {{ formatStatusName(invoice.status) }}
+          </span>
+        </div>
+
+        <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/60">
+          <p
+            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"
           >
             📅 Thời gian đặt hàng
           </p>
-          <p class="font-bold text-slate-800 text-sm font-mono flex items-center gap-2">
+          <p class="font-bold text-slate-800 text-sm font-mono">
             {{ invoice.createdAt }}
           </p>
           <p class="text-[11px] text-slate-400 mt-0.5">Ngày giờ khởi tạo hóa đơn</p>
         </div>
       </div>
 
-      <div class="p-6 bg-slate-50/40 rounded-2xl border border-slate-200/70">
-        <div class="flex items-center justify-between mb-6 select-none">
+      <!-- Timeline Section -->
+      <div class="p-4 bg-slate-50/40 rounded-xl border border-slate-200/70">
+        <div class="flex items-center justify-between mb-4 select-none">
           <h3
-            class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-2"
+            class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 flex items-center gap-2"
           >
-            <span class="inline-block w-1.5 h-3.5 bg-indigo-600 rounded-sm"></span>
+            <span class="inline-block w-1.5 h-3 bg-indigo-600 rounded-sm"></span>
             Lịch sử tiến trình hóa đơn (Timeline)
           </h3>
           <span
-            class="text-[11px] font-bold text-slate-400 font-mono bg-white px-2.5 py-0.5 rounded-md border border-slate-200"
+            class="text-[11px] font-bold text-slate-500 font-mono bg-white px-2 py-0.5 rounded-md border border-slate-200"
           >
-            Tổng số bước: {{ invoice.history?.length || 0 }}
+            Tổng bước: {{ invoice.history?.length || 0 }}
           </span>
         </div>
 
         <div
           v-if="invoice.history && invoice.history.length > 0"
-          class="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200"
+          class="relative pl-5 space-y-4 before:absolute before:left-[9px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200"
         >
           <div
             v-for="hist in invoice.history"
             :key="hist.id"
-            class="relative flex items-start gap-4 group"
+            class="relative flex items-start gap-3 group"
           >
             <div
-              class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center shadow-xs"
+              class="absolute -left-5 top-1 w-5 h-5 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center shadow-xs"
             >
-              <div class="w-2 h-2 rounded-full bg-indigo-600"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
             </div>
 
-            <div
-              class="flex-1 bg-white border border-slate-200/80 rounded-xl p-4 transition-all hover:shadow-sm"
-            >
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <div class="flex-1 bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1.5">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span
                     v-if="hist.trangThaiCu"
-                    class="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg text-[11px]"
+                    class="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded-md text-[11px]"
                   >
                     {{ formatStatusName(hist.trangThaiCu) }}
                   </span>
@@ -193,7 +189,7 @@
                     viewBox="0 0 24 24"
                     stroke-width="2.5"
                     stroke="currentColor"
-                    class="w-3.5 h-3.5 text-slate-400"
+                    class="w-3 h-3 text-slate-400"
                   >
                     <path
                       stroke-linecap="round"
@@ -202,34 +198,30 @@
                     />
                   </svg>
                   <span
-                    class="px-2.5 py-1 bg-indigo-600 text-white font-bold rounded-lg text-[11px] shadow-xs"
+                    class="px-2 py-0.5 bg-indigo-600 text-white font-bold rounded-md text-[11px] shadow-2xs"
                   >
                     {{ hist.hienThiTrangThai || formatStatusName(hist.trangThaiMoi) }}
                   </span>
                 </div>
 
-                <span class="text-xs font-mono font-semibold text-slate-500">
+                <span class="text-xs font-mono font-medium text-slate-500">
                   {{ formatDateTime(hist.thoiGian) }}
                 </span>
               </div>
 
               <div
-                class="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-3 pt-2 border-t border-slate-100"
+                class="flex flex-wrap items-center gap-2 text-xs text-slate-600 mt-2 pt-2 border-t border-slate-100"
               >
-                <div class="flex items-center gap-1.5">
-                  <span class="text-slate-400 font-medium">Người thực hiện:</span>
-                  <span class="font-bold text-slate-800">
-                    {{ hist.tenNhanVienHienThi }}
-                  </span>
+                <div class="flex items-center gap-1">
+                  <span class="text-slate-400">Người thực hiện:</span>
+                  <span class="font-bold text-slate-800">{{ hist.tenNhanVienHienThi }}</span>
                 </div>
-
                 <span class="text-slate-300">•</span>
-
-                <div class="flex items-center gap-1.5">
-                  <span class="text-slate-400 font-medium">Nguồn:</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-slate-400">Nguồn:</span>
                   <span
                     :class="[
-                      'px-2 py-0.5 rounded font-mono font-bold text-[10px] border uppercase',
+                      'px-1.5 py-0.2 rounded font-mono font-bold text-[10px] border uppercase',
                       getSourceBadgeClass(hist.nguonThaoTac),
                     ]"
                   >
@@ -240,7 +232,7 @@
 
               <div
                 v-if="hist.ghiChu"
-                class="mt-2.5 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 italic"
+                class="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200/60 italic"
               >
                 <span class="font-bold text-slate-700 not-italic mr-1">Ghi chú:</span>
                 {{ hist.ghiChu }}
@@ -249,89 +241,89 @@
           </div>
         </div>
 
-        <div v-else class="text-center py-6 text-slate-400 italic text-xs">
+        <div v-else class="text-center py-4 text-slate-400 italic text-xs">
           Chưa có lịch sử thay đổi trạng thái cho hóa đơn này.
         </div>
       </div>
+
+      <!-- Items Table -->
       <div>
-        <div class="flex items-center justify-between mb-4 select-none">
+        <div class="flex items-center justify-between mb-3 select-none">
           <h3
-            class="text-xs font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-2"
+            class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 flex items-center gap-2"
           >
-            <span class="inline-block w-1.5 h-3.5 bg-indigo-600 rounded-sm"></span>
+            <span class="inline-block w-1.5 h-3 bg-indigo-600 rounded-sm"></span>
             Kiểm kê hạng mục sản phẩm mua
           </h3>
           <span
-            class="text-[11px] font-bold text-slate-400 font-mono bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200"
+            class="text-[11px] font-bold text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200"
           >
-            Tổng cộng: {{ invoice.items?.length || 0 }} loại
+            Tổng: {{ invoice.items?.length || 0 }} loại
           </span>
         </div>
 
-        <div class="border border-slate-200/70 rounded-xl overflow-hidden shadow-sm bg-white">
+        <div class="border border-slate-200/80 rounded-xl overflow-hidden shadow-2xs bg-white">
           <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse min-w-[900px]">
               <thead
-                class="bg-slate-50 text-slate-400 font-bold text-[11px] uppercase tracking-wider select-none border-b border-slate-200/70"
+                class="bg-slate-50 text-slate-500 font-bold text-[11px] uppercase tracking-wider select-none border-b border-slate-200/80"
               >
                 <tr>
-                  <th class="px-6 py-4 text-left font-bold w-[12%]">Mã</th>
-                  <th class="px-6 py-4 text-left font-bold w-[35%]">Tên sản phẩm</th>
-                  <th class="px-6 py-4 text-left font-bold w-[18%]">Thông số phân loại</th>
-                  <th class="px-6 py-4 text-center font-bold w-[10%]">Số lượng</th>
-                  <th class="px-6 py-4 text-right font-bold w-[12%]">Đơn giá</th>
-                  <th class="px-6 py-4 text-right font-bold w-[13%]">Thành tiền</th>
+                  <th class="px-5 py-3.5 text-left font-bold w-[16%]">Mã</th>
+                  <th class="px-5 py-3.5 text-left font-bold w-[32%]">Tên sản phẩm</th>
+                  <th class="px-5 py-3.5 text-left font-bold w-[22%]">Thông số phân loại</th>
+                  <th class="px-5 py-3.5 text-center font-bold w-[8%]">Số lượng</th>
+                  <th class="px-5 py-3.5 text-right font-bold w-[11%]">Đơn giá</th>
+                  <th class="px-5 py-3.5 text-right font-bold w-[13%]">Thành tiền</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 font-medium">
                 <tr
                   v-for="item in invoice.items"
                   :key="item.id"
-                  class="hover:bg-indigo-50/15 transition-colors group"
+                  class="hover:bg-indigo-50/20 transition-colors"
                 >
-                  <td class="px-6 py-5 font-mono font-bold text-indigo-600 tracking-wide">
+                  <td class="px-5 py-4 font-mono font-bold text-indigo-600 break-words">
                     {{ item.sku }}
                   </td>
-                  <td class="px-6 py-5">
+                  <td class="px-5 py-4">
                     <div
                       class="font-bold text-slate-800 text-sm leading-snug max-w-xs sm:max-w-md break-words"
                     >
                       {{ item.name }}
                     </div>
                   </td>
-                  <td class="px-6 py-5 select-none">
-                    <div class="flex flex-wrap gap-2">
+                  <td class="px-5 py-4 select-none">
+                    <div class="flex flex-wrap gap-1.5">
                       <span
-                        class="inline-flex items-center px-2 py-0.5 bg-slate-900 text-white font-bold rounded text-[9px] uppercase tracking-wider shadow-xs"
+                        class="inline-flex items-center px-2 py-0.5 bg-slate-900 text-white font-bold rounded text-[9px] uppercase tracking-wider"
                       >
                         {{ item.brand }}
                       </span>
                       <span
-                        class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-600 font-semibold rounded-md border border-slate-200 text-[10px]"
+                        class="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 font-semibold rounded border border-slate-200 text-[10px]"
                       >
                         Màu: {{ item.color }}
                       </span>
                       <span
-                        class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 text-indigo-600 font-semibold rounded-md border border-indigo-100 text-[10px]"
+                        class="inline-flex items-center px-2 py-0.5 bg-indigo-50 text-indigo-600 font-semibold rounded border border-indigo-100 text-[10px]"
                       >
                         Size: {{ item.size }}
                       </span>
                     </div>
                   </td>
-                  <td class="px-6 py-5 text-center text-slate-700 font-mono font-bold text-sm">
+                  <td class="px-5 py-4 text-center text-slate-700 font-mono font-bold text-sm">
                     {{ item.quantity }}
                   </td>
-                  <td class="px-6 py-5 text-right font-mono text-slate-500 font-semibold text-sm">
+                  <td class="px-5 py-4 text-right font-mono text-slate-500 font-semibold text-sm">
                     {{ formatMoney(item.price) }}
                   </td>
-                  <td
-                    class="px-6 py-5 text-right font-extrabold text-slate-900 font-mono text-sm tracking-wide"
-                  >
+                  <td class="px-5 py-4 text-right font-extrabold text-slate-900 font-mono text-sm">
                     {{ formatMoney(item.total) }}
                   </td>
                 </tr>
                 <tr v-if="!invoice.items || invoice.items.length === 0">
-                  <td colspan="6" class="text-center py-14 text-slate-400 italic">
+                  <td colspan="6" class="text-center py-10 text-slate-400 italic">
                     Không tìm thấy dữ liệu cấu trúc sản phẩm của hóa đơn này.
                   </td>
                 </tr>
@@ -341,97 +333,120 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
-        <div class="space-y-4 text-xs">
-          <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">
+      <!-- Bottom Details & Financial Summary -->
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 items-stretch"
+      >
+        <!-- Left Column: 3 Info Blocks -->
+        <div class="flex flex-col justify-between space-y-3 text-xs">
+          <div
+            class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-200/60 flex-1 flex flex-col justify-center"
+          >
             <p
-              class="font-extrabold uppercase text-[10px] mb-2 tracking-wider text-indigo-950 flex items-center gap-1.5"
+              class="font-extrabold uppercase text-[10px] mb-1 tracking-wider text-slate-600 flex items-center gap-1.5"
             >
               🚚 Địa điểm phân phối
             </p>
-            <p class="text-slate-600 leading-relaxed">
-              <span class="font-bold text-slate-900 block mt-0.5">
-                {{ invoice.address }}
-              </span>
+            <p class="text-slate-700 leading-relaxed font-medium mt-0.5">
+              {{ invoice.address }}
             </p>
           </div>
-          <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">
+
+          <div
+            class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-200/60 flex-1 flex flex-col justify-center"
+          >
             <p
-              class="font-extrabold uppercase text-[10px] mb-2 tracking-wider text-indigo-950 flex items-center gap-1.5"
+              class="font-extrabold uppercase text-[10px] mb-1 tracking-wider text-slate-600 flex items-center gap-1.5"
             >
               💳 Kênh xử lý dòng tiền
             </p>
-            <p class="text-slate-600">
-              Phương thức thanh toán:
+            <p class="text-slate-600 mt-1">
+              Phương thức:
               <span
-                class="font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-md inline-block mt-1 sm:mt-0 ml-0 sm:ml-1"
-                >{{ invoice.paymentMethod }}</span
+                class="font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md inline-block ml-1"
               >
+                {{ invoice.paymentMethod }}
+              </span>
             </p>
           </div>
-          <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-200/60">
+
+          <div
+            class="bg-slate-50/60 p-3.5 rounded-xl border border-slate-200/60 flex-1 flex flex-col justify-center"
+          >
             <p
-              class="font-extrabold uppercase text-[10px] mb-2 tracking-wider text-indigo-950 flex items-center gap-1.5"
+              class="font-extrabold uppercase text-[10px] mb-1 tracking-wider text-slate-600 flex items-center gap-1.5"
             >
               📝 Biên bản ghi chú
             </p>
             <p
-              class="text-slate-500 italic bg-white p-2.5 rounded-lg border border-slate-200 min-h-[50px] leading-relaxed"
+              class="text-slate-500 italic bg-white p-2.5 rounded-lg border border-slate-200/80 leading-relaxed mt-1"
             >
               {{ invoice.note || 'Không có yêu cầu hay ghi chú đặc biệt nào kèm theo đơn hàng.' }}
             </p>
           </div>
         </div>
 
-        <div class="flex justify-end items-start">
+        <!-- Right Column: Financial Summary Box -->
+        <div class="flex flex-col">
           <div
-            class="w-full md:w-85 space-y-3.5 p-6 bg-slate-50 rounded-2xl border border-slate-200/70 shadow-sm text-xs"
+            class="w-full h-full flex flex-col justify-between p-5 bg-slate-50/80 rounded-xl border border-slate-200/70 shadow-2xs text-xs"
           >
-            <p
-              class="font-extrabold uppercase text-[10px] mb-3 tracking-widest text-slate-400 flex items-center gap-1.5 select-none"
-            >
-              📊 Tổng quyết toán dòng tiền
-            </p>
-            <div class="flex justify-between items-center text-slate-600">
-              <span>Tổng giá trị hàng gốc:</span>
-              <span class="font-mono font-bold text-slate-700">{{
-                formatMoney(invoice.totalOriginal)
-              }}</span>
-            </div>
-
-            <!-- Chỉ hiển thị voucher nếu voucher tồn tại và có giá trị giảm -->
-            <div
-              v-if="invoice.hasVoucher && invoice.voucherDiscount > 0"
-              class="flex justify-between items-center text-rose-600 bg-rose-50/60 px-3 py-1.5 rounded-xl border border-rose-100"
-            >
-              <span class="font-medium">Ưu đãi giảm giá (Voucher):</span>
-              <span class="font-mono font-extrabold"
-                >- {{ formatMoney(invoice.voucherDiscount) }}</span
+            <div>
+              <p
+                class="font-extrabold uppercase text-[10px] mb-3 tracking-wider text-slate-400 select-none"
               >
+                📊 Tổng quyết toán dòng tiền
+              </p>
+
+              <div class="space-y-2">
+                <!-- 1. Hàng gốc -->
+                <div
+                  class="flex justify-between items-center text-slate-600 px-3 py-1.5 rounded-lg bg-slate-100/40 border border-transparent"
+                >
+                  <span>Tổng giá trị hàng gốc:</span>
+                  <span class="font-mono font-bold text-slate-700">{{
+                    formatMoney(invoice.totalOriginal)
+                  }}</span>
+                </div>
+
+                <!-- 2. Phí vận chuyển -->
+                <div
+                  class="flex justify-between items-center text-slate-600 px-3 py-1.5 rounded-lg bg-slate-100/40 border border-transparent"
+                >
+                  <span>Cước phí vận chuyển:</span>
+                  <span class="font-mono font-bold text-slate-700"
+                    >+ {{ formatMoney(invoice.shippingFee) }}</span
+                  >
+                </div>
+
+                <!-- 3. Voucher -->
+                <div
+                  v-if="invoice.hasVoucher && invoice.voucherDiscount > 0"
+                  class="flex justify-between items-center text-rose-600 bg-rose-50/60 px-3 py-1.5 rounded-lg border border-rose-100"
+                >
+                  <span class="font-medium">Ưu đãi giảm giá (Voucher):</span>
+                  <span class="font-mono font-bold"
+                    >- {{ formatMoney(invoice.voucherDiscount) }}</span
+                  >
+                </div>
+
+                <!-- 4. Xu -->
+                <div
+                  v-if="invoice.usedCoins > 0 && invoice.coinDiscount > 0"
+                  class="flex justify-between items-center text-amber-700 bg-amber-50/60 px-3 py-1.5 rounded-lg border border-amber-100"
+                >
+                  <span class="font-medium">Xu sử dụng ({{ invoice.usedCoins }} xu):</span>
+                  <span class="font-mono font-bold">- {{ formatMoney(invoice.coinDiscount) }}</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Hiển thị tiền giảm do xu sử dụng nếu có -->
+            <!-- Thực thanh toán -->
             <div
-              v-if="invoice.usedCoins > 0 && invoice.coinDiscount > 0"
-              class="flex justify-between items-center text-amber-700 bg-amber-50/60 px-3 py-1.5 rounded-xl border border-amber-100"
-            >
-              <span class="font-medium">Xu sử dụng ({{ invoice.usedCoins }} xu):</span>
-              <span class="font-mono font-extrabold"
-                >- {{ formatMoney(invoice.coinDiscount) }}</span
-              >
-            </div>
-
-            <div class="flex justify-between items-center text-slate-600">
-              <span>Cước phí vận chuyển:</span>
-              <span class="font-mono font-bold text-slate-700">{{
-                formatMoney(invoice.shippingFee)
-              }}</span>
-            </div>
-            <div
-              class="flex justify-between items-center text-base font-black text-indigo-700 border-t border-slate-200 pt-3.5 mt-4 select-none"
+              class="flex justify-between items-center text-base font-black text-indigo-700 border-t border-slate-200 pt-3 mt-4 select-none"
             >
               <span class="text-xs uppercase tracking-wider text-slate-800">Thực thanh toán:</span>
-              <span class="font-mono text-xl text-indigo-600 tracking-tight">{{
+              <span class="font-mono text-lg text-indigo-600 tracking-tight">{{
                 formatMoney(invoice.final)
               }}</span>
             </div>
@@ -472,13 +487,17 @@ const formatStatusName = (status) => {
     cho_xac_nhan: 'Chờ xác nhận',
     da_xac_nhan: 'Đã xác nhận',
     cho_van_chuyen: 'Chờ vận chuyển',
+    dang_chuan_bi_hang: 'Đang chuẩn bị hàng',
+    cho_giao_hang: 'Chờ giao hàng',
     dang_giao: 'Đang giao',
+    da_giao: 'Đã giao',
+    giao_that_bai: 'Giao thất bại',
     hoan_thanh: 'Hoàn thành',
     huy: 'Đã hủy',
     da_huy: 'Đã hủy',
     da_tra_hang: 'Đã trả hàng',
   }
-  return map[status] || status
+  return map[status] || status.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
 }
 
 const formatDateTime = (dateString) => {
@@ -565,7 +584,6 @@ const invoice = computed(() => {
   const totalDiscount = rawInvoice.value.tongGiamGia || 0
   const coinDiscount = rawInvoice.value.tienGiamDoXuSuDung || 0
   const hasVoucher = !!rawInvoice.value.voucher
-  // Tính phần giảm giá của voucher bằng tổng giảm giá trừ đi phần giảm do xu (nếu có voucher)
   const voucherDiscount = hasVoucher ? Math.max(0, totalDiscount - coinDiscount) : 0
 
   return {
@@ -609,11 +627,11 @@ const formatMoney = (val) => {
 
 const statusClassModern = (status) => {
   const base =
-    'px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center w-fit border select-none min-w-[120px] justify-center '
-  if (status === 'da_xac_nhan' || status === 'hoan_thanh') {
+    'px-3 py-1 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center w-fit border select-none min-w-[120px] justify-center '
+  if (['da_xac_nhan', 'hoan_thanh', 'da_giao'].includes(status)) {
     return `${base} bg-emerald-50 text-emerald-700 border-emerald-200`
   }
-  if (status === 'huy' || status === 'da_huy' || status === 'da_tra_hang') {
+  if (['huy', 'da_huy', 'da_tra_hang', 'giao_that_bai'].includes(status)) {
     return `${base} bg-rose-50 text-rose-700 border-rose-200`
   }
   return `${base} bg-amber-50 text-amber-700 border-amber-200`
@@ -637,7 +655,7 @@ onMounted(() => {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -645,6 +663,6 @@ onMounted(() => {
   }
 }
 .animate-fade-in {
-  animation: fadeIn 0.35s ease-out forwards;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 </style>

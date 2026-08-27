@@ -11,8 +11,6 @@
           <p>Quản lý và theo dõi trạng thái các đơn hàng của bạn</p>
         </div>
       </div>
-
-      <el-button class="refresh-btn" :icon="Refresh" @click="loadOrders"> Làm mới </el-button>
     </div>
 
     <!-- ================= TAB ================= -->
@@ -206,6 +204,7 @@
     >
       <div v-if="selectedOrder" class="dialog-content">
         <!-- TOP: MÃ ĐƠN & TRẠNG THÁI -->
+        <!-- TOP: MÃ ĐƠN & TRẠNG THÁI -->
         <div class="detail-banner">
           <div class="banner-left">
             <span class="label">Mã hóa đơn:</span>
@@ -215,12 +214,21 @@
             <el-tag :type="statusType(selectedOrder.thongTinDonHang.trangThai)" effect="dark" round>
               {{ selectedOrder.thongTinDonHang.trangThaiHienThi }}
             </el-tag>
+            <!-- Cập nhật trạng thái thanh toán ở banner chi tiết -->
             <el-tag
-              :type="paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)"
+              :type="
+                selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                  ? 'danger'
+                  : paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)
+              "
               effect="plain"
               round
             >
-              {{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}
+              {{
+                selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                  ? 'Đã hủy'
+                  : selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi
+              }}
             </el-tag>
           </div>
         </div>
@@ -266,7 +274,12 @@
               </div>
               <div class="info-row">
                 <span>Trạng thái TT:</span>
-                <span>{{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}</span>
+                <!-- Cập nhật dòng thông tin chung -->
+                <span>{{
+                  selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                    ? 'Đã hủy'
+                    : selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi
+                }}</span>
               </div>
             </div>
           </div>
@@ -289,10 +302,18 @@
               <el-tag
                 size="small"
                 :type="
-                  selectedOrder.thanhToan.trangThai === 'da_thanh_toan' ? 'success' : 'warning'
+                  selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                    ? 'danger'
+                    : selectedOrder.thanhToan.trangThai === 'da_thanh_toan'
+                      ? 'success'
+                      : 'warning'
                 "
               >
-                {{ formatPaymentStatus(selectedOrder.thanhToan.trangThai) }}
+                {{
+                  selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                    ? 'Đã hủy'
+                    : formatPaymentStatus(selectedOrder.thanhToan.trangThai)
+                }}
               </el-tag>
             </div>
 
@@ -308,7 +329,7 @@
               }}</span>
             </div>
 
-            <!-- CHỈ HIỆN THỜI GIAN THANH TOÁN KHI ĐÃ THANH TOÁN THỰC TẾ -->
+            <!-- CHỈ HIỆN THỜI GIAN THANH TOÁN KHI ĐÃ THANH TOÁN THỰC TẾ VÀ ĐƠN KHÔNG BỊ HỦY -->
             <div
               class="info-row"
               v-else-if="
@@ -335,9 +356,17 @@
               <span>Trạng thái thanh toán:</span>
               <el-tag
                 size="small"
-                :type="paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)"
+                :type="
+                  selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                    ? 'danger'
+                    : paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)
+                "
               >
-                {{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}
+                {{
+                  selectedOrder.thongTinDonHang.trangThai === 'da_huy'
+                    ? 'Đã hủy'
+                    : selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi
+                }}
               </el-tag>
             </div>
 

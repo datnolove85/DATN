@@ -51,10 +51,10 @@ public class TichXuVaNangHangServiceImpl implements TichXuVaNangHangService {
         String moTaGiaoDich = "Tích xu từ đơn hàng: " + hoaDon.getMaHoaDon();
 
         // 2. Chống cộng trùng lặp (Idempotency Check)
-        boolean daCongXu = lichSuXuRepository.existsByMoTaContaining(hoaDon.getMaHoaDon());
-        if (daCongXu) {
-            throw new RuntimeException("Hóa đơn " + hoaDon.getMaHoaDon() + " đã được cộng xu trước đó!");
-        }
+//        boolean daCongXu = lichSuXuRepository.existsByMoTaContaining(hoaDon.getMaHoaDon());
+//        if (daCongXu) {
+//            throw new RuntimeException("Hóa đơn " + hoaDon.getMaHoaDon() + " đã được cộng xu trước đó!");
+//        }
 
         // 3. Lấy tỷ lệ tích xu từ cấu hình hệ thống
         BigDecimal tyLeDinhMuc = cauHinhHeThongRepository.findByMaCauHinh(maTichXuConfig)

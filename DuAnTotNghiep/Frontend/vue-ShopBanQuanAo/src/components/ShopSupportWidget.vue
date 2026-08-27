@@ -23,12 +23,14 @@
           </div>
           <div class="flex items-center gap-1">
             <button
+              type="button"
               class="grid h-7 w-7 place-items-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"
               @click="minimized = !minimized"
             >
               <Minus :size="15" />
             </button>
             <button
+              type="button"
               class="grid h-7 w-7 place-items-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-colors"
               @click="open = false"
             >
@@ -41,6 +43,7 @@
           <!-- Thanh Tab Chuyển Đổi -->
           <div class="flex border-b border-slate-800 bg-slate-950/60 p-1 gap-1">
             <button
+              type="button"
               @click="activeTab = 'ai'"
               class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all"
               :class="
@@ -53,6 +56,7 @@
               Trợ lý AI (24/7)
             </button>
             <button
+              type="button"
               @click="activeTab = 'staff'"
               class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all relative"
               :class="
@@ -154,7 +158,7 @@
                   maxlength="2000"
                   class="max-h-20 min-h-9 flex-1 resize-none rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-[#8b2034]"
                   placeholder="Nhập câu hỏi..."
-                  @keydown.enter.exact.prevent="sendAiMessage"
+                  @keydown.enter="handleAiEnter"
                 ></textarea>
                 <button
                   type="submit"
@@ -251,6 +255,7 @@
                 <button
                   v-for="suggestion in suggestions"
                   :key="suggestion"
+                  type="button"
                   class="shrink-0 rounded-full border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[10px] font-semibold text-slate-300 hover:border-[#8b2034] hover:text-white transition-colors"
                   @click="draft = suggestion"
                 >
@@ -264,9 +269,10 @@
                   maxlength="4000"
                   class="max-h-20 min-h-9 flex-1 resize-none rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-[#8b2034]"
                   placeholder="Nhập tin nhắn..."
-                  @keydown.enter.exact.prevent="send"
+                  @keydown.enter="handleStaffEnter"
                 ></textarea>
                 <button
+                  type="submit"
                   class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#8b2034] text-white disabled:opacity-40 hover:bg-[#721929] transition-colors"
                   :disabled="sending || !draft.trim()"
                 >
@@ -279,9 +285,10 @@
       </section>
     </Transition>
 
-    <!-- Nút kích hoạt mở chat duy nhất khi thu gọn (Icon tin nhắn + Text + Hiệu ứng nhịp tim) -->
+    <!-- Nút kích hoạt mở chat duy nhất khi thu gọn -->
     <div v-if="!open">
       <button
+        type="button"
         @click="toggle"
         class="group flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/95 px-4 py-3 text-xs text-slate-100 shadow-2xl shadow-slate-950/60 backdrop-blur-md hover:border-[#8b2034] transition-all cursor-pointer text-left"
       >
@@ -295,7 +302,6 @@
           >
             {{ unread > 9 ? '9+' : unread }}
           </span>
-          <!-- Hiệu ứng chấm xanh chạy -->
           <span
             class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 animate-pulse"
           ></span>
@@ -348,6 +354,14 @@ const scrollToAiLatest = async () => {
 const sendAiSuggestion = (suggestion) => {
   aiDraft.value = suggestion
   sendAiMessage()
+}
+
+function handleAiEnter(e) {
+  if (e.isComposing) return
+  if (!e.shiftKey) {
+    e.preventDefault()
+    sendAiMessage()
+  }
 }
 
 const sendAiMessage = async () => {
@@ -425,6 +439,8 @@ function subscribeToCustomerChat() {
   if (stompClient?.active && conversation.value?.id) {
     customerChatSub = stompClient.subscribe(`/topic/chat/${conversation.value.id}`, (frame) => {
       const message = JSON.parse(frame.body)
+
+      // Kiểm tra xem tin nhắn vừa nhận có phải do chính tab này gửi không
       const recentIndex = recentSentMessages.findIndex(
         (m) => m.text === message.noiDung && Date.now() - m.time < 10000,
       )
@@ -433,14 +449,16 @@ function subscribeToCustomerChat() {
         message.cuaToi = true
         recentSentMessages.splice(recentIndex, 1)
       } else {
+        // NẾU KHÔNG PHẢI MÌNH GỬI -> CHẮC CHẮN LÀ CỦA NHÂN VIÊN GỬI ĐẾN!
         message.cuaToi = false
       }
 
+      // Đã sửa noiDOG -> noiDung để tìm và đè lên tin tạm opt-
       const existing = messages.value.find(
         (item) =>
           item.id === message.id ||
           (message.cuaToi &&
-            item.noiDOG === message.noiDung &&
+            item.noiDung === message.noiDung &&
             item.id?.toString().startsWith('opt-')),
       )
 
@@ -475,6 +493,14 @@ function connectSocket() {
     },
   })
   stompClient.activate()
+}
+
+function handleStaffEnter(e) {
+  if (e.isComposing) return
+  if (!e.shiftKey) {
+    e.preventDefault()
+    send()
+  }
 }
 
 async function send() {
@@ -532,7 +558,6 @@ async function toggle() {
   }
 }
 
-// Theo dõi khi chuyển tab để tự động cuộn xuống tin nhắn cuối
 watch(activeTab, async (tab) => {
   if (tab === 'ai') {
     await scrollToAiLatest()

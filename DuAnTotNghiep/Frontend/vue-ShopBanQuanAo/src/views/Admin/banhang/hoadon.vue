@@ -17,8 +17,6 @@
           Truy vết luồng tiền, trạng thái đơn hàng và kênh phân phối thời gian thực.
         </p>
       </div>
-
-      <!-- Nếu Hóa đơn có nút thêm -->
     </div>
 
     <!-- Bộ lọc -->
@@ -160,8 +158,11 @@
         >
           <option value="">Tất cả trạng thái</option>
           <option value="cho_xac_nhan">Chờ xác nhận</option>
+          <option value="da_xac_nhan">Đã xác nhận</option>
           <option value="dang_giao">Đang giao</option>
           <option value="da_giao">Đã giao</option>
+          <option value="hoan_thanh">Hoàn thành</option>
+          <option value="giao_that_bai">Giao thất bại</option>
           <option value="da_huy">Đã hủy</option>
         </select>
 
@@ -215,7 +216,6 @@
         <div
           v-for="invoice in invoices"
           :key="invoice.id"
-          @dbclick="goToDetail(invoice.id)"
           :class="[
             'relative transition-all duration-300 group',
             expandedIds.includes(invoice.id) ? 'bg-indigo-50/40' : 'hover:bg-slate-50/60',
@@ -235,9 +235,18 @@
               {{ invoice.code }}
             </div>
 
+            <!-- Khách hàng kèm Hạng thành viên -->
             <div class="col-span-3">
-              <div class="font-bold text-slate-800 text-sm capitalize">
-                {{ invoice.customer || 'Khách vãng lai' }}
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-slate-800 text-sm capitalize">
+                  {{ invoice.customer || 'Khách vãng lai' }}
+                </span>
+                <span
+                  v-if="invoice.customerTier"
+                  class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 capitalize"
+                >
+                  {{ invoice.customerTier }}
+                </span>
               </div>
               <div class="text-[11px] text-slate-400 font-mono mt-0.5">
                 {{ invoice.phone || 'N/A' }}
@@ -261,34 +270,44 @@
               </span>
             </div>
 
-            <div class="col-span-2 font-extrabold text-slate-900 font-mono text-sm">
-              {{ formatMoney(invoice.final) }}
+            <!-- Tổng thành tiền kèm trạng thái thanh toán -->
+            <div class="col-span-2">
+              <div class="font-extrabold text-slate-900 font-mono text-sm">
+                {{ formatMoney(invoice.final) }}
+              </div>
+              <div class="mt-0.5">
+                <span
+                  :class="[
+                    'inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border',
+                    invoice.paymentStatus === 'da_thanh_toan'
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                      : 'bg-amber-50 text-amber-600 border-amber-200',
+                  ]"
+                >
+                  {{
+                    invoice.paymentStatus === 'da_thanh_toan' ? 'Đã thanh toán' : 'Chưa thanh toán'
+                  }}
+                </span>
+              </div>
             </div>
 
+            <!-- Trạng thái đơn hàng (1 dòng, whitespace-nowrap) -->
             <div class="col-span-1 flex justify-start md:justify-center">
               <span :class="statusClassModern(invoice.status)">
                 <span
                   :class="[
-                    'w-1.5 h-1.5 rounded-full mr-2 transition-all',
+                    'w-1.5 h-1.5 rounded-full mr-2 transition-all shrink-0',
                     statusDot(invoice.status),
-                    invoice.status !== 'da_huy' ? 'animate-pulse' : '',
+                    invoice.status !== 'da_huy' && invoice.status !== 'giao_that_bai'
+                      ? 'animate-pulse'
+                      : '',
                   ]"
                 ></span>
-                {{
-                  invoice.status === 'da_giao'
-                    ? 'Đã giao'
-                    : invoice.status === 'dang_giao'
-                      ? 'Đang giao'
-                      : invoice.status === 'cho_xac_nhan'
-                        ? 'Chờ xác nhận'
-                        : invoice.status === 'da_huy'
-                          ? 'Đã hủy'
-                          : invoice.status
-                }}
+                {{ formatStatusText(invoice.status) }}
               </span>
             </div>
 
-            <div class="col-span-1 flex justify-start md:justify-center">
+            <div class="col-span-1 flex justify-start md:justify-center gap-2">
               <button
                 @click="goToDetail(invoice.id)"
                 class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
@@ -323,7 +342,7 @@
                   🚚 Thông tin nhận hàng
                 </p>
                 <p class="text-slate-600 leading-relaxed">
-                  Địa chỉ thường trú:
+                  Địa chỉ giao:
                   <span class="font-bold text-slate-900 block mt-0.5">{{
                     invoice.address || 'Nhận tại quầy bán hàng'
                   }}</span>
@@ -363,6 +382,15 @@
                     formatMoney(invoice.totalOriginal)
                   }}</span>
                 </p>
+                <p
+                  v-if="invoice.coinDiscount > 0"
+                  class="text-slate-500 flex justify-between items-center mb-1"
+                >
+                  <span>Trừ Xu ({{ invoice.usedCoins }} xu):</span>
+                  <span class="font-bold font-mono text-amber-600"
+                    >-{{ formatMoney(invoice.coinDiscount) }}</span
+                  >
+                </p>
                 <p class="text-slate-500 flex justify-between items-center">
                   <span>Khấu trừ voucher:</span>
                   <span class="font-bold font-mono text-rose-600"
@@ -396,23 +424,25 @@
           </div>
         </div>
 
-        <tr v-if="invoices.length === 0">
+        <div
+          v-if="invoices.length === 0"
+          class="py-20 text-center flex flex-col items-center justify-center gap-2 text-slate-400 select-none"
+        >
           <div
-            class="py-20 text-center flex flex-col items-center justify-center gap-2 text-slate-400 select-none"
+            class="w-12 h-12 rounded-2xl bg-slate-50 text-indigo-600 border border-slate-100 flex items-center justify-center text-lg font-black"
           >
-            <div
-              class="w-12 h-12 rounded-2xl bg-slate-50 text-indigo-600 border border-slate-100 flex items-center justify-center text-lg font-black"
-            >
-              📦
-            </div>
-            <strong class="text-sm font-bold text-slate-800 mt-1">Hệ thống trống dữ liệu</strong>
-            <span class="text-xs"
-              >Không tìm thấy bất kỳ hóa đơn nào tương thích với điều kiện bộ lọc của bạn.</span
-            >
+            📦
           </div>
-        </tr>
+          <strong class="text-sm font-bold text-slate-800 mt-1">Hệ thống trống dữ liệu</strong>
+          <span class="text-xs"
+            >Không tìm thấy bất kỳ hóa đơn nào tương thích với điều kiện bộ lọc của bạn.</span
+          >
+        </div>
       </div>
-      <div class="flex items-center justify-end gap-4 py-6">
+
+      <div
+        class="flex items-center justify-end gap-4 py-6 px-6 bg-slate-50 border-t border-slate-100"
+      >
         <button
           @click="page--"
           :disabled="page === 0"
@@ -423,7 +453,7 @@
 
         <span class="text-sm font-semibold text-gray-700">
           Trang <span class="px-2 py-1 bg-gray-100 rounded-md">{{ page + 1 }}</span> /
-          {{ totalPages }}
+          {{ totalPages || 1 }}
         </span>
 
         <button
@@ -444,21 +474,12 @@ import { searchHoadon } from '@/service/HoaDonService'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const rawData = ref([])
 const invoices = ref([])
 const expandedIds = ref([])
 
 const page = ref(0)
 const size = ref(20)
 const totalPages = ref(0)
-
-const selectedInvoiceId = ref(null)
-const showInvoiceModal = ref(false)
-
-const openInvoice = (id) => {
-  selectedInvoiceId.value = id
-  showInvoiceModal.value = true
-}
 
 const filters = ref({
   keyword: '',
@@ -469,7 +490,7 @@ const filters = ref({
   minPrice: '',
   maxPrice: '',
 })
-// Mặc định ban đầu vào trang là 'all' (Tất cả)
+
 const activeFilter = ref('all')
 
 const validateMinPrice = () => {
@@ -488,7 +509,6 @@ const formatDate = (date) => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-
   return `${year}-${month}-${day}`
 }
 
@@ -546,27 +566,53 @@ const toggleDetails = (id) => {
   index > -1 ? expandedIds.value.splice(index, 1) : expandedIds.value.push(id)
 }
 
+// Chuyển đổi mã trạng thái sang tiếng Việt
+const formatStatusText = (status) => {
+  const statusMap = {
+    cho_xac_nhan: 'Chờ xác nhận',
+    da_xac_nhan: 'Đã xác nhận',
+    dang_giao: 'Đang giao',
+    da_giao: 'Đã giao',
+    giao_thanh_cong: 'Giao thành công',
+    hoan_thanh: 'Hoàn thành',
+    giao_that_bai: 'Giao thất bại',
+    da_huy: 'Đã hủy',
+  }
+  return statusMap[status] || status
+}
+
+// Màu chấm trạng thái
 const statusDot = (status) => {
   const dots = {
     da_giao: 'bg-emerald-500',
+    giao_thanh_cong: 'bg-emerald-500',
+    hoan_thanh: 'bg-emerald-500',
     dang_giao: 'bg-blue-500',
+    da_xac_nhan: 'bg-indigo-500',
     cho_xac_nhan: 'bg-amber-500',
+    giao_that_bai: 'bg-rose-500',
     da_huy: 'bg-rose-500',
   }
   return dots[status] || 'bg-slate-500'
 }
 
+// Style Badge trạng thái có whitespace-nowrap để nằm trọn trên 1 dòng
 const statusClassModern = (status) => {
   const base =
-    'inline-flex items-center px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider border select-none min-w-[110px] justify-center'
+    'inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider border select-none whitespace-nowrap justify-center min-w-[125px]'
 
   switch (status) {
     case 'da_giao':
+    case 'giao_thanh_cong':
+    case 'hoan_thanh':
       return `${base} bg-emerald-50 text-emerald-700 border-emerald-200`
     case 'dang_giao':
       return `${base} bg-blue-50 text-blue-700 border-blue-200`
+    case 'da_xac_nhan':
+      return `${base} bg-indigo-50 text-indigo-700 border-indigo-200`
     case 'cho_xac_nhan':
       return `${base} bg-amber-50 text-amber-700 border-amber-200`
+    case 'giao_that_bai':
     case 'da_huy':
       return `${base} bg-rose-50 text-rose-700 border-rose-200`
     default:
@@ -582,10 +628,20 @@ const fetchInvoices = async () => {
     code: item.maHoaDon,
     customer: item.tenNguoiNhan,
     phone: item.soDienThoaiNguoiNhan,
+    customerTier: item.idKhachHang?.hangThanhVien || null,
     createdRaw: item.ngayTao ? new Date(item.ngayTao) : null,
-    created: item.ngayTao ? new Date(item.ngayTao).toLocaleDateString('vi-VN') : '',
+    created: item.ngayTao
+      ? new Date(item.ngayTao).toLocaleString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+      : '',
     final: item.tongThanhToan,
     status: item.trangThai,
+    paymentStatus: item.trangThaiThanhToan,
     type: item.loaiHoaDon,
     address: item.diaChiGiaoHang,
     paymentMethod: item.phuongThucThanhToan,
@@ -593,10 +649,13 @@ const fetchInvoices = async () => {
     shippingFee: item.phiVanChuyen,
     totalOriginal: item.tongTienHang,
     discount: item.tongGiamGia,
+    coinDiscount: item.tienGiamDoXu,
+    usedCoins: item.soXuSuDung,
   }))
 
   totalPages.value = res.totalPages
 }
+
 watch(
   filters,
   () => {
@@ -607,6 +666,7 @@ watch(
 )
 
 watch(page, fetchInvoices)
+
 const formatMoney = (v) => Number(v || 0).toLocaleString('vi-VN') + ' đ'
 
 onMounted(fetchInvoices)

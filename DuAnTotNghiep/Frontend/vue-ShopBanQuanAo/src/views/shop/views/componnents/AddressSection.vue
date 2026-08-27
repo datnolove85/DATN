@@ -99,8 +99,10 @@ const activeAddress = computed(() => {
                 <Phone :size="12" class="text-indigo-500" />
                 {{ activeAddress.soDienThoai }}
               </p>
+              <!-- Sửa đoạn hiển thị địa chỉ của activeAddress -->
               <p class="mt-1 flex items-start gap-1.5 text-xs leading-relaxed text-slate-600">
-                <span class="font-medium text-slate-700">Địa chỉ:</span>
+                <!-- Thêm whitespace-nowrap vào đây -->
+                <span class="font-medium text-slate-700 whitespace-nowrap">Địa chỉ:</span>
                 <span class="text-slate-500">
                   {{ activeAddress.diaChiCuThe }}, {{ activeAddress.phuong }},
                   {{ activeAddress.quan }}, {{ activeAddress.thanhPho }}

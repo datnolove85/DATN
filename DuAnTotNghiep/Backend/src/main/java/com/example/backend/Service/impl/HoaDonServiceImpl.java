@@ -1151,12 +1151,13 @@ public class HoaDonServiceImpl implements HoaDonService {
                 idNhanVien // hoặc null
         );
 
-        hoaDon.setTongThanhToan(BigDecimal.ZERO);
+
         HoaDonVoucher hdVoucher =
                 hoaDonVoucherRepo.findByIdHoaDon_Id(idHoaDon)
                         .orElse(null);
         if (hdVoucher != null) {
-            hoaDonVoucherRepo.delete(hdVoucher);
+            hdVoucher.setDaConsume(false); // Nếu trong Entity daConsume là kiểu Integer, hãy đổi thành: hdVoucher.setDaConsume(0);
+            hoaDonVoucherRepo.save(hdVoucher);
         }
         hoaDonRepo.save(hoaDon);
         hoanXuKhiHuyDon(idHoaDon);
@@ -2592,12 +2593,11 @@ public class HoaDonServiceImpl implements HoaDonService {
             lichSuXuRepo.save(lichSu);
 
             // 3. Reset thông tin xu trên hóa đơn về 0
-            hd.setSoXuSuDung(0);
-            hd.setTienGiamDoXu(BigDecimal.ZERO);
+
             hoaDonRepo.save(hd);
 
             // 4. Tính toán lại tổng tiền hóa đơn (nếu hàm recalculateHoaDon của bạn có tính lại các khoản giảm giá)
-            recalculateHoaDon(idHoaDon);
+
         }
     }
 }
