@@ -117,7 +117,7 @@
             <th class="py-3 px-3">Xu & Tương tác</th>
             <th class="py-3 px-3 min-w-[200px]">Địa chỉ</th>
             <th class="py-3 px-3 text-center">Giới tính</th>
-            <th class="py-3 px-3 text-center">Trạng thái</th>
+            <th class="py-3 px-3 text-center min-w-[120px]">Trạng thái</th>
             <th class="py-3 px-3 text-center">Thao tác</th>
           </tr>
         </thead>
@@ -199,13 +199,13 @@
             <td class="py-3 px-3 text-center">
               <span
                 :class="[
-                  'px-2 py-0.5 text-[9px] font-bold uppercase rounded-lg border',
+                  'px-2.5 py-1 text-[10px] font-bold uppercase rounded-lg border whitespace-nowrap inline-block',
                   item.trangThai
                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                     : 'bg-rose-50 text-rose-600 border-rose-100',
                 ]"
               >
-                {{ item.trangThai ? 'Hoạt động' : 'Ngừng' }}
+                {{ item.trangThai ? 'Hoạt động' : 'Ngừng hoạt động' }}
               </span>
             </td>
             <td class="py-3 px-3 text-center">
@@ -223,23 +223,6 @@
                   >
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </button>
-                <button
-                  @click="deleteKhachHang(item)"
-                  class="p-1 text-slate-400 hover:text-rose-600 transition-all"
-                >
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    viewBox="0 0 24 24"
-                  >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path
-                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                    />
                   </svg>
                 </button>
               </div>

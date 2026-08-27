@@ -653,6 +653,10 @@ const subscribePos = () => {
 
         const eventType = isJson ? data.type || data.eventType || data.action : ''
 
+        if (eventType === 'CANCEL_SUCCESS') {
+          return
+        }
+
         if (eventType === 'CANCEL_REJECTED') {
           cancelDialogVisible.value = false
           canceling.value = false

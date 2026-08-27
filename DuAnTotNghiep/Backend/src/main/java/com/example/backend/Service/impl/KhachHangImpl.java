@@ -58,6 +58,11 @@ public class KhachHangImpl implements KhachHangService {
     @Override
     @Transactional
     public void addKhachHang(KhachHangRequest request, MultipartFile file) {
+        // 1. Tự động lấy Số điện thoại làm Tên tài khoản nếu Frontend không gửi (do input bị disabled)
+        if (isBlank(request.getTenTaiKhoan()) && !isBlank(request.getSoDienThoai())) {
+            request.setTenTaiKhoan(request.getSoDienThoai().trim());
+        }
+
         validateRequest(request, null);
 
         VaiTro vaiTro = vaiTroRepository.findById(3)
@@ -81,7 +86,7 @@ public class KhachHangImpl implements KhachHangService {
         khachHang.setHoTen(request.getHoTen().trim());
         khachHang.setSoDienThoai(request.getSoDienThoai().trim());
 
-        // Gộp chuỗi địa chỉ: dia_chi_cu_the + phuong + quan + thanh_pho đưa vào bảng khách hàng
+        // Gộp chuỗi địa chỉ
         khachHang.setDiaChi(formatFullAddress(request));
 
         if (request.getNgaySinh() != null) {
@@ -97,6 +102,7 @@ public class KhachHangImpl implements KhachHangService {
         khachHang.setTrangThai(request.getTrangThai() != null && request.getTrangThai());
         khachHang.setNgayTao(Instant.now());
         khachHang.setNgayCapNhat(Instant.now());
+
         if (file != null && !file.isEmpty()) {
             khachHang.setAnh(saveFile(file));
         }
@@ -119,6 +125,12 @@ public class KhachHangImpl implements KhachHangService {
         taiKhoan.setTenTaiKhoan(request.getTenTaiKhoan().trim());
         taiKhoan.setEmail(request.getEmail().trim());
         taiKhoan.setSoDienThoai(request.getSoDienThoai().trim());
+
+        // 🟢 THÊM: Đồng bộ trạng thái sang TaiKhoan (1: Hoạt động, 0: Khóa)
+        if (request.getTrangThai() != null) {
+            taiKhoan.setTrangThai(request.getTrangThai() ? 1 : 0);
+        }
+
         taiKhoan.setNgayCapNhat(Instant.now());
         taiKhoanRepository.save(taiKhoan);
 
@@ -128,7 +140,7 @@ public class KhachHangImpl implements KhachHangService {
         khachHang.setHoTen(request.getHoTen().trim());
         khachHang.setSoDienThoai(request.getSoDienThoai().trim());
 
-        // Cập nhật lại tổng chuỗi địa chỉ mới gộp khi chỉnh sửa thông tin khách hàng
+        // Cập nhật lại tổng chuỗi địa chỉ mới gộp
         khachHang.setDiaChi(formatFullAddress(request));
 
         if (request.getNgaySinh() != null) {
@@ -141,15 +153,16 @@ public class KhachHangImpl implements KhachHangService {
         }
         khachHang.setGioiTinh("Nam".equalsIgnoreCase(request.getGioiTinh()) || "true".equalsIgnoreCase(request.getGioiTinh()));
 
-        khachHang.setTrangThai(request.getTrangThai() != null && request.getTrangThai());
+        // 🟢 Cập nhật trạng thái cho KhachHang (Boolean)
+        khachHang.setTrangThai(Boolean.TRUE.equals(request.getTrangThai()));
         khachHang.setNgayCapNhat(Instant.now());
+
         if (file != null && !file.isEmpty()) {
             khachHang.setAnh(saveFile(file));
         }
         khachHangRepository.save(khachHang);
         saveDefaultAddress(khachHang, request);
     }
-
 
     @Transactional
     public void deleteKhachHang(Integer id) {
@@ -259,20 +272,21 @@ public class KhachHangImpl implements KhachHangService {
     private void validateRequest(KhachHangRequest request, Integer currentTaiKhoanId) {
         if (request == null) throw new RuntimeException("Dữ liệu khách hàng không được để trống");
         if (isBlank(request.getHoTen())) throw new RuntimeException("Họ tên không được để trống");
-        if (isBlank(request.getTenTaiKhoan())) throw new RuntimeException("Tên tài khoản không được để trống");
         if (isBlank(request.getEmail())) throw new RuntimeException("Email không được để trống");
         if (isBlank(request.getSoDienThoai())) throw new RuntimeException("Số điện thoại không được để trống");
+
+        // Bỏ dòng check isBlank(request.getTenTaiKhoan()) để không bị lỗi khi FE để disabled
 
         taiKhoanRepository.findByEmail(request.getEmail().trim()).ifPresent(tk -> {
             if (currentTaiKhoanId == null || !tk.getId().equals(currentTaiKhoanId))
                 throw new RuntimeException("Email đã tồn tại");
         });
+
         taiKhoanRepository.findBySoDienThoai(request.getSoDienThoai().trim()).ifPresent(tk -> {
             if (currentTaiKhoanId == null || !tk.getId().equals(currentTaiKhoanId))
                 throw new RuntimeException("Số điện thoại đã tồn tại");
         });
     }
-
     private String saveFile(MultipartFile file) {
         try {
             String uploadDir = System.getProperty("user.dir") + "/uploads/khachhang";

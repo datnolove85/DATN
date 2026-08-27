@@ -64,20 +64,35 @@ const props = defineProps({
 })
 
 // Bảng cấu hình tên hiển thị & màu sắc tương ứng từng trạng thái
+// Bảng cấu hình tên hiển thị & màu sắc tương ứng từng trạng thái
 const statusConfigMap = {
   DA_XAC_NHAN: { label: 'Đã xác nhận', color: '#6366F1' }, // Indigo
-  DANG_GIAO: { label: 'Đang giao', color: '#F59E0B' }, // Amber / Orange
+  DANG_GIAO: { label: 'Đang giao', color: '#F59E0B' }, // Amber
   DA_GIAO: { label: 'Đã giao', color: '#06B6D4' }, // Cyan
-  HOAN_THANH: { label: 'Hoàn thành', color: '#10B981' }, // Emerald / Green
+  HOAN_THANH: { label: 'Hoàn thành', color: '#10B981' }, // Emerald
   DA_HUY: { label: 'Đã hủy', color: '#EF4444' }, // Red
   CHO_XU_LY: { label: 'Chờ xử lý', color: '#8B5CF6' }, // Purple
+
+  // --- Bổ sung các trạng thái bị thiếu ---
+  GIAO_THANH_CONG: { label: 'Giao thành công', color: '#10B981' }, // Green
+  GIAO_THAT_BAI: { label: 'Giao thất bại', color: '#F43F5E' }, // Rose / Red
 }
 
 // Hàm lấy thông tin cấu hình từ Key trạng thái
 const getStatusConfig = (status) => {
   if (!status) return { label: 'Khác', color: '#94A3B8' }
+
   const key = String(status).toUpperCase()
-  return statusConfigMap[key] || { label: status, color: '#94A3B8' }
+  if (statusConfigMap[key]) {
+    return statusConfigMap[key]
+  }
+
+  // Tự động format chữ nếu chưa định nghĩa key (ví dụ: giao_thanh_cong -> Giao thanh cong)
+  const formattedLabel = String(status)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+
+  return { label: formattedLabel, color: '#94A3B8' }
 }
 
 // Tính tổng số lượng đơn hàng

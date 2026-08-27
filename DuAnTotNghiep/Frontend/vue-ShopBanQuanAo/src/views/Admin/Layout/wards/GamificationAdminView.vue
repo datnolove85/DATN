@@ -1023,9 +1023,11 @@
                 selectedHistory.idKhachHang?.hangThanhVien || 'Thường'
               }}</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-slate-500">Địa chỉ:</span>
-              <span>{{ selectedHistory.idKhachHang?.diaChi || 'Không rõ' }}</span>
+            <div class="flex flex-col gap-1 pt-1 border-t border-slate-200/60">
+              <span class="text-slate-500 whitespace-nowrap">Địa chỉ:</span>
+              <span class="text-slate-900 font-medium break-words leading-relaxed pl-1">
+                {{ selectedHistory.idKhachHang?.diaChi || 'Chưa có' }}
+              </span>
             </div>
           </div>
 
