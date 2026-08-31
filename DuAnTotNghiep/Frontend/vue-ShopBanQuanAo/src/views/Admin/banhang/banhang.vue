@@ -3,149 +3,23 @@
     class="pos-wrapper min-h-screen bg-slate-100/90 text-slate-800 font-sans antialiased selection:bg-indigo-500 selection:text-white"
   >
     <!-- ================= HEADER POS ================= -->
-    <header
-      class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs"
-    >
-      <div class="max-w-[1800px] mx-auto px-4 h-14 flex items-center justify-between gap-3">
-        <!-- Tab Hóa Đơn Chờ -->
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-          <template v-if="allOrders.length > 0">
-            <div
-              v-for="(order, index) in allOrders.filter((o) => o.id)"
-              :key="order.id"
-              @click="switchOrder(index)"
-              :class="[
-                'group relative flex items-center gap-2 px-3 py-1 rounded-lg border transition-all duration-200 cursor-pointer text-xs font-bold select-none',
-                currentOrderIndex === index
-                  ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-xs ring-1 ring-indigo-500/20'
-                  : 'bg-slate-50 border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:border-slate-300',
-              ]"
-            >
-              <span class="flex items-center gap-1.5">
-                <span
-                  :class="[
-                    'w-2 h-2 rounded-full',
-                    currentOrderIndex === index ? 'bg-indigo-600 animate-pulse' : 'bg-slate-400',
-                  ]"
-                ></span>
-                HĐ #{{ order.maHoaDon }}
-              </span>
-              <button
-                @click.stop="removeOrder(index)"
-                class="ml-1 flex items-center justify-center w-4 h-4 rounded-full bg-slate-200/70 text-slate-500 hover:bg-rose-500 hover:text-white transition-all text-[11px] leading-none"
-                title="Hủy hóa đơn (Ctrl+D)"
-              >
-                ×
-              </button>
-            </div>
-          </template>
-
-          <button
-            @click="createNewOrder"
-            class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all text-xs font-bold shadow-xs active:scale-95"
-            title="Tạo hóa đơn mới (F1)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2.5"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span>Tạo mới (F1)</span>
-          </button>
-        </div>
-
-        <!-- Thanh Tìm Kiếm Sản Phẩm Nhanh -->
-        <div class="flex-1 max-w-md hidden md:block">
-          <div class="relative">
-            <input
-              ref="searchInput"
-              v-model="searchQuery"
-              @focus="openDropdown"
-              @blur="closeDropdown"
-              placeholder="Tìm theo tên hoặc mã SP... (Ctrl + F)"
-              class="w-full pl-9 pr-12 py-1.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-            />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <kbd
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-md"
-              >Ctrl+F</kbd
-            >
-
-            <!-- Instant Search Dropdown -->
-            <div
-              v-if="isDropdownVisible && filteredProducts.length > 0"
-              class="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 shadow-2xl rounded-xl z-[60] max-h-72 overflow-y-auto custom-scrollbar p-1"
-            >
-              <div
-                v-for="sp in filteredProducts.slice(0, 7)"
-                :key="sp.id"
-                @click="openVariantModalFromSearch(sp)"
-                class="flex items-center gap-2.5 p-1.5 hover:bg-indigo-50/70 rounded-lg cursor-pointer transition-colors border-b border-slate-100 last:border-0"
-              >
-                <img
-                  :src="getProductImage(sp)"
-                  class="w-9 h-9 rounded-md object-cover border border-slate-100 flex-shrink-0"
-                />
-                <div class="flex-1 min-w-0">
-                  <p class="font-bold text-xs text-slate-800 truncate">{{ sp.tenSanPham }}</p>
-                  <p class="text-[10px] text-slate-400 font-mono">
-                    {{ sp.tenMauSac }} - {{ sp.tenKichThuoc }}
-                  </p>
-                </div>
-                <div class="text-right">
-                  <template v-if="sp.dangGiamGia">
-                    <p class="text-xs font-black text-rose-600">
-                      {{ formatPrice(sp.giaSauGiam) }}
-                    </p>
-                    <div class="flex items-center justify-end gap-1">
-                      <span
-                        v-if="getVariantDiscountPercent(sp) > 0"
-                        class="text-[9px] text-rose-600 font-bold"
-                      >
-                        -{{ getVariantDiscountPercent(sp) }}%
-                      </span>
-                      <span class="text-[10px] text-slate-400 line-through">
-                        {{ formatPrice(sp.giaBan) }}
-                      </span>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <p class="text-xs font-black text-indigo-600">
-                      {{ formatPrice(sp.giaBan) }}
-                    </p>
-                  </template>
-                  <span class="text-[9px] text-emerald-600 font-medium block"
-                    >Kho: {{ sp.soLuongKhaDung ?? sp.soLuongTon }}</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <PosHeader
+      ref="headerRef"
+      :all-orders="allOrders"
+      :current-order-index="currentOrderIndex"
+      v-model:search-query="searchQuery"
+      :is-dropdown-visible="isDropdownVisible"
+      :filtered-products="filteredProducts"
+      :get-product-image="getProductImage"
+      :format-price="formatPrice"
+      :get-variant-discount-percent="getVariantDiscountPercent"
+      @switch-order="switchOrder"
+      @remove-order="removeOrder"
+      @create-new-order="createNewOrder"
+      @open-dropdown="openDropdown"
+      @close-dropdown="closeDropdown"
+      @select-product-from-search="openVariantModalFromSearch"
+    />
 
     <!-- Loading Overlay -->
     <div
@@ -166,735 +40,78 @@
       <!-- ================= BÊN TRÁI: DANH SÁCH SẢN PHẨM & BỘ LỌC ================= -->
       <section class="lg:col-span-7 xl:col-span-8 flex flex-col space-y-3">
         <!-- Thanh Bộ Lọc -->
-        <div
-          class="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap gap-2 items-center"
-        >
-          <select
-            v-model="filterCategory"
-            class="text-xs font-semibold bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <option value="">Tất cả Danh mục</option>
-            <option v-for="dm in danhMucList" :key="dm.id" :value="dm.id">
-              {{ dm.tenDanhMuc }}
-            </option>
-          </select>
-
-          <select
-            v-model="filterBrand"
-            class="text-xs font-semibold bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <option value="">Tất cả Thương hiệu</option>
-            <option v-for="th in thuongHieuList" :key="th.id" :value="th.id">
-              {{ th.tenThuongHieu }}
-            </option>
-          </select>
-
-          <select
-            v-model="filterColor"
-            class="text-xs font-semibold bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <option value="">Màu sắc</option>
-            <option v-for="ms in mauSacList" :key="ms.id" :value="ms.id">{{ ms.tenMauSac }}</option>
-          </select>
-
-          <select
-            v-model="filterSize"
-            class="text-xs font-semibold bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <option value="">Kích thước</option>
-            <option v-for="kt in kichThuocList" :key="kt.id" :value="kt.id">
-              {{ kt.tenKichThuoc }}
-            </option>
-          </select>
-
-          <button
-            @click="resetFilters"
-            class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg ml-auto transition-colors"
-          >
-            Xóa bộ lọc
-          </button>
-        </div>
-
+        <!-- Thanh Bộ Lọc -->
+        <PosFilter
+          v-model:search-query="searchQuery"
+          v-model:filter-category="filterCategory"
+          v-model:filter-brand="filterBrand"
+          v-model:filter-color="filterColor"
+          v-model:filter-size="filterSize"
+          v-model:only-sale="onlySale"
+          v-model:sort-by="sortBy"
+          :danh-muc-list="danhMucList"
+          :thuong-hieu-list="thuongHieuList"
+          :mau-sac-list="mauSacList"
+          :kich-thuoc-list="kichThuocList"
+          @reset-filters="resetFilters"
+        />
         <!-- Grid Sản Phẩm (Gom nhóm theo Sản phẩm gốc) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
-          <div
-            v-for="master in groupedMasterProducts"
-            :key="master.tenSanPham"
-            @click="openVariantModal(master)"
-            :class="[
-              'bg-white rounded-xl border p-2.5 flex flex-col justify-between transition-all duration-200 group relative overflow-hidden select-none cursor-pointer',
-              master.totalStock > 0
-                ? 'border-slate-200/80 hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5'
-                : 'border-slate-200 bg-slate-50/80 opacity-60',
-            ]"
-          >
-            <!-- Badge Giảm Giá -->
-            <div
-              v-if="master.hasDiscount && master.maxDiscountPercent > 0"
-              class="absolute top-2 right-2 z-20"
-            >
-              <span
-                class="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs flex items-center gap-0.5"
-              >
-                🔥 -{{ master.maxDiscountPercent }}%
-              </span>
-            </div>
-
-            <!-- Ảnh Sản Phẩm -->
-            <div
-              class="aspect-square w-full rounded-lg bg-slate-100 overflow-hidden relative mb-2 border border-slate-100"
-            >
-              <img
-                :src="getProductImage(master.representativeProduct)"
-                :alt="master.tenSanPham"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                @error="setDefaultImage"
-              />
-
-              <!-- Overlay hết hàng -->
-              <div
-                v-if="master.totalStock <= 0"
-                class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center z-20"
-              >
-                <span
-                  class="bg-white/95 text-rose-600 text-[9px] font-black px-2 py-0.5 rounded shadow-sm"
-                >
-                  HẾT HÀNG
-                </span>
-              </div>
-
-              <!-- Hover Action Indicator -->
-              <div
-                v-if="master.totalStock > 0"
-                class="absolute inset-0 bg-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10"
-              >
-                <span
-                  class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform text-[11px] font-bold flex items-center gap-1"
-                >
-                  <span>Chọn phân loại</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2.5"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </span>
-              </div>
-            </div>
-
-            <!-- Detail Product -->
-            <div class="flex-1 flex flex-col justify-between">
-              <div>
-                <div class="flex items-center justify-between gap-1 mb-1">
-                  <span
-                    class="text-[9px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded truncate"
-                  >
-                    {{ master.representativeProduct.tenThuongHieu || 'Thời trang' }}
-                  </span>
-                  <span
-                    class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded"
-                  >
-                    {{ master.variants.length }} phân loại
-                  </span>
-                </div>
-
-                <h3
-                  class="text-xs font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors"
-                  :title="master.tenSanPham"
-                >
-                  {{ master.tenSanPham }}
-                </h3>
-              </div>
-
-              <!-- Price & Stock -->
-              <div
-                class="mt-2.5 pt-2 border-t border-slate-100 flex items-end justify-between gap-1"
-              >
-                <div>
-                  <p class="text-xs font-black text-indigo-600 leading-none">
-                    {{ master.priceFormatted }}
-                  </p>
-                </div>
-
-                <span
-                  :class="[
-                    'text-[8px] px-1.5 py-0.5 rounded font-bold flex-shrink-0',
-                    master.totalStock <= 0
-                      ? 'bg-rose-50 text-rose-600'
-                      : master.totalStock <= 10
-                        ? 'bg-amber-50 text-amber-600'
-                        : 'bg-emerald-50 text-emerald-600',
-                  ]"
-                >
-                  {{ master.totalStock <= 0 ? 'Hết hàng' : 'Kho: ' + master.totalStock }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Grid Sản Phẩm (Gom nhóm theo Sản phẩm gốc) -->
+        <PosProductGrid
+          :products="groupedMasterProducts"
+          :get-product-image="getProductImage"
+          :format-price="formatPrice"
+          :get-variant-discount-percent="getVariantDiscountPercent"
+          @select-product="openVariantModal"
+        />
       </section>
 
       <!-- ================= BÊN PHẢI: GIỎ HÀNG & THANH TOÁN ================= -->
-      <section
-        class="lg:col-span-5 xl:col-span-4 h-[calc(100vh-4.5rem)] sticky top-16 flex flex-col"
-      >
-        <div
-          class="bg-white rounded-2xl border border-slate-200/80 shadow-xl flex flex-col h-full overflow-hidden"
-        >
-          <!-- Khách hàng Header Bar -->
-          <div class="p-4 border-b border-slate-100 bg-slate-50/70 flex-shrink-0 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Giỏ Hàng & Khách Hàng
-                </label>
-                <span
-                  v-if="currentOrder?.cart?.length"
-                  class="bg-indigo-100 text-indigo-700 text-xs font-extrabold px-2 py-0.5 rounded-full"
-                >
-                  {{ currentOrder.cart.reduce((sum, item) => sum + item.soLuong, 0) }} món
-                </span>
-              </div>
-              <button
-                @click="openCustomerModal"
-                class="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"
-                  />
-                </svg>
-                Chọn / Thêm
-              </button>
-            </div>
-
-            <div
-              class="bg-white border border-slate-200/80 rounded-xl px-3 py-2.5 flex items-center justify-between shadow-2xs"
-            >
-              <div v-if="selectedCustomer">
-                <p class="text-xs font-bold text-slate-800">{{ selectedCustomer.hoTen }}</p>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">
-                  {{ selectedCustomer.soDienThoai }}
-                </p>
-                <div
-                  class="mt-1.5 pt-1.5 border-t border-slate-100 flex items-center gap-2 text-[11px]"
-                >
-                  <span class="font-bold text-amber-600 flex items-center gap-1">
-                    <span>🪙</span> {{ selectedCustomer.soDuXu ?? 0 }} xu
-                  </span>
-                  <span class="text-slate-400">•</span>
-                  <span class="text-slate-500 font-medium">
-                    ≈ {{ formatPrice((selectedCustomer.soDuXu ?? 0) * tyLeQuyDoiXu) }}
-                  </span>
-                </div>
-              </div>
-              <div v-else>
-                <p class="text-xs font-bold text-slate-400">Khách lẻ</p>
-              </div>
-              <button
-                v-if="selectedCustomer"
-                @click="handleRemoveCustomer"
-                class="text-slate-400 hover:text-rose-500 p-1 transition-colors self-start"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Danh Sách Sản Phẩm Trong Giỏ -->
-          <div class="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 custom-scrollbar">
-            <div
-              v-if="currentOrder?.cart?.length === 0"
-              class="h-full flex flex-col items-center justify-center text-slate-400 py-12"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-12 w-12 text-slate-300 mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              <p class="text-xs font-semibold">Giỏ hàng trống. Chọn sản phẩm để bắt đầu.</p>
-            </div>
-
-            <div
-              v-for="(item, index) in currentOrder?.cart || []"
-              :key="item.id"
-              class="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 shadow-2xs transition-all"
-            >
-              <img
-                :src="getProductImage(item.product)"
-                class="w-12 h-12 rounded-lg object-cover bg-slate-50 flex-shrink-0 border border-slate-100"
-                @error="setDefaultImage"
-              />
-
-              <div class="flex-1 min-w-0">
-                <h4 class="text-xs font-bold text-slate-800 truncate leading-snug">
-                  {{ item.product.tenSanPhamChiTiet }}
-                </h4>
-                <div class="flex items-center gap-1.5 mt-1">
-                  <span
-                    class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded truncate max-w-[80px]"
-                    :title="item.product.maSanPhamChiTiet"
-                  >
-                    {{ item.product.maSPCT }}
-                  </span>
-                  <span class="text-xs text-slate-400 truncate">
-                    {{ item.product.tenMauSac }} / {{ item.product.tenKichThuoc }}
-                  </span>
-                </div>
-                <div class="mt-1">
-                  <template v-if="item.product.dangGiamGia">
-                    <p class="text-xs font-black text-rose-600 flex items-center gap-1.5 flex-wrap">
-                      <span>{{ formatPrice(item.product.giaSauGiam) }}</span>
-                      <span
-                        v-if="getVariantDiscountPercent(item.product) > 0"
-                        class="text-[9px] bg-rose-100 text-rose-700 font-bold px-1 py-0.2 rounded"
-                      >
-                        -{{ getVariantDiscountPercent(item.product) }}%
-                      </span>
-                      <span class="text-[10px] text-slate-400 line-through font-normal">
-                        {{ formatPrice(item.product.giaBan) }}
-                      </span>
-                    </p>
-                  </template>
-                  <template v-else>
-                    <p class="text-xs font-black text-indigo-600">
-                      {{ formatPrice(item.product.giaBan) }}
-                    </p>
-                  </template>
-                </div>
-              </div>
-
-              <!-- Tăng / Giảm Số Lượng -->
-              <div
-                class="flex items-center bg-slate-100/80 rounded-lg p-1 border border-slate-200/60"
-              >
-                <button
-                  @click="decreaseQty(item)"
-                  :disabled="item.soLuong <= 1"
-                  class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed select-none"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min="1"
-                  v-model.number="item.soLuong"
-                  @input="debounceChangeQty(item)"
-                  class="w-8 h-5 text-center text-xs font-extrabold text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  @click="increaseQty(item)"
-                  class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-white rounded transition-colors text-xs font-bold select-none"
-                >
-                  +
-                </button>
-              </div>
-
-              <button
-                @click="removeFromCart(index)"
-                class="text-slate-300 hover:text-rose-500 transition-colors p-1"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Checkout & Total Section -->
-          <div
-            class="flex-shrink-0 border-t border-slate-200/80 p-4 bg-slate-50/90 space-y-3 z-10 shadow-lg"
-          >
-            <!-- Voucher Dropdown -->
-            <div class="relative" ref="voucherRef">
-              <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                Voucher Khuyến Mãi
-              </label>
-              <div
-                class="w-full bg-white border border-slate-200 hover:border-indigo-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 flex justify-between items-center transition-all shadow-2xs"
-              >
-                <div
-                  @click="showVoucherDropdown = !showVoucherDropdown"
-                  class="flex-1 cursor-pointer flex justify-between items-center pr-1"
-                >
-                  <div v-if="selectedVoucher || appliedVoucher" class="flex flex-col">
-                    <span class="font-bold text-indigo-600 flex items-center gap-1.5 text-xs">
-                      <span>🎟️</span>
-                      {{ (selectedVoucher || appliedVoucher).tenVoucher }}
-                      ({{
-                        (selectedVoucher || appliedVoucher).maCode ||
-                        (selectedVoucher || appliedVoucher).maVoucher
-                      }})
-                    </span>
-                    <span class="text-[10px] text-slate-500 mt-0.5">
-                      Loại:
-                      <b
-                        :class="
-                          (selectedVoucher || appliedVoucher).soXuDoi ||
-                          ((selectedVoucher || appliedVoucher).maCode &&
-                            (selectedVoucher || appliedVoucher).maCode.startsWith('MG'))
-                            ? 'text-purple-600'
-                            : 'text-blue-600'
-                        "
-                      >
-                        {{
-                          (selectedVoucher || appliedVoucher).soXuDoi ||
-                          ((selectedVoucher || appliedVoucher).maCode &&
-                            (selectedVoucher || appliedVoucher).maCode.startsWith('MG'))
-                            ? 'Minigame'
-                            : 'Hệ thống'
-                        }}
-                      </b>
-                    </span>
-                  </div>
-                  <span v-else class="text-slate-400 font-normal text-xs">
-                    Chọn mã khuyến mãi...
-                  </span>
-                </div>
-
-                <div class="flex items-center gap-1.5 pl-2 border-l border-slate-100">
-                  <button
-                    v-if="selectedVoucher || appliedVoucher"
-                    @click.stop="handleRemoveVoucher"
-                    class="text-slate-400 hover:text-rose-600 transition-colors px-0.5"
-                    title="Xóa voucher"
-                  >
-                    ✕
-                  </button>
-                  <span
-                    @click="showVoucherDropdown = !showVoucherDropdown"
-                    class="text-slate-400 text-xs cursor-pointer"
-                  >
-                    {{ showVoucherDropdown ? '▲' : '▼' }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- List Vouchers Dropdown -->
-              <div
-                v-if="showVoucherDropdown && filteredVouchers.length > 0"
-                class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] max-h-60 overflow-y-auto custom-scrollbar p-2 space-y-2"
-              >
-                <div
-                  v-for="vc in filteredVouchers"
-                  :key="vc.id"
-                  @mousedown.prevent="isVoucherValid(vc) ? selectVoucher(vc) : null"
-                  :class="[
-                    'p-2.5 rounded-lg border transition-all flex flex-col gap-1.5',
-                    isVoucherValid(vc)
-                      ? 'cursor-pointer bg-white hover:border-indigo-300 hover:bg-indigo-50/40'
-                      : 'opacity-60 bg-slate-50 border-slate-200 cursor-not-allowed',
-                    appliedVoucher?.id === vc.id || selectedVoucher?.id === vc.id
-                      ? 'border-indigo-500 bg-indigo-50/60 shadow-xs'
-                      : 'border-slate-100',
-                  ]"
-                >
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span
-                      :class="
-                        vc.soXuDoi || (vc.maCode && vc.maCode.startsWith('MG'))
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-blue-100 text-blue-800'
-                      "
-                      class="text-[10px] px-2 py-0.5 rounded-md font-bold"
-                    >
-                      {{
-                        vc.soXuDoi || (vc.maCode && vc.maCode.startsWith('MG'))
-                          ? '🎮 Minigame'
-                          : '🛡️ Hệ thống'
-                      }}
-                    </span>
-
-                    <span
-                      v-if="bestVoucher?.id === vc.id"
-                      class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold"
-                    >
-                      ⭐ Khuyên dùng
-                    </span>
-                  </div>
-
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-slate-700">
-                      Mã:
-                      <span class="bg-slate-100 px-1.5 py-0.5 rounded font-mono">{{
-                        vc.maCode || vc.maVoucher || vc.id
-                      }}</span>
-                    </span>
-                    <span
-                      class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full text-xs"
-                    >
-                      {{ vc.loaiGiamGia === 'phan_tram' ? 'Phần trăm (%)' : 'Tiền mặt' }}
-                    </span>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-2 gap-1.5 text-xs text-slate-500 bg-slate-50 p-1.5 rounded-md"
-                  >
-                    <div>
-                      Tối thiểu:
-                      <b class="text-slate-700">{{
-                        formatPrice(vc.dieuKienToiThieu || vc.giaTriDonHangToiThieu)
-                      }}</b>
-                    </div>
-                    <div>
-                      Mức giảm:
-                      <b class="text-rose-600">{{
-                        vc.loaiGiamGia === 'tien_mat'
-                          ? formatPrice(vc.giaTriGiam)
-                          : vc.giaTriGiam + '%'
-                      }}</b>
-                    </div>
-                    <div
-                      v-if="vc.giaTriGiamToiDa"
-                      class="col-span-2 pt-1 border-t border-slate-200/60 mt-0.5"
-                    >
-                      Giảm tối đa:
-                      <b class="text-slate-700">{{ formatPrice(vc.giaTriGiamToiDa) }}</b>
-                    </div>
-                  </div>
-
-                  <div
-                    v-if="!isVoucherValid(vc)"
-                    class="text-xs text-rose-600 font-semibold text-right"
-                  >
-                    🔒 {{ getVoucherError(vc) }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ================= PHẦN ĐỔI XU LẤY TIỀN GIẢM ================= -->
-            <div
-              v-if="selectedCustomer && (selectedCustomer.soDuXu ?? 0) > 0"
-              class="bg-amber-50/60 border border-amber-200/80 rounded-xl p-2.5 space-y-2"
-            >
-              <div class="flex justify-between items-center text-xs">
-                <span class="font-bold text-amber-800 flex items-center gap-1">
-                  <span>🪙</span> Sử dụng Xu đổi giảm giá
-                </span>
-                <span class="text-[11px] text-slate-500 font-medium">
-                  Khả dụng: <b class="text-amber-700">{{ selectedCustomer.soDuXu }} xu</b>
-                </span>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <div class="relative flex-1">
-                  <input
-                    type="text"
-                    :value="coinsUsed > 0 ? coinsUsed : ''"
-                    @input="onCoinsInput"
-                    placeholder="Nhập số xu muốn dùng..."
-                    class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 outline-none focus:border-amber-500"
-                  />
-                </div>
-                <button
-                  @click="useMaxCoins"
-                  class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
-                >
-                  Dùng hết
-                </button>
-                <button
-                  v-if="coinsUsed > 0"
-                  @click="removeCoins"
-                  class="text-slate-400 hover:text-rose-600 px-1 font-bold text-xs"
-                  title="Bỏ dùng xu"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div
-                v-if="coinsUsed > 0"
-                class="flex justify-between items-center text-xs pt-1 border-t border-amber-100"
-              >
-                <span class="text-slate-600 font-medium">Giảm trừ từ xu:</span>
-                <span class="font-black text-rose-600">-{{ formatPrice(coinDiscount) }}</span>
-              </div>
-            </div>
-
-            <!-- Total Price Calculation -->
-            <div class="space-y-1.5 text-xs font-medium text-slate-600">
-              <div class="flex justify-between">
-                <span>Tổng tiền hàng</span>
-                <span class="text-slate-800 font-bold">{{ formatPrice(totalCartPrice) }}</span>
-              </div>
-
-              <div class="flex justify-between text-rose-600">
-                <span>Giảm giá Voucher</span>
-                <span v-if="appliedVoucher" class="font-bold">
-                  -{{ formatPrice(voucherDiscount) }}
-                </span>
-                <span v-else>- 0đ</span>
-              </div>
-
-              <div v-if="coinsUsed > 0" class="flex justify-between text-rose-600">
-                <span>Giảm giá từ Xu ({{ coinsUsed }} xu)</span>
-                <span class="font-bold">-{{ formatPrice(coinDiscount) }}</span>
-              </div>
-
-              <div
-                class="bg-gradient-to-br from-indigo-50 to-blue-50/80 rounded-xl border border-indigo-100 p-3 mt-2"
-              >
-                <div class="flex justify-between items-center">
-                  <span class="font-extrabold text-slate-700 text-xs uppercase"
-                    >Tổng thanh toán</span
-                  >
-                  <span class="text-xl sm:text-2xl font-black text-indigo-600">
-                    {{ formatPrice(totalNeedPay) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Payment Methods & Type -->
-            <div class="space-y-2 pt-1">
-              <div class="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label class="text-xs font-bold text-slate-400 block mb-1">LOẠI HÓA ĐƠN</label>
-                  <select
-                    v-model="loaiHoaDon"
-                    disabled
-                    class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 cursor-not-allowed h-[34px]"
-                  >
-                    <option value="tai_quay">Tại quầy (POS)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="text-xs font-bold text-slate-400 block mb-1">HÌNH THỨC TT</label>
-                  <select
-                    v-model="phuongThucThanhToan"
-                    @change="handlePaymentMethod"
-                    class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none h-[34px]"
-                  >
-                    <option v-for="pt in ptttList" :key="pt.id" :value="pt.id">
-                      {{ pt.tenPhuongThuc }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Giao diện nhập tiền kết hợp -->
-              <div
-                v-if="isMultiPayment"
-                class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100 space-y-2"
-              >
-                <div class="flex justify-between text-[11px] font-bold text-slate-600">
-                  <span>Phân bổ tiền thanh toán:</span>
-                  <span class="text-indigo-600">Cần trả: {{ formatPrice(totalNeedPay) }}</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <label class="text-[10px] font-bold text-slate-500 block mb-0.5"
-                      >Tiền mặt (CASH)</label
-                    >
-                    <input
-                      type="text"
-                      v-model="displayCash"
-                      @input="onCashInput"
-                      placeholder="0"
-                      class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label class="text-[10px] font-bold text-slate-500 block mb-0.5"
-                      >Chuyển khoản (BANK)</label
-                    >
-                    <input
-                      type="text"
-                      v-model="displayBank"
-                      @input="onBankInput"
-                      placeholder="0"
-                      class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              v-if="!isMultiPayment && isCashPayment"
-              class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-2 mt-2"
-            >
-              <div>
-                <label class="text-[10px] font-bold text-slate-500 block mb-0.5"
-                  >TIỀN KHÁCH ĐƯA</label
-                >
-                <input
-                  type="text"
-                  v-model="displayTienKhachDua"
-                  @input="onTienKhachDuaInput"
-                  placeholder="Nhập số tiền khách đưa..."
-                  class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-xs font-bold text-slate-800 outline-none focus:border-indigo-500"
-                />
-              </div>
-              <div
-                class="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60"
-              >
-                <span class="font-bold text-slate-500">TIỀN THỐI LẠI:</span>
-                <span class="font-black text-emerald-600 text-sm">{{
-                  formatPrice(tienThoiLai)
-                }}</span>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button
-              @click="submitCheckout"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-extrabold text-sm py-3.5 px-5 rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
-            >
-              <span>XUẤT HÓA ĐƠN & THANH TOÁN</span>
-            </button>
-          </div>
-        </div>
-      </section>
+      <PosCartSidebar
+        :current-order="currentOrder"
+        :selected-customer="selectedCustomer"
+        :ty-le-quy-doi-xu="tyLeQuyDoiXu"
+        :filtered-vouchers="filteredVouchers"
+        :best-voucher="bestVoucher"
+        :pttt-list="ptttList"
+        :coins-used="coinsUsed"
+        :coin-discount="coinDiscount"
+        :voucher-discount="voucherDiscount"
+        :total-cart-price="totalCartPrice"
+        :total-need-pay="totalNeedPay"
+        :applied-voucher="appliedVoucher"
+        :selected-voucher="selectedVoucher"
+        :loai-hoa-don="loaiHoaDon"
+        v-model:phuong-thuc-thanh-toan="phuongThucThanhToan"
+        :is-multi-payment="isMultiPayment"
+        :is-cash-payment="isCashPayment"
+        :display-cash="displayCash"
+        :display-bank="displayBank"
+        :display-tien-khach-dua="displayTienKhachDua"
+        :tien-thoi-lai="tienThoiLai"
+        :get-product-image="getProductImage"
+        :set-default-image="setDefaultImage"
+        :format-price="formatPrice"
+        :get-variant-discount-percent="getVariantDiscountPercent"
+        :is-voucher-valid="isVoucherValid"
+        :get-voucher-error="getVoucherError"
+        @open-customer-modal="openCustomerModal"
+        @remove-customer="handleRemoveCustomer"
+        @decrease-qty="decreaseQty"
+        @increase-qty="increaseQty"
+        @remove-from-cart="removeFromCart"
+        @change-qty="debounceChangeQty"
+        @remove-voucher="handleRemoveVoucher"
+        @select-voucher="selectVoucher"
+        @coins-input="onCoinsInput"
+        @use-max-coins="useMaxCoins"
+        @remove-coins="removeCoins"
+        @change-payment-method="handlePaymentMethod"
+        @cash-input="onCashInput"
+        @bank-input="onBankInput"
+        @tien-khach-dua-input="onTienKhachDuaInput"
+        @submit-checkout="submitCheckout"
+      />
     </main>
 
     <!-- ================= MODAL CHỌN PHÂN LOẠI ================= -->
@@ -1096,8 +313,7 @@
               <p class="text-xs font-bold text-slate-800">{{ kh.hoTen }}</p>
               <p class="text-[10px] text-slate-500 font-medium">{{ kh.soDienThoai }}</p>
               <p class="text-[10px] text-amber-600 font-bold mt-0.5 flex items-center gap-1">
-                <span>🪙</span> {{ kh.soDuXu ?? 0 }} xu (≈
-                {{ formatPrice((kh.soDuXu ?? 0) * tyLeQuyDoiXu) }})
+                <span>🪙</span> {{ kh.soDuXu ?? 0 }} xu
               </p>
             </div>
             <span
@@ -1127,6 +343,13 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useToast } from 'vue-toastification'
 import Swal from 'sweetalert2'
 import { debounce } from 'lodash-es'
+
+import PosCartSidebar from '@/views/Admin/banhang/components/PosCartSidebar.vue'
+import PosHeader from '@/views/Admin/banhang/components/PosHeader.vue'
+import PosFilter from '@/views/Admin/banhang/components/PosProductFilter.vue'
+import PosProductGrid from '@/views/Admin/banhang/components/PosProductGrid.vue'
+
+const headerRef = ref(null) // Dùng để gọi hàm focus ô search nếu cần
 
 import stompClient from '@/socket'
 import InvoiceModal from './InvoiceModal.vue'
@@ -1296,6 +519,9 @@ const filterCategory = ref('')
 const filterBrand = ref('')
 const filterColor = ref('')
 const filterSize = ref('')
+
+const onlySale = ref(false) // Lọc sản phẩm đang giảm giá
+const sortBy = ref('newest') // Thuật toán sắp xếp (newest, price-asc, price-desc)
 const voucherCode = ref('')
 const searchCustomerQuery = ref('')
 const newCust = ref({ hoTen: '', sdt: '' })
@@ -1489,9 +715,9 @@ const phuongThucThanhToan = computed({
 })
 
 const hasCurrentOrder = computed(() => !!currentOrder.value?.id)
-
 const filteredProducts = computed(() => {
-  return products.value.filter((sp) => {
+  // 1. Lọc sản phẩm
+  let result = products.value.filter((sp) => {
     const nameStr = (sp.tenSanPham || '').toLowerCase()
     const codeStr = (sp.maSanPhamChiTiet || '').toLowerCase()
     const searchStr = searchQuery.value.toLowerCase().trim()
@@ -1506,10 +732,40 @@ const filteredProducts = computed(() => {
     const matchColor = !filterColor.value || Number(sp.idMauSac) === Number(filterColor.value)
     const matchSize = !filterSize.value || Number(sp.idKichThuoc) === Number(filterSize.value)
 
-    return matchSearch && matchCategory && matchBrand && matchColor && matchSize
+    // Lọc theo trạng thái giảm giá
+    const matchSale = !onlySale.value || sp.dangGiamGia === true
+
+    return matchSearch && matchCategory && matchBrand && matchColor && matchSize && matchSale
   })
+
+  // 2. Sắp xếp danh sách sau khi lọc
+  if (sortBy.value === 'price-asc') {
+    result.sort(
+      (a, b) =>
+        (a.dangGiamGia ? a.giaSauGiam : a.giaBan) - (b.dangGiamGia ? b.giaSauGiam : b.giaBan),
+    )
+  } else if (sortBy.value === 'price-desc') {
+    result.sort(
+      (a, b) =>
+        (b.dangGiamGia ? b.giaSauGiam : b.giaBan) - (a.dangGiamGia ? a.giaSauGiam : a.giaBan),
+    )
+  } else if (sortBy.value === 'newest') {
+    result.sort((a, b) => new Date(b.ngayTao || 0) - new Date(a.ngayTao || 0))
+  }
+
+  return result
 })
 
+// Cập nhật hàm Reset bộ lọc
+const resetFilters = () => {
+  filterCategory.value = ''
+  filterBrand.value = ''
+  filterColor.value = ''
+  filterSize.value = ''
+  searchQuery.value = ''
+  onlySale.value = false
+  sortBy.value = 'newest'
+}
 const groupedMasterProducts = computed(() => {
   const map = new Map()
 
@@ -1548,14 +804,28 @@ const groupedMasterProducts = computed(() => {
   })
 
   return Array.from(map.values()).map((group) => {
+    const rep = group.representativeProduct || {}
+    const minP = group.minPrice === Infinity ? 0 : group.minPrice
+
     let priceFormatted = ''
     if (group.minPrice === group.maxPrice || group.minPrice === Infinity) {
-      priceFormatted = formatPrice(group.minPrice === Infinity ? 0 : group.minPrice)
+      priceFormatted = formatPrice(minP)
     } else {
       priceFormatted = `${formatPrice(group.minPrice)} - ${formatPrice(group.maxPrice)}`
     }
+
     return {
+      ...rep, // Lấy các thuộc tính mặc định của sản phẩm đại diện
       ...group,
+      // Map đúng tên biến mà PosProductGrid.vue sử dụng
+      giaBan: minP,
+      giaSauGiam: minP,
+      soLuongKhaDung: group.totalStock,
+      soLuongTon: group.totalStock,
+      image: rep.image,
+      images: rep.images,
+      dangGiamGia: group.hasDiscount,
+      phanTramGiam: group.maxDiscountPercent,
       priceFormatted,
     }
   })
@@ -2443,14 +1713,6 @@ const setDefaultImage = (event) => {
 const formatPrice = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0)
 
-const resetFilters = () => {
-  filterCategory.value = ''
-  filterBrand.value = ''
-  filterColor.value = ''
-  filterSize.value = ''
-  searchQuery.value = ''
-}
-
 const openDropdown = () => (isDropdownVisible.value = true)
 const closeDropdown = () => setTimeout(() => (isDropdownVisible.value = false), 200)
 const openCustomerModal = () => (showCustomerModal.value = true)
@@ -2492,8 +1754,8 @@ const handleKeyDown = (e) => {
 
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
     e.preventDefault()
-    if (searchInput.value) {
-      searchInput.value.focus()
+    if (headerRef.value) {
+      headerRef.value.focusSearch()
       openDropdown()
     }
   }

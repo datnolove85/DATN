@@ -20,78 +20,73 @@
         </div>
 
         <!-- Thông tin hóa đơn -->
-        <div class="text-[10px] mb-2">
+        <div class="flex justify-between text-[10px] mb-2">
           <div>
             Mã HĐ:
             <span class="font-bold">{{ hoaDon.maHoaDon }}</span>
           </div>
-          <div>
-            Ngày:
-            {{ formatDate(hoaDon.ngayTao) }}
-          </div>
+          <div>Ngày: {{ formatDate(hoaDon.ngayTao) }}</div>
         </div>
 
         <!-- Thông tin khách hàng & Giao hàng -->
         <div class="border-y border-dashed border-slate-800 py-1 mb-2 text-[10px] space-y-0.5">
-          <div>
-            KH:
-            <span class="font-semibold">
-              {{ hoaDon.tenKhachHang || 'Khách lẻ' }}
-            </span>
+          <div class="flex justify-between">
+            <div>
+              KH:
+              <span class="font-semibold">
+                {{ hoaDon.tenKhachHang || 'Khách lẻ' }}
+              </span>
+            </div>
+            <div>SĐT: {{ hoaDon.soDienThoai || '---' }}</div>
           </div>
 
-          <div>
-            SĐT:
-            {{ hoaDon.soDienThoai || '---' }}
-          </div>
-
-          <div v-if="hoaDon.diaChiGiaoHang">
-            ĐC:
-            {{ hoaDon.diaChiGiaoHang }}
-          </div>
+          <div v-if="hoaDon.diaChiGiaoHang">ĐC: {{ hoaDon.diaChiGiaoHang }}</div>
         </div>
 
         <!-- Tiêu đề bảng -->
         <div class="border-b border-dashed border-slate-800 pb-1 mb-1">
           <div class="flex font-bold">
-            <span class="w-5">#</span>
+            <span class="w-4">#</span>
             <span class="flex-1">Sản phẩm</span>
-            <span class="w-8 text-center">SL</span>
-            <span class="w-16 text-right">Giá</span>
+            <span class="w-6 text-center">SL</span>
+            <span class="w-14 text-right">Giá</span>
           </div>
         </div>
 
         <!-- Danh sách sản phẩm -->
-        <div class="space-y-1 mb-2">
+        <div class="space-y-1.5 mb-2">
           <div v-for="(sp, index) in hoaDon.sanPhams" :key="index" class="leading-tight">
             <div class="flex items-start">
-              <span class="w-5">{{ index + 1 }}</span>
+              <span class="w-4">{{ index + 1 }}</span>
 
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <div class="font-medium text-slate-800">
-                    {{ sp.tenSanPham }}
-                  </div>
+              <div class="flex-1 pr-1">
+                <!-- Tên sản phẩm -->
+                <div class="font-medium text-slate-800">
+                  {{ sp.tenSanPham }}
+                </div>
 
+                <!-- Mã chi tiết chống xuống dòng vỡ chữ -->
+                <div class="mt-0.5">
                   <span
-                    class="px-2 py-[2px] text-[10px] rounded-full border border-slate-300 text-slate-600 bg-slate-50"
+                    class="inline-block px-1 py-[1px] text-[9px] rounded border border-slate-300 text-slate-600 bg-slate-50 whitespace-nowrap"
                   >
                     #{{ sp.maSanPhamChiTiet }}
                   </span>
                 </div>
 
-                <div class="text-[8px] text-slate-500">
+                <!-- Thuộc tính -->
+                <div class="text-[8px] text-slate-500 mt-0.5">
                   {{ sp.tenMauSac }}/{{ sp.tenKichThuoc }}/{{ sp.tenChatLieu }}/{{
                     sp.tenThuongHieu
                   }}
                 </div>
               </div>
 
-              <span class="w-8 text-center">
+              <span class="w-6 text-center">
                 {{ sp.soLuong }}
               </span>
 
-              <span class="w-16 text-right">
+              <span class="w-14 text-right whitespace-nowrap">
                 {{ formatPriceNoCurrency(sp.donGia) }}
               </span>
             </div>
@@ -136,11 +131,10 @@
           </div>
 
           <p class="mt-1 font-bold uppercase">Xin cảm ơn quý khách!</p>
-
           <p class="text-[9px] text-slate-500">Hẹn gặp lại quý khách lần sau</p>
         </div>
 
-        <!-- Nút -->
+        <!-- Nút thao tác -->
         <div class="flex justify-center gap-2 mt-3 print:hidden">
           <button @click="$emit('close')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
             Đóng
@@ -158,16 +152,16 @@
   </Teleport>
 </template>
 
-<script setup>
-defineProps({
-  hoaDon: Object,
-})
+<script setup lang="ts">
+defineProps<{
+  hoaDon: any
+}>()
 
 defineEmits(['close'])
 
-const formatPriceNoCurrency = (v) => new Intl.NumberFormat('vi-VN').format(v || 0)
+const formatPriceNoCurrency = (v: number) => new Intl.NumberFormat('vi-VN').format(v || 0)
 
-const formatDate = (d) =>
+const formatDate = (d: string | number | Date) =>
   new Date(d).toLocaleDateString('vi-VN') +
   ' ' +
   new Date(d).toLocaleTimeString('vi-VN', {
@@ -176,9 +170,12 @@ const formatDate = (d) =>
   })
 
 const printInvoice = () => {
-  const content = document.getElementById('invoice-area').innerHTML
+  const invoiceArea = document.getElementById('invoice-area')
+  if (!invoiceArea) return
 
+  const content = invoiceArea.innerHTML
   const win = window.open('', '_blank', 'width=400,height=700')
+  if (!win) return
 
   win.document.write(`
     <html>

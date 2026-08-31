@@ -980,6 +980,9 @@ public class SanPhamChiTietService {
 
         List<SanPhamChiTiet> list = new ArrayList<>();
 
+        // Lấy số lượng bản ghi hiện tại để làm mốc tăng tự động
+        long currentCount = sanPhamChiTietRepository.count();
+
         for (SanPhamCreateVariantRequest req : reqList) {
 
             SanPham sp = sanPhamRepository.findById(req.getIdSanPham())
@@ -1000,12 +1003,9 @@ public class SanPhamChiTietService {
             spct.setIdMauSac(mau);
             spct.setIdKichThuoc(size);
 
-            spct.setMaSanPhamChiTiet(
-                    generateSKU(
-                            sp.getTenSanPham(),
-                            mau.getTenMauSac(),
-                            size.getTenKichThuoc(),
-                            sp.getId()));
+            // Tăng đếm và gán mã tự động: SPCT01, SPCT02,...
+            currentCount++;
+            spct.setMaSanPhamChiTiet(String.format("SPCT%02d", currentCount));
 
             spct.setTenSanPhamChiTiet(
                     sp.getTenSanPham()

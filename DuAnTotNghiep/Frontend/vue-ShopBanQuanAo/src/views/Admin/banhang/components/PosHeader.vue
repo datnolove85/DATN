@@ -9,7 +9,7 @@
           <div
             v-for="(order, index) in allOrders.filter((o) => o.id)"
             :key="order.id"
-            @click="$emit('switch-order', index)"
+            @click="$emit('switchOrder', index)"
             :class="[
               'group relative flex items-center gap-2 px-3 py-1 rounded-lg border transition-all duration-200 cursor-pointer text-xs font-bold select-none',
               currentOrderIndex === index
@@ -27,7 +27,7 @@
               HĐ #{{ order.maHoaDon }}
             </span>
             <button
-              @click.stop="$emit('remove-order', index)"
+              @click.stop="$emit('removeOrder', index)"
               class="ml-1 flex items-center justify-center w-4 h-4 rounded-full bg-slate-200/70 text-slate-500 hover:bg-rose-500 hover:text-white transition-all text-[11px] leading-none"
               title="Hủy hóa đơn (Ctrl+D)"
             >
@@ -37,7 +37,7 @@
         </template>
 
         <button
-          @click="$emit('create-order')"
+          @click="$emit('createNewOrder')"
           class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all text-xs font-bold shadow-xs active:scale-95"
           title="Tạo hóa đơn mới (F1)"
         >
@@ -58,91 +58,37 @@
           <span>Tạo mới (F1)</span>
         </button>
       </div>
-
-      <!-- Thanh Tìm Kiếm Sản Phẩm Nhanh -->
-      <div class="flex-1 max-w-md hidden md:block">
-        <div class="relative">
-          <input
-            ref="searchInput"
-            :value="searchQuery"
-            @input="$emit('update:searchQuery', $event.target.value)"
-            @focus="$emit('focus')"
-            @blur="$emit('blur')"
-            placeholder="Tìm theo tên hoặc mã SP... (Ctrl + F)"
-            class="w-full pl-9 pr-12 py-1.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <kbd
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-md"
-            >Ctrl+F</kbd
-          >
-
-          <!-- Instant Search Dropdown -->
-          <div
-            v-if="isDropdownVisible && filteredProducts.length > 0"
-            class="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 shadow-2xl rounded-xl z-[60] max-h-72 overflow-y-auto custom-scrollbar p-1"
-          >
-            <div
-              v-for="sp in filteredProducts.slice(0, 7)"
-              :key="sp.id"
-              @click="$emit('add-to-cart', sp)"
-              class="flex items-center gap-2.5 p-1.5 hover:bg-indigo-50/70 rounded-lg cursor-pointer transition-colors border-b border-slate-100 last:border-0"
-            >
-              <img
-                :src="getProductImage(sp)"
-                class="w-9 h-9 rounded-md object-cover border border-slate-100 flex-shrink-0"
-              />
-              <div class="flex-1 min-w-0">
-                <p class="font-bold text-xs text-slate-800 truncate">{{ sp.tenSanPham }}</p>
-                <p class="text-[10px] text-slate-400 font-mono">#{{ sp.maSanPhamChiTiet }}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-xs font-black text-indigo-600">
-                  {{ formatPrice(sp.dangGiamGia ? sp.giaSauGiam : sp.giaBan) }}
-                </p>
-                <span class="text-[9px] text-emerald-600 font-medium"
-                  >Kho: {{ sp.soLuongKhaDung ?? sp.soLuongTon }}</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </header>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
-  allOrders: Array,
-  currentOrderIndex: Number,
-  searchQuery: String,
-  isDropdownVisible: Boolean,
-  filteredProducts: Array,
-  getProductImage: Function,
-  formatPrice: Function,
+  allOrders: { type: Array, required: true },
+  currentOrderIndex: { type: Number, required: true },
+  searchQuery: { type: String, default: '' },
+  isDropdownVisible: { type: Boolean, default: false },
+  filteredProducts: { type: Array, default: () => [] },
+  getProductImage: { type: Function, required: true },
+  formatPrice: { type: Function, required: true },
+  getVariantDiscountPercent: { type: Function, required: true },
 })
 
 defineEmits([
-  'switch-order',
-  'remove-order',
-  'create-order',
   'update:searchQuery',
-  'focus',
-  'blur',
-  'add-to-cart',
+  'switchOrder',
+  'removeOrder',
+  'createNewOrder',
+  'openDropdown',
+  'closeDropdown',
+  'selectProductFromSearch',
 ])
+
+const searchInputRef = ref(null)
+
+defineExpose({
+  focusSearch: () => searchInputRef.value?.focus(),
+})
 </script>

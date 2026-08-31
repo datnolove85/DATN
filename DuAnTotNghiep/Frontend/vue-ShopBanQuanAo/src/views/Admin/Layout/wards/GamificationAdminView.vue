@@ -529,6 +529,9 @@
               <option value="trung_vong_quay">Trúng vòng quay</option>
               <option value="trung_lat_the">Trúng lật thẻ</option>
               <option value="doi_voucher">Đổi voucher</option>
+              <option value="hoan_xu">Hoàn xu</option>
+              <option value="su_dung_xu">Sử dụng xu</option>
+              <option value="tich_luy_don_hang">Tích lũy đơn hàng</option>
             </select>
           </div>
 
@@ -704,24 +707,7 @@
               <td class="py-4 px-6">
                 <span
                   class="px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide border"
-                  :class="{
-                    'bg-emerald-50 text-emerald-700 border-emerald-200':
-                      h.loaiGiaoDich === 'diem_danh',
-                    'bg-indigo-50 text-indigo-700 border-indigo-200':
-                      h.loaiGiaoDich === 'trung_vong_quay',
-                    'bg-amber-50 text-amber-700 border-amber-200':
-                      h.loaiGiaoDich === 'trung_lat_the',
-                    'bg-rose-50 text-rose-700 border-rose-200': h.loaiGiaoDich === 'phi_vong_quay',
-                    'bg-purple-50 text-purple-700 border-purple-200':
-                      h.loaiGiaoDich === 'doi_voucher',
-                    'bg-slate-100 text-slate-600 border-slate-200': ![
-                      'diem_danh',
-                      'trung_vong_quay',
-                      'trung_lat_the',
-                      'phi_vong_quay',
-                      'doi_voucher',
-                    ].includes(h.loaiGiaoDich),
-                  }"
+                  :class="getLoaiGiaoDichClass(h.loaiGiaoDich)"
                 >
                   {{ formatLoaiGiaoDich(h.loaiGiaoDich) }}
                 </span>
@@ -1348,7 +1334,6 @@ const paginatedRewards = computed(() => {
   const end = start + rewardPageSize.value
   return filteredRewards.value.slice(start, end)
 })
-
 const filteredHistory = computed(() => {
   return historyList.value.filter((h) => {
     const keyword = historySearchKeyword.value.toLowerCase().trim()
@@ -1363,7 +1348,9 @@ const filteredHistory = computed(() => {
       maKhachHang.includes(keyword) ||
       soDienThoai.includes(keyword)
 
-    const matchType = !selectedLoaiGiaoDich.value || h.loaiGiaoDich === selectedLoaiGiaoDich.value
+    const matchType =
+      !selectedLoaiGiaoDich.value ||
+      String(h.loaiGiaoDich || '').toLowerCase() === selectedLoaiGiaoDich.value.toLowerCase()
 
     let matchDate = true
     if (h.ngayTao) {
@@ -1433,6 +1420,8 @@ const viewHistoryDetail = (item) => {
 }
 
 const formatLoaiGiaoDich = (type) => {
+  if (!type) return 'Khác'
+  const key = String(type).toLowerCase()
   const map = {
     diem_danh: 'Điểm danh',
     phi_vong_quay: 'Phí vòng quay',
@@ -1440,8 +1429,34 @@ const formatLoaiGiaoDich = (type) => {
     trung_lat_the: 'Trúng lật thẻ',
     doi_voucher: 'Đổi voucher',
     trung_minigame: 'Trúng minigame',
+    hoan_xu: 'Hoàn xu',
+    su_dung_xu: 'Sử dụng xu',
+    tich_luy_don_hang: 'Tích lũy đơn hàng',
   }
-  return map[type] || type || 'Khác'
+  return map[key] || type
+}
+
+const getLoaiGiaoDichClass = (type) => {
+  const key = String(type || '').toLowerCase()
+  switch (key) {
+    case 'diem_danh':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    case 'trung_vong_quay':
+    case 'trung_minigame':
+      return 'bg-indigo-50 text-indigo-700 border-indigo-200'
+    case 'trung_lat_the':
+      return 'bg-amber-50 text-amber-700 border-amber-200'
+    case 'phi_vong_quay':
+    case 'su_dung_xu':
+      return 'bg-rose-50 text-rose-700 border-rose-200'
+    case 'doi_voucher':
+      return 'bg-purple-50 text-purple-700 border-purple-200'
+    case 'hoan_xu':
+    case 'tich_luy_don_hang':
+      return 'bg-blue-50 text-blue-700 border-blue-200'
+    default:
+      return 'bg-slate-100 text-slate-600 border-slate-200'
+  }
 }
 
 const formatDate = (dateStr) => {
