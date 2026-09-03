@@ -306,7 +306,7 @@ const user = computed(() => {
 const userMenus = computed(() => [
   {
     name: 'Thông tin tài khoản',
-    path: `/admin/khach-hang/edit/${user.value?.id || user.value?.idKhachHang || 1}`,
+    path: '/tai-khoan',
     icon: User,
   },
   {

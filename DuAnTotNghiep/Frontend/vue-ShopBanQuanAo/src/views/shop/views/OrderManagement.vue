@@ -826,7 +826,7 @@ const canChangeStatus = (current, target) => {
   const map = {
     cho_xac_nhan: ['da_xac_nhan', 'da_huy'],
     da_xac_nhan: ['cho_van_chuyen', 'da_huy'],
-    cho_van_chuyen: ['dang_giao', 'da_huy'],
+    cho_van_chuyen: ['dang_giao'],
     dang_giao: ['giao_thanh_cong', 'giao_that_bai'],
     giao_thanh_cong: ['hoan_thanh'],
   }

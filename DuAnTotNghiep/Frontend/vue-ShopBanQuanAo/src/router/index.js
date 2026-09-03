@@ -22,6 +22,26 @@ const router = createRouter({
       component: () => import('@/views/shop/forgot-password.vue'),
     },
     {
+      path: '/tin-tuc',
+      name: 'tinTuc',
+      component: () => import('@/views/shop/tin-tuc.vue'),
+    },
+    {
+      path: '/he-thong-cua-hang',
+      name: 'heThongCuaHang',
+      component: () => import('@/views/shop/he-thong-cua-hang.vue'),
+    },
+    {
+      path: '/lien-he',
+      name: 'lienHe',
+      component: () => import('@/views/shop/lien-he.vue'),
+    },
+    {
+      path: '/flash-sale',
+      name: 'flashSale',
+      component: () => import('@/views/shop/flash-sale.vue'),
+    },
+    {
       path: '/san-pham',
       name: 'sanPham',
       component: () => import('@/views/shop/sanpham.vue'),
@@ -46,6 +66,12 @@ const router = createRouter({
           path: 'yeuthich',
           name: 'yeuthich',
           component: () => import('@/views/shop/components/YeuThich.vue'),
+        },
+        {
+          path: 'tai-khoan',
+          name: 'taiKhoan',
+          component: () => import('@/views/shop/tai-khoan.vue'),
+          meta: { requiresAuth: true, roles: ['USERS', 'STAFF', 'ADMIN'] },
         },
         {
           path: 'thu-do',

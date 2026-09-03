@@ -29,7 +29,7 @@
       </div>
 
       <!-- STATISTICS -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <!-- Card 1: Tổng phiếu -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
@@ -66,7 +66,23 @@
           </div>
         </div>
 
-        <!-- Card 3: Đã dùng -->
+        <!-- Card 3: Sắp diễn ra -->
+        <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-slate-500 text-xs font-medium uppercase tracking-wider">Sắp diễn ra</p>
+              <h2 class="mt-1 text-2xl font-bold text-sky-600 font-mono">{{ upcomingCount }}</h2>
+              <p class="text-[10px] text-slate-400 mt-0.5">Chưa đến thời gian áp dụng</p>
+            </div>
+            <div
+              class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-lg text-sky-600"
+            >
+              ⏳
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Đã dùng -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
             <div>
@@ -82,7 +98,7 @@
           </div>
         </div>
 
-        <!-- Card 4: Còn lại -->
+        <!-- Card 5: Còn lại -->
         <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
           <div class="flex justify-between items-center">
             <div>
@@ -496,14 +512,18 @@
                 <td class="py-3.5 px-4 text-center">
                   <span
                     :class="[
-                      'inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full border',
-                      item.trangThai === 1
+                      'inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full border whitespace-nowrap',
+                      getVoucherStatus(item).key === 'active'
                         ? 'bg-green-100 text-green-700 border-green-200'
-                        : 'bg-red-100 text-red-700 border-red-200',
+                        : getVoucherStatus(item).key === 'upcoming'
+                          ? 'bg-sky-100 text-sky-700 border-sky-200'
+                          : getVoucherStatus(item).key === 'expired'
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-red-100 text-red-700 border-red-200',
                     ]"
                   >
                     <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
-                    {{ item.trangThai === 1 ? 'Đang diễn ra' : 'Ngừng hoạt động' }}
+                    {{ getVoucherStatus(item).label }}
                   </span>
                 </td>
                 <td class="py-3.5 px-4 text-center">
@@ -693,7 +713,35 @@ const confirmModal = ref({
 })
 
 const hasKeyword = computed(() => keyword.value.trim().length > 0)
-const activeCount = computed(() => vouchers.value.filter((i) => i.trangThai === 1).length)
+
+// Trạng thái hiển thị dựa trên cờ hoạt động + khoảng thời gian voucher.
+// Không thay đổi cấu trúc backend: trangThai vẫn chỉ là 0/1.
+const getVoucherStatus = (item) => {
+  if (Number(item.trangThai) !== 1) {
+    return { key: 'inactive', label: 'Ngừng hoạt động' }
+  }
+
+  const now = new Date()
+  const start = item.ngayBatDau ? new Date(item.ngayBatDau) : null
+  const end = item.ngayKetThuc ? new Date(item.ngayKetThuc) : null
+
+  if (start && !Number.isNaN(start.getTime()) && now < start) {
+    return { key: 'upcoming', label: 'Sắp diễn ra' }
+  }
+
+  if (end && !Number.isNaN(end.getTime()) && now > end) {
+    return { key: 'expired', label: 'Đã kết thúc' }
+  }
+
+  return { key: 'active', label: 'Đang diễn ra' }
+}
+
+const activeCount = computed(
+  () => vouchers.value.filter((i) => getVoucherStatus(i).key === 'active').length,
+)
+const upcomingCount = computed(
+  () => vouchers.value.filter((i) => getVoucherStatus(i).key === 'upcoming').length,
+)
 const usedQuantity = computed(() =>
   vouchers.value.reduce((s, i) => s + Number(i.soLuongDaDung || 0), 0),
 )

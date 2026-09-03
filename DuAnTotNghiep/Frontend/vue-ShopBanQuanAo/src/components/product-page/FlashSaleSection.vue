@@ -1,14 +1,15 @@
 <template>
-  <div class="w-full bg-[#f5f5f5] py-4 font-sans antialiased">
+  <div
+    v-if="loading || (processedProducts && processedProducts.length > 0)"
+    class="w-full bg-[#f5f5f5] py-4 font-sans antialiased"
+  >
     <section class="mx-auto max-w-[1480px] px-4 md:px-8">
-      <!-- Container Flash Sale đỏ đô -->
       <div class="relative w-full rounded-2xl bg-[#8B0000] p-3 shadow-2xl md:p-5">
-        <!-- HEADER SECTION -->
+        <!-- HEADER & BỘ ĐẾM NGƯỢC -->
         <div
           class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3"
         >
           <div class="flex flex-wrap items-center gap-2 md:gap-4">
-            <!-- Đếm thời gian 4 ô -->
             <div class="flex items-center gap-1 font-mono text-xs font-black text-white md:text-sm">
               <span
                 class="flex h-7 min-w-[28px] items-center justify-center rounded-md bg-white px-1.5 text-[#8B0000] shadow-sm md:h-8 md:min-w-[32px]"
@@ -35,7 +36,6 @@
               </span>
             </div>
 
-            <!-- Tiêu đề -->
             <div class="flex items-center gap-1.5">
               <Zap :size="24" class="animate-pulse fill-yellow-400 text-yellow-400" />
               <h2
@@ -45,15 +45,6 @@
               </h2>
             </div>
           </div>
-
-          <button
-            type="button"
-            class="flex items-center gap-1 rounded-full bg-black/40 px-3.5 py-1 text-xs font-semibold text-white transition hover:bg-black/60 md:px-4 md:py-1.5 md:text-sm"
-            @click="$emit('view-all')"
-          >
-            <span>Xem tất cả</span>
-            <ChevronRight :size="15" />
-          </button>
         </div>
 
         <!-- Nút Cuộn Trái -->
@@ -67,21 +58,13 @@
           <ChevronLeft :size="20" />
         </button>
 
-        <!-- KHỐI DỮ LIỆU ĐANG TẢI (SKELETON) -->
+        <!-- SKELETON LOADING -->
         <div v-if="loading" class="flex gap-3 overflow-hidden py-1">
           <div
             v-for="i in 5"
             :key="i"
             class="h-72 w-[200px] shrink-0 animate-pulse rounded-xl bg-white/20 p-3 sm:w-[225px]"
           ></div>
-        </div>
-
-        <!-- THÔNG BÁO KHI KHÔNG CÓ SP GIẢM GIÁ -->
-        <div
-          v-else-if="!processedProducts || processedProducts.length === 0"
-          class="flex h-36 items-center justify-center text-sm font-medium text-white/80"
-        >
-          Chưa có sản phẩm nào đang giảm giá trong đợt Flash Sale này.
         </div>
 
         <!-- DANH SÁCH SẢN PHẨM -->
@@ -96,6 +79,7 @@
             :key="item.id"
             class="group flex w-[200px] shrink-0 flex-col justify-between overflow-hidden rounded-xl bg-white p-3 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[225px]"
           >
+            <!-- Bấm khu vực thông tin để xem chi tiết -->
             <div class="cursor-pointer" @click="$emit('detail', item.id)">
               <!-- Ảnh sản phẩm -->
               <div class="relative aspect-square w-full overflow-hidden rounded-lg bg-zinc-50 p-1">
@@ -121,10 +105,10 @@
                 {{ item.tenSanPham }}
               </h3>
 
-              <!-- Cụm hiển thị Giá tiền chuẩn (Hiển thị Giá Min & % Giảm đồng bộ) -->
+              <!-- Cụm Giá tiền -->
               <div class="mt-2 flex min-h-[44px] flex-col justify-end">
                 <div
-                  v-if="item.originalPrice"
+                  v-if="item.originalPrice > item.minPrice"
                   class="mb-0.5 text-[11px] font-normal text-zinc-400 line-through leading-none"
                 >
                   {{ formatCurrency(item.originalPrice) }}
@@ -145,11 +129,11 @@
 
               <!-- Thanh tiến trình bán -->
               <div class="mt-3">
-                <div class="flex items-center gap-1 text-[11px] font-medium text-amber-600">
+                <div class="flex items-center gap-1 text-[11px] font-semibold text-amber-600">
                   <Flame :size="13" class="fill-amber-500 text-amber-500" />
                   <span>{{ item.statusText }}</span>
                 </div>
-                <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-red-100">
+                <div class="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-red-100">
                   <div
                     class="h-full rounded-full bg-gradient-to-r from-amber-400 to-red-600 transition-all duration-500"
                     :style="{ width: item.soldPercent + '%' }"
@@ -158,23 +142,27 @@
               </div>
             </div>
 
-            <!-- Footer Đánh giá & Yêu thích -->
-            <div
-              class="mt-3 flex items-center justify-between border-t border-zinc-100 pt-2 text-[11px] text-zinc-500"
-            >
-              <div class="flex items-center gap-1">
-                <span class="font-bold text-amber-500">{{ item.danhGia.toFixed(1) }}</span>
-                <Star :size="12" class="fill-amber-400 text-amber-400" />
-                <span class="text-zinc-400">({{ item.luotDanhGia }})</span>
-              </div>
+            <!-- FOOTER: NÚT TIM YÊU THÍCH & XEM NHANH -->
+            <div class="mt-3 flex items-center gap-2 border-t border-zinc-100 pt-2.5">
+              <button
+                type="button"
+                class="flex flex-1 items-center justify-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 py-1.5 text-[11px] font-semibold text-zinc-700 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
+                @click.stop="$emit('favorite', item.id)"
+              >
+                <Heart
+                  :size="14"
+                  :class="isFavorite(item.id) ? 'fill-rose-600 text-rose-600' : 'text-zinc-500'"
+                />
+                <span>{{ isFavorite(item.id) ? 'Đã thích' : 'Yêu thích' }}</span>
+              </button>
 
               <button
                 type="button"
-                class="flex items-center gap-1 text-zinc-600 transition hover:text-red-600"
-                @click.stop="$emit('favorite', item.id)"
+                class="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#df3440] py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-[#ce2d38] active:scale-95"
+                @click.stop="$emit('quick-view', item.id)"
               >
-                <Heart :size="14" />
-                <span>Yêu thích</span>
+                <Eye :size="14" />
+                <span>Xem nhanh</span>
               </button>
             </div>
           </article>
@@ -197,18 +185,18 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { Zap, ChevronLeft, ChevronRight, Flame, Star, Heart } from 'lucide-vue-next'
+import { Zap, ChevronLeft, ChevronRight, Flame, Heart, Eye } from 'lucide-vue-next'
 
 const props = defineProps({
   products: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
-  endTime: { type: [String, Number, Date], default: null },
+  endTime: { type: [String, Number, Date, Array], default: null },
   baseUrl: { type: String, default: 'http://localhost:8080' },
+  isFavorite: { type: Function, default: () => false },
 })
 
-defineEmits(['detail', 'favorite', 'view-all'])
+defineEmits(['detail', 'favorite', 'quick-view', 'view-all'])
 
-// Ép kiểu số an toàn
 const getNum = (val) => {
   if (val === null || val === undefined) return 0
   if (typeof val === 'number') return val
@@ -216,118 +204,58 @@ const getNum = (val) => {
   return isNaN(parsed) ? 0 : parsed
 }
 
-// Xử lý lấy ảnh từ SPCT
-const getProductImage = (item) => {
-  let imgPath = item?.image || item?.hinhAnh || item?.thumbnail || item?.urlAnh || ''
-
-  if (!imgPath && Array.isArray(item?.images) && item.images.length > 0) {
-    imgPath = item.images[0]
-  } else if (!imgPath && Array.isArray(item?.lstHinhAnh) && item.lstHinhAnh.length > 0) {
-    imgPath = item.lstHinhAnh[0]?.duongDan || item.lstHinhAnh[0]?.url || item.lstHinhAnh[0]
+const parseDate = (dateVal) => {
+  if (!dateVal) return null
+  if (typeof dateVal === 'number') return dateVal < 10000000000 ? dateVal * 1000 : dateVal
+  if (dateVal instanceof Date) return dateVal.getTime()
+  if (Array.isArray(dateVal)) {
+    const [y, m, d, h = 0, min = 0, s = 0] = dateVal
+    return new Date(y, m - 1, d, h, min, s).getTime()
   }
-
-  if (!imgPath) return ''
-  if (
-    imgPath.startsWith('http://') ||
-    imgPath.startsWith('https://') ||
-    imgPath.startsWith('data:')
-  ) {
-    return imgPath
-  }
-
-  const cleanBase = props.baseUrl ? props.baseUrl.replace(/\/$/, '') : ''
-  const cleanPath = imgPath.startsWith('/') ? imgPath : `/${imgPath}`
-  return cleanBase ? `${cleanBase}${cleanPath}` : cleanPath
+  const timeMs = new Date(dateVal).getTime()
+  return isNaN(timeMs) ? null : timeMs
 }
 
-// Khi đường dẫn ảnh bị lỗi (404), hiển thị ảnh mặc định thay vì làm ô trống
-const onImgError = (e) => {
-  e.target.src = 'https://via.placeholder.com/300x300?text=No+Image'
-}
-
-const formatCurrency = (val) => {
-  const num = getNum(val)
-  if (num <= 0) return 'Liên hệ'
-  return new Intl.NumberFormat('vi-VN').format(num) + 'đ'
-}
-// BÓC TÁCH DỮ LIỆU CHUẨN THEO API THỰC TẾ
-const processedProducts = computed(() => {
-  let rawList = []
-  if (Array.isArray(props.products)) {
-    rawList = props.products
-  } else if (props.products?.content) {
-    rawList = props.products.content
-  } else if (props.products?.data) {
-    rawList = props.products.data
+const targetEndTime = computed(() => {
+  if (props.endTime) {
+    const propTime = parseDate(props.endTime)
+    if (propTime && propTime > Date.now()) return propTime
   }
-
-  if (!rawList.length) return []
-
-  return rawList
-    .filter((item) => {
-      // Lọc các sản phẩm đang giảm giá
-      const pct = getNum(item.displayDiscountPercent || item.maxDiscountPercent)
-      return (
-        item.dangGiamGia === true ||
-        String(item.dangGiamGia) === 'true' ||
-        item.dangGiamGia === 1 ||
-        pct > 0
-      )
-    })
-    .map((item) => {
-      // Lấy giá bán thực tế và giá gốc từ API
-      const minPrice = getNum(item.minPrice || item.displayPrice)
-      const originalPrice = getNum(item.minOriginalPrice || item.originalPrice)
-      const discountPercent = getNum(item.displayDiscountPercent || item.maxDiscountPercent)
-
-      const totalSold = getNum(item.daBan || item.soLuongDaBan || 0)
-      const totalStock = getNum(item.soLuong || 0)
-
-      let statusText = 'Đang giảm giá'
-      let soldPercent = 25
-
-      if (totalSold > 0) {
-        statusText = `Đã bán: ${totalSold}`
-        const total = totalSold + totalStock
-        soldPercent = total > 0 ? Math.min(Math.round((totalSold / total) * 100), 100) : 50
-      } else if (totalStock > 0 && totalStock <= 10) {
-        statusText = 'Sắp cháy hàng'
-        soldPercent = 85
-      }
-
-      return {
-        id: item.id,
-        tenSanPham: item.tenSanPham || 'Sản phẩm',
-        image: getProductImage(item),
-        minPrice: minPrice,
-        originalPrice: originalPrice > minPrice ? originalPrice : 0,
-        discountPercent: discountPercent,
-        statusText: statusText,
-        soldPercent: soldPercent,
-        danhGia: getNum(item.danhGia || 5),
-        luotDanhGia: getNum(item.luotDanhGia || 0),
-      }
-    })
+  let rawList = Array.isArray(props.products)
+    ? props.products
+    : props.products?.content || props.products?.data || []
+  if (!rawList.length) return null
+  let maxTime = 0
+  rawList.forEach((item) => {
+    const endStr =
+      item?.ngayKetThuc ||
+      item?.variants?.[0]?.ngayKetThuc ||
+      item?.thoiGianKetThuc ||
+      item?.endTime
+    const timeMs = parseDate(endStr)
+    if (timeMs && timeMs > maxTime) maxTime = timeMs
+  })
+  return maxTime > Date.now() ? maxTime : null
 })
 
-// Đếm ngược Flash Sale
-const timer = ref({ days: '00', hours: '08', minutes: '22', seconds: '25' })
+const timer = ref({ days: '00', hours: '00', minutes: '00', seconds: '00' })
 let timerInterval = null
 
 const updateCountdown = () => {
-  if (!props.endTime) return
-  const diff = new Date(props.endTime).getTime() - new Date().getTime()
-  if (diff <= 0 || isNaN(diff)) {
+  if (!targetEndTime.value) {
+    timer.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+    return
+  }
+  const diff = targetEndTime.value - Date.now()
+  if (diff <= 0) {
     timer.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
     if (timerInterval) clearInterval(timerInterval)
     return
   }
-
   const d = Math.floor(diff / (1000 * 60 * 60 * 24))
   const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
   const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
   const s = Math.floor((diff % (1000 * 60)) / 1000)
-
   timer.value = {
     days: String(d).padStart(2, '0'),
     hours: String(h).padStart(2, '0'),
@@ -336,7 +264,144 @@ const updateCountdown = () => {
   }
 }
 
-// Cuộn danh sách
+const startTimer = () => {
+  if (timerInterval) clearInterval(timerInterval)
+  updateCountdown()
+  if (targetEndTime.value) timerInterval = setInterval(updateCountdown, 1000)
+}
+
+watch(
+  targetEndTime,
+  (newVal) => {
+    if (newVal) startTimer()
+    else {
+      if (timerInterval) clearInterval(timerInterval)
+      timer.value = { days: '00', hours: '00', minutes: '00', seconds: '00' }
+    }
+  },
+  { immediate: true },
+)
+
+const extractSoldAndStock = (item) => {
+  let sold = 0,
+    stock = 0
+  if (Array.isArray(item.variants) && item.variants.length > 0) {
+    item.variants.forEach((v) => {
+      sold += getNum(v.soLuongDaBan ?? v.daBan ?? 0)
+      stock += getNum(v.soLuongKhaDung ?? v.soLuongTon ?? v.soLuong ?? 0)
+    })
+  } else {
+    sold = getNum(item.soLuongDaBan ?? item.daBan ?? 0)
+    stock = getNum(item.soLuongKhaDung ?? item.soLuongTon ?? item.soLuong ?? 0)
+  }
+  return { sold, stock }
+}
+
+const getProductImage = (item) => {
+  let imgPath = item?.image || item?.hinhAnh || item?.thumbnail || ''
+  if (!imgPath && Array.isArray(item?.images) && item.images.length > 0) imgPath = item.images[0]
+  if (!imgPath) return ''
+  if (
+    imgPath.startsWith('http://') ||
+    imgPath.startsWith('https://') ||
+    imgPath.startsWith('data:')
+  )
+    return imgPath
+  const cleanBase = props.baseUrl ? props.baseUrl.replace(/\/$/, '') : ''
+  const cleanPath = imgPath.startsWith('/') ? imgPath : `/${imgPath}`
+  return cleanBase ? `${cleanBase}${cleanPath}` : cleanPath
+}
+
+const onImgError = (e) => {
+  e.target.src = 'https://via.placeholder.com/300x300?text=No+Image'
+}
+
+const formatCurrency = (val) => {
+  const num = getNum(val)
+  return num <= 0 ? '0đ' : new Intl.NumberFormat('vi-VN').format(num) + 'đ'
+}
+
+const processedProducts = computed(() => {
+  let rawList = Array.isArray(props.products)
+    ? props.products
+    : props.products?.content || props.products?.data || []
+  if (!rawList.length) return []
+  const groupMap = new Map()
+
+  rawList.forEach((spct) => {
+    const pct = getNum(spct.phanTramGiam ?? spct.displayDiscountPercent ?? spct.maxDiscountPercent)
+    const isSale =
+      spct.dangGiamGia === true ||
+      String(spct.dangGiamGia) === 'true' ||
+      spct.dangGiamGia === 1 ||
+      pct > 0
+    if (!isSale) return
+
+    const productId = spct.idSanPham || spct.id
+    if (!productId) return
+
+    const salePrice = getNum(spct.giaSauGiam ?? spct.minPrice ?? spct.displayPrice ?? spct.giaBan)
+    const origPrice = getNum(spct.giaBan ?? spct.minOriginalPrice ?? spct.originalPrice)
+    const currentImg = getProductImage(spct)
+    const { sold, stock } = extractSoldAndStock(spct)
+
+    if (!groupMap.has(productId)) {
+      groupMap.set(productId, {
+        id: productId,
+        tenSanPham: spct.tenSanPham || 'Sản phẩm',
+        image: currentImg,
+        minPrice: salePrice,
+        originalPrice: origPrice > salePrice ? origPrice : 0,
+        discountPercent: pct,
+        totalSold: sold,
+        totalStock: stock,
+        ngayKetThuc: spct.ngayKetThuc || spct.variants?.[0]?.ngayKetThuc,
+        rawItem: spct,
+      })
+    } else {
+      const group = groupMap.get(productId)
+      if (!group.image && currentImg) group.image = currentImg
+      if (salePrice > 0 && salePrice < group.minPrice) {
+        group.minPrice = salePrice
+        group.originalPrice = origPrice > salePrice ? origPrice : 0
+        group.discountPercent = pct
+      }
+      group.totalSold += sold
+      group.totalStock += stock
+    }
+  })
+
+  return Array.from(groupMap.values()).map((group) => {
+    const total = group.totalSold + group.totalStock
+    let soldPercent = total > 0 ? Math.min(Math.round((group.totalSold / total) * 100), 100) : 0
+    let statusText = `Đã bán ${group.totalSold}`
+    if (group.totalSold === 0) {
+      if (group.totalStock > 0 && group.totalStock <= 10) {
+        statusText = 'Sắp cháy hàng'
+        soldPercent = 85
+      } else {
+        statusText = 'Vừa mở bán'
+        soldPercent = 10
+      }
+    } else {
+      soldPercent = Math.max(soldPercent, 15)
+    }
+
+    return {
+      id: group.id,
+      tenSanPham: group.tenSanPham,
+      image: group.image,
+      minPrice: group.minPrice,
+      originalPrice: group.originalPrice,
+      discountPercent: group.discountPercent,
+      statusText: statusText,
+      soldPercent: soldPercent,
+      ngayKetThuc: group.ngayKetThuc,
+      rawItem: group.rawItem,
+    }
+  })
+})
+
 const scrollContainer = ref(null)
 const isAtStart = ref(true)
 const isAtEnd = ref(false)
@@ -344,10 +409,7 @@ const hasOverflow = ref(false)
 
 const scroll = (direction) => {
   if (!scrollContainer.value) return
-  scrollContainer.value.scrollBy({
-    left: direction === 'left' ? -460 : 460,
-    behavior: 'smooth',
-  })
+  scrollContainer.value.scrollBy({ left: direction === 'left' ? -460 : 460, behavior: 'smooth' })
 }
 
 const updateScrollStatus = () => {
@@ -358,17 +420,9 @@ const updateScrollStatus = () => {
   isAtEnd.value = scrollLeft + clientWidth >= scrollWidth - 5
 }
 
-watch(
-  () => props.products,
-  () => nextTick(updateScrollStatus),
-  { deep: true },
-)
+watch(processedProducts, () => nextTick(updateScrollStatus), { immediate: true })
 
 onMounted(() => {
-  if (props.endTime) {
-    updateCountdown()
-    timerInterval = setInterval(updateCountdown, 1000)
-  }
   nextTick(() => {
     updateScrollStatus()
     window.addEventListener('resize', updateScrollStatus)

@@ -3,6 +3,8 @@ package com.example.backend.Response;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -54,4 +56,8 @@ public class SanPhamChiTietResponse {
     private Boolean dangGiamGia;
 
     private String moTa;
+
+    private Integer soLuongDaBan;
+
+    private Instant ngayKetThuc;
 }

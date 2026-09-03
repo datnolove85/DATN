@@ -73,11 +73,12 @@
               <div class="product-item" v-for="sp in order.sanPham" :key="sp.idHoaDonChiTiet">
                 <el-checkbox :value="sp.idSanPham" class="product-checkbox" />
 
+                <!-- Dòng 69 trong file donhang.vue -->
                 <img
                   :src="imageUrl(sp.anh)"
                   :alt="sp.tenSanPham"
                   class="product-image cursor-pointer hover:opacity-80 transition"
-                  @click="goToProductDetail(sp.idSanPhamChiTiet)"
+                  @click="goToProductDetail(sp)"
                   @error="$event.target.src = 'https://placehold.co/80x80?text=No+Image'"
                 />
 
@@ -835,17 +836,25 @@ const handlePayOrder = (order) => {
   })
 }
 
-function goToProductDetail(id) {
-  if (!id) return
+// Dòng 408 trong file donhang.vue
+function goToProductDetail(sp) {
+  if (!sp) return
+
+  // Lấy ID sản phẩm (Ưu tiên idSanPham để đến trang chi tiết sản phẩm gốc)
+  const productId = sp.idSanPham || sp.idChiTietSanPham || sp.idSanPhamChiTiet
+
+  if (!productId) {
+    toast.error('Không tìm thấy thông tin sản phẩm!')
+    return
+  }
 
   router.push({
-    name: 'confirmbuy',
+    name: 'confirmbuy', // Lưu ý: Kiểm tra name này có đúng với router/index.js của bạn không
     params: {
-      id: id,
+      id: productId,
     },
   })
 }
-
 function money(value) {
   if (value == null) return '0 ₫'
   return Number(value).toLocaleString('vi-VN') + ' ₫'

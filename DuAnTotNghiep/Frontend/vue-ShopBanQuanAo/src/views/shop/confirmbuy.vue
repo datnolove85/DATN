@@ -506,12 +506,16 @@
       <!-- =====================================================
            SAME CATEGORY
       ====================================================== -->
+      <!-- =====================================================
+     SAME CATEGORY & OUTFIT SUGGESTIONS
+====================================================== -->
       <section v-if="sameCategoryProducts.length > 0" class="mt-8">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-[18px] sm:text-[20px] font-bold text-[#111] uppercase tracking-wide">
-            Sản phẩm liên quan
+            Sản phẩm liên quan & Gợi ý phối đồ
           </h2>
         </div>
+        <!-- Giữ nguyên phần Slider bên dưới -->
 
         <div class="relative group/slider">
           <button
@@ -1043,15 +1047,54 @@ const toggleFavorite = async (item) => {
   }
 }
 
-const getColorStyle = (name) => {
-  const lower = (name || '').toLowerCase()
+const getColorStyle = (colorObjOrName) => {
+  // Lấy tên màu hoặc mã hex nếu dữ liệu truyền vào là Object
+  const name =
+    typeof colorObjOrName === 'object'
+      ? colorObjOrName?.name || colorObjOrName?.tenMauSac || ''
+      : colorObjOrName || ''
+
+  const hex =
+    typeof colorObjOrName === 'object'
+      ? colorObjOrName?.hex || colorObjOrName?.maMau || colorObjOrName?.maMauHex
+      : null
+
+  // Ưu tiên dùng mã HEX nếu Backend có trả về mã màu chuẩn
+  if (hex && /^#([0-9A-F]{3}){1,2}$/i.test(hex)) return hex
+  if (/^#([0-9A-F]{3}){1,2}$/i.test(name.trim())) return name.trim()
+
+  const lower = name.toLowerCase().trim()
+
+  // Bảng tra cứu tên màu tiếng Việt & tiếng Anh mở rộng
+  if (
+    lower.includes('nâu') ||
+    lower.includes('cà phê') ||
+    lower.includes('coffee') ||
+    lower.includes('brown')
+  )
+    return '#5c3a21'
+  if (lower.includes('đen') || lower.includes('black')) return '#18181b'
   if (lower.includes('trắng') || lower.includes('white')) return '#ffffff'
-  if (lower.includes('đỏ') || lower.includes('red')) return '#ef4444'
-  if (lower.includes('vàng') || lower.includes('yellow')) return '#facc15'
-  if (lower.includes('đen') || lower.includes('black')) return '#111827'
-  if (lower.includes('xám') || lower.includes('gray')) return '#9ca3af'
-  if (lower.includes('xanh') || lower.includes('blue')) return '#3b82f6'
-  return '#e5e7eb'
+  if (lower.includes('kem') || lower.includes('beige') || lower.includes('sữa')) return '#f3ebd9'
+  if (
+    lower.includes('xám') ||
+    lower.includes('ghi') ||
+    lower.includes('gray') ||
+    lower.includes('grey')
+  )
+    return '#6b7280'
+  if (lower.includes('xanh đen') || lower.includes('navy') || lower.includes('xanh đậm'))
+    return '#1e293b'
+  if (lower.includes('xanh lá') || lower.includes('rêu') || lower.includes('green'))
+    return '#15803d'
+  if (lower.includes('xanh') || lower.includes('blue')) return '#2563eb'
+  if (lower.includes('đỏ') || lower.includes('red') || lower.includes('mận')) return '#dc2626'
+  if (lower.includes('hồng') || lower.includes('pink')) return '#ec4899'
+  if (lower.includes('cam') || lower.includes('orange')) return '#f97316'
+  if (lower.includes('vàng') || lower.includes('yellow')) return '#eab308'
+  if (lower.includes('tím') || lower.includes('purple')) return '#8b5cf6'
+
+  return '#d1d5db'
 }
 
 const getVariantStock = (variant) => {
@@ -1129,12 +1172,82 @@ const shopProducts = computed(() => {
   return Object.values(groups)
 })
 
+// Hàm kiểm tra và gợi ý danh mục phối đồ phù hợp (Mix & Match)
+const isComplementaryCategory = (currentCat = '', targetCat = '') => {
+  const current = currentCat.toLowerCase()
+  const target = targetCat.toLowerCase()
+
+  const isUpper =
+    current.includes('áo') ||
+    current.includes('shirt') ||
+    current.includes('top') ||
+    current.includes('polo') ||
+    current.includes('hoodie') ||
+    current.includes('khoác')
+  const isLower =
+    current.includes('quần') ||
+    current.includes('váy') ||
+    current.includes('pant') ||
+    current.includes('short') ||
+    current.includes('jean')
+
+  // Nếu là Áo thì gợi ý Quần/Váy
+  if (isUpper) {
+    return (
+      target.includes('quần') ||
+      target.includes('váy') ||
+      target.includes('pant') ||
+      target.includes('short') ||
+      target.includes('jean')
+    )
+  }
+  // Nếu là Quần/Váy thì gợi ý Áo
+  if (isLower) {
+    return (
+      target.includes('áo') ||
+      target.includes('shirt') ||
+      target.includes('top') ||
+      target.includes('polo') ||
+      target.includes('hoodie') ||
+      target.includes('khoác')
+    )
+  }
+
+  return false
+}
+
+// Danh sách sản phẩm hiển thị: Cùng danh mục + Gợi ý phối đồ + Sản phẩm khác
 const sameCategoryProducts = computed(() => {
-  const currentCategory = selectedVariant.value?.tenDanhMuc
-  if (!currentCategory) return []
-  return shopProducts.value.filter(
-    (item) => item.tenDanhMuc === currentCategory && item.idSanPham !== Number(route.params.id),
+  const currentCategory = selectedVariant.value?.tenDanhMuc || ''
+  const currentId = Number(route.params.id)
+
+  if (!shopProducts.value.length) return []
+
+  // 1. Ưu tiên 1: Sản phẩm CÙNG DANH MỤC
+  const sameCat = shopProducts.value.filter(
+    (item) => item.tenDanhMuc === currentCategory && item.idSanPham !== currentId,
   )
+
+  // Nếu đã có đủ nhiều (ví dụ >= 6 sản phẩm), trả về luôn
+  if (sameCat.length >= 6) {
+    return sameCat
+  }
+
+  const chosenIds = new Set(sameCat.map((item) => item.idSanPham))
+  chosenIds.add(currentId)
+
+  // 2. Ưu tiên 2: Sản phẩm GỢI Ý PHỐI ĐỒ (Khác danh mục nhưng hợp kiểu)
+  const complementary = shopProducts.value.filter((item) => {
+    if (chosenIds.has(item.idSanPham)) return false
+    return isComplementaryCategory(currentCategory, item.tenDanhMuc)
+  })
+
+  complementary.forEach((item) => chosenIds.add(item.idSanPham))
+
+  // 3. Ưu tiên 3: Nếu vẫn thiếu để lấp đầy thanh trượt, lấy thêm các SP khác trong shop
+  const remaining = shopProducts.value.filter((item) => !chosenIds.has(item.idSanPham))
+
+  return [...sameCat, ...complementary, ...remaining]
 })
 
 const scrollSlider = (direction) => {

@@ -1,4 +1,5 @@
 
+
 CREATE DATABASE datnolove;
 GO
 
@@ -326,12 +327,13 @@ CREATE TABLE san_pham (
 );
 GO
 
+
 CREATE TABLE san_pham_chi_tiet (
     id INT IDENTITY(1,1) PRIMARY KEY,
     id_san_pham INT NOT NULL,
     id_mau_sac INT NOT NULL,
     id_kich_thuoc INT NOT NULL,
-    ma_san_pham_chi_tiet VARCHAR(200) NOT NULL UNIQUE,
+    ma_san_pham_chi_tiet VARCHAR(30) NOT NULL UNIQUE,
     ten_san_pham_chi_tiet NVARCHAR(200),
     gia_nhap DECIMAL(18,2) NOT NULL CHECK (gia_nhap >= 0),
     gia_ban DECIMAL(18,2) NOT NULL CHECK (gia_ban >= 0),
@@ -555,57 +557,6 @@ CREATE TABLE lich_su_minigame (
 );
 GO
 
-CREATE TABLE yeu_thich (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    id_khach_hang INT NOT NULL,
-    id_san_pham INT NOT NULL,
-    ngay_tao DATETIME DEFAULT GETDATE(),
-    
-    -- Khóa ngoại liên kết với bảng khách hàng và sản phẩm hiện tại
-    CONSTRAINT fk_yeu_thich_khach_hang FOREIGN KEY (id_khach_hang) REFERENCES khach_hang(id) ON DELETE CASCADE,
-    CONSTRAINT fk_yeu_thich_san_pham FOREIGN KEY (id_san_pham) REFERENCES san_pham(id) ON DELETE CASCADE,
-    
-    -- Đảm bảo 1 khách hàng không thể thích trùng 1 sản phẩm nhiều lần
-    CONSTRAINT uq_khach_hang_san_pham UNIQUE (id_khach_hang, id_san_pham)
-);
-GO
-
-IF OBJECT_ID('dbo.chat_conversation', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.chat_conversation (
-        id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        id_khach_hang INT NOT NULL,
-        id_nhan_vien INT NULL,
-        trang_thai NVARCHAR(20) NOT NULL CONSTRAINT DF_chat_conversation_status DEFAULT N'OPEN',
-        ngay_tao DATETIME2 NOT NULL CONSTRAINT DF_chat_conversation_created DEFAULT SYSUTCDATETIME(),
-        ngay_cap_nhat DATETIME2 NOT NULL CONSTRAINT DF_chat_conversation_updated DEFAULT SYSUTCDATETIME(),
-        tin_nhan_cuoi_luc DATETIME2 NULL,
-        CONSTRAINT UQ_chat_conversation_customer UNIQUE (id_khach_hang),
-        CONSTRAINT FK_chat_conversation_customer FOREIGN KEY (id_khach_hang) REFERENCES dbo.khach_hang(id),
-        CONSTRAINT FK_chat_conversation_staff FOREIGN KEY (id_nhan_vien) REFERENCES dbo.tai_khoan(id)
-    );
-END
-GO
-
-IF OBJECT_ID('dbo.chat_message', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.chat_message (
-        id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        id_conversation INT NOT NULL,
-        id_nguoi_gui INT NOT NULL,
-        id_nguoi_nhan INT NULL,
-        noi_dung NVARCHAR(4000) NOT NULL,
-        loai NVARCHAR(20) NOT NULL CONSTRAINT DF_chat_message_type DEFAULT N'TEXT',
-        da_doc BIT NOT NULL CONSTRAINT DF_chat_message_read DEFAULT 0,
-        thoi_gian DATETIME2 NOT NULL CONSTRAINT DF_chat_message_time DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT FK_chat_message_conversation FOREIGN KEY (id_conversation) REFERENCES dbo.chat_conversation(id),
-        CONSTRAINT FK_chat_message_sender FOREIGN KEY (id_nguoi_gui) REFERENCES dbo.tai_khoan(id),
-        CONSTRAINT FK_chat_message_receiver FOREIGN KEY (id_nguoi_nhan) REFERENCES dbo.tai_khoan(id)
-    );
-    CREATE INDEX IX_chat_message_conversation_time ON dbo.chat_message(id_conversation, thoi_gian);
-    CREATE INDEX IX_chat_message_receiver_read ON dbo.chat_message(id_nguoi_nhan, da_doc);
-END
-GO
 
 -- =========================================
 -- PHẦN INSERT DỮ LIỆU MẪU (SEED DATA)
@@ -767,7 +718,6 @@ INSERT INTO san_pham_chi_tiet (id_san_pham, id_mau_sac, id_kich_thuoc, ma_san_ph
 (2, 3, 2, 'SPCT04', N'Áo Sơ Mi Nam - Xanh Navy / M', 150000, 250000, 25, 0, 1);
 GO
 
-
 -- Chèn phần thưởng mẫu cho Vòng quay may mắn
 INSERT INTO phan_thuong_minigame (ten_phan_thuong, loai_game, loai_phan_thuong, gia_tri_xu, id_voucher, ty_le_trung, so_luong_gioi_han, so_luong_da_trung, trang_thai) VALUES
 (N'10 Xu May Mắn', 'vong_quay', 'xu', 10, NULL, 40.00, -1, 0, 1),
@@ -777,27 +727,16 @@ INSERT INTO phan_thuong_minigame (ten_phan_thuong, loai_game, loai_phan_thuong, 
 GO
 
 use datnolove
-
-select * from hoa_don_chi_tiet
-select * from san_pham_chi_tiet
-select * from thanh_toan
 select * from hoa_don
-select * from lich_su_hoa_don
+
+select * from thanh_toan
 select * from hoa_don_voucher
 select * from lich_su_xu
-
 select * from lich_su_hoa_don
 select * from phan_thuong_minigame
-
 select * from voucher_cua_khach_hang
-select * from dia_chi_khach_hang
-
 select * from cau_hinh_he_thong
 select * from cau_hinh_hang_thanh_vien
 
 select * from tai_khoan
 select * from khach_hang
-select * from nhan_vien
-
-select * from voucher_minigame
-select * from yeu_thich

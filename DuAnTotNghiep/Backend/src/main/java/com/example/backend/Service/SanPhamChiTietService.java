@@ -203,27 +203,32 @@ public class SanPhamChiTietService {
     //Get All Spct
     public List<SanPhamChiTietResponse> getAllSpct() {
 
-        List<SanPhamChiTiet> spcts =
-                sanPhamChiTietRepository.findAllDangKinhDoanh();
+        List<SanPhamChiTiet> spcts = sanPhamChiTietRepository.findAllDangKinhDoanh();
 
+        // 1. Map hình ảnh
         Map<Integer, String> imageMap = new HashMap<>();
+        for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
+            imageMap.put((Integer) obj[0], (String) obj[1]);
+        }
 
-        // 1. Tối ưu: Chỉ gọi DB 1 lần & xử lý chống crash khi trùng key
+        // 2. Map Đợt giảm giá
         Map<Integer, DotGiamGia> giamGiaMap =
                 sanPhamGiamGiaRepository.findAllDangGiamGia()
                         .stream()
                         .collect(Collectors.toMap(
                                 x -> x.getSanPhamChiTiet().getId(),
                                 SanPhamGiamGia::getDotGiamGia,
-                                (existing, replacement) -> existing // Nếu trùng thì lấy cái đầu tiên
+                                (existing, replacement) -> existing
                         ));
 
-        for (Object[] obj : sanPhamChiTietRepository.getAllImages()) {
-            Integer id = (Integer) obj[0];
-            String link = (String) obj[1];
-
-            imageMap.put(id, link);
-        }
+        // 3. Tối ưu: Lấy số lượng đã bán từ Hóa đơn (Chỉ gọi DB 1 lần)
+        Map<Integer, Integer> soldMap = hoaDonChiTietRepository.getSoLuongDaBanMap()
+                .stream()
+                .collect(Collectors.toMap(
+                        obj -> (Integer) obj[0],
+                        obj -> obj[1] != null ? ((Number) obj[1]).intValue() : 0,
+                        (existing, replacement) -> existing
+                ));
 
         return spcts.stream().map(spct -> {
 
@@ -231,60 +236,32 @@ public class SanPhamChiTietService {
 
             res.setId(spct.getId());
 
-            // sản phẩm
+            // Sản phẩm
             res.setIdSanPham(spct.getIdSanPham().getId());
-            res.setTenSanPham(
-                    spct.getIdSanPham().getTenSanPham()
-            );
+            res.setTenSanPham(spct.getIdSanPham().getTenSanPham());
 
-            // danh mục
-            res.setTenDanhMuc(
-                    spct.getIdSanPham()
-                            .getIdDanhMuc()
-                            .getTenDanhMuc()
-            );
+            // Danh mục, Thương hiệu, Chất liệu
+            res.setTenDanhMuc(spct.getIdSanPham().getIdDanhMuc().getTenDanhMuc());
+            res.setTenThuongHieu(spct.getIdSanPham().getIdThuongHieu().getTenThuongHieu());
+            res.setTenChatLieu(spct.getIdSanPham().getIdChatLieu().getTenChatLieu());
 
-            // thương hiệu
-            res.setTenThuongHieu(
-                    spct.getIdSanPham()
-                            .getIdThuongHieu()
-                            .getTenThuongHieu()
-            );
-
-            // chất liệu
-            res.setTenChatLieu(
-                    spct.getIdSanPham()
-                            .getIdChatLieu()
-                            .getTenChatLieu()
-            );
-
-            // màu sắc
+            // Màu sắc, Kích thước
             res.setIdMauSac(spct.getIdMauSac().getId());
-            res.setTenMauSac(
-                    spct.getIdMauSac().getTenMauSac()
-            );
-
-            // kích thước
+            res.setTenMauSac(spct.getIdMauSac().getTenMauSac());
             res.setIdKichThuoc(spct.getIdKichThuoc().getId());
-            res.setTenKichThuoc(
-                    spct.getIdKichThuoc().getTenKichThuoc()
-            );
+            res.setTenKichThuoc(spct.getIdKichThuoc().getTenKichThuoc());
 
-            // thông tin SPCT
-            res.setMaSanPhamChiTiet(
-                    spct.getMaSanPhamChiTiet()
-            );
-
-            res.setTenSanPhamChiTiet(
-                    spct.getTenSanPhamChiTiet()
-            );
-
+            // Thông tin cơ bản
+            res.setMaSanPhamChiTiet(spct.getMaSanPhamChiTiet());
+            res.setTenSanPhamChiTiet(spct.getTenSanPhamChiTiet());
             res.setGiaNhap(spct.getGiaNhap());
             res.setGiaBan(spct.getGiaBan());
             res.setMoTa(spct.getIdSanPham().getMoTa());
 
+            // Gán Số lượng đã bán
+            res.setSoLuongDaBan(soldMap.getOrDefault(spct.getId(), 0));
 
-            // Tính giá giảm
+            // Tính giá giảm & Thời gian kết thúc
             DotGiamGia dot = giamGiaMap.get(spct.getId());
 
             if (dot != null) {
@@ -316,15 +293,17 @@ public class SanPhamChiTietService {
                 }
 
                 res.setDangGiamGia(true);
+                res.setNgayKetThuc(dot.getNgayKetThuc()); // Gán thời gian kết thúc đợt giảm giá
 
             } else {
 
                 res.setGiaSauGiam(spct.getGiaBan());
                 res.setDangGiamGia(false);
+                res.setNgayKetThuc(null);
 
             }
 
-            // === 2. BỔ SUNG SỐ LƯỢNG TẠM GIỮ & KHẢ DỤNG ===
+            // Số lượng tồn & Khả dụng
             int ton = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
             int tamGiu = spct.getSoLuongTamGiu() != null ? spct.getSoLuongTamGiu() : 0;
 
@@ -332,13 +311,10 @@ public class SanPhamChiTietService {
             res.setSoLuongTamGiu(tamGiu);
             res.setSoLuongKhaDung(Math.max(0, ton - tamGiu));
 
-            res.setTrangThai(
-                    spct.getTrangThai()
-            );
+            res.setTrangThai(spct.getTrangThai());
 
-            // ảnh
+            // Hình ảnh
             String image = imageMap.get(spct.getId());
-
             res.setImages(
                     image == null
                             ? List.of()

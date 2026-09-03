@@ -166,5 +166,10 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             @Param("loaiHoaDon") String loaiHoaDon
     );
 
-
+    // Lấy danh sách [idSpct, tongSoLuongDaBan] từ các hóa đơn đã hoàn thành (Trạng thái = COMPLETED/PAID)
+    @Query("SELECT hdct.idSanPhamChiTiet.id, SUM(hdct.soLuong) " +
+            "FROM HoaDonChiTiet hdct " +
+            "WHERE hdct.idHoaDon.trangThai = 'hoan_thanh' " + // Bổ sung điều kiện trạng thái hóa đơn của bạn
+            "GROUP BY hdct.idSanPhamChiTiet.id")
+    List<Object[]> getSoLuongDaBanMap();
 }

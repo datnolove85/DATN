@@ -417,12 +417,12 @@
                                 >
                                   Sửa
                                 </button>
-                                <button
+                                <!-- <button
                                   @click="removeSPCT(spct.id)"
                                   class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[10px] font-bold transition-colors"
                                 >
                                   Xóa
-                                </button>
+                                </button> -->
                               </div>
                             </td>
                           </tr>

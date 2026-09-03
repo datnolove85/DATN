@@ -1,138 +1,129 @@
 <template>
-  <div class="min-h-screen bg-white text-slate-950">
-    <!-- Header -->
+  <div class="min-h-screen bg-slate-50 text-slate-950 font-sans">
+    <!-- 1. HEADER -->
     <Header v-model="filters.keyword" />
 
-    <!-- Danh mục sản phẩm -->
-    <CategorySection
-      :categories="dynamicFilters[0]?.options || []"
-      :active-categories="filters.categories"
-      :total-count="stats.products"
-      @toggle="toggleQuickCategory"
-      @clear="filters.categories.splice(0)"
+    <!-- CONTAINER CHÍNH CHỨA CÁC SECTION (Khoảng cách đồng bộ, hiện đại) -->
+    <main class="space-y-4 md:space-y-6 pb-12">
+      <!-- 2. HERO BANNER (Đặt lên đầu trang chuẩn UX) -->
+      <HeroBanner :stats="stats" />
+
+      <!-- 3. DANH MỤC SẢN PHẨM NỔI BẬT -->
+      <CategorySection
+        :categories="dynamicFilters[0]?.options || []"
+        :active-categories="filters.categories"
+        :total-count="stats.products"
+        @toggle="toggleQuickCategory"
+        @clear="filters.categories.splice(0)"
+      />
+
+      <!-- 4. FLASH SALE SECTION -->
+      <FlashSaleSection
+        :products="visibleProducts"
+        :end-time="visibleProducts[0]?.ngayKetThuc"
+        :loading="loading"
+        :image-url="imageUrl"
+        :handle-image-error="handleImageError"
+        :price-label="priceLabel"
+        :is-favorite="(id) => favoriteIds.includes(Number(id))"
+        @detail="goToDetail"
+        @favorite="toggleFavorite"
+        @view-all="handleViewAll"
+        @quick-view="handleQuickView"
+      />
+
+      <!-- 5. TOP SẢN PHẨM BÁN CHẠY (Đã bổ sung đầy đủ props Yêu thích & Xem nhanh) -->
+      <TopProductsSection
+        :products="visibleProducts"
+        :categories="dynamicFilters[0]?.options || []"
+        :image-url="imageUrl"
+        :handle-image-error="handleImageError"
+        :price-label="priceLabel"
+        :is-favorite="(id) => favoriteIds.includes(Number(id))"
+        @detail="goToDetail"
+        @favorite="toggleFavorite"
+        @quick-view="handleQuickView"
+      />
+
+      <!-- 6. THƯƠNG HIỆU ĐỒNG HÀNH -->
+      <BrandSection
+        :brands="brandOptions"
+        :selected-brand="filters.brands"
+        :loading="loading"
+        @select-brand="handleSelectBrand"
+      />
+
+      <!-- 7. THỜI TRANG HOT TREND -->
+      <FashionSection
+        title="THỜI TRANG HOT TREND"
+        :products="visibleProducts"
+        :loading="loading"
+        :image-url="imageUrl"
+        :handle-image-error="handleImageError"
+        :price-label="priceLabel"
+        :format-price="formatPrice"
+        :is-favorite="(id) => favoriteIds.includes(Number(id))"
+        @change-category="fetchProductsByApiCategory"
+        @detail="goToDetail"
+        @favorite="toggleFavorite"
+        @quick-view="handleQuickView"
+      />
+    </main>
+
+    <!-- MODAL XEM NHANH -->
+    <QuickViewModal
+      v-if="isQuickViewOpen"
+      :product-id="selectedProductId"
+      @close="isQuickViewOpen = false"
     />
 
-    <!-- FLASH SALE SECTION -->
-    <FlashSaleSection
-      :products="visibleProducts"
-      :loading="loading"
-      :image-url="imageUrl"
-      :handle-image-error="handleImageError"
-      :price-label="priceLabel"
-      @detail="goToDetail"
-      @favorite="toggleFavorite"
-      @view-all="handleViewAll"
-    />
-
-    <!-- HERO BANNER -->
-    <HeroBanner :stats="stats" />
-
-    <!-- THƯƠNG HIỆU -->
-    <!-- THƯƠNG HIỆU -->
-    <BrandSection
-      :brands="brandOptions"
-      :selected-brand="filters.brands"
-      :loading="loading"
-      @select-brand="handleSelectBrand"
-    />
-
-    <!-- COMPONENT TOP SẢN PHẨM BÁN CHẠY + BANNER SALE SỐC -->
-    <TopProductsSection
-      :products="visibleProducts"
-      :image-url="imageUrl"
-      :handle-image-error="handleImageError"
-      :price-label="priceLabel"
-      @detail="goToDetail"
-      @favorite="toggleFavorite"
-    />
-
-    <!-- THỜI TRANG HOT TREND -->
-    <FashionSection
-      title="THỜI TRANG HOT TREND"
-      :products="visibleProducts"
-      :loading="loading"
-      :image-url="imageUrl"
-      :handle-image-error="handleImageError"
-      :price-label="priceLabel"
-      :format-price="formatPrice"
-      @change-category="fetchProductsByApiCategory"
-      @detail="goToDetail"
-      @favorite="toggleFavorite"
-    />
-
+    <!-- FOOTER -->
     <Footer />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { SlidersHorizontal, X } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
 import Header from '@/components/product-page/Header.vue'
 import HeroBanner from '@/components/product-page/HeroBanner.vue'
 import CategorySection from '@/components/product-page/CategorySection.vue'
 import FlashSaleSection from '@/components/product-page/FlashSaleSection.vue'
 import TopProductsSection from '@/components/product-page/TopProductsSection.vue'
-import FilterSidebar from '@/components/product-page/FilterSidebar.vue'
 import FashionSection from '@/components/product-page/FashionSection.vue'
 import BrandSection from '@/components/product-page/BrandSection.vue'
-import { useProductCatalog } from '@/composables/useProductCatalog'
 import Footer from '@/components/product-page/Footer.vue'
+import QuickViewModal from './views/componnents/QuickViewModal.vue'
 
-const router = useRouter()
+import { useProductCatalog } from '@/composables/useProductCatalog'
 
 const {
   filters,
   dynamicFilters,
   visibleProducts,
-  filteredProducts,
   loading,
-  errorMessage,
-  hasActiveFilters,
-  activeFilterChips,
-  sortBy,
-  currentPage,
-  totalPages,
-  pageNumbers,
   stats,
-  mobileFiltersOpen,
-  clearFilters,
-  removeFilter,
   goToDetail,
   imageUrl,
   handleImageError,
-  isNewProduct,
   formatPrice,
   priceLabel,
-  reload,
 } = useProductCatalog({ pageSize: 100 })
 
-const priceRanges = [
-  { value: 'all', label: 'Tất cả mức giá', shortLabel: 'Tất cả' },
-  { value: 'under300', label: 'Dưới 300.000đ', shortLabel: '< 300K' },
-  { value: 'from300to500', label: '300.000đ – 500.000đ', shortLabel: '300K – 500K' },
-  { value: 'from500to1000', label: '500.000đ – 1.000.000đ', shortLabel: '500K – 1 triệu' },
-  { value: 'over1000', label: 'Trên 1.000.000đ', shortLabel: '> 1 triệu' },
-]
+// 1. Quản lý trạng thái Xem Nhanh (QuickView)
+const isQuickViewOpen = ref(false)
+const selectedProductId = ref(null)
 
-// Hàm xử lý sự kiện click "Xem tất cả" Flash Sale
+const handleQuickView = (productId) => {
+  selectedProductId.value = productId
+  isQuickViewOpen.value = true
+}
+
+// 2. Xử lý nút Xem tất cả Flash Sale
 const handleViewAll = () => {
   console.log('Xem tất cả sản phẩm Flash Sale')
-  // Ví dụ chuyển hướng trang nếu có:
-  // router.push('/flash-sale')
 }
 
-watch(
-  visibleProducts,
-  (val) => {
-    console.log('Dữ liệu visibleProducts truyền vào FlashSale:', val)
-  },
-  { immediate: true },
-)
-const fetchProductsByApiCategory = async (categoryId) => {
-  console.log('Gọi API lấy sản phẩm thời trang theo mã danh mục:', categoryId)
-}
-
+// 3. Lọc thương hiệu
 const brandOptions = computed(() => {
   const brandFilter = dynamicFilters.value?.find(
     (f) =>
@@ -141,18 +132,13 @@ const brandOptions = computed(() => {
   return brandFilter?.options || dynamicFilters.value?.[1]?.options || []
 })
 
-// Xử lý chọn / bỏ chọn thương hiệu linh hoạt
 const handleSelectBrand = (brand) => {
   const brandName =
     typeof brand === 'object' ? brand.name || brand.tenThuongHieu || brand.label : brand
-
   if (Array.isArray(filters.brands)) {
     const index = filters.brands.indexOf(brandName)
-    if (index >= 0) {
-      filters.brands.splice(index, 1)
-    } else {
-      filters.brands.push(brandName)
-    }
+    if (index >= 0) filters.brands.splice(index, 1)
+    else filters.brands.push(brandName)
   } else {
     filters.brands = [brandName]
   }
@@ -164,6 +150,11 @@ const toggleQuickCategory = (name) => {
   else filters.categories.push(name)
 }
 
+const fetchProductsByApiCategory = async (categoryId) => {
+  console.log('Gọi API lấy sản phẩm thời trang theo mã danh mục:', categoryId)
+}
+
+// 4. Quản lý danh sách Yêu thích (Favorite)
 const storedFavorites = (() => {
   try {
     const parsed = JSON.parse(localStorage.getItem('favorite-product-ids') || '[]')
@@ -174,31 +165,15 @@ const storedFavorites = (() => {
 })()
 
 const favoriteIds = ref(storedFavorites)
-const isFavorite = (id) => favoriteIds.value.includes(Number(id))
+
 const toggleFavorite = (id) => {
   const normalizedId = Number(id)
   const index = favoriteIds.value.indexOf(normalizedId)
-  if (index >= 0) favoriteIds.value.splice(index, 1)
-  else favoriteIds.value.push(normalizedId)
+  if (index >= 0) {
+    favoriteIds.value.splice(index, 1)
+  } else {
+    favoriteIds.value.push(normalizedId)
+  }
   localStorage.setItem('favorite-product-ids', JSON.stringify(favoriteIds.value))
 }
 </script>
-
-<style scoped>
-.drawer-enter-active,
-.drawer-leave-active {
-  transition: opacity 0.2s ease;
-}
-.drawer-enter-active aside,
-.drawer-leave-active aside {
-  transition: transform 0.2s ease;
-}
-.drawer-enter-from,
-.drawer-leave-to {
-  opacity: 0;
-}
-.drawer-enter-from aside,
-.drawer-leave-to aside {
-  transform: translateX(100%);
-}
-</style>

@@ -371,10 +371,11 @@ const getCategoryIcon = (category) => {
 }
 
 const getCategoryPath = (item) => {
-  if (item.path) return item.path
-  if (item.slug) return `/danh-muc/${item.slug}`
-  if (item.name) return `/danh-muc/${slugify(item.name)}`
-  return `/danh-muc/${item.id}`
+  const category = item?.id ?? item?.maDanhMuc ?? item?.slug ?? item?.name
+  return {
+    path: '/san-pham',
+    query: category ? { category: String(category) } : {},
+  }
 }
 
 const scrollContainer = ref(null)

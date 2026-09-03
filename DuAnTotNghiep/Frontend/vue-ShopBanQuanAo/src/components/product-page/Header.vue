@@ -69,13 +69,17 @@
             </div>
 
             <!-- Showroom -->
-            <div class="flex cursor-pointer items-center gap-2.5 transition hover:text-red-600">
+            <button
+              type="button"
+              class="flex cursor-pointer items-center gap-2.5 text-left transition hover:text-red-600"
+              @click="router.push('/he-thong-cua-hang')"
+            >
               <Store :size="24" class="text-zinc-800" />
               <div class="leading-tight">
                 <p class="text-xs font-medium text-zinc-500">Hệ thống</p>
                 <p class="text-sm font-bold text-zinc-900">Showroom</p>
               </div>
-            </div>
+            </button>
 
             <!-- TÀI KHOẢN (USER DROPDOWN) -->
             <div
@@ -311,14 +315,16 @@
               >Giới thiệu</a
             >
             <a
-              href="#"
+              href="/flash-sale"
               class="flex items-center gap-1.5 whitespace-nowrap px-3.5 py-3.5 font-extrabold text-yellow-300 transition hover:text-yellow-200"
+              @click.prevent="router.push('/flash-sale')"
             >
               <Zap :size="16" class="fill-yellow-300 text-yellow-300" /> Flash Sale
             </a>
             <a
-              href="#"
+              href="/tin-tuc"
               class="whitespace-nowrap px-3.5 py-3.5 text-white transition hover:text-yellow-300"
+              @click.prevent="router.push('/tin-tuc')"
               >Tin tức mới</a
             >
             <a
@@ -328,13 +334,15 @@
               >Sản phẩm</a
             >
             <a
-              href="#"
+              href="/he-thong-cua-hang"
               class="whitespace-nowrap px-3.5 py-3.5 text-white transition hover:text-yellow-300"
+              @click.prevent="router.push('/he-thong-cua-hang')"
               >Hệ thống cửa hàng</a
             >
             <a
-              href="#"
+              href="/lien-he"
               class="whitespace-nowrap px-3.5 py-3.5 text-white transition hover:text-yellow-300"
+              @click.prevent="router.push('/lien-he')"
               >Liên hệ</a
             >
           </nav>
@@ -585,7 +593,7 @@ const getCustomerId = () => {
 const userMenus = computed(() => [
   {
     name: 'Thông tin tài khoản',
-    path: `/admin/khach-hang/edit/${user.value?.id || user.value?.idKhachHang || 1}`,
+    path: '/tai-khoan',
     icon: User,
   },
   {

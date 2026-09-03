@@ -17,13 +17,13 @@
 
           <p class="mt-3 text-sm leading-6 text-gray-400">
             <span class="font-semibold text-gray-200">Địa chỉ:</span>
-            280 Nguyễn Trãi, Quận Thanh Xuân,<br />
+            58 Nguyễn Khánh Toàn, Quận Cầu Giấy,<br />
             Thành phố Hà Nội, Việt Nam
           </p>
 
           <p class="mt-2 text-sm leading-6 text-gray-400">
             <span class="font-semibold text-gray-200">Điện thoại:</span>
-            0982.022.969
+            0377.280.805
           </p>
 
           <button
@@ -44,7 +44,7 @@
                 <span class="text-sm font-semibold uppercase tracking-wide">ĐẶT HÀNG</span>
                 <span class="text-xs text-gray-400">(08:30 - 22:00)</span>
               </div>
-              <p class="mt-1 text-base font-bold tracking-wide">0982.022.969</p>
+              <p class="mt-1 text-base font-bold tracking-wide">0377.280.805</p>
             </div>
           </div>
 

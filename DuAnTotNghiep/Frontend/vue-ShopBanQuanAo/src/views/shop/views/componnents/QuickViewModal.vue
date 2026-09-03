@@ -3,8 +3,9 @@
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fadeIn"
     @click="$emit('close')"
   >
+    <!-- Thêm overflow-x-hidden để triệt tiêu thanh cuộn ngang vỡ khung -->
     <div
-      class="bg-white rounded-lg max-w-3xl w-full p-6 relative shadow-2xl transition-all max-h-[90vh] overflow-y-auto"
+      class="bg-white rounded-xl max-w-3xl w-full p-5 md:p-6 relative shadow-2xl transition-all max-h-[90vh] overflow-y-auto overflow-x-hidden"
       @click.stop
     >
       <!-- Nút đóng -->
@@ -28,10 +29,11 @@
 
       <!-- Main Content -->
       <div v-else class="grid grid-cols-1 md:grid-cols-[1.1fr_1fr] gap-6 items-start">
-        <!-- LEFT: GALLERY -->
-        <div class="flex flex-col gap-3">
+        <!-- LEFT: GALLERY (Thêm min-w-0 để chống nổ vỡ Grid) -->
+        <div class="flex flex-col gap-3 min-w-0">
+          <!-- Đổi object-cover thành object-contain và giới hạn max-h-[420px] -->
           <div
-            class="relative bg-[#f6f6f6] rounded-[8px] overflow-hidden aspect-[4/5] flex items-center justify-center"
+            class="relative bg-[#f8f8f8] rounded-lg overflow-hidden aspect-[4/5] max-h-[420px] flex items-center justify-center border border-gray-100"
           >
             <span
               v-if="selectedVariant?.dangGiamGia && selectedVariant?.phanTramGiam > 0"
@@ -43,37 +45,40 @@
               v-if="mainImage"
               :src="mainImage"
               :alt="product?.productName || 'Sản phẩm'"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-contain p-2 transition-all duration-300"
             />
           </div>
 
           <!-- Thumbnails -->
-          <div v-if="galleryImages.length > 0" class="flex gap-2 overflow-x-auto pb-1">
+          <div
+            v-if="galleryImages.length > 0"
+            class="flex gap-2 overflow-x-auto pb-1 w-full min-w-0"
+          >
             <button
               v-for="img in galleryImages"
               :key="img.image"
               type="button"
               @click="mainImage = img.url"
-              class="relative shrink-0 w-[65px] aspect-square overflow-hidden bg-[#f6f6f6] border rounded-[4px] transition-all cursor-pointer"
+              class="relative shrink-0 w-[60px] h-[60px] aspect-square overflow-hidden bg-[#f8f8f8] border rounded-md transition-all cursor-pointer"
               :class="
                 mainImage === img.url
                   ? 'border-[#222] ring-1 ring-[#222]'
                   : 'border-gray-200 hover:border-gray-400'
               "
             >
-              <img :src="img.url" alt="" class="w-full h-full object-cover" />
+              <img :src="img.url" alt="" class="w-full h-full object-contain p-1" />
             </button>
           </div>
         </div>
 
-        <!-- RIGHT: PRODUCT INFO -->
-        <div class="flex flex-col justify-between h-full">
+        <!-- RIGHT: PRODUCT INFO (Thêm min-w-0) -->
+        <div class="flex flex-col justify-between h-full min-w-0">
           <div>
-            <h2 class="text-[22px] font-bold text-gray-900 leading-snug">
+            <h2 class="text-[20px] md:text-[22px] font-bold text-gray-900 leading-snug">
               {{ product?.productName }}
             </h2>
 
-            <div class="mt-2 space-y-1.5 text-[13px] text-gray-600">
+            <div class="mt-2 space-y-1 text-[13px] text-gray-600">
               <p>
                 Thương hiệu:
                 <span class="font-medium text-[#00a884]">{{
@@ -91,7 +96,7 @@
             <!-- PRICE -->
             <div class="mt-3 pb-3 border-b border-gray-200">
               <div class="flex items-baseline gap-2.5">
-                <span class="text-[26px] font-bold text-[#bd2228]">
+                <span class="text-[24px] font-bold text-[#bd2228]">
                   {{
                     (selectedVariant?.giaSauGiam || selectedVariant?.giaBan || 0).toLocaleString(
                       'vi-VN',
@@ -107,7 +112,7 @@
               </div>
             </div>
 
-            <!-- COLOR (Highlight với viền đậm, scale và dấu tích) -->
+            <!-- COLOR -->
             <div class="mt-4">
               <div class="text-[13px] font-semibold text-gray-900 mb-2">
                 Màu sắc:
@@ -119,7 +124,7 @@
                   :key="color.id"
                   type="button"
                   @click="selectColor(color)"
-                  class="relative w-[38px] h-[38px] border rounded-[4px] transition-all cursor-pointer"
+                  class="relative w-[36px] h-[36px] border rounded-md transition-all cursor-pointer"
                   :class="
                     selectedColor?.id === color.id
                       ? 'border-[#222] ring-2 ring-[#222]/20 scale-105 shadow-xs'
@@ -142,7 +147,7 @@
               </div>
             </div>
 
-            <!-- SIZE (Highlight sắc nét khi được chọn) -->
+            <!-- SIZE -->
             <div class="mt-4">
               <div class="text-[13px] font-semibold text-gray-900 mb-2">
                 Size:
@@ -157,7 +162,7 @@
                   type="button"
                   :disabled="getVariantStock(variant) === 0"
                   @click="getVariantStock(variant) > 0 && (selectedVariant = variant)"
-                  class="min-w-[42px] h-[38px] px-3 border rounded-[4px] text-[13px] font-medium transition-all cursor-pointer"
+                  class="min-w-[42px] h-[36px] px-3 border rounded-md text-[13px] font-medium transition-all cursor-pointer"
                   :class="[
                     getVariantStock(variant) === 0
                       ? 'bg-gray-100 text-gray-400 border-gray-200 line-through cursor-not-allowed'
@@ -171,12 +176,12 @@
               </div>
             </div>
 
-            <!-- QUANTITY (Chỉ nhận số nguyên dương, chặn ký tự đặc biệt/âm) -->
+            <!-- QUANTITY -->
             <div class="mt-4">
               <div class="flex items-center gap-4">
                 <span class="text-[13px] font-semibold text-gray-900">Số lượng:</span>
                 <div
-                  class="flex items-center h-[36px] border border-gray-300 rounded-[4px] overflow-hidden bg-white"
+                  class="flex items-center h-[36px] border border-gray-300 rounded-md overflow-hidden bg-white"
                 >
                   <button
                     type="button"
@@ -222,7 +227,7 @@
               type="button"
               @click="handleAddToCart($event)"
               :disabled="!selectedVariant || availableStock === 0"
-              class="flex-1 py-3 bg-[#df3440] hover:bg-[#ce2d38] text-white font-semibold text-[13px] rounded-[4px] transition-all disabled:bg-gray-300 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              class="flex-1 py-3 bg-[#df3440] hover:bg-[#ce2d38] text-white font-semibold text-[13px] rounded-md transition-all disabled:bg-gray-300 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer active:scale-98"
             >
               <span>🛒</span>
               <span>Thêm vào giỏ hàng</span>

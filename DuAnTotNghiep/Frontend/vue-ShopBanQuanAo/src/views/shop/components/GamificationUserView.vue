@@ -745,6 +745,7 @@
     </transition>
 
     <!-- REWARD MODAL -->
+    <!-- REWARD MODAL -->
     <transition name="modal">
       <div
         v-if="showRewardModal"
@@ -761,13 +762,15 @@
                 <div
                   class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-center text-xl shadow-2xs"
                 >
-                  <i class="fa-solid fa-gift"></i>
+                  <i class="fa-solid" :class="isNoPrize ? 'fa-clover' : 'fa-gift'"></i>
                 </div>
                 <div>
                   <div class="text-[10px] uppercase tracking-wider font-bold text-amber-800">
                     Phần thưởng
                   </div>
-                  <div class="text-xs font-medium text-stone-600">Chúc mừng bạn đã nhận quà!</div>
+                  <div class="text-xs font-medium text-stone-600">
+                    {{ isNoPrize ? 'Cảm ơn bạn đã tham gia!' : 'Chúc mừng bạn đã nhận quà!' }}
+                  </div>
                 </div>
               </div>
               <button
@@ -777,11 +780,16 @@
                 <i class="fa-solid fa-xmark text-xs"></i>
               </button>
             </div>
+
             <div
               class="mt-5 rounded-xl bg-gradient-to-br from-amber-50/50 to-orange-50/50 border border-amber-200/60 p-4 text-center"
             >
               <h3 class="text-lg font-black text-stone-900 break-words">
-                {{ rewardData.tenPhanThuong || 'Phần quà đặc biệt' }}
+                {{
+                  isNoPrize
+                    ? 'Chúc May Mắn Lần Sau'
+                    : rewardData.tenPhanThuong || 'Phần quà đặc biệt'
+                }}
               </h3>
               <p
                 v-if="rewardData.moTa"
@@ -791,7 +799,19 @@
               </p>
             </div>
 
-            <div class="mt-4 grid grid-cols-2 gap-2">
+            <!-- HIỂN THỊ KẾT QUẢ KHÔNG TRÚNG -->
+            <div
+              v-if="isNoPrize"
+              class="mt-4 rounded-xl bg-stone-50 border border-stone-200 p-3 text-center"
+            >
+              <div class="text-[9px] uppercase tracking-wider font-bold text-stone-500">
+                Kết quả
+              </div>
+              <div class="mt-0.5 text-xs font-bold text-stone-800">Chúc may mắn lần sau</div>
+            </div>
+
+            <!-- HIỂN THỊ KHI TRÚNG QUÀ -->
+            <div v-else class="mt-4 grid grid-cols-2 gap-2">
               <div class="rounded-xl bg-stone-50 border border-stone-200 p-3 text-center">
                 <div class="text-[9px] uppercase tracking-wider font-bold text-stone-500">
                   Loại phần thưởng
@@ -807,7 +827,11 @@
                 </div>
               </div>
               <div
-                v-if="rewardData.giaTriXu !== undefined && rewardData.giaTriXu !== null"
+                v-if="
+                  rewardData.giaTriXu !== undefined &&
+                  rewardData.giaTriXu !== null &&
+                  Number(rewardData.giaTriXu) > 0
+                "
                 class="rounded-xl bg-amber-50 border border-amber-200/70 p-3 text-center"
               >
                 <div class="text-[9px] uppercase tracking-wider font-bold text-amber-900">
@@ -1111,6 +1135,22 @@ const wallet = ref({
   soXu: 0,
   daDiemDanhHomNay: false,
   chuoiDiemDanh: 0,
+})
+
+// Kiểm tra xem phần thưởng có phải là "Không trúng" hay không
+const isNoPrize = computed(() => {
+  if (!rewardData.value) return false
+  const type = String(rewardData.value.loaiPhanThuong || '').toLowerCase()
+  const name = String(rewardData.value.tenPhanThuong || '').toLowerCase()
+
+  return (
+    type === 'khong_trung' ||
+    type === 'khongtrung' ||
+    type === 'no_prize' ||
+    name.includes('chúc may mắn') ||
+    name.includes('không trúng') ||
+    (type === 'xu' && Number(rewardData.value.giaTriXu || 0) === 0)
+  )
 })
 
 const historyList = ref([])

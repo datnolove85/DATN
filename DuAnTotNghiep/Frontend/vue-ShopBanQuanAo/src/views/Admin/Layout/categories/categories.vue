@@ -2,41 +2,45 @@
   <div
     class="space-y-6 max-w-full mx-auto p-4 animate-fade-in bg-slate-50 text-slate-800 rounded-2xl selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden"
   >
+    <!-- Header Banner đồng bộ phong cách với Thương hiệu -->
     <div
-      class="relative p-8 bg-[#0b0f19] rounded-3xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm overflow-hidden"
+      class="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white rounded-2xl shadow-sm border border-slate-200 px-5 py-3.5 gap-3"
     >
-      <div>
-        <span class="text-[10px] tracking-widest uppercase font-bold text-indigo-400"
-          >Hệ thống quản trị thế mới</span
+      <!-- Tiêu đề -->
+      <div class="flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-lg text-indigo-600 font-bold"
         >
-        <h1 class="text-2xl font-bold tracking-tight mt-1">Quản Lý Danh Mục Phân Tầng</h1>
-        <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
-          <span class="relative flex h-2 w-2">
-            <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-            ></span>
-            <span class="relative inline-block rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          Hệ thống cấu trúc dữ liệu phân tầng
-        </p>
+          📂
+        </div>
+
+        <div>
+          <h1 class="text-base font-bold text-slate-800">Quản lý danh mục</h1>
+          <p class="text-slate-400 text-[11px]">
+            Quản lý danh sách danh mục sản phẩm, cấu trúc phân tầng và trạng thái hoạt động.
+          </p>
+        </div>
       </div>
 
-      <button
-        @click="openAddModal"
-        class="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 whitespace-nowrap"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2.5"
-          stroke="currentColor"
-          class="w-4 h-4"
+      <!-- Nút chức năng -->
+      <div class="w-full lg:w-auto flex flex-wrap items-center gap-2">
+        <button
+          @click="openAddModal"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        + TẠO DANH MỤC MỚI
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-3.5 h-3.5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Thêm mới
+        </button>
+      </div>
     </div>
 
     <div class="space-y-3 overflow-hidden">
