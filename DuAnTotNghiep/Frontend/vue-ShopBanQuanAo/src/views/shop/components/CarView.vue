@@ -84,10 +84,10 @@
                 @change="toggleSelectAll"
                 class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
               />
-              <span
-                >Chọn tất cả (<span class="text-indigo-600 font-bold">{{ cart.length }}</span> sản
-                phẩm)</span
-              >
+              <span>
+                Chọn tất cả (<span class="text-indigo-600 font-bold">{{ cart.length }}</span> sản
+                phẩm)
+              </span>
             </label>
 
             <button
@@ -114,7 +114,8 @@
 
               <!-- Hình ảnh sản phẩm -->
               <div
-                class="w-24 h-24 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0 relative group-hover:scale-[1.02] transition-transform"
+                @click="goToProductDetail(item)"
+                class="w-24 h-24 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0 relative group-hover:scale-[1.02] transition-transform cursor-pointer"
               >
                 <img
                   v-if="item.anh"
@@ -166,9 +167,27 @@
                 <div
                   class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pt-2 border-t border-slate-100/80"
                 >
-                  <div>
-                    <span class="text-xs font-extrabold text-red-600 tracking-wide">
+                  <!-- HIỂN THỊ GIÁ SẢN PHẨM -->
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <!-- Giá bán thực tế (Giá sau giảm) -->
+                    <span class="text-xs sm:text-sm font-extrabold text-red-600 tracking-wide">
+                      {{ Number(item.giaSauGiam || item.giaBan).toLocaleString('vi-VN') }}đ
+                    </span>
+
+                    <!-- Giá gốc bị gạch ngang (chỉ hiện khi có giảm giá) -->
+                    <span
+                      v-if="item.dangGiamGia && item.giaSauGiam < item.giaBan"
+                      class="text-[11px] text-slate-400 line-through font-medium"
+                    >
                       {{ Number(item.giaBan).toLocaleString('vi-VN') }}đ
+                    </span>
+
+                    <!-- Phần trăm giảm giá (Hiển thị trực tiếp phanTramGiam từ Backend) -->
+                    <span
+                      v-if="item.dangGiamGia && item.phanTramGiam > 0"
+                      class="px-1.5 py-0.5 bg-red-100 text-red-600 text-[10px] font-bold rounded-md"
+                    >
+                      -{{ item.phanTramGiam }}%
                     </span>
                   </div>
 
@@ -220,9 +239,9 @@
             <div class="space-y-3 text-xs">
               <div class="flex justify-between text-slate-600">
                 <span>Tạm tính sản phẩm</span>
-                <span class="font-semibold text-slate-800"
-                  >{{ totalAmount.toLocaleString('vi-VN') }}đ</span
-                >
+                <span class="font-semibold text-slate-800">
+                  {{ totalAmount.toLocaleString('vi-VN') }}đ
+                </span>
               </div>
               <div class="flex justify-between text-slate-600">
                 <span>Phí vận chuyển</span>
@@ -247,7 +266,7 @@
               }}</span>
             </button>
 
-            <!-- Thêm điểm nhấn an tâm mua sắm -->
+            <!-- Điểm nhấn an tâm mua sắm -->
             <div
               class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[10px] text-slate-400 text-center"
             >
@@ -277,6 +296,30 @@ const toast = ref({
   type: 'success',
 })
 
+const getEffectivePrice = (item) => {
+  return item.giaSauGiam ?? item.giaBan ?? 0
+}
+
+const goToProductDetail = (item) => {
+  const productId = item.idSanPham || item.idSanPhamChiTiet || item.id
+
+  if (!productId) {
+    showToast('Không tìm thấy ID của sản phẩm này!', 'error')
+    return
+  }
+
+  router
+    .push({
+      name: 'confirmbuy',
+      params: {
+        id: productId,
+      },
+    })
+    .catch((err) => {
+      console.error('Lỗi chuyển hướng Router:', err)
+    })
+}
+
 const showToast = (message, type = 'success') => {
   toast.value = { show: true, message, type }
   setTimeout(() => {
@@ -284,10 +327,11 @@ const showToast = (message, type = 'success') => {
   }, 2500)
 }
 
+// Tổng tiền tính dựa trên Giá sau giảm (giaSauGiam)
 const totalAmount = computed(() => {
   return cart.value
     .filter((item) => item.selected)
-    .reduce((sum, item) => sum + Number(item.giaBan) * Number(item.soLuong || 0), 0)
+    .reduce((sum, item) => sum + Number(getEffectivePrice(item)) * Number(item.soLuong || 0), 0)
 })
 
 const allSelected = computed(() => {
@@ -323,12 +367,16 @@ const loadCart = async () => {
 
     const oldSelectedMap = new Map(cart.value.map((i) => [i.id, i.selected]))
 
-    cart.value = (res.data || []).map((item) => ({
-      ...item,
-      selected: oldSelectedMap.get(item.id) || false,
-      soLuong: Number(item.soLuong) || 1,
-      thanhTien: Number(item.giaBan) * Number(item.soLuong || 1),
-    }))
+    cart.value = (res.data || []).map((item) => {
+      const price = getEffectivePrice(item)
+      const qty = Number(item.soLuong) || 1
+      return {
+        ...item,
+        selected: oldSelectedMap.get(item.id) || false,
+        soLuong: qty,
+        thanhTien: Number(price) * qty,
+      }
+    })
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu giỏ hàng:', err)
     cart.value = []
@@ -345,7 +393,7 @@ const updateQuantity = (item, change) => {
   }
 
   item.soLuong = newQty
-  item.thanhTien = item.giaBan * item.soLuong
+  item.thanhTien = getEffectivePrice(item) * item.soLuong
 }
 
 const validateQuantity = (item) => {
@@ -358,7 +406,7 @@ const validateQuantity = (item) => {
     item.soLuong = item.soLuongTon
   }
 
-  item.thanhTien = item.giaBan * item.soLuong
+  item.thanhTien = getEffectivePrice(item) * item.soLuong
 }
 
 const deleteItem = async (id) => {
@@ -419,19 +467,25 @@ const checkout = () => {
   }
 
   const checkoutData = {
-    items: selectedItems.map((item) => ({
-      productDetailId: item.idSanPhamChiTiet,
-      quantity: item.soLuong,
-      tenSanPham: item.tenSanPham,
-      maSanPhamChiTiet: item.maSanPhamChiTiet,
-      giaBan: item.giaBan,
-      mauSac: item.mauSac,
-      kichCo: item.kichCo,
-      anh: item.anh,
-      soLuongTon: item.soLuongTon,
-      thanhTien: item.giaBan * item.soLuong,
-      soLuongKhaDung: item.soLuongKhaDung,
-    })),
+    items: selectedItems.map((item) => {
+      const price = getEffectivePrice(item)
+      return {
+        productDetailId: item.idSanPhamChiTiet,
+        quantity: item.soLuong,
+        tenSanPham: item.tenSanPham,
+        maSanPhamChiTiet: item.maSanPhamChiTiet,
+        giaBan: item.giaBan,
+        giaSauGiam: item.giaSauGiam,
+        phanTramGiam: item.phanTramGiam, // Truyền trường % giảm giá sang trang checkout
+        dangGiamGia: item.dangGiamGia,
+        mauSac: item.mauSac,
+        kichCo: item.kichCo,
+        anh: item.anh,
+        soLuongTon: item.soLuongTon,
+        thanhTien: price * item.soLuong,
+        soLuongKhaDung: item.soLuongKhaDung,
+      }
+    }),
   }
 
   sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData))

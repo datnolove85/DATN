@@ -27,6 +27,7 @@
           </p>
 
           <button
+            type="button"
             class="mt-5 bg-white text-black px-6 py-2 rounded-md text-sm font-semibold hover:bg-gray-200 transition"
           >
             LIÊN HỆ VỚI CHÚNG TÔI

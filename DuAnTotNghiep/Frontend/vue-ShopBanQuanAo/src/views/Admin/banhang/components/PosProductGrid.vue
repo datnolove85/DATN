@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-3">
-    <!-- Grid Danh sách Sản phẩm -->
+    <!-- Grid Danh sách Sản phẩm còn hàng -->
     <div
-      v-if="products && products.length > 0"
+      v-if="availableProducts && availableProducts.length > 0"
       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3"
     >
       <div
-        v-for="sp in products"
+        v-for="sp in availableProducts"
         :key="sp.id"
         @click="$emit('selectProduct', sp)"
         class="group bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden relative"
@@ -30,18 +30,9 @@
         <!-- Tồn kho Badge -->
         <div class="absolute top-2 right-2 z-10">
           <span
-            :class="[
-              'px-1.5 py-0.5 font-bold text-[10px] rounded-md shadow-xs',
-              (sp.tongSoLuongTon ?? sp.soLuongTon ?? 0) > 0
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-rose-50 text-rose-700 border border-rose-200',
-            ]"
+            class="px-1.5 py-0.5 font-bold text-[10px] rounded-md shadow-xs bg-emerald-50 text-emerald-700 border border-emerald-200"
           >
-            {{
-              (sp.tongSoLuongTon ?? sp.soLuongTon ?? 0) > 0
-                ? `Kho: ${sp.tongSoLuongTon ?? sp.soLuongTon}`
-                : 'Hết hàng'
-            }}
+            Kho: {{ sp.tongSoLuongTon ?? sp.soLuongTon }}
           </span>
         </div>
 
@@ -154,7 +145,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   products: { type: Array, default: () => [] },
   getProductImage: { type: Function, required: true },
   formatPrice: { type: Function, required: true },
@@ -162,4 +155,9 @@ defineProps({
 })
 
 defineEmits(['selectProduct'])
+
+// Lọc các sản phẩm có số lượng tồn > 0
+const availableProducts = computed(() => {
+  return props.products.filter((sp) => (sp.tongSoLuongTon ?? sp.soLuongTon ?? 0) > 0)
+})
 </script>

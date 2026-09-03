@@ -1,6 +1,5 @@
 <template>
   <div class="order-page">
-    <!-- ================= HEADER ================= -->
     <div class="page-header">
       <div class="header-title-box">
         <div class="header-icon">
@@ -13,7 +12,6 @@
       </div>
     </div>
 
-    <!-- ================= TAB ================= -->
     <div class="tabs-wrapper">
       <el-tabs v-model="activeTab" class="custom-tabs">
         <el-tab-pane label="Tất cả" name="all" />
@@ -28,172 +26,181 @@
       </el-tabs>
     </div>
 
-    <!-- ================= LOADING ================= -->
     <div v-if="loading" class="loading-box">
       <el-skeleton :rows="5" animated />
     </div>
 
-    <!-- ================= EMPTY ================= -->
     <el-empty v-else-if="filteredOrders.length === 0" description="Không có đơn hàng nào" />
 
-    <!-- ================= LIST ================= -->
-    <div v-else class="order-list">
-      <div v-for="order in filteredOrders" :key="order.thongTinDonHang.id" class="order-card">
-        <!-- CARD HEADER -->
-        <div class="order-header">
-          <div class="order-code-date">
-            <span class="order-code">{{ order.thongTinDonHang.maHoaDon }}</span>
-            <span class="dot">•</span>
-            <span class="date">{{ formatDate(order.thongTinDonHang.ngayTao) }}</span>
-          </div>
-
-          <div class="status-group">
-            <el-tag :type="statusType(order.thongTinDonHang.trangThai)" effect="light" round>
-              {{ order.thongTinDonHang.trangThaiHienThi }}
-            </el-tag>
-            <el-tag
-              :type="paymentType(order.thongTinDonHang.trangThaiThanhToan)"
-              effect="plain"
-              round
-            >
-              {{ order.thongTinDonHang.trangThaiThanhToanHienThi }}
-            </el-tag>
-          </div>
-        </div>
-
-        <!-- PRODUCTS -->
-        <div class="product-list-container">
-          <div class="select-all-bar">
-            <el-checkbox
-              :model-value="isAllSelected(order)"
-              :indeterminate="isIndeterminate(order)"
-              @change="(val) => toggleSelectAll(val, order)"
-            >
-              <span class="select-all-label"
-                >Chọn tất cả sản phẩm ({{ order.sanPham.length }})</span
-              >
-            </el-checkbox>
-          </div>
-
-          <el-checkbox-group v-model="selectedProductsMap[order.thongTinDonHang.id]">
-            <div class="product-item" v-for="sp in order.sanPham" :key="sp.idHoaDonChiTiet">
-              <el-checkbox :value="sp.idSanPham" class="product-checkbox" />
-
-              <img
-                :src="imageUrl(sp.anh)"
-                :alt="sp.tenSanPham"
-                class="product-image cursor-pointer hover:opacity-80 transition"
-                @click="goToProductDetail(sp.idSanPham)"
-                @error="$event.target.src = 'https://placehold.co/80x80?text=No+Image'"
-              />
-
-              <!-- HIỂN THỊ ĐẦY ĐỦ MÃ SP & MÃ SPCT -->
-              <div class="product-info">
-                <h4>{{ sp.tenSanPham }}</h4>
-                <div class="product-meta">
-                  <span>Mã SP: {{ sp.maSanPham }}</span>
-                  <span v-if="sp.maSPCT">Mã SPCT: {{ sp.maSPCT }}</span>
-                  <span>Màu: {{ sp.mauSac }}</span>
-                  <span>Size: {{ sp.kichThuoc }}</span>
-                </div>
-              </div>
-
-              <div class="product-price">
-                <div class="price-row">
-                  <span class="unit-price">
-                    {{ money(sp.donGia) }}
-                  </span>
-                  <span class="quantity"> × {{ sp.soLuong }} </span>
-                </div>
-                <strong class="total-price">
-                  {{ money(sp.thanhTien) }}
-                </strong>
-              </div>
+    <div v-else class="order-list-wrapper">
+      <div class="order-list">
+        <div v-for="order in paginatedOrders" :key="order.thongTinDonHang.id" class="order-card">
+          <div class="order-header">
+            <div class="order-code-date">
+              <span class="order-code">{{ order.thongTinDonHang.maHoaDon }}</span>
+              <span class="dot">•</span>
+              <span class="date">{{ formatDate(order.thongTinDonHang.ngayTao) }}</span>
             </div>
-          </el-checkbox-group>
-        </div>
 
-        <!-- TIMELINE -->
-        <div class="timeline-container" v-if="order.thongTinDonHang.trangThai !== 'da_huy'">
-          <el-steps
-            :active="getStep(order)"
-            :status="order.thongTinDonHang.trangThai === 'giao_that_bai' ? 'error' : 'finish'"
-            finish-status="success"
-            align-center
-          >
-            <el-step title="Chờ xác nhận" />
-            <el-step title="Đã xác nhận" />
-            <el-step title="Chuẩn bị hàng" />
-            <el-step title="Đang giao" />
-            <el-step
-              :title="
-                order.thongTinDonHang.trangThai === 'giao_that_bai'
-                  ? 'Giao thất bại'
-                  : 'Giao thành công'
-              "
-            />
-            <el-step title="Hoàn thành" />
-          </el-steps>
-        </div>
-
-        <div class="cancel-banner" v-else>
-          <el-alert title="Đơn hàng này đã bị hủy" type="error" :closable="false" show-icon />
-        </div>
-
-        <!-- RETURN BOX -->
-        <div class="return-box" v-if="order.traHang && order.traHang.coTraHang">
-          <el-alert type="warning" show-icon :closable="false">
-            <template #title>Đơn hàng đang có yêu cầu trả hàng</template>
-            <p><b>Mã:</b> {{ order.traHang.maTraHang }} | <b>Lý do:</b> {{ order.traHang.lyDo }}</p>
-          </el-alert>
-        </div>
-
-        <!-- CARD FOOTER -->
-        <div class="order-footer">
-          <div class="order-summary-mini">
-            <span>Tổng số tiền ({{ order.sanPham.length }} sản phẩm): </span>
-            <strong class="highlight-total">{{
-              money(order.thongTinDonHang.tongThanhToan)
-            }}</strong>
+            <div class="status-group">
+              <el-tag :type="statusType(order.thongTinDonHang.trangThai)" effect="light" round>
+                {{ order.thongTinDonHang.trangThaiHienThi }}
+              </el-tag>
+              <el-tag
+                :type="paymentType(order.thongTinDonHang.trangThaiThanhToan)"
+                effect="plain"
+                round
+              >
+                {{ order.thongTinDonHang.trangThaiThanhToanHienThi }}
+              </el-tag>
+            </div>
           </div>
 
-          <div class="action-buttons">
-            <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
-            <el-button
-              v-if="canPayOrder(order)"
-              class="pay-btn"
-              :icon="CreditCard"
-              @click="handlePayOrder(order)"
-            >
-              Thanh toán
-            </el-button>
-            <el-button
-              type="danger"
-              plain
-              v-if="
-                order.thongTinDonHang.trangThai === 'cho_xac_nhan' ||
-                order.thongTinDonHang.trangThai === 'da_xac_nhan'
-              "
-              @click="openCancelDialog(order)"
-            >
-              Hủy đơn
-            </el-button>
+          <div class="product-list-container">
+            <div class="select-all-bar">
+              <el-checkbox
+                :model-value="isAllSelected(order)"
+                :indeterminate="isIndeterminate(order)"
+                @change="(val) => toggleSelectAll(val, order)"
+              >
+                <span class="select-all-label"
+                  >Chọn tất cả sản phẩm ({{ order.sanPham.length }})</span
+                >
+              </el-checkbox>
+            </div>
 
-            <el-button
-              type="success"
-              v-if="order.thongTinDonHang.trangThai === 'giao_thanh_cong'"
-              @click="confirmReceived(order)"
-            >
-              Đã nhận được hàng
-            </el-button>
+            <el-checkbox-group v-model="selectedProductsMap[order.thongTinDonHang.id]">
+              <div class="product-item" v-for="sp in order.sanPham" :key="sp.idHoaDonChiTiet">
+                <el-checkbox :value="sp.idSanPham" class="product-checkbox" />
 
-            <el-button type="warning" @click="handleRebuy(order)"> Mua lại </el-button>
+                <img
+                  :src="imageUrl(sp.anh)"
+                  :alt="sp.tenSanPham"
+                  class="product-image cursor-pointer hover:opacity-80 transition"
+                  @click="goToProductDetail(sp.idSanPhamChiTiet)"
+                  @error="$event.target.src = 'https://placehold.co/80x80?text=No+Image'"
+                />
+
+                <div class="product-info">
+                  <h4>{{ sp.tenSanPham }}</h4>
+                  <div class="product-meta">
+                    <span>Mã SP: {{ sp.maSanPham }}</span>
+                    <span v-if="sp.maSPCT">Mã SPCT: {{ sp.maSPCT }}</span>
+                    <span>Màu: {{ sp.mauSac }}</span>
+                    <span>Size: {{ sp.kichThuoc }}</span>
+                  </div>
+                </div>
+
+                <div class="product-price">
+                  <div class="price-row">
+                    <span class="unit-price">
+                      {{ money(sp.donGia) }}
+                    </span>
+                    <span class="quantity"> × {{ sp.soLuong }} </span>
+                  </div>
+                  <strong class="total-price">
+                    {{ money(sp.thanhTien) }}
+                  </strong>
+                </div>
+              </div>
+            </el-checkbox-group>
+          </div>
+
+          <div class="timeline-container" v-if="order.thongTinDonHang.trangThai !== 'da_huy'">
+            <el-steps
+              :active="getStep(order)"
+              :status="order.thongTinDonHang.trangThai === 'giao_that_bai' ? 'error' : 'finish'"
+              finish-status="success"
+              align-center
+            >
+              <el-step title="Chờ xác nhận" />
+              <el-step title="Đã xác nhận" />
+              <el-step title="Chuẩn bị hàng" />
+              <el-step title="Đang giao" />
+              <el-step
+                :title="
+                  order.thongTinDonHang.trangThai === 'giao_that_bai'
+                    ? 'Giao thất bại'
+                    : 'Giao thành công'
+                "
+              />
+              <el-step title="Hoàn thành" />
+            </el-steps>
+          </div>
+
+          <div class="cancel-banner" v-else>
+            <el-alert title="Đơn hàng này đã bị hủy" type="error" :closable="false" show-icon />
+          </div>
+
+          <div class="return-box" v-if="order.traHang && order.traHang.coTraHang">
+            <el-alert type="warning" show-icon :closable="false">
+              <template #title>Đơn hàng đang có yêu cầu trả hàng</template>
+              <p>
+                <b>Mã:</b> {{ order.traHang.maTraHang }} | <b>Lý do:</b> {{ order.traHang.lyDo }}
+              </p>
+            </el-alert>
+          </div>
+
+          <div class="order-footer">
+            <div class="order-summary-mini">
+              <span>Tổng số tiền ({{ order.sanPham.length }} sản phẩm): </span>
+              <strong class="highlight-total">{{
+                money(order.thongTinDonHang.tongThanhToan)
+              }}</strong>
+            </div>
+
+            <div class="action-buttons">
+              <el-button plain @click="openDetail(order)">Xem chi tiết</el-button>
+              <el-button
+                v-if="canPayOrder(order)"
+                class="pay-btn"
+                :icon="CreditCard"
+                @click="handlePayOrder(order)"
+              >
+                Thanh toán
+              </el-button>
+              <el-button
+                type="danger"
+                plain
+                v-if="
+                  order.thongTinDonHang.trangThai === 'cho_xac_nhan' ||
+                  order.thongTinDonHang.trangThai === 'da_xac_nhan'
+                "
+                @click="openCancelDialog(order)"
+              >
+                Hủy đơn
+              </el-button>
+
+              <el-button
+                type="success"
+                v-if="order.thongTinDonHang.trangThai === 'giao_thanh_cong'"
+                @click="confirmReceived(order)"
+              >
+                Đã nhận được hàng
+              </el-button>
+
+              <el-button type="warning" @click="handleRebuy(order)"> Mua lại </el-button>
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="pagination-wrapper" v-if="filteredOrders.length > 0">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[5, 10, 15, 20]"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="filteredOrders.length"
+        />
+      </div>
     </div>
 
-    <!-- ================= DETAIL DIALOG ================= -->
+    <el-backtop :right="30" :bottom="30">
+      <el-icon><Top /></el-icon>
+    </el-backtop>
+
     <el-dialog
       v-model="dialogVisible"
       width="720px"
@@ -203,8 +210,6 @@
       align-center
     >
       <div v-if="selectedOrder" class="dialog-content">
-        <!-- TOP: MÃ ĐƠN & TRẠNG THÁI -->
-        <!-- TOP: MÃ ĐƠN & TRẠNG THÁI -->
         <div class="detail-banner">
           <div class="banner-left">
             <span class="label">Mã hóa đơn:</span>
@@ -214,26 +219,18 @@
             <el-tag :type="statusType(selectedOrder.thongTinDonHang.trangThai)" effect="dark" round>
               {{ selectedOrder.thongTinDonHang.trangThaiHienThi }}
             </el-tag>
-            <!-- Cập nhật trạng thái thanh toán ở banner chi tiết -->
+
             <el-tag
-              :type="
-                selectedOrder.thongTinDonHang.trangThai === 'da_huy'
-                  ? 'danger'
-                  : paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)
-              "
+              v-if="selectedOrder.thongTinDonHang.trangThai !== 'da_huy'"
+              :type="paymentType(selectedOrder.thongTinDonHang.trangThaiThanhToan)"
               effect="plain"
               round
             >
-              {{
-                selectedOrder.thongTinDonHang.trangThai === 'da_huy'
-                  ? 'Đã hủy'
-                  : selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi
-              }}
+              {{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}
             </el-tag>
           </div>
         </div>
 
-        <!-- THÔNG TIN GIAO HÀNG & CHUNG GRID -->
         <div class="detail-grid">
           <div class="detail-section">
             <div class="section-title">
@@ -274,18 +271,12 @@
               </div>
               <div class="info-row">
                 <span>Trạng thái TT:</span>
-                <!-- Cập nhật dòng thông tin chung -->
-                <span>{{
-                  selectedOrder.thongTinDonHang.trangThai === 'da_huy'
-                    ? 'Đã hủy'
-                    : selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi
-                }}</span>
+                <span>{{ selectedOrder.thongTinDonHang.trangThaiThanhToanHienThi }}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- THÔNG TIN THANH TOÁN CHI TIẾT -->
         <div class="detail-section">
           <div class="section-title">
             <el-icon><CreditCard /></el-icon>
@@ -317,7 +308,6 @@
               </el-tag>
             </div>
 
-            <!-- CHỈ HIỆN THỜI GIAN HỦY KHI ĐƠN ĐÃ HỦY -->
             <div class="info-row" v-if="selectedOrder.thongTinDonHang.trangThai === 'da_huy'">
               <span>Thời gian hủy:</span>
               <span>{{
@@ -328,8 +318,17 @@
                 )
               }}</span>
             </div>
+            <div
+              class="info-row"
+              v-if="
+                selectedOrder.thongTinDonHang.trangThai === 'da_huy' &&
+                selectedOrder.thongTinDonHang.ghiChu
+              "
+            >
+              <span>Lý do hủy:</span>
+              <strong class="text-danger">{{ selectedOrder.thongTinDonHang.ghiChu }}</strong>
+            </div>
 
-            <!-- CHỈ HIỆN THỜI GIAN THANH TOÁN KHI ĐÃ THANH TOÁN THỰC TẾ VÀ ĐƠN KHÔNG BỊ HỦY -->
             <div
               class="info-row"
               v-else-if="
@@ -370,7 +369,6 @@
               </el-tag>
             </div>
 
-            <!-- CHỈ HIỆN THỜI GIAN HỦY KHI ĐƠN ĐÃ HỦY -->
             <div class="info-row" v-if="selectedOrder.thongTinDonHang.trangThai === 'da_huy'">
               <span>Thời gian hủy:</span>
               <span>{{
@@ -380,6 +378,16 @@
                     selectedOrder.thongTinDonHang.ngayCapNhat,
                 )
               }}</span>
+            </div>
+            <div
+              class="info-row"
+              v-if="
+                selectedOrder.thongTinDonHang.trangThai === 'da_huy' &&
+                selectedOrder.thongTinDonHang.ghiChu
+              "
+            >
+              <span>Lý do hủy:</span>
+              <strong class="text-danger">{{ selectedOrder.thongTinDonHang.ghiChu }}</strong>
             </div>
 
             <div class="info-row" v-if="selectedOrder.thongTinDonHang.trangThai !== 'da_huy'">
@@ -399,7 +407,6 @@
           </div>
         </div>
 
-        <!-- THÔNG TIN TRẢ HÀNG (NẾU CÓ) -->
         <div
           class="detail-section return-detail-section"
           v-if="selectedOrder.traHang && selectedOrder.traHang.coTraHang"
@@ -420,7 +427,6 @@
           </div>
         </div>
 
-        <!-- DANH SÁCH SẢN PHẨM TRONG DIALOG -->
         <div class="detail-section">
           <div class="section-title">
             <el-icon><Goods /></el-icon>
@@ -457,14 +463,12 @@
           </div>
         </div>
 
-        <!-- TỔNG KẾT THANH TOÁN -->
         <div class="detail-section payment-summary-box">
           <div class="row">
             <span>Tiền hàng</span>
             <span>{{ money(selectedOrder.thongTinDonHang.tongTienHang) }}</span>
           </div>
 
-          <!-- Hiển thị giảm giá voucher nếu có -->
           <div class="row" v-if="selectedOrder.voucher">
             <span
               >Giảm giá voucher ({{ selectedOrder.voucher.maCode }} -
@@ -473,7 +477,6 @@
             <span class="discount">-{{ money(selectedOrder.voucher.soTienGiam) }}</span>
           </div>
 
-          <!-- Hiển thị giảm do xu nếu có sử dụng -->
           <div class="row" v-if="selectedOrder.thongTinDonHang.tienGiamDoXu > 0">
             <span>Giảm do xu ({{ selectedOrder.thongTinDonHang.soXuSuDung || 0 }} xu)</span>
             <span class="discount">-{{ money(selectedOrder.thongTinDonHang.tienGiamDoXu) }}</span>
@@ -500,7 +503,6 @@
       </template>
     </el-dialog>
 
-    <!-- ================= DIALOG HỦY ĐƠN HÀNG ================= -->
     <el-dialog
       v-model="cancelDialogVisible"
       title="Xác nhận hủy đơn hàng"
@@ -579,7 +581,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { Client } from '@stomp/stompjs'
@@ -592,6 +594,7 @@ import {
   Warning,
   CreditCard,
   Goods,
+  Top,
 } from '@element-plus/icons-vue'
 import donHangService from '@/service/DonHangService'
 
@@ -609,6 +612,10 @@ const loading = ref(false)
 const activeTab = ref('all')
 const orders = ref([])
 
+// Trạng thái phân trang
+const currentPage = ref(1)
+const pageSize = ref(5)
+
 const dialogVisible = ref(false)
 const selectedOrder = ref(null)
 
@@ -617,6 +624,11 @@ const orderToCancel = ref(null)
 const selectedCancelReason = ref('Thay đổi địa chỉ nhận hàng')
 const customCancelReason = ref('')
 const canceling = ref(false)
+
+// Tự động chuyển về trang 1 khi đổi tab
+watch(activeTab, () => {
+  currentPage.value = 1
+})
 
 const imageUrl = (path) => {
   if (!path) return 'https://placehold.co/80x80?text=No+Image'
@@ -839,7 +851,6 @@ function money(value) {
   return Number(value).toLocaleString('vi-VN') + ' ₫'
 }
 
-// Cập nhật định dạng thời gian có hiển thị giờ, phút và giây
 function formatDate(date) {
   if (!date) return ''
   return new Date(date).toLocaleString('vi-VN', {
@@ -873,6 +884,7 @@ function formatPaymentStatus(status) {
   }
 }
 
+// Danh sách sau khi lọc tab
 const filteredOrders = computed(() => {
   let list = orders.value
 
@@ -888,6 +900,13 @@ const filteredOrders = computed(() => {
     const dateB = new Date(b.thongTinDonHang.ngayTao).getTime() || 0
     return dateB - dateA
   })
+})
+
+// Danh sách hiển thị theo từng trang
+const paginatedOrders = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredOrders.value.slice(start, end)
 })
 
 function statusType(status) {
@@ -1021,6 +1040,22 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.order-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
 .refresh-btn {
   background-color: #e9a02e !important;
   border-color: #e9a02e !important;
@@ -1771,6 +1806,7 @@ onUnmounted(() => {
     overflow-x: auto;
   }
 }
+
 .pay-btn {
   background: linear-gradient(135deg, #22c55e, #16a34a);
   border: none;

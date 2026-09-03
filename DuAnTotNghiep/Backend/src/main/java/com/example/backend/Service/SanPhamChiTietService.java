@@ -281,6 +281,8 @@ public class SanPhamChiTietService {
 
             res.setGiaNhap(spct.getGiaNhap());
             res.setGiaBan(spct.getGiaBan());
+            res.setMoTa(spct.getIdSanPham().getMoTa());
+
 
             // Tính giá giảm
             DotGiamGia dot = giamGiaMap.get(spct.getId());
@@ -1130,6 +1132,7 @@ public class SanPhamChiTietService {
                     res.setId(spct.getId());
                     res.setIdSanPham(spct.getIdSanPham().getId());
                     res.setTenSanPham(spct.getIdSanPham().getTenSanPham());
+                    res.setMoTa(spct.getIdSanPham().getMoTa());
 
                     res.setTenDanhMuc(
                             spct.getIdSanPham().getIdDanhMuc() != null

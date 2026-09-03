@@ -132,5 +132,4 @@ public class GHNLocationServiceImpl implements GHNLocationService {
                         .get("data");
 
     }
-
 }

@@ -105,9 +105,12 @@ const initMap = () => {
 
   if (!map) {
     map = L.map('map').setView([defaultLat, defaultLng], 15)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+    // Sử dụng CartoDB Tile Layer không bị rate-limit như OpenStreetMap
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors',
+      subdomains: 'abcd',
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     }).addTo(map)
 
     marker = L.marker([defaultLat, defaultLng]).addTo(map)
@@ -286,12 +289,14 @@ const handleSave = () => {
 
               <label class="block">
                 <span class="mb-1.5 block text-xs font-bold text-slate-700">Phường / Xã</span>
+                <!-- components/AddressModal.vue -->
                 <select
                   :value="selectedWard?.WardCode || ''"
                   @change="
                     (e) => {
                       const found = wards.find((w) => w.WardCode == e.target.value)
                       emit('update:selectedWard', found || null)
+                      emit('ward-change', found || null) /* <-- Thêm dòng này */
                       errors.ward = ''
                     }
                   "

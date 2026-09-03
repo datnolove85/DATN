@@ -63,7 +63,7 @@
             </div>
 
             <!-- TITLE -->
-            <h1 class="text-5xl font-black tracking-[8px] text-[#f8f5f1]">VELORA STUDIO</h1>
+            <h1 class="text-5xl font-black tracking-[8px] text-[#f8f5f1]">K-Zone STUDIO</h1>
 
             <!-- LINE -->
             <div
@@ -214,7 +214,7 @@
       <div
         class="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4"
       >
-        <div>© {{ currentYear }} Velora Studio. All rights reserved.</div>
+        <div>© {{ currentYear }} K-Zone Studio. All rights reserved.</div>
 
         <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-white/30 font-medium">
           <a href="#" class="hover:text-white transition-colors"> Chính sách bảo mật </a>

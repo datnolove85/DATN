@@ -52,4 +52,6 @@ public class SanPhamChiTietResponse {
     private Integer phanTramGiam;
 
     private Boolean dangGiamGia;
+
+    private String moTa;
 }

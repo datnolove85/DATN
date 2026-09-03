@@ -10,9 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class GioHangServiceImpl implements GioHangService {
@@ -31,6 +34,10 @@ public class GioHangServiceImpl implements GioHangService {
 
     @Autowired
     private HinhAnhRepository hinhAnhRepository;
+
+    @Autowired
+    private SanPhamGiamGiaRepository sanPhamGiamGiaRepository;
+
 
     @Override
     @Transactional
@@ -113,11 +120,19 @@ public class GioHangServiceImpl implements GioHangService {
         List<GioHangChiTiet> dsGioHang =
                 gioHangChiTietRepository.findByGioHang_Id(gioHang.getId());
 
-        // 4. Mapping Response
+        // 4. Lấy Map đợt giảm giá đang hoạt động
+        Map<Integer, DotGiamGia> giamGiaMap = sanPhamGiamGiaRepository.findAllDangGiamGia()
+                .stream()
+                .collect(Collectors.toMap(
+                        x -> x.getSanPhamChiTiet().getId(),
+                        SanPhamGiamGia::getDotGiamGia,
+                        (existing, replacement) -> existing
+                ));
+
+        // 5. Mapping Response
         return dsGioHang.stream().map(item -> {
 
             SanPhamChiTiet spct = item.getSanPhamChiTiet();
-
             GioHangOnlineResponse response = new GioHangOnlineResponse();
 
             HinhAnh anh = hinhAnhRepository
@@ -129,13 +144,9 @@ public class GioHangServiceImpl implements GioHangService {
             }
 
             response.setId(item.getId());
-
             response.setIdSanPhamChiTiet(spct.getId());
-
             response.setMaSanPhamChiTiet(spct.getMaSanPhamChiTiet());
-
             response.setTenSanPham(spct.getIdSanPham().getTenSanPham());
-
             response.setThuongHieu(
                     spct.getIdSanPham()
                             .getIdThuongHieu()
@@ -143,25 +154,69 @@ public class GioHangServiceImpl implements GioHangService {
             );
 
             response.setMauSac(spct.getIdMauSac().getTenMauSac());
-
             response.setKichCo(spct.getIdKichThuoc().getTenKichThuoc());
 
+            // --- CẬP NHẬT TÍNH GIÁ VÀ PHẦN TRĂM GIẢM GIÁ ---
+            DotGiamGia dot = giamGiaMap.get(spct.getId());
+            BigDecimal giaThucTe = tinhGiaSauGiam(spct.getGiaBan(), dot);
+
             response.setGiaBan(spct.getGiaBan());
+            response.setGiaSauGiam(giaThucTe);
+
+            if (dot != null) {
+                response.setDangGiamGia(true);
+                // Lấy % niêm yết của đợt giảm giá gửi sang FE
+                if ("phan_tram".equalsIgnoreCase(dot.getLoaiGiamGia()) && dot.getGiaTriGiam() != null) {
+                    response.setPhanTramGiam(dot.getGiaTriGiam().intValue());
+                } else {
+                    response.setPhanTramGiam(0);
+                }
+            } else {
+                response.setDangGiamGia(false);
+                response.setPhanTramGiam(0);
+            }
 
             response.setSoLuongTon(spct.getSoLuongTon());
-
             response.setSoLuongKhaDung(spct.getSoLuongKhaDung());
-
             response.setSoLuong(item.getSoLuong());
 
+            // Thành tiền = Giá sau giảm * Số lượng
             response.setThanhTien(
-                    spct.getGiaBan()
-                            .multiply(BigDecimal.valueOf(item.getSoLuong()))
+                    giaThucTe.multiply(BigDecimal.valueOf(item.getSoLuong()))
             );
 
             return response;
 
         }).toList();
+    }
+
+    /**
+     * Hàm helper tính giá sau giảm (xử lý giảm tối đa nếu có)
+     */
+    private BigDecimal tinhGiaSauGiam(BigDecimal giaBan, DotGiamGia dot) {
+        if (giaBan == null || dot == null || dot.getGiaTriGiam() == null) {
+            return giaBan;
+        }
+
+        BigDecimal giaGiam = BigDecimal.ZERO;
+
+        if ("phan_tram".equalsIgnoreCase(dot.getLoaiGiamGia())) {
+            // Số tiền giảm lý thuyết = giaBan * (% / 100)
+            giaGiam = giaBan.multiply(dot.getGiaTriGiam())
+                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
+
+            // Kiểm tra hạn mức giảm tối đa
+            if (dot.getGiaTriGiamToiDa() != null && dot.getGiaTriGiamToiDa().compareTo(BigDecimal.ZERO) > 0) {
+                if (giaGiam.compareTo(dot.getGiaTriGiamToiDa()) > 0) {
+                    giaGiam = dot.getGiaTriGiamToiDa();
+                }
+            }
+        } else if ("tien_mat".equalsIgnoreCase(dot.getLoaiGiamGia())) {
+            giaGiam = dot.getGiaTriGiam();
+        }
+
+        BigDecimal giaSauGiam = giaBan.subtract(giaGiam);
+        return giaSauGiam.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : giaSauGiam;
     }
 
     @Override
@@ -195,4 +250,5 @@ public class GioHangServiceImpl implements GioHangService {
         gioHang.setNgayCapNhat(LocalDateTime.now());
         gioHangRepository.save(gioHang);
     }
+
 }

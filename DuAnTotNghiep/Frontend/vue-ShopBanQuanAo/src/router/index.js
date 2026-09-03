@@ -21,6 +21,11 @@ const router = createRouter({
       name: 'forgot-password',
       component: () => import('@/views/shop/forgot-password.vue'),
     },
+    {
+      path: '/san-pham',
+      name: 'sanPham',
+      component: () => import('@/views/shop/sanpham.vue'),
+    },
 
     // ================= SHOP =================
     {
@@ -58,11 +63,7 @@ const router = createRouter({
           component: () => import('../views/shop/views/donhang.vue'),
           meta: { requiresAuth: true, roles: ['USERS', 'STAFF', 'ADMIN'] },
         },
-        {
-          path: 'san-pham',
-          name: 'sanPham',
-          component: () => import('@/views/shop/sanpham.vue'),
-        },
+
         {
           path: 'minigame',
           name: 'minigame',

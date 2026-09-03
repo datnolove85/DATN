@@ -19,7 +19,7 @@
       </div>
 
       <!-- ACTION BUTTON -->
-      <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+      <!-- <div class="flex items-center gap-3 w-full md:w-auto justify-end">
         <button
           @click="openDefectiveModal"
           class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95 whitespace-nowrap"
@@ -34,7 +34,7 @@
           </svg>
           ⚡ Xử lý SP Lỗi / Hủy hàng loạt
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- QUICK STATS BAR -->
@@ -114,7 +114,7 @@
         </div>
       </div>
 
-      <!-- FILTER BAR (GỌN GÀNG, GIẢM KHOẢNG TRẮNG) -->
+      <!-- FILTER BAR -->
       <div class="p-3.5 border-b border-slate-100 bg-white">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 items-center">
           <!-- Tim kiem tu khoa -->
@@ -204,16 +204,13 @@
             </tr>
 
             <tr v-for="o in orders" :key="o.id" class="hover:bg-slate-50/80 transition-colors">
-              <!-- Mã Đơn -->
               <td class="py-3.5 px-6 font-bold text-indigo-600 font-mono">#{{ o.maHoaDon }}</td>
 
-              <!-- Khách Hàng -->
               <td class="py-3.5 px-6">
                 <div class="font-bold text-slate-800 text-xs">{{ o.tenNguoiNhan }}</div>
                 <div class="text-[10px] text-slate-400">{{ o.soDienThoaiNguoiNhan }}</div>
               </td>
 
-              <!-- Địa Chỉ -->
               <td
                 class="py-3.5 px-6 text-slate-600 max-w-[150px] truncate text-[11px]"
                 :title="o.diaChiGiaoHang"
@@ -221,12 +218,10 @@
                 {{ o.diaChiGiaoHang }}
               </td>
 
-              <!-- Tổng Tiền -->
               <td class="py-3.5 px-6 font-black text-slate-900 font-mono text-sm">
                 {{ formatMoney(o.tongThanhToan) }}đ
               </td>
 
-              <!-- Thanh Toán -->
               <td class="py-3.5 px-6">
                 <div class="flex flex-col gap-1">
                   <span class="text-[10px] font-bold text-slate-500 uppercase">
@@ -242,7 +237,6 @@
                 </div>
               </td>
 
-              <!-- Trạng Thái Đơn -->
               <td class="py-3.5 px-6">
                 <span
                   class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border"
@@ -617,6 +611,7 @@ const presetReasons = [
   'Khách hàng yêu cầu hủy',
 ]
 
+// BỔ SUNG TAB GIAO THẤT BẠI
 const tabs = [
   { key: '', label: 'Tất cả' },
   { key: 'cho_xac_nhan', label: 'Chờ xác nhận' },
@@ -624,6 +619,7 @@ const tabs = [
   { key: 'cho_van_chuyen', label: 'Chờ vận chuyển' },
   { key: 'dang_giao', label: 'Đang giao' },
   { key: 'giao_thanh_cong', label: 'Giao thành công' },
+  { key: 'giao_that_bai', label: 'Giao thất bại' },
   { key: 'hoan_thanh', label: 'Hoàn thành' },
   { key: 'da_huy', label: 'Đã hủy' },
 ]
@@ -634,9 +630,9 @@ const statusMap = {
   cho_van_chuyen: 'Chờ vận chuyển',
   dang_giao: 'Đang giao',
   giao_thanh_cong: 'Giao thành công',
+  giao_that_bai: 'Giao thất bại',
   hoan_thanh: 'Hoàn thành',
   da_huy: 'Đã hủy',
-  giao_that_bai: 'Giao thất bại',
 }
 
 const formatMoney = (val) => (val != null ? val.toLocaleString('vi-VN') : '0')
@@ -857,6 +853,7 @@ const goPage = (p) => {
   fetchOrders()
 }
 
+// CẬP NHẬT CLASS CHO TRẠNG THÁI GIAO THẤT BẠI
 const statusClass = (status) => {
   switch (status) {
     case 'cho_xac_nhan':
@@ -865,6 +862,10 @@ const statusClass = (status) => {
       return 'bg-indigo-50 text-indigo-700 border-indigo-200'
     case 'dang_giao':
       return 'bg-blue-50 text-blue-700 border-blue-200'
+    case 'giao_thanh_cong':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    case 'giao_that_bai':
+      return 'bg-red-50 text-red-700 border-red-200'
     case 'hoan_thanh':
       return 'bg-emerald-50 text-emerald-800 border-emerald-300'
     case 'da_huy':
@@ -891,7 +892,7 @@ watch(
     keywordDebounceTimer = setTimeout(() => {
       page.value = 0
       fetchOrders()
-    }, 400) // Đợi 400ms sau khi ngừng gõ để gọi API
+    }, 400)
   },
 )
 </script>

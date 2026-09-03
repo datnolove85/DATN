@@ -5,10 +5,11 @@
       <div class="absolute -right-24 top-0 h-96 w-96 rounded-full bg-sky-200/30 blur-3xl"></div>
     </div>
 
+    <!-- Giảm max-width hoặc giữ nguyên tuỳ ý, thu gọn padding tổng thể -->
     <div class="relative mx-auto px-4 py-4" style="max-width: 760px !important">
-      <!-- KHUNG CHỨA DUY NHẤT -->
+      <!-- KHUNG CHỨA DUY NHẤT: Giảm padding và khoảng cách giữa các khối (space-y-3) -->
       <div class="rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-sm space-y-3">
-        <!-- 1. HERO HEADER -->
+        <!-- 1. HERO HEADER (Đã xóa viền dưới và giảm khoảng cách) -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span
@@ -23,7 +24,7 @@
           </div>
         </div>
 
-        <!-- 3. ĐỊA CHỈ NHẬN HÀNG -->
+        <!-- 3. ĐỊA CHỈ NHẬN HÀNG (Đã xóa viền ngăn cách) -->
         <div>
           <AddressSection
             :is-logged-in="isLoggedIn"
@@ -48,7 +49,7 @@
           />
         </div>
 
-        <!-- 4. SẢN PHẨM ĐÃ CHỌN -->
+        <!-- 4. SẢN PHẨM ĐÃ CHỌN (Đã xóa viền ngăn cách) -->
         <div>
           <ProductSection
             :is-cart-checkout="isCartCheckout"
@@ -67,7 +68,7 @@
           />
         </div>
 
-        <!-- 4.5. PHƯƠNG THỨC THANH TOÁN -->
+        <!-- 4.5. PHƯƠNG THỨC THANH TOÁN (Đã xóa viền ngăn cách) -->
         <div>
           <div class="flex items-center justify-between mb-2.5">
             <div class="flex items-center gap-3">
@@ -174,7 +175,7 @@
           </div>
         </div>
 
-        <!-- 5. TÓM TẮT ĐƠN HÀNG & DÙNG XU -->
+        <!-- 5. TÓM TẮT ĐƠN HÀNG & DÙNG XU (Đã xóa viền ngăn cách) -->
         <div class="space-y-2.5">
           <div class="flex items-center gap-3">
             <span class="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white">
@@ -182,36 +183,7 @@
             </span>
             <div>
               <h2 class="text-sm font-bold text-slate-900">Tóm tắt đơn hàng</h2>
-              <p class="text-xs text-slate-500">{{ totalQuantity }} sản phẩm trong đơn</p>
-            </div>
-          </div>
-
-          <!-- BẢNG THÔNG BÁO ƯU ĐÃI TỰ ĐỘNG -->
-          <div
-            class="rounded-2xl bg-amber-50/70 p-3 border border-amber-200/60 text-xs space-y-1.5"
-          >
-            <div class="font-bold text-amber-900 flex items-center gap-1.5">
-              <span>🎁 Ưu đãi đơn hàng hiện tại:</span>
-            </div>
-            <div class="space-y-1 text-slate-700">
-              <div class="flex items-center justify-between">
-                <span>• Giảm 10% khi mua từ 3 SP:</span>
-                <span v-if="totalQuantity >= 3" class="font-bold text-emerald-600"
-                  >✓ Đã đủ điều kiện (-10%)</span
-                >
-                <span v-else class="text-amber-700 font-medium"
-                  >Mua thêm {{ 3 - totalQuantity }} SP</span
-                >
-              </div>
-              <div class="flex items-center justify-between">
-                <span>• Freeship cho đơn từ 500k:</span>
-                <span v-if="subtotal >= 500000" class="font-bold text-emerald-600"
-                  >✓ Miễn phí vận chuyển</span
-                >
-                <span v-else class="text-amber-700 font-medium"
-                  >Mua thêm {{ formatMoney(500000 - subtotal) }}</span
-                >
-              </div>
+              <p class="text-xs text-slate-500">{{ quantity }} sản phẩm trong đơn</p>
             </div>
           </div>
 
@@ -221,34 +193,15 @@
               <span class="font-bold text-slate-800">{{ formatMoney(subtotal) }}</span>
             </div>
 
-            <!-- PHÍ VẬN CHUYỂN (ĐÃ ÁP DỤNG FREESHIP) -->
             <div class="flex items-center justify-between text-sm">
               <div class="flex items-center gap-1.5 text-slate-500">
                 <span>Phí vận chuyển</span>
+                <span class="text-xs text-slate-400"></span>
               </div>
               <div class="flex items-center gap-1">
                 <LoaderCircle v-if="shippingLoading" :size="14" class="animate-spin text-sky-600" />
-                <template v-else>
-                  <span v-if="subtotal >= 500000" class="font-bold text-emerald-600">
-                    <span
-                      v-if="originalShippingFee > 0"
-                      class="line-through text-slate-400 text-xs font-normal mr-1"
-                    >
-                      {{ formatMoney(originalShippingFee) }}
-                    </span>
-                    0 đ (Freeship)
-                  </span>
-                  <span v-else class="font-bold text-slate-800">{{
-                    formatMoney(shippingFee)
-                  }}</span>
-                </template>
+                <span v-else class="font-bold text-slate-800">{{ formatMoney(shippingFee) }}</span>
               </div>
-            </div>
-
-            <!-- GIẢM GIÁ TỰ ĐỘNG 10% CHO 3+ SP -->
-            <div v-if="quantityDiscount > 0" class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">Giảm giá combo 3+ SP (10%)</span>
-              <span class="font-bold text-emerald-600">-{{ formatMoney(quantityDiscount) }}</span>
             </div>
 
             <div class="flex items-center justify-between text-sm">
@@ -277,6 +230,7 @@
                 <span class="text-xs text-slate-400">1 xu = {{ formatMoney(tyLeQuyDoi) }}</span>
               </div>
 
+              <!-- Input nhập xu kèm text cảnh báo tỉ lệ -->
               <div>
                 <input
                   type="number"
@@ -344,6 +298,7 @@
 
       <!-- MODALS -->
       <div>
+        <!-- xacnhan.vue -->
         <AddressModal
           :is-open="showAddressModal"
           :is-logged-in="isLoggedIn"
@@ -364,6 +319,7 @@
           @update:selected-ward="(val) => (selectedWard = val)"
           @province-change="onProvinceChange"
           @district-change="onDistrictChange"
+          @ward-change="onWardChange"
         />
 
         <VoucherModal
@@ -389,7 +345,15 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ClipboardCheck, LoaderCircle, ReceiptText, CreditCard, Truck } from 'lucide-vue-next'
+import {
+  Check,
+  ClipboardCheck,
+  LoaderCircle,
+  ReceiptText,
+  ShieldCheck,
+  CreditCard,
+  Truck,
+} from 'lucide-vue-next'
 import { useToast } from 'vue-toastification'
 import { getAllVoucher } from '@/service/VoucherService'
 import { getSanPhamChiTietById } from '@/service/SanPhamChiTiet'
@@ -476,6 +440,17 @@ watch(maxAllowedCoins, (newMax) => {
   }
 })
 
+const apDungXuTuyChinh = () => {
+  onCoinsChange()
+  soXuSuDung.value = Number(soXuCanDung.value) || 0
+  tienGiamDoXu.value = soXuSuDung.value * tyLeQuyDoi.value
+  if (soXuSuDung.value > 0) {
+    toast.success(`Đã áp dụng ${soXuSuDung.value} xu (Giảm ${formatMoney(tienGiamDoXu.value)})`)
+  } else {
+    toast.info('Đã hủy dùng xu.')
+  }
+}
+
 const maxAvailable = computed(() => {
   if (!product.value) return 0
   return product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
@@ -492,6 +467,22 @@ const increaseQty = () => {
 
 const decreaseQty = () => {
   if (quantity.value > 1) quantity.value--
+}
+
+const validateQty = async () => {
+  if (maxAvailable.value === 0) {
+    quantity.value = 0
+    return
+  }
+  if (quantity.value > maxAvailable.value) {
+    try {
+      product.value = await getSanPhamChiTietById(spctId.value)
+      const max = product.value.soLuongKhaDung ?? product.value.soLuongTon ?? 0
+      quantity.value = max > 0 ? max : 0
+    } catch (error) {
+      console.error('Lỗi load lại sản phẩm:', error)
+    }
+  }
 }
 
 const onQtyBlur = () => {
@@ -638,14 +629,9 @@ const selectedWard = ref(null)
 const showAddressModal = ref(false)
 const editingAddress = ref(null)
 
-const shippingFee = ref(0)
-const originalShippingFee = ref(0)
-const shippingLoading = ref(false)
-
 const calculateShipping = async (address) => {
-  if (!address || !address.thanhPho || !address.quan || !address.phuong) {
+  if (!address.thanhPho || !address.quan || !address.phuong) {
     shippingFee.value = 0
-    originalShippingFee.value = 0
     return
   }
   try {
@@ -655,12 +641,9 @@ const calculateShipping = async (address) => {
       quan: address.quan,
       phuong: address.phuong,
     })
-    originalShippingFee.value = fee
-    // Miễn phí vận chuyển nếu tổng đơn tiền hàng >= 500k
-    shippingFee.value = subtotal.value >= 500000 ? 0 : fee
+    shippingFee.value = fee
   } catch (error) {
     shippingFee.value = 0
-    originalShippingFee.value = 0
   } finally {
     shippingLoading.value = false
   }
@@ -788,32 +771,55 @@ function subscribeOrder() {
           }
         }
         break
+      case 'KHO_VOUCHER_UPDATED':
+        await fetchVouchers()
+
+        if (selectedVoucherId.value) {
+          const latest = vouchers.value.find((v) => v.id === selectedVoucherId.value)
+          const now = new Date()
+
+          if (
+            !latest ||
+            latest.trangThai === false ||
+            (latest.soLuongConLai !== null && latest.soLuongConLai <= 0)
+          ) {
+            selectedVoucherId.value = null
+            toast.warning(
+              'Voucher bạn đang chọn đã bị Admin ngưng hoạt động hoặc đã hết lượt sử dụng!',
+            )
+            break
+          }
+
+          if (latest.ngayHetHan && new Date(latest.ngayHetHan) < now) {
+            selectedVoucherId.value = null
+            toast.warning('Voucher bạn đang chọn đã hết hạn sử dụng.')
+            break
+          }
+
+          const dieuKienToiThieu = latest.dieuKienToiThieu ? Number(latest.dieuKienToiThieu) : 0
+          if (subtotal.value < dieuKienToiThieu) {
+            selectedVoucherId.value = null
+            toast.warning(
+              'Đơn hàng không còn đủ điều kiện tối thiểu theo mức quy định mới của voucher.',
+            )
+            break
+          }
+
+          toast.info('Thông tin hoặc mức giảm của voucher vừa được Admin cập nhật lại.')
+        }
+        break
     }
   })
 }
 
-// LOGIC TÍNH TỔNG SỐ LƯỢNG SẢN PHẨM TRONG ĐƠN HÀNG
-const totalQuantity = computed(() => {
-  if (isCartCheckout.value) {
-    return checkoutItems.value.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
-  }
-  return Number(quantity.value) || 0
-})
+const shippingFee = ref(0)
+const shippingLoading = ref(false)
 
-// TÍNH TIỀN HÀNG BAN ĐẦU
 const subtotal = computed(() => {
   if (isCartCheckout.value) {
-    return checkoutItems.value.reduce((sum, item) => sum + (item.giaBan || 0) * item.quantity, 0)
+    return checkoutItems.value.reduce((sum, item) => sum + item.giaBan * item.quantity, 0)
   }
   return (product.value?.giaSauGiam || product.value?.giaBan || 0) * quantity.value
-})
-
-// GIẢM GIẢ 10% CHO 3 SẢN PHẨM TRỞ LÊN
-const quantityDiscount = computed(() => {
-  if (totalQuantity.value >= 3) {
-    return Math.round(subtotal.value * 0.1) // Giảm 10% tiền hàng
-  }
-  return 0
 })
 
 const voucherDiscount = computed(() => {
@@ -824,29 +830,12 @@ const voucherDiscount = computed(() => {
     : v.giaTriGiam
 })
 
-// TỔNG THANH TOÁN = TIỀN HÀNG + PHÍ SHIP - GIẢM GIẢ COMBO - VOUCHER - XU
 const total = computed(() =>
-  Math.max(
-    subtotal.value +
-      shippingFee.value -
-      quantityDiscount.value -
-      voucherDiscount.value -
-      tienGiamDoXu.value,
-    0,
-  ),
+  Math.max(subtotal.value + shippingFee.value - voucherDiscount.value - tienGiamDoXu.value, 0),
 )
-
-// Watch lại subtotal để cập nhật lại phí ship khi thay đổi tổng giá trị đơn (qua mốc 500k)
-watch(subtotal, () => {
-  if (selectedAddressId.value) {
-    const address = addresses.value.find((x) => x.id === selectedAddressId.value)
-    if (address) calculateShipping(address)
-  }
-})
 
 const formatMoney = (value) => Number(value || 0).toLocaleString('vi-VN') + ' đ'
 const isPlacingOrder = ref(false)
-
 const placeOrder = async () => {
   if (isPlacingOrder.value) return
   if (isLoggedIn && !selectedAddressId.value) {
@@ -858,7 +847,6 @@ const placeOrder = async () => {
   const body = {
     addressId: isLoggedIn ? selectedAddressId.value : null,
     shippingFee: shippingFee.value,
-    quantityDiscount: quantityDiscount.value,
     voucherId:
       selectedVoucherObj?.loaiVoucher === 'CA_NHAN' ? null : (selectedVoucherObj?.id ?? null),
     voucherKhachHangId:
@@ -936,14 +924,14 @@ const getCurrentLocation = () => {
 
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=vi`,
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=vi`,
         )
         const data = await response.json()
 
-        if (data && data.address) {
-          const addr = data.address
-          const street = addr.road || addr.house_number || ''
-          addressForm.value.diaChiCuThe = street || data.display_name
+        if (data) {
+          const street = data.locality || ''
+          addressForm.value.diaChiCuThe =
+            street || `${data.locality || ''}, ${data.city || ''}`.replace(/^,\s*/, '')
 
           const cleanName = (str) => {
             if (!str) return ''
@@ -953,7 +941,7 @@ const getCurrentLocation = () => {
               .trim()
           }
 
-          const cityName = addr.city || addr.state || addr.province || ''
+          const cityName = data.principalSubdivision || data.city || ''
           if (cityName && provinces.value.length > 0) {
             const foundProv = provinces.value.find(
               (p) =>
@@ -965,23 +953,18 @@ const getCurrentLocation = () => {
               selectedProvince.value = foundProv
               addressForm.value.thanhPho = foundProv.ProvinceName
 
-              const distList = await getDistricts(foundProv.ProvinceID)
+              // CHUẨN HOÁ MẢNG DISTRICTS
+              const rawDistList = await getDistricts(foundProv.ProvinceID)
+              const distList = Array.isArray(rawDistList) ? rawDistList : rawDistList?.data || []
               districts.value = distList
 
-              const rawCommuneName =
-                addr.town ||
-                addr.village ||
-                addr.ward ||
-                addr.quarter ||
-                addr.neighbourhood ||
-                addr.suburb ||
-                ''
+              const rawCommuneName = data.locality || ''
               const cleanCommuneInput = cleanName(rawCommuneName)
 
               let foundDist = null
               let foundWard = null
 
-              const districtName = addr.county || addr.city_district || addr.district || ''
+              const districtName = data.city || ''
               const cleanDistInput = cleanName(districtName)
 
               if (cleanDistInput) {
@@ -996,7 +979,10 @@ const getCurrentLocation = () => {
               if (!foundDist && cleanCommuneInput) {
                 for (const dist of distList) {
                   try {
-                    const wardList = await getWards(dist.DistrictID)
+                    const rawWardList = await getWards(dist.DistrictID)
+                    const wardList = Array.isArray(rawWardList)
+                      ? rawWardList
+                      : rawWardList?.data || []
                     const matchedWard = wardList.find(
                       (w) =>
                         cleanName(w.WardName) === cleanCommuneInput ||
@@ -1021,7 +1007,8 @@ const getCurrentLocation = () => {
                 addressForm.value.districtId = foundDist.DistrictID
 
                 if (!wards.value.length) {
-                  wards.value = await getWards(foundDist.DistrictID)
+                  const rawWardList = await getWards(foundDist.DistrictID)
+                  wards.value = Array.isArray(rawWardList) ? rawWardList : rawWardList?.data || []
                 }
 
                 if (!foundWard && cleanCommuneInput && wards.value.length > 0) {
@@ -1092,7 +1079,6 @@ const openAddAddress = () => {
 
   showAddressModal.value = true
 }
-
 const openEditAddress = async (item) => {
   editingAddress.value = item
   addressForm.value = { ...item }
@@ -1107,7 +1093,9 @@ const openEditAddress = async (item) => {
     const foundProv = provinces.value.find((p) => p.ProvinceName === item.thanhPho)
     if (foundProv) {
       selectedProvince.value = foundProv
-      districts.value = await getDistricts(foundProv.ProvinceID)
+
+      const resDist = await getDistricts(foundProv.ProvinceID)
+      districts.value = Array.isArray(resDist) ? resDist : resDist?.data || []
 
       if (item.quan) {
         const foundDist = districts.value.find(
@@ -1115,7 +1103,9 @@ const openEditAddress = async (item) => {
         )
         if (foundDist) {
           selectedDistrict.value = foundDist
-          wards.value = await getWards(foundDist.DistrictID)
+
+          const resWard = await getWards(foundDist.DistrictID)
+          wards.value = Array.isArray(resWard) ? resWard : resWard?.data || []
 
           if (item.phuong) {
             const foundWard = wards.value.find(
@@ -1133,6 +1123,7 @@ const openEditAddress = async (item) => {
   showAddressModal.value = true
 }
 
+// Hàm lấy tọa độ từ chuỗi địa chỉ khi người dùng chọn thủ công qua combobox (Dùng Photon API)
 const getCoordinatesFromAddress = async () => {
   const fullAddress = [
     addressForm.value.diaChiCuThe,
@@ -1147,12 +1138,13 @@ const getCoordinatesFromAddress = async () => {
 
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`,
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(fullAddress)}&limit=1`,
     )
     const data = await res.json()
-    if (data && data.length > 0) {
-      addressForm.value.latitude = parseFloat(data[0].lat)
-      addressForm.value.longitude = parseFloat(data[0].lon)
+    if (data && data.features && data.features.length > 0) {
+      const coords = data.features[0].geometry.coordinates
+      addressForm.value.longitude = coords[0]
+      addressForm.value.latitude = coords[1]
     }
   } catch (e) {
     console.error('Không thể lấy tọa độ từ địa chỉ:', e)
@@ -1161,6 +1153,7 @@ const getCoordinatesFromAddress = async () => {
 
 const saveAddress = async () => {
   try {
+    // Nếu chưa có tọa độ (do chọn thủ công bằng combobox), tự động dịch từ chuỗi địa chỉ ra lat/lng
     if (!addressForm.value.latitude || !addressForm.value.longitude) {
       await getCoordinatesFromAddress()
     }
@@ -1199,7 +1192,6 @@ const setDefault = async (id) => {
     toast.error(e.message)
   }
 }
-
 const onProvinceChange = async () => {
   selectedDistrict.value = null
   selectedWard.value = null
@@ -1208,7 +1200,8 @@ const onProvinceChange = async () => {
   shippingFee.value = 0
   if (selectedProvince.value) {
     addressForm.value.thanhPho = selectedProvince.value.ProvinceName
-    districts.value = await getDistricts(selectedProvince.value.ProvinceID)
+    const res = await getDistricts(selectedProvince.value.ProvinceID)
+    districts.value = Array.isArray(res) ? res : res?.data || []
   }
 }
 
@@ -1219,15 +1212,19 @@ const onDistrictChange = async () => {
   if (selectedDistrict.value) {
     addressForm.value.quan = selectedDistrict.value.DistrictName
     addressForm.value.districtId = selectedDistrict.value.DistrictID
-    wards.value = await getWards(selectedDistrict.value.DistrictID)
+    const res = await getWards(selectedDistrict.value.DistrictID)
+    wards.value = Array.isArray(res) ? res : res?.data || []
   }
 }
-
+// xacnhan.vue
 const onWardChange = async () => {
   shippingFee.value = 0
   if (selectedWard.value) {
     addressForm.value.phuong = selectedWard.value.WardName
-    addressForm.value.wardCode = selectedWard.value.WardCode
+    addressForm.value.wardCode = String(selectedWard.value.WardCode)
+  } else {
+    addressForm.value.phuong = ''
+    addressForm.value.wardCode = ''
   }
 }
 

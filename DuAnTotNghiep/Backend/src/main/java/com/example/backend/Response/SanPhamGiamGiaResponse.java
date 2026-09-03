@@ -40,4 +40,6 @@ public class SanPhamGiamGiaResponse {
     private String chatLieu;
     private String kichThuoc;
 
+    private String moTa;
+
 }

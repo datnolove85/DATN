@@ -121,13 +121,12 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
     SELECT h FROM HoaDon h
     WHERE h.trangThai = 'cho_xac_nhan'
       AND h.loaiHoaDon = :loaiHoaDon
-      AND h.ngayTao <= :expiredTime
+      AND COALESCE(h.ngayCapNhat, h.ngayTao) <= :expiredTime
 """)
     List<HoaDon> findExpiredHoaDonByLoai(
             @Param("loaiHoaDon") String loaiHoaDon,
             @Param("expiredTime") LocalDateTime expiredTime
     );
-
     List<HoaDon> findByIdKhachHang_Id(Integer idKhachHang);
 
 

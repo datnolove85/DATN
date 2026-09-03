@@ -1,6 +1,6 @@
 <template>
-  <!-- THÊM antialiased để toàn bộ chữ mượt và sắc nét như Figma, đổi màu chữ gốc tối hơn chút (#222) -->
-  <div class="min-h-screen bg-white text-[#222] antialiased">
+  <!-- Thêm overflow-x-hidden để triệt tiêu hoàn toàn thanh cuộn ngang -->
+  <div class="min-h-screen bg-white text-[#222] antialiased overflow-x-hidden">
     <!-- =========================
          LOADING
     ========================== -->
@@ -17,11 +17,9 @@
          PRODUCT DETAIL
     ========================== -->
     <main v-else class="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-4 lg:pt-2 lg:pb-5">
-      <!-- BREADCRUMB NAVIGATION -->
-      <div
-        class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen border-y border-gray-300 bg-white mb-6"
-      >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <!-- BREADCRUMB NAVIGATION (Đã fix w-screen gây tràn viền) -->
+      <div class="w-full border-y border-gray-300 bg-white mb-6">
+        <div class="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav class="text-[14px] sm:text-[15px] flex items-center flex-wrap gap-2 text-gray-600">
             <router-link
               to="/"
@@ -34,7 +32,7 @@
               :to="{ path: '/san-pham', query: { brand: selectedVariant?.tenThuongHieu } }"
               class="text-[#00a884] hover:underline font-normal whitespace-nowrap"
             >
-              {{ selectedVariant?.tenThuongHieu || 'Wolf Calie' }}
+              {{ selectedVariant?.tenThuongHieu || 'K-ZONE' }}
             </router-link>
             <span class="text-gray-400">/</span>
             <span class="text-gray-800 font-normal">
@@ -49,7 +47,7 @@
         class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(350px,1fr)] gap-8 xl:gap-10 items-stretch"
       >
         <!-- =====================================================
-             LEFT: GALLERY (Bo góc và đường viền thanh lịch cho ảnh)
+             LEFT: GALLERY
         ====================================================== -->
         <section class="min-w-0 flex flex-col justify-between h-full">
           <!-- MAIN IMAGE -->
@@ -121,16 +119,20 @@
                 <div>
                   <span class="text-gray-600">Thương hiệu: </span>
                   <span class="font-medium text-[#00a884]">
-                    {{ selectedVariant?.tenThuongHieu || 'Wolf Calie' }}
+                    {{ selectedVariant?.tenThuongHieu || 'K-ZONE' }}
                   </span>
                 </div>
 
                 <div>
                   <span class="text-gray-600">Tình trạng: </span>
+                  <!-- DYNAMIC STOCK BADGE -->
                   <span
-                    class="inline-flex items-center bg-[#15945c] text-white px-2.5 py-[3px] rounded-[4px] text-[11px] font-bold ml-1"
+                    :class="[
+                      'inline-flex items-center px-2.5 py-[3px] rounded-[4px] text-[11px] font-bold ml-1',
+                      stockStatus.class,
+                    ]"
                   >
-                    Còn hàng
+                    {{ stockStatus.text }}
                   </span>
                 </div>
               </div>
@@ -169,61 +171,33 @@
               </div>
             </div>
 
-            <!-- PROMOTION -->
-            <!-- PROMOTION BLOCK (COMBINED DYNAMIC + FLEXIBLE PROGRESS) -->
-            <div v-if="promotions && promotions.length > 0" class="relative mt-4">
-              <div class="border-2 border-[#ff625c] bg-[#fffafa] rounded-[8px] p-4 shadow-sm">
-                <!-- Header Khuyến Mãi -->
-                <div
-                  class="absolute -top-[13px] left-4 bg-[#ff625c] text-white px-3 py-[4px] rounded-[4px] text-[12px] font-semibold flex items-center gap-1.5 shadow-sm"
+            <!-- PROMOTION BLOCK (100% DYNAMIC & FLEXIBLE PROGRESS) -->
+            <!-- K-ZONE QUICK SERVICE HIGHLIGHTS (UI Tối giản, không tốn logic Backend) -->
+            <div
+              class="mt-4 p-3.5 bg-[#f9fafb] border border-gray-200/80 rounded-[8px] space-y-2.5"
+            >
+              <div class="flex items-center gap-2.5 text-[13px] text-gray-700 font-medium">
+                <span
+                  class="w-5 h-5 rounded-full bg-emerald-100 text-[#00a884] flex items-center justify-center text-[11px] shrink-0 font-bold"
+                  >✓</span
                 >
-                  <span>🎁</span>
-                  <span>Ưu đãi áp dụng</span>
-                </div>
+                <span>Sản phẩm chính hãng K-ZONE 100%</span>
+              </div>
 
-                <!-- 1. CÁCH 2: Render danh sách ưu đãi động từ API -->
-                <div class="space-y-2 text-[13px] sm:text-[14px] text-gray-800 pt-1">
-                  <div
-                    v-for="(promo, index) in promotions"
-                    :key="index"
-                    class="flex items-start gap-2"
-                  >
-                    <span class="font-bold text-[#00a884] shrink-0">✓</span>
-                    <span class="leading-snug" v-html="promo.noiDung"></span>
-                  </div>
-                </div>
-
-                <!-- 2. CÁCH 3: Progress Bar linh hoạt (Chỉ hiện khi sản phẩm có điều kiện số lượng/giá trị) -->
-                <div
-                  v-if="activeTierRule"
-                  class="mt-3.5 pt-3 border-t border-rose-100/80 bg-rose-50/50 -mx-4 -mb-4 p-3.5 rounded-b-[6px]"
+              <div class="flex items-center gap-2.5 text-[13px] text-gray-700 font-medium">
+                <span
+                  class="w-5 h-5 rounded-full bg-blue-100 text-[#0878f2] flex items-center justify-center text-[11px] shrink-0 font-bold"
+                  >⚡</span
                 >
-                  <div
-                    class="text-[12px] sm:text-[13px] font-medium text-rose-900 mb-2 flex items-center justify-between"
-                  >
-                    <span v-if="quantity >= activeTierRule.minQty">
-                      🎉 Bạn đã đạt điều kiện nhận <strong>{{ activeTierRule.rewardText }}</strong
-                      >!
-                    </span>
-                    <span v-else>
-                      Mua thêm
-                      <strong class="text-rose-600 font-bold">{{
-                        activeTierRule.minQty - quantity
-                      }}</strong>
-                      sản phẩm nữa để {{ activeTierRule.rewardText }}
-                    </span>
-                  </div>
+                <span>Giao hàng toàn quốc • Cho phép đồng kiểm khi nhận</span>
+              </div>
 
-                  <!-- Thanh Tiến Trình Dynamic -->
-                  <div class="w-full bg-rose-200/70 h-2 rounded-full overflow-hidden">
-                    <div
-                      class="bg-[#ff625c] h-full transition-all duration-300 rounded-full"
-                      :style="{
-                        width: `${Math.min((quantity / activeTierRule.minQty) * 100, 100)}%`,
-                      }"
-                    ></div>
-                  </div>
-                </div>
+              <div class="flex items-center gap-2.5 text-[13px] text-gray-700 font-medium">
+                <span
+                  class="w-5 h-5 rounded-full bg-rose-100 text-[#df3440] flex items-center justify-center text-[11px] shrink-0 font-bold"
+                  >↺</span
+                >
+                <span>Hỗ trợ đổi size/mẫu trong vòng 7 ngày</span>
               </div>
             </div>
 
@@ -265,7 +239,7 @@
               </div>
             </div>
 
-            <!-- SIZE (Đã Highlight text size khi chọn) -->
+            <!-- SIZE -->
             <div class="mt-6">
               <div class="flex items-center justify-between gap-3 mb-2.5">
                 <div class="text-[14px] sm:text-[15px]">
@@ -406,7 +380,7 @@
       </div>
 
       <!-- =====================================================
-           COMMITMENT
+           COMMITMENT (DYNAMIC ARRAY)
       ====================================================== -->
       <section class="mt-12">
         <div class="flex items-center gap-4 mb-4">
@@ -417,8 +391,9 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Cam kết 1: Huy hiệu / Chất lượng -->
           <div
+            v-for="(item, index) in SHOP_COMMITMENTS"
+            :key="index"
             class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
           >
             <div
@@ -432,96 +407,11 @@
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-                />
+                <path stroke-linecap="round" stroke-linejoin="round" :d="item.iconPath" />
               </svg>
             </div>
             <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
-              Cam kết sản phẩm đúng mô tả, chất liệu cao cấp.
-            </div>
-          </div>
-
-          <!-- Cam kết 2: Giao hàng -->
-          <div
-            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
-          >
-            <div
-              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-6"
-                />
-              </svg>
-            </div>
-            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
-              Giao trong 3-5 ngày và freeship đơn từ 498k
-            </div>
-          </div>
-
-          <!-- Cam kết 3: Đổi trả -->
-          <div
-            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
-          >
-            <div
-              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.9"
-                />
-              </svg>
-            </div>
-            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
-              Hỗ trợ đổi trả trong 7 ngày nếu sản phẩm lỗi.
-            </div>
-          </div>
-
-          <!-- Cam kết 4: Tư vấn -->
-          <div
-            class="p-4 flex items-center gap-3 border border-gray-200 rounded-[8px] bg-white shadow-sm"
-          >
-            <div
-              class="w-10 h-10 shrink-0 border border-gray-200 bg-gray-50 rounded-[6px] flex items-center justify-center text-gray-800"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
-                />
-              </svg>
-            </div>
-            <div class="text-[13px] sm:text-[14px] text-gray-700 leading-[1.4]">
-              Đội ngũ tư vấn tận tâm, giải đáp nhanh chóng
+              {{ item.text }}
             </div>
           </div>
         </div>
@@ -555,11 +445,8 @@
             v-if="activeTab === 'THÔNG TIN SẢN PHẨM'"
             class="text-[15px] text-gray-700 leading-relaxed"
           >
-            <p>
-              Áo thun tôn dáng dành riêng cho nàng. Thiết kế cổ tròn, dáng ôm tôn lên đường cong cơ
-              thể giúp nàng trông thon gọn và năng động hơn. Sản phẩm cho cảm giác mặc siêu mềm mại,
-              siêu co giãn, xứng đáng là một item không thể thiếu trong tủ đồ hàng ngày cho các chị
-              em.
+            <p class="whitespace-pre-line">
+              {{ selectedVariant?.moTa || product?.moTa || 'Chưa có mô tả cho sản phẩm này.' }}
             </p>
 
             <div
@@ -582,7 +469,7 @@
               <div class="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <span class="text-gray-500 font-medium">Thương hiệu</span>
                 <span class="font-medium text-gray-900">
-                  {{ selectedVariant?.tenThuongHieu || 'Wolf Calie' }}
+                  {{ selectedVariant?.tenThuongHieu || 'K-ZONE' }}
                 </span>
               </div>
 
@@ -611,7 +498,7 @@
           >
             <p>• Giao hàng toàn quốc từ 3 - 5 ngày làm việc.</p>
             <p>• Miễn phí vận chuyển cho đơn hàng từ 500.000 VNĐ.</p>
-            <p>• Hỗ trợ đổi trả nếu sản phẩm bị lỗi.</p>
+            <p>• Hỗ trợ đổi trả trong vòng 7 ngày nếu sản phẩm bị lỗi.</p>
           </div>
         </div>
       </section>
@@ -972,36 +859,99 @@ import stompClient from '@/socket'
 import emitter from '@/utils/emitter'
 import { flyToCart } from '@/utils/cartAnimation'
 import QuickViewModal from '@/views/shop/views/componnents/QuickViewModal.vue'
-import yeuThichService from '@/service/yeuThichService' // Điều chỉnh lại đường dẫn cho đúng với cấu trúc thư mục thực tế của bạn
+import yeuThichService from '@/service/yeuThichService'
 
-// Dữ liệu khuyến mãi động nhận từ Backend (API detail sản phẩm hoặc đợt giảm giá)
-const promotions = computed(() => {
-  // Ưu tiên lấy từ biến selectedVariant hoặc product trả về
-  if (selectedVariant.value?.danhSachKhuyenMai) {
-    return selectedVariant.value.danhSachKhuyenMai
-  }
+// Dynamic Config & Mốc Freeship
+const FREESHIP_THRESHOLD = 500000
 
-  // Mẫu dữ liệu fallback nếu Backend trả về dạng danh sách text/object
+// Danh sách Cam kết Hệ thống
+const SHOP_COMMITMENTS = [
+  {
+    text: 'Cam kết sản phẩm đúng mô tả, chất liệu cao cấp.',
+    iconPath:
+      'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z',
+  },
+  {
+    text: 'Giao trong 3-5 ngày ',
+    iconPath:
+      'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-6',
+  },
+  {
+    text: 'Hỗ trợ đổi trả trong 7 ngày nếu sản phẩm lỗi.',
+    iconPath:
+      'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.9',
+  },
+  {
+    text: 'Đội ngũ tư vấn tận tâm, giải đáp nhanh chóng',
+    iconPath:
+      'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z',
+  },
+]
+
+// Dynamic List Ưu đãi
+const displayPromotions = computed(() => {
+  const localPromos =
+    selectedVariant.value?.danhSachKhuyenMai || product.value?.danhSachKhuyenMai || []
+  if (localPromos.length > 0) return localPromos
+
   return [
-    { noiDung: 'Giảm <strong>10%</strong> khi mua từ <strong>3 sản phẩm</strong> cùng loại.' },
     { noiDung: 'Miễn phí vận chuyển cho đơn hàng từ <strong>500.000 VNĐ</strong>.' },
+    {
+      noiDung:
+        'Đổi trả miễn phí trong vòng <strong>7 ngày</strong> nếu không vừa size hoặc lỗi NSX.',
+    },
+    { noiDung: 'Tặng mã giảm giá cho đơn hàng tiếp theo.' },
   ]
 })
 
-// Quy tắc linh hoạt cho Progress Bar:
-// Nếu sản phẩm/khuyến mãi này có rule "Mua X cái giảm Y", gán dữ liệu vào đây.
-// Nếu sản phẩm thường không có rule thì trả về null -> Progress Bar tự ẩn!
-const activeTierRule = computed(() => {
-  // Ví dụ: lấy điều kiện từ đợt giảm giá của Variant hiện tại
-  const minQty = selectedVariant.value?.soLuongToiThieuUuDai || 3 // Lấy từ API, nếu không có để mặc định hoặc null
+// Dynamic Progress Bar (Mốc mua nhiều giảm giá HOẶC Mốc Freeship)
+const activeProgress = computed(() => {
+  const currentVariant = selectedVariant.value
+  if (!currentVariant) return null
 
-  if (!minQty || minQty <= 1) return null // Không có quy tắc mua nhiều -> Không hiện progress bar
+  // 1. Trường hợp Variant có cấu hình mua tối thiểu X cái để giảm giá
+  const minQty = currentVariant.soLuongToiThieuUuDai
+  if (minQty && minQty > 1) {
+    const diff = minQty - quantity.value
+    return {
+      type: 'quantity',
+      isReached: diff <= 0,
+      message:
+        diff <= 0
+          ? `🎉 Bạn đã đạt điều kiện nhận <strong>${currentVariant.tenUuDai || 'ưu đãi giảm giá đặc biệt'}</strong>!`
+          : `Mua thêm <strong class="text-rose-600 font-bold">${diff}</strong> sản phẩm nữa để ${currentVariant.tenUuDai || 'được giảm giá'}`,
+      percent: Math.min((quantity.value / minQty) * 100, 100),
+    }
+  }
+
+  // 2. Trường hợp mặc định: Tính theo tiến trình Freeship (Giá x Số lượng)
+  const currentPrice = currentVariant.giaSauGiam || currentVariant.giaBan || 0
+  const totalAmount = currentPrice * quantity.value
+  const diffMoney = FREESHIP_THRESHOLD - totalAmount
 
   return {
-    minQty: minQty,
-    rewardText: selectedVariant.value?.tenUuDai || 'được giảm 10% cho đơn hàng',
+    type: 'freeship',
+    isReached: diffMoney <= 0,
+    message:
+      diffMoney <= 0
+        ? '🎉 Đơn hàng đã đủ điều kiện <strong>Miễn phí vận chuyển (Freeship)</strong>!'
+        : `Mua thêm <strong class="text-rose-600 font-bold">${diffMoney.toLocaleString('vi-VN')}đ</strong> nữa để được <strong>Miễn phí vận chuyển</strong>`,
+    percent: Math.min((totalAmount / FREESHIP_THRESHOLD) * 100, 100),
   }
 })
+
+// Dynamic Trạng thái tồn kho
+const stockStatus = computed(() => {
+  const stock = availableStock.value
+  if (stock > 5) {
+    return { text: 'Còn hàng', class: 'bg-[#15945c] text-white' }
+  } else if (stock > 0) {
+    return { text: `Sắp hết (Còn ${stock})`, class: 'bg-amber-500 text-white' }
+  } else {
+    return { text: 'Hết hàng', class: 'bg-gray-400 text-white' }
+  }
+})
+
 const quickViewProductId = ref(null)
 const hoveredCardId = ref(null)
 const quickView = (item) => {
@@ -1032,7 +982,7 @@ const recentlyViewedScrollProgress = ref(0)
 
 const isAddingToCart = ref(false)
 
-const API_URL = 'http://localhost:8080'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 const placeholder = 'https://via.placeholder.com/300'
 
 const restrictNumberKeys = (event) => {
@@ -1040,13 +990,12 @@ const restrictNumberKeys = (event) => {
     event.preventDefault()
   }
 }
-// Lấy ID khách hàng từ sessionStorage (dựa vào cấu trúc user hiện tại của bạn)
+
 const getCustomerId = () => {
   const userStr = sessionStorage.getItem('user')
   if (!userStr) return null
   const userObj = JSON.parse(userStr)
 
-  // Ưu tiên lấy idKhachHang, khachHangId hoặc id của khách trước, cuối cùng mới đến id tài khoản
   return (
     userObj?.idKhachHang || userObj?.khachHangId || userObj?.khachHang?.id || userObj?.id || null
   )
@@ -1054,19 +1003,16 @@ const getCustomerId = () => {
 
 const wishlistIds = ref([])
 
-// Kiểm tra xem sản phẩm đã được thích chưa (dùng cho đổi màu icon)
 const isFavorite = (idSanPham) => {
   return wishlistIds.value.includes(idSanPham)
 }
 
-// Gọi API lấy danh sách yêu thích của khách hàng khi load trang
 const loadWishlist = async () => {
   const idKhachHang = getCustomerId()
   if (!idKhachHang) return
 
   try {
     const data = await yeuThichService.getDanhSach(idKhachHang)
-    // Map lại danh sách ID sản phẩm đã thích để check hiển thị icon
     wishlistIds.value = (data || []).map(
       (item) => item.idSanPham || item.sanPham?.idSanPham || item.id,
     )
@@ -1075,7 +1021,6 @@ const loadWishlist = async () => {
   }
 }
 
-// Xử lý khi bấm nút thả tim (Toggle)
 const toggleFavorite = async (item) => {
   const idKhachHang = getCustomerId()
   if (!idKhachHang) {
@@ -1085,9 +1030,8 @@ const toggleFavorite = async (item) => {
   }
 
   try {
-    const res = await yeuThichService.toggleYeuThich(idKhachHang, item.idSanPham)
+    await yeuThichService.toggleYeuThich(idKhachHang, item.idSanPham)
 
-    // Cập nhật trạng thái hiển thị icon ngay lập tức trên UI
     if (wishlistIds.value.includes(item.idSanPham)) {
       wishlistIds.value = wishlistIds.value.filter((id) => id !== item.idSanPham)
     } else {
@@ -1256,6 +1200,7 @@ const loadProduct = async () => {
   loading.value = true
   try {
     const data = await getShopVariantsByProductId(route.params.id)
+
     product.value = data
     if (data.colors?.length) {
       selectedColor.value = data.colors[0]

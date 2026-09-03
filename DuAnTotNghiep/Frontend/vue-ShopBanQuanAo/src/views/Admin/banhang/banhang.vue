@@ -777,8 +777,8 @@ const groupedMasterProducts = computed(() => {
         representativeProduct: sp,
         variants: [],
         totalStock: 0,
-        minPrice: Infinity,
-        maxPrice: 0,
+        maxGiaBan: 0,
+        minGiaSauGiam: Infinity,
         hasDiscount: false,
         maxDiscountPercent: 0,
       })
@@ -790,9 +790,17 @@ const groupedMasterProducts = computed(() => {
     const stock = sp.soLuongKhaDung ?? sp.soLuongTon ?? 0
     group.totalStock += stock
 
-    const price = sp.dangGiamGia ? sp.giaSauGiam : sp.giaBan
-    if (price < group.minPrice) group.minPrice = price
-    if (price > group.maxPrice) group.maxPrice = price
+    // 1. Tìm giá gốc cao nhất trong các biến thể
+    const basePrice = sp.giaBan || 0
+    if (basePrice > group.maxGiaBan) {
+      group.maxGiaBan = basePrice
+    }
+
+    // 2. Tìm giá thực tế sau giảm thấp nhất trong các biến thể
+    const effectivePrice = sp.dangGiamGia ? (sp.giaSauGiam ?? sp.giaBan) : sp.giaBan
+    if (effectivePrice < group.minGiaSauGiam) {
+      group.minGiaSauGiam = effectivePrice
+    }
 
     if (sp.dangGiamGia) {
       group.hasDiscount = true
@@ -805,28 +813,22 @@ const groupedMasterProducts = computed(() => {
 
   return Array.from(map.values()).map((group) => {
     const rep = group.representativeProduct || {}
-    const minP = group.minPrice === Infinity ? 0 : group.minPrice
-
-    let priceFormatted = ''
-    if (group.minPrice === group.maxPrice || group.minPrice === Infinity) {
-      priceFormatted = formatPrice(minP)
-    } else {
-      priceFormatted = `${formatPrice(group.minPrice)} - ${formatPrice(group.maxPrice)}`
-    }
+    const giaBanGocCaoNhat = group.maxGiaBan
+    const giaSauGiamThapNhat =
+      group.minGiaSauGiam === Infinity ? giaBanGocCaoNhat : group.minGiaSauGiam
 
     return {
-      ...rep, // Lấy các thuộc tính mặc định của sản phẩm đại diện
+      ...rep,
       ...group,
-      // Map đúng tên biến mà PosProductGrid.vue sử dụng
-      giaBan: minP,
-      giaSauGiam: minP,
+      // Gán giá gốc cao nhất và giá sau giảm thấp nhất vào model cho Component Grid hiển thị
+      giaBan: giaBanGocCaoNhat,
+      giaSauGiam: giaSauGiamThapNhat,
       soLuongKhaDung: group.totalStock,
       soLuongTon: group.totalStock,
       image: rep.image,
       images: rep.images,
       dangGiamGia: group.hasDiscount,
       phanTramGiam: group.maxDiscountPercent,
-      priceFormatted,
     }
   })
 })

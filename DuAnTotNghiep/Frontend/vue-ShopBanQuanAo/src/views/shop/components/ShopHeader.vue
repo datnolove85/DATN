@@ -27,7 +27,7 @@
         </button>
 
         <RouterLink
-          to="/home"
+          to="/san-pham"
           class="w-10 h-10 hover:text-slate-900 rounded-full hover:bg-slate-100 flex items-center justify-center transition"
           title="Trang chủ"
         >
@@ -331,10 +331,10 @@ const handleScroll = () => {
   scrolled.value = window.scrollY > 15
 }
 
+// ✅ MỚI: Chỉ đếm số lượng mặt hàng/sản phẩm có trong giỏ
 const cartCount = computed(() => {
-  return cart.value.reduce((sum, item) => sum + Number(item.soLuong), 0)
+  return cart.value.length
 })
-
 const wishlistCount = computed(() => {
   return wishlist.value.length
 })
